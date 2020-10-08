@@ -1,6 +1,8 @@
 #!/bin/sh
 set -ex
 
+git diff --exit-code || (echo '\n\n\nGit repo is not clean; please commit first.' && exit 1)
+
 IMAGE=reachsh/stdlib:latest
 docker run --entrypoint /bin/sh --volume "$(pwd):/cwd" "$IMAGE" \
   -c 'cp /stdlib/*.mjs /stdlib/package.json /stdlib/*.d.ts /cwd/'
