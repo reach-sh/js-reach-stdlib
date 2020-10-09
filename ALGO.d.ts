@@ -83,6 +83,7 @@ export declare function parseCurrency(amt: CurrencyAmount): BigNumber;
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
  */
 export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare function getDefaultAccount(): Promise<Account>;
 export declare const newAccountFromMnemonic = false;
 export declare const getNetworkTime: () => Promise<Round>;
 export declare const waitUntilTime = false;

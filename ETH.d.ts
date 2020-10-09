@@ -42,6 +42,7 @@ export declare const transfer: (from: AccountTransferable, to: AccountTransferab
 declare type Hash = string;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
+export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
 declare type OnProgress = (obj: {

@@ -22,6 +22,7 @@ export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
  */
 export declare const transfer: (from: AccountTransferrable, to: AccountTransferrable, value: BigNumber) => Promise<void>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
+export declare function getDefaultAccount(): Promise<Account>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string>, ContractInfo>>;
 export declare function getNetworkTime(): BigNumber;
 declare type OnProgress = (obj: {

@@ -12,7 +12,6 @@ const BALANCES = {};
 const toAcct = (address) => ({
   networkAccount: { address },
 });
-const REACHY_RICH = toAcct('reachy_rich');
 export const balanceOf = async (acc) => {
   return BALANCES[acc.networkAccount.address];
 };
@@ -154,7 +153,14 @@ const makeAccount = () => {
   BALANCES[address] = stdlib.bigNumberify(0);
   return { address };
 };
+const REACHY_RICH_P = (async () => {
+  return await connectAccount({ address: 'reachy_rich' });
+})();
+export async function getDefaultAccount() {
+  return REACHY_RICH_P;
+}
 export const newTestAccount = async (startingBalance) => {
+  const REACHY_RICH = await REACHY_RICH_P;
   const networkAccount = makeAccount();
   debug(`new account: ${networkAccount.address}`);
   BALANCES[REACHY_RICH.networkAccount.address] = startingBalance;
