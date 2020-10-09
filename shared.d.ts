@@ -39,7 +39,7 @@ export declare type ISimTxn<RawAddress> = {
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (msg: any) => void;
-export declare const assert: (d: any, ai?: any) => any;
+export declare const assert: (d: any, ai?: any) => void;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
 export declare type TyContract<T> = {
@@ -51,7 +51,7 @@ export declare type TyContract<T> = {
 };
 export declare const T_Null: TyContract<null>;
 export declare const T_Bool: TyContract<boolean>;
-export declare const T_UInt256: TyContract<BigNumber>;
+export declare const T_UInt: TyContract<BigNumber>;
 export declare const T_Bytes: TyContract<string>;
 export declare const T_Digest: TyContract<BigNumber>;
 export declare const T_Address: TyContract<string>;
@@ -72,12 +72,12 @@ export declare const isHex: typeof ethers.ethers.utils.isHexString;
 export declare const hexToString: typeof ethers.ethers.utils.toUtf8String;
 export declare const digest: (...args: Array<any>) => string;
 export declare const hexToBigNumber: (h: string) => BigNumber;
-export declare const uint256ToBytes: (i: BigNumber) => string;
+export declare const uintToBytes: (i: BigNumber) => string;
 export declare const bigNumberToHex: (u: num, size?: number) => string;
 export declare const bytesEq: (x: any, y: any) => boolean;
 export declare const digestEq: (x: any, y: any) => boolean;
 export declare const addressEq: (x: any, y: any) => boolean;
-export declare const randomUInt256: () => BigNumber;
+export declare const randomUInt: () => BigNumber;
 export declare const hasRandom: {
     random: () => BigNumber;
 };

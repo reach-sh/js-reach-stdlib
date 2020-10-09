@@ -4,7 +4,7 @@ import algosdk from 'algosdk';
 import base32 from 'hi-base32';
 import ethers from 'ethers';
 import Timeout from 'await-timeout';
-import { debug, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt256, T_Bool, T_Digest, setDigestWidth, getDEBUG } from './shared.mjs';
+import { debug, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, setDigestWidth, getDEBUG } from './shared.mjs';
 export * from './shared.mjs';
 // ctc[ALGO] = {
 //   address: string
@@ -139,7 +139,7 @@ async function compileFor(bin, ApplicationID) {
   const { appApproval, appClear, ctc, steps } = algob;
   const subst_appid = (x) => replaceUint8Array('ApplicationID',
     // @ts-ignore XXX
-    safeify(T_UInt256, bigNumberify(ApplicationID)), x);
+    safeify(T_UInt, bigNumberify(ApplicationID)), x);
   const ctc_bin = await compileTEAL('ctc_subst', subst_appid(ctc));
   const subst_ctc = (x) => replaceAddr('ContractAddr', ctc_bin.hash, x);
   let appApproval_subst = appApproval;
@@ -194,7 +194,7 @@ const safeify = (ty, x) => {
     return r;
   }
   if (typeof x === 'boolean') {
-    return safeify(T_UInt256, bigNumberify(x ? 1 : 0));
+    return safeify(T_UInt, bigNumberify(x ? 1 : 0));
   }
   if (typeof x === 'string') {
     return ethers.utils.arrayify(x);
@@ -202,7 +202,7 @@ const safeify = (ty, x) => {
   throw Error(`can't safeify ${JSON.stringify(x)}`);
 };
 const desafeify = (ty, v) => {
-  if (ty.name === 'UInt256') {
+  if (ty.name === 'UInt') {
     return hexToBigNumber('0x' + v.toString('hex'));
   }
   if (ty.name == 'Bytes') {
@@ -288,7 +288,7 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         debug(`${dhead} --- isHalt = ${JSON.stringify(isHalt)}`);
         const actual_args = [sim_r.prevSt, sim_r.nextSt, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
-        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt256, T_UInt256, ...tys];
+        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
         debug(`${dhead} --- ARGS = ${JSON.stringify(actual_args)}`);
         const munged_args =
           // XXX this needs to be customized for Algorand, so I don't have to safeify. Ideally munge would return Uint8Array for everything.
@@ -391,7 +391,7 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- args_bufs = ${JSON.stringify(args_bufs)}`);
         const args_un = args_bufs.map((v, i) => desafeify(tys[i], v));
         debug(`${dhead} --- args_un = ${JSON.stringify(args_un)}`);
-        const totalFromFee = desafeify(T_UInt256, Buffer.from(ctc_args[3], 'base64'));
+        const totalFromFee = desafeify(T_UInt, Buffer.from(ctc_args[3], 'base64'));
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         const fromAddr = txn['payment-transaction'].receiver;
         const from = algosdk.decodeAddress(fromAddr).publicKey;

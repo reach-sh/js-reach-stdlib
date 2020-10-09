@@ -16,17 +16,7 @@ export const debug = (msg) => {
     console.log(`[${(new Date()).toISOString()}] DEBUG: ${msg}`);
   }
 };
-export const assert = (d, ai = null) => {
-  const msg = format_ai(ai);
-  // @ts-ignore
-  if (nodeAssert.strict.assert) {
-    // Note: this branch is for browser compatibility,
-    // @ts-ignore
-    return nodeAssert.strict.assert(d, msg);
-  } else {
-    return nodeAssert.strict(d, msg);
-  }
-};
+export const assert = (d, ai = null) => nodeAssert.strict(d, format_ai(ai));
 const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
@@ -66,8 +56,8 @@ export const T_Bool = {
   unmunge: (v) => v,
   defaultValue: false,
 };
-export const T_UInt256 = {
-  name: 'UInt256',
+export const T_UInt = {
+  name: 'UInt',
   canonicalize: (v) => {
     if (isBigNumber(v)) {
       return v;
@@ -111,7 +101,7 @@ export const T_Bytes = {
   unmunge: (v) => v,
   defaultValue: '0x0',
 };
-export const T_Digest = Object.assign({}, T_UInt256, { name: 'Digest' });
+export const T_Digest = Object.assign({}, T_UInt, { name: 'Digest' });
 // TODO: use a wrapper type for canonicalized form
 export const T_Address = {
   name: 'Address',
@@ -334,7 +324,7 @@ export const digest = (...args) => {
   return r;
 };
 export const hexToBigNumber = (h) => bigNumberify(hexTo0x(h));
-export const uint256ToBytes = (i) => bigNumberToHex(i);
+export const uintToBytes = (i) => bigNumberToHex(i);
 export const bigNumberToHex = (u, size = 32) => {
   const width = 8 * size;
   const format = `ufixed${width}x0`;
@@ -347,9 +337,9 @@ export const bigNumberToHex = (u, size = 32) => {
 export const bytesEq = (x, y) => hexOf(x) === hexOf(y);
 export const digestEq = bytesEq;
 export const addressEq = bytesEq;
-export const randomUInt256 = () => hexToBigNumber(byteArrayToHex(crypto.randomBytes(32)));
+export const randomUInt = () => hexToBigNumber(byteArrayToHex(crypto.randomBytes(32)));
 export const hasRandom = {
-  random: randomUInt256,
+  random: randomUInt,
 };
 export const eq = (a, b) => bigNumberify(a).eq(bigNumberify(b));
 export const add = (a, b) => bigNumberify(a).add(bigNumberify(b));
