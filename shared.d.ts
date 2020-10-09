@@ -39,7 +39,7 @@ export declare type ISimTxn<RawAddress> = {
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (msg: any) => void;
-export declare const assert: (d: any, ai?: any) => void;
+export declare const assert: (d: any, ai?: any) => any;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
 export declare type TyContract<T> = {

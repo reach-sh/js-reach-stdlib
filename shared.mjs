@@ -16,7 +16,17 @@ export const debug = (msg) => {
     console.log(`[${(new Date()).toISOString()}] DEBUG: ${msg}`);
   }
 };
-export const assert = (d, ai = null) => nodeAssert.strict(d, format_ai(ai));
+export const assert = (d, ai = null) => {
+  const msg = format_ai(ai);
+  // @ts-ignore
+  if (nodeAssert.strict.assert) {
+    // Note: this branch is for browser compatibility,
+    // @ts-ignore
+    return nodeAssert.strict.assert(d, msg);
+  } else {
+    return nodeAssert.strict(d, msg);
+  }
+};
 const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
