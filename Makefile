@@ -7,7 +7,7 @@ PACKAGE='@reach-sh/stdlib'
 bump-version-and-publish:
 	npm version prerelease --preid=rc
 	npm publish --access=public --tag=rc
-	npm dist-tag add "$(PACKAGE)@$$(npm view $(PACKAGE) version)" latest
+	npm dist-tag add $(PACKAGE)"@$$(npm view $(PACKAGE) version)" latest
 	git push
 	git push --tags
 
