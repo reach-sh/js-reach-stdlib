@@ -42,6 +42,7 @@ export declare const debug: (msg: any) => void;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
+export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare type TyContract<T> = {
     name: string;
     canonicalize: (v: any) => T;

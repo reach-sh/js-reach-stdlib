@@ -1,6 +1,9 @@
-import ethers, { BigNumber, Signer } from 'ethers';
+import ethers, { Signer } from 'ethers';
 import { CurrencyAmount, IContract, IAccount } from './shared';
 export * from './shared';
+declare type BigNumber = ethers.BigNumber;
+declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare const UInt_max: BigNumber;
 declare type Wallet = ethers.Wallet;
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = {

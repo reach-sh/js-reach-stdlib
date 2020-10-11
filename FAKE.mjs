@@ -1,9 +1,12 @@
 import Timeout from 'await-timeout';
+import ethers from 'ethers';
 import * as stdlib from './shared.mjs';
 export * from './shared.mjs';
 export const debug = (msg) => {
   stdlib.debug(`${BLOCKS.length}: ${msg}}`);
 };
+const BigNumber = ethers.BigNumber;
+export const UInt_max = BigNumber.from(2).pow(256).sub(1);
 // This can be exposed to the user for checking the trace of blocks
 // for testing.
 const BLOCKS = [];

@@ -6,6 +6,8 @@ import ethers from 'ethers';
 import Timeout from 'await-timeout';
 import { debug, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, setDigestWidth, getDEBUG } from './shared.mjs';
 export * from './shared.mjs';
+const BigNumber = ethers.BigNumber;
+export const UInt_max = BigNumber.from(2).pow(64).sub(1);
 // ctc[ALGO] = {
 //   address: string
 //   appId: confirmedTxn.TransactionResults.CreatedAppIndex; // ?

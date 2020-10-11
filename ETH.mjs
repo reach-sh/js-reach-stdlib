@@ -7,6 +7,8 @@ import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
 import { add, assert, bigNumberify, debug, ge, eq, getDEBUG, isBigNumber, digest, lt } from './shared.mjs';
 export * from './shared.mjs';
+const BigNumber = ethers.BigNumber;
+export const UInt_max = BigNumber.from(2).pow(256).sub(1);
 
 function isNone(m) {
   return m.length === 0;

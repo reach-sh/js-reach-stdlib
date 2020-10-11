@@ -20,6 +20,13 @@ export const assert = (d, ai = null) => nodeAssert.strict(d, format_ai(ai));
 const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
+export const checkedBigNumberify = (at, m, x) => {
+  const xb = bigNumberify(x);
+  if (xb.gte(0) && xb.lte(m)) {
+    return xb;
+  }
+  throw Error(`bigNumberify: ${x} out of range [0, ${m}] at ${at}`);
+};
 // Hex helpers
 // const un0x           = h => h.replace(/^0x/, ''); // unused
 const hexTo0x = (h) => '0x' + h.replace(/^0x/, '');

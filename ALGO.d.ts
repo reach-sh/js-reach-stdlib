@@ -1,6 +1,9 @@
-import { BigNumber } from 'ethers';
+import ethers from 'ethers';
 import { CurrencyAmount } from './shared';
 export * from './shared';
+declare type BigNumber = ethers.BigNumber;
+declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare const UInt_max: BigNumber;
 declare type Round = number;
 declare type Address = string;
 declare type RawAddress = Uint8Array;

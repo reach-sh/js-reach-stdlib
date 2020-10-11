@@ -1,8 +1,11 @@
-import { BigNumber } from 'ethers';
+import ethers from 'ethers';
 import * as stdlib from './shared';
 import { CurrencyAmount } from './shared';
 export * from './shared';
 export declare const debug: (msg: any) => void;
+declare type BigNumber = ethers.BigNumber;
+declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare const UInt_max: BigNumber;
 declare type Address = string;
 declare type NetworkAccount = {
     address: Address;
@@ -16,7 +19,7 @@ declare type Digest = Array<any>;
 declare type Contract = stdlib.IContract<ContractInfo, Digest, Address>;
 declare type Account = stdlib.IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
 declare type AccountTransferrable = stdlib.IAccountTransferable<NetworkAccount>;
-export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
+export declare const balanceOf: (acc: Account) => Promise<ethers.ethers.BigNumber>;
 /**
  * @description performs a transfer & creates a transfer block
  */
@@ -24,7 +27,7 @@ export declare const transfer: (from: AccountTransferrable, to: AccountTransferr
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string>, ContractInfo>>;
-export declare function getNetworkTime(): BigNumber;
+export declare function getNetworkTime(): ethers.ethers.BigNumber;
 declare type OnProgress = (obj: {
     currentTime: BigNumber;
     targetTime: BigNumber;
