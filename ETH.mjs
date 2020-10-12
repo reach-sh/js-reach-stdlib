@@ -42,18 +42,34 @@ const protocolPort = {
   'http:': 80,
 };
 /**
+ * @description Create a getter/setter, where the getter defaults to memoizing a thunk
+ */
+function replaceableThunk(thunk) {
+  let called = false;
+  let res = null;
+
+  function get() {
+    if (!called) {
+      called = true;
+      res = thunk();
+    }
+    return res;
+  }
+
+  function set(val) {
+    if (called) {
+      throw Error(`Cannot re-set value once already set`);
+    }
+    res = val;
+    called = true;
+  }
+  return [get, set];
+}
+/**
  * @description Only perform side effects from thunk on the first call.
  */
 function memoizeThunk(thunk) {
-  let called = false;
-  let res = null;
-  return () => {
-    if (called === false) {
-      res = thunk();
-      called = true;
-    }
-    return res;
-  };
+  return replaceableThunk(thunk)[0];
 }
 const getPortConnection = memoizeThunk(async () => {
   debug('getPortConnection');
@@ -129,7 +145,7 @@ const getDevnet = memoizeThunk(async () => {
   await getPortConnection();
   return await doHealthcheck();
 });
-const getProvider = memoizeThunk(async () => {
+const [getProvider, setProvider] = replaceableThunk(async () => {
   if (networkDesc.type == 'uri') {
     await getDevnet();
     const provider = new ethers.providers.JsonRpcProvider(networkDesc.uri);
@@ -156,7 +172,7 @@ const getProvider = memoizeThunk(async () => {
     throw Error(`Using stdlib/ETH is incompatible with REACH_CONNECTOR_MODE=${connectorMode}`);
   }
 });
-// XXX expose setProvider
+export { setProvider };
 const ethersBlockOnceP = async () => {
   const provider = await getProvider();
   return new Promise((resolve) => provider.once('block', (n) => resolve(n)));
@@ -533,16 +549,27 @@ export const getDefaultAccount = memoizeThunk(async () => {
   }
   throw Error(`Default account not available for REACH_CONNECTOR_MODE=${connectorMode}`);
 });
-// TODO: export? Should users be able to access this directly?
+// TODO: Should users be able to access this directly?
 // TODO: define a faucet on Ropsten & other testnets?
-const getFaucet = memoizeThunk(async () => {
-  requireIsolatedNetwork('getFacuet');
-  // On isolated networks, the default account is assumed to be the faucet.
-  // Furthermore, it is assumed that the faucet Signer is "unlocked",
-  // so no further secrets need be provided in order to access its funds.
-  // This is true of reach-provided devnets & embedded ganache.
-  // TODO: allow the user to set the faucet via mnemnonic.
-  return await getDefaultAccount();
+export const [getFaucet, setFaucet] = replaceableThunk(async () => {
+  // XXX this may break if users call setProvider?
+  if (isIsolatedNetwork) {
+    // On isolated networks, the default account is assumed to be the faucet.
+    // Furthermore, it is assumed that the faucet Signer is "unlocked",
+    // so no further secrets need be provided in order to access its funds.
+    // This is true of reach-provided devnets & embedded ganache.
+    // TODO: allow the user to set the faucet via mnemnonic.
+    return await getDefaultAccount();
+  } else if (networkDesc.type === 'window') {
+    // @ts-ignore
+    if (window.ethereum.chainId === '0xNaN') {
+      // XXX this is a hacky way of checking if we're on a devnet
+      // XXX only localhost:8545 is supported
+      const p = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      return await connectAccount(p.getSigner());
+    }
+  }
+  throw Error(`getFaucet not supported in this context.`);
 });
 export const newTestAccount = async (startingBalance) => {
   debug(`newTestAccount(${startingBalance})`);

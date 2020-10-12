@@ -26,6 +26,7 @@ export declare const balanceOf: (acc: Account) => Promise<ethers.ethers.BigNumbe
 export declare const transfer: (from: AccountTransferrable, to: AccountTransferrable, value: BigNumber) => Promise<void>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
+export declare function getFaucet(): Promise<Account>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string>, ContractInfo>>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 declare type OnProgress = (obj: {
@@ -57,4 +58,5 @@ export declare function parseCurrency(amt: CurrencyAmount): BigNumber;
  * @example  formatCurrency(bigNumberify('100')); // => '100'
  */
 export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare const setFaucet = false;
 //# sourceMappingURL=FAKE.d.ts.map

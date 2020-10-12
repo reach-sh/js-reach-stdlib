@@ -39,6 +39,8 @@ declare type ContractInitInfo = {
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
+declare const setProvider: (val: Promise<ethers.ethers.providers.Provider>) => void;
+export { setProvider };
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
 /** @description Arg order follows "src before dst" convention */
 export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: BigNumber) => Promise<any>;
@@ -46,6 +48,7 @@ declare type Hash = string;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
 export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>;
+export declare const getFaucet: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>, setFaucet: (val: Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>) => void;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
 declare type OnProgress = (obj: {

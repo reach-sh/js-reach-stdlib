@@ -551,10 +551,14 @@ export function formatCurrency(amt, decimals = 6) {
   // Have to roundtrip thru Number to drop trailing zeroes
   return Number(algosStr.slice(0, algosStr.length - 1)).toString();
 }
-// TODO: get from AlgoSigner if in browser
-export async function getDefaultAccount() {
+export async function getFaucet() {
   return await connectAccount(FAUCET);
 }
+// TODO: get from AlgoSigner if in browser
+export async function getDefaultAccount() {
+  return await getFaucet();
+}
+export const setFaucet = false; // XXX
 export const newAccountFromMnemonic = false; // XXX
 export const getNetworkTime = getLastRound;
 export const waitUntilTime = false; // XXX
