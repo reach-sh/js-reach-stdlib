@@ -153,6 +153,9 @@ const [getProvider, setProvider] = replaceableThunk(async () => {
     return provider;
   } else if (networkDesc.type == 'embedded-ganache') {
     const { default: ganache } = await import('ganache-core');
+    if (!ganache) {
+      throw Error(`Sorry, optional dependency ganache cannot be found.`);
+    }
     const default_balance_ether = 999999999;
     const ganachep = ganache.provider({ default_balance_ether });
     // @ts-ignore
