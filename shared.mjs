@@ -1,4 +1,3 @@
-import nodeAssert from 'assert';
 import crypto from 'crypto';
 import ethers from 'ethers';
 const BigNumber = ethers.BigNumber;
@@ -16,7 +15,11 @@ export const debug = (msg) => {
     console.log(`[${(new Date()).toISOString()}] DEBUG: ${msg}`);
   }
 };
-export const assert = (d, ai = null) => nodeAssert.strict(d, format_ai(ai));
+export const assert = (d, ai = null) => {
+  if (!d) {
+    throw Error(format_ai(ai));
+  }
+};
 const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
