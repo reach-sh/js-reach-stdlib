@@ -1,6 +1,6 @@
 import ethers from 'ethers';
 import * as stdlib from './shared';
-import { CurrencyAmount } from './shared';
+import { CurrencyAmount, OnProgress } from './shared';
 export * from './shared';
 export declare const debug: (msg: any) => void;
 declare type BigNumber = ethers.BigNumber;
@@ -29,10 +29,6 @@ export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string>, ContractInfo>>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
-declare type OnProgress = (obj: {
-    currentTime: BigNumber;
-    targetTime: BigNumber;
-}) => void;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare const newAccountFromMnemonic = false;

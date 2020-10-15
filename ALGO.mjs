@@ -3,8 +3,11 @@
 import algosdk from 'algosdk';
 import base32 from 'hi-base32';
 import ethers from 'ethers';
+import url from 'url';
 import Timeout from 'await-timeout';
-import { debug, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, setDigestWidth, getDEBUG } from './shared.mjs';
+import { debug, getDEBUG, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, setDigestWidth } from './shared.mjs';
+import waitPort from 'wait-port';
+import { replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
@@ -25,18 +28,43 @@ export const UInt_max = BigNumber.from(2).pow(64).sub(1);
 const token = process.env.ALGO_TOKEN || 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
 const server = process.env.ALGO_SERVER || 'http://localhost';
 const port = process.env.ALGO_PORT || 4180;
-const algodClient = new algosdk.Algodv2(token, server, port);
+const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
+  await wait1port(server, port);
+  return new algosdk.Algodv2(token, server, port);
+});
+export { setAlgodClient };
 const itoken = process.env.ALGO_INDEXER_TOKEN || 'reach-devnet';
 const iserver = process.env.ALGO_INDEXER_SERVER || 'http://localhost';
 const iport = process.env.ALGO_INDEXER_PORT || 8980;
-const indexer = new algosdk.Indexer(itoken, iserver, iport);
+const [getIndexer, setIndexer] = replaceableThunk(async () => {
+  await wait1port(iserver, iport);
+  return new algosdk.Indexer(itoken, iserver, iport);
+});
+export { setIndexer };
 // eslint-disable-next-line max-len
 const FAUCET = algosdk.mnemonicToSecretKey((process.env.ALGO_FAUCET_PASSPHRASE || 'pulp abstract olive name enjoy trick float comfort verb danger eternal laptop acquire fetch message marble jump level spirit during benefit sure dry absent history'));
 // if using the default:
 // assert(FAUCET.addr === 'EYTSJVJIMJDUSRRNTMVLORTLTOVDWZ6SWOSY77JHPDWSD7K3P53IB3GUPQ');
 // Helpers
-const getLastRound = async () => (await algodClient.status().do())['last-round'];
+async function wait1port(theServer, thePort) {
+  thePort = typeof thePort === 'string' ? parseInt(thePort, 10) : thePort;
+  const { hostname } = url.parse(theServer);
+  const args = {
+    host: hostname || undefined,
+    port: thePort,
+    output: 'silent',
+    timeout: 1000 * 60 * 1,
+  };
+  debug('wait1port');
+  if (getDEBUG()) {
+    console.log(args);
+  }
+  debug('waitPort complete');
+  return await waitPort(args);
+}
+const getLastRound = async () => (await (await getAlgodClient()).status().do())['last-round'];
 const waitForConfirmation = async (txId, untilRound) => {
+  const algodClient = await getAlgodClient();
   let lastRound = null;
   do {
     const lastRoundAfterCall = lastRound ?
@@ -54,7 +82,7 @@ const waitForConfirmation = async (txId, untilRound) => {
 const sendAndConfirm = async (stx_or_stxs, txn) => {
   const txID = txn.txID().toString();
   const untilRound = txn.lastRound;
-  const req = algodClient.sendRawTransaction(stx_or_stxs);
+  const req = (await getAlgodClient()).sendRawTransaction(stx_or_stxs);
   // @ts-ignore XXX
   debug(`sendAndConfirm: ${base64ify(req.txnBytesToPost)}`);
   try {
@@ -69,7 +97,7 @@ const compileTEAL = async (label, code) => {
   debug(`compile ${label}`);
   let s, r;
   try {
-    r = await algodClient.compile(code).do();
+    r = await (await getAlgodClient()).compile(code).do();
     s = 200;
   } catch (e) {
     s = typeof e === 'object' ? e.statusCode : 'not object';
@@ -88,7 +116,7 @@ const compileTEAL = async (label, code) => {
 const getTxnParams = async () => {
   debug(`fillTxn: getting params`);
   while (true) {
-    const params = await algodClient.getTransactionParams().do();
+    const params = await (await getAlgodClient()).getTransactionParams().do();
     debug(`fillTxn: got params: ${JSON.stringify(params)}`);
     if (params.firstRound !== 0) {
       return params;
@@ -207,7 +235,7 @@ const desafeify = (ty, v) => {
   if (ty.name === 'UInt') {
     return hexToBigNumber('0x' + v.toString('hex'));
   }
-  if (ty.name == 'Bytes') {
+  if (ty.name === 'Bytes' || ty.name === 'Digest' || ty.name === 'Address') {
     return '0x' + v.toString('hex');
   }
   throw Error(`can't desafeify ${JSON.stringify(ty)} and ${JSON.stringify(v)}`);
@@ -230,7 +258,11 @@ const doQuery = async (dhead, query) => {
   const txn = res.transactions[0];
   return txn;
 };
+const argsSlice = (args, cnt) => cnt == 0 ? [] : args.slice(-1 * cnt);
 export const connectAccount = async (networkAccount) => {
+  // XXX become the monster
+  setDigestWidth(8);
+  const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
   const pk = algosdk.decodeAddress(thisAcc.addr).publicKey;
@@ -252,8 +284,7 @@ export const connectAccount = async (networkAccount) => {
     // XXX check that the application bytecode is what we expect
     const ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
     const wait = async (delta) => {
-      void(delta);
-      throw Error(`XXX Not implemented: wait`);
+      return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
     const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, timeout_delay, sim_p) => {
       const funcName = `m${funcNum}`;
@@ -263,11 +294,9 @@ export const connectAccount = async (networkAccount) => {
       if (!handler) {
         throw Error(`${dhead} Internal error: reference to undefined handler: ${funcName}`);
       }
-      // XXX become the monster
-      setDigestWidth(8);
       const fake_res = {
         didTimeout: false,
-        data: args,
+        data: argsSlice(args, evt_cnt),
         value: value,
         from: pk,
       };
@@ -387,7 +416,7 @@ export const connectAccount = async (networkAccount) => {
           // @ts-ignore XXX
           txn.signature.logicsig.args;
         debug(`${dhead} --- ctc_args = ${JSON.stringify(ctc_args)}`);
-        const args = evt_cnt == 0 ? [] : ctc_args.slice(-1 * evt_cnt);
+        const args = argsSlice(ctc_args, evt_cnt);
         debug(`${dhead} --- args = ${JSON.stringify(args)}`);
         const args_bufs = args.map((x) => Buffer.from(x, 'base64'));
         debug(`${dhead} --- args_bufs = ${JSON.stringify(args_bufs)}`);
@@ -492,7 +521,7 @@ export const connectAccount = async (networkAccount) => {
 const getBalanceAt = async (addr, round) => {
   void(round);
   // FIXME: Don't ignore round, but this requires 'the next indexer version' (Max on 2020/05/05)
-  return (await algodClient.accountInformation(addr).do()).amount;
+  return (await (await getAlgodClient()).accountInformation(addr).do()).amount;
 };
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
@@ -560,7 +589,22 @@ export async function getDefaultAccount() {
 }
 export const setFaucet = false; // XXX
 export const newAccountFromMnemonic = false; // XXX
-export const getNetworkTime = getLastRound;
-export const waitUntilTime = false; // XXX
-export const wait = false; // XXX
+export const getNetworkTime = async () => bigNumberify(await getLastRound());
+export const waitUntilTime = async (targetTime, onProgress) => {
+  const onProg = onProgress || (() => {});
+  let currentTime = await getNetworkTime();
+  while (currentTime.lt(targetTime)) {
+    debug(`waitUntilTime: iteration: ${currentTime} -> ${targetTime}`);
+    const status = await (await getAlgodClient()).statusAfterBlock(currentTime.toNumber()).do();
+    currentTime = bigNumberify(status['last-round']);
+    onProg({ currentTime, targetTime });
+  }
+  debug(`waitUntilTime: ended: ${currentTime} -> ${targetTime}`);
+  return currentTime;
+};
+export const wait = async (delta, onProgress) => {
+  const now = await getNetworkTime();
+  debug(`wait: delta=${delta} now=${now}, until=${now.add(delta)}`);
+  return await waitUntilTime(now.add(delta), onProgress);
+};
 export const verifyContract = false; // XXX

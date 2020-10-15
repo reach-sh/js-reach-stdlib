@@ -328,7 +328,9 @@ export const isHex = isHexString;
 export const hexToString = toUtf8String;
 // XXX the JS backend expects this to be a BigNumber
 export const digest = (...args) => {
+  debug(`digest(${JSON.stringify(args)}) =>`);
   const kekCat = kek(args);
+  debug(`digest(${JSON.stringify(args)}) => ${JSON.stringify(kekCat)}`);
   const r = ethers.utils.keccak256(kekCat);
   debug(`keccak(${JSON.stringify(args)}) => internal(${JSON.stringify(kekCat)}) => ${JSON.stringify(r)}`);
   return r;
@@ -347,7 +349,7 @@ export const bigNumberToHex = (u, size = 32) => {
 export const bytesEq = (x, y) => hexOf(x) === hexOf(y);
 export const digestEq = bytesEq;
 export const addressEq = bytesEq;
-export const randomUInt = () => hexToBigNumber(byteArrayToHex(crypto.randomBytes(32)));
+export const randomUInt = () => hexToBigNumber(byteArrayToHex(crypto.randomBytes(digestWidth)));
 export const hasRandom = {
   random: randomUInt,
 };

@@ -2,6 +2,16 @@ import ethers from 'ethers';
 declare type BigNumber = ethers.BigNumber;
 declare type num = BigNumber | number;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare type OnProgress = (obj: {
+    currentTime: BigNumber;
+    targetTime: BigNumber;
+}) => any;
+export declare type WPArgs = {
+    host: string | undefined;
+    port: number;
+    output: 'silent';
+    timeout: number;
+};
 export declare type IRecvNoTimeout<RawAddress> = {
     didTimeout: false;
     data: Array<any>;

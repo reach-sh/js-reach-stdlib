@@ -1,10 +1,10 @@
+import algosdk from 'algosdk';
 import ethers from 'ethers';
-import { CurrencyAmount } from './shared';
+import { CurrencyAmount, OnProgress } from './shared';
 export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
-declare type Round = number;
 declare type Address = string;
 declare type RawAddress = Uint8Array;
 declare type SecretKey = Uint8Array;
@@ -53,6 +53,10 @@ declare type ContractInfo = {
     creationRound: number;
     ApplicationID: number;
 };
+declare const setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
+export { setAlgodClient };
+declare const setIndexer: (val: Promise<algosdk.Indexer>) => void;
+export { setIndexer };
 export declare const transfer: (from: Account, to: Account, value: BigNumber) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
@@ -90,8 +94,8 @@ export declare function getFaucet(): Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare const setFaucet = false;
 export declare const newAccountFromMnemonic = false;
-export declare const getNetworkTime: () => Promise<Round>;
-export declare const waitUntilTime = false;
-export declare const wait = false;
+export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
+export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract = false;
 //# sourceMappingURL=ALGO.d.ts.map

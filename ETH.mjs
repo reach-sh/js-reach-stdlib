@@ -6,6 +6,7 @@ import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
 import { add, assert, bigNumberify, debug, ge, eq, getDEBUG, isBigNumber, digest, lt } from './shared.mjs';
+import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(256).sub(1);
@@ -41,36 +42,6 @@ const protocolPort = {
   'https:': 443,
   'http:': 80,
 };
-/**
- * @description Create a getter/setter, where the getter defaults to memoizing a thunk
- */
-function replaceableThunk(thunk) {
-  let called = false;
-  let res = null;
-
-  function get() {
-    if (!called) {
-      called = true;
-      res = thunk();
-    }
-    return res;
-  }
-
-  function set(val) {
-    if (called) {
-      throw Error(`Cannot re-set value once already set`);
-    }
-    res = val;
-    called = true;
-  }
-  return [get, set];
-}
-/**
- * @description Only perform side effects from thunk on the first call.
- */
-function memoizeThunk(thunk) {
-  return replaceableThunk(thunk)[0];
-}
 const getPortConnection = memoizeThunk(async () => {
   debug('getPortConnection');
   if (networkDesc.type != 'uri') {

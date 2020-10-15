@@ -1,5 +1,5 @@
 import ethers, { Signer } from 'ethers';
-import { CurrencyAmount, IContract, IAccount } from './shared';
+import { CurrencyAmount, IContract, IAccount, OnProgress } from './shared';
 export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
@@ -51,10 +51,6 @@ export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, B
 export declare const getFaucet: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>, setFaucet: (val: Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>) => void;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
-declare type OnProgress = (obj: {
-    currentTime: BigNumber;
-    targetTime: BigNumber;
-}) => any;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
