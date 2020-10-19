@@ -44,6 +44,7 @@ export declare const atomicUnit = "FAKE";
  * @example  parseCurrency(100).toString() // => '100'
  */
 export declare function parseCurrency(amt: CurrencyAmount): BigNumber;
+export declare const minimumBalance: BigNumber;
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.

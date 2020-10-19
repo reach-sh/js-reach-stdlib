@@ -5,7 +5,7 @@ import base32 from 'hi-base32';
 import ethers from 'ethers';
 import url from 'url';
 import Timeout from 'await-timeout';
-import { debug, getDEBUG, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, setDigestWidth } from './shared.mjs';
+import { debug, getDEBUG, toHex, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, T_Address, setDigestWidth, setAddressUnwrapper } from './shared.mjs';
 import waitPort from 'wait-port';
 import { replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
@@ -194,7 +194,6 @@ async function compileFor(bin, ApplicationID) {
   };
 }
 const ui8z = new Uint8Array();
-// XXX I'm using this to inspect the msgpack struct, but maybe just do a round-trip through encode/decode and see what I get?
 const base64ify = (x) => Buffer.from(x).toString('base64');
 const format_failed_request = (e) => {
   const ep = JSON.parse(JSON.stringify(e));
@@ -206,9 +205,7 @@ const format_failed_request = (e) => {
   return `\n${db64}\n${JSON.stringify(msg)}`;
 };
 const presafeify = (ty, x) => {
-  if (ty.name === 'Address') {
-    return '0x' + Buffer.from(x).toString('hex');
-  }
+  void(ty);
   return x;
 };
 const safeify = (ty, x) => {
@@ -232,6 +229,9 @@ const safeify = (ty, x) => {
   throw Error(`can't safeify ${JSON.stringify(x)}`);
 };
 const desafeify = (ty, v) => {
+  if (ty.name === 'Bool') {
+    return desafeify(T_UInt, v).eq(1);
+  }
   if (ty.name === 'UInt') {
     return hexToBigNumber('0x' + v.toString('hex'));
   }
@@ -262,16 +262,19 @@ const argsSlice = (args, cnt) => cnt == 0 ? [] : args.slice(-1 * cnt);
 export const connectAccount = async (networkAccount) => {
   // XXX become the monster
   setDigestWidth(8);
+  setAddressUnwrapper((x) => x.addr ? '0x' + Buffer.from(algosdk.decodeAddress(x.addr).publicKey).toString('hex') : x);
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
   const pk = algosdk.decodeAddress(thisAcc.addr).publicKey;
+  const pks = T_Address.canonicalize(thisAcc);
   debug(`${shad}: connectAccount`);
   const iam = (some_addr) => {
-    if (some_addr == pk) {
-      return pk;
+    const pks = '0x' + Buffer.from(pk).toString('hex');
+    if (some_addr == pks) {
+      return some_addr;
     } else {
-      throw Error(`I should be ${some_addr}, but am ${pk}`);
+      throw Error(`I should be ${some_addr}, but am ${pks}`);
     }
   };
   const attachP = async (bin, ctcInfoP) => {
@@ -281,7 +284,7 @@ export const connectAccount = async (networkAccount) => {
     let lastRound = ctcInfo.creationRound;
     debug(`${shad}: attach ${ApplicationID} created at ${lastRound}`);
     const bin_comp = await compileFor(bin, ApplicationID);
-    // XXX check that the application bytecode is what we expect
+    // XXX call verify
     const ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
@@ -298,9 +301,10 @@ export const connectAccount = async (networkAccount) => {
         didTimeout: false,
         data: argsSlice(args, evt_cnt),
         value: value,
-        from: pk,
+        from: pks,
       };
       const sim_r = sim_p(fake_res);
+      debug(`${dhead} --- SIMULATE ${JSON.stringify(sim_r)}`);
       const isHalt = sim_r.isHalt;
       const sim_txns = sim_r.txns;
       while (true) {
@@ -314,23 +318,30 @@ export const connectAccount = async (networkAccount) => {
           }
         }
         debug(`${dhead} --- ASSEMBLE w/ ${JSON.stringify(params)}`);
-        const txnFromContracts = sim_txns.map((txn_nfo) => algosdk.makePaymentTxnWithSuggestedParams(bin_comp.ctc.hash, algosdk.encodeAddress(txn_nfo.to), txn_nfo.amt.toNumber(), undefined, ui8z, params));
+        const txnFromContracts = sim_txns.map((txn_nfo) => algosdk.makePaymentTxnWithSuggestedParams(bin_comp.ctc.hash,
+          // XXX use some other function
+          algosdk.encodeAddress(Buffer.from(txn_nfo.to.slice(2), 'hex')), txn_nfo.amt.toNumber(), undefined, ui8z, params));
         const totalFromFee = txnFromContracts.reduce(((sum, txn) => sum + txn.fee), 0);
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         debug(`${dhead} --- isHalt = ${JSON.stringify(isHalt)}`);
         const actual_args = [sim_r.prevSt, sim_r.nextSt, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
         const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
         debug(`${dhead} --- ARGS = ${JSON.stringify(actual_args)}`);
+        const canon_args = actual_args.map((m, i) => actual_tys[i].canonicalize(m));
+        debug(`${dhead} --- CANON: ${JSON.stringify(canon_args)}`);
+        const presafe_args = canon_args.map((c, i) => presafeify(actual_tys[i], c));
+        debug(`${dhead} --- PRESAFE: ${JSON.stringify(presafe_args)}`);
         const munged_args =
           // XXX this needs to be customized for Algorand, so I don't have to safeify. Ideally munge would return Uint8Array for everything.
-          actual_args.map((m, i) => actual_tys[i].munge(actual_tys[i].canonicalize(presafeify(actual_tys[i], m))));
+          presafe_args.map((p, i) => actual_tys[i].munge(p));
+        debug(`${dhead} --- MUNGE: ${JSON.stringify(munged_args)}`);
         const safe_args = munged_args.map((m, i) => safeify(actual_tys[i], m));
         safe_args.forEach((x) => {
           if (!(typeof x === 'string' || x instanceof Uint8Array)) {
             throw Error(`expect safe program argument, got ${JSON.stringify(x)}`);
           }
         });
-        debug(`${dhead} --- PREPARE`); // XXX display safe_args usefully
+        debug(`${dhead} --- PREPARE: ${JSON.stringify(safe_args.map(toHex))}`);
         const handler_with_args = algosdk.makeLogicSig(handler.result, safe_args);
         debug(`${dhead} --- PREPARED`); // XXX display handler_with_args usefully, like with base64ify toBytes
         const whichAppl = isHalt ?
@@ -372,7 +383,6 @@ export const connectAccount = async (networkAccount) => {
           res = await sendAndConfirm(txns_s, txnAppl);
         } catch (e) {
           if (e.type == 'sendRawTransaction') {
-            // XXX when this fails, it is dropping the lsig txn
             throw Error(`${dhead} --- FAIL:\n${format_failed_request(e.e)}`);
           } else {
             throw Error(`${dhead} --- FAIL:\n${JSON.stringify(e)}`);
@@ -408,7 +418,7 @@ export const connectAccount = async (networkAccount) => {
         }
         const txn = await doQuery(dhead, query);
         if (!txn) {
-          // XXX perhaps wait until a new round has happened
+          // XXX perhaps wait until a new round has happened using wait
           await Timeout.set(2000);
           continue;
         }
@@ -425,7 +435,7 @@ export const connectAccount = async (networkAccount) => {
         const totalFromFee = desafeify(T_UInt, Buffer.from(ctc_args[3], 'base64'));
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         const fromAddr = txn['payment-transaction'].receiver;
-        const from = algosdk.decodeAddress(fromAddr).publicKey;
+        const from = T_Address.canonicalize({ addr: fromAddr });
         debug(`${dhead} --- from = ${JSON.stringify(from)} = ${fromAddr}`);
         const oldLastRound = lastRound;
         lastRound = txn['confirmed-round'];
@@ -462,15 +472,14 @@ export const connectAccount = async (networkAccount) => {
       throw Error(`No application-index in ${JSON.stringify(createRes)}`);
     }
     const bin_comp = await compileFor(bin, ApplicationID);
-    const minBalance = 100000; // XXX get from SDK
     const params = await getTxnParams();
     const txnUpdate = algosdk.makeApplicationUpdateTxn(thisAcc.addr, params, ApplicationID, bin_comp.appApproval.result, appClear_bin.result);
-    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, bin_comp.ctc.hash, minBalance, undefined, ui8z, params);
+    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, bin_comp.ctc.hash, raw_minimumBalance, undefined, ui8z, params);
     const txnToHandlers = bin_comp.steps.flatMap((sc) => {
       if (!sc) {
         return [];
       }
-      return [algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, sc.hash, minBalance, undefined, ui8z, params)];
+      return [algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, sc.hash, raw_minimumBalance, undefined, ui8z, params)];
     });
     const txns = [
       txnUpdate,
@@ -520,7 +529,7 @@ export const connectAccount = async (networkAccount) => {
 };
 const getBalanceAt = async (addr, round) => {
   void(round);
-  // FIXME: Don't ignore round, but this requires 'the next indexer version' (Max on 2020/05/05)
+  // XXX use indexer LookupAccountById(addr).round(round)
   return (await (await getAlgodClient()).accountInformation(addr).do()).amount;
 };
 export const balanceOf = async (acc) => {
@@ -561,6 +570,9 @@ export function parseCurrency(amt) {
     amt;
   return bigNumberify(algosdk.algosToMicroalgos(numericAmt));
 }
+// XXX get from SDK
+const raw_minimumBalance = 100000;
+export const minimumBalance = bigNumberify(raw_minimumBalance);
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.

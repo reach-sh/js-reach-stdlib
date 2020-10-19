@@ -65,7 +65,9 @@ export declare const T_Bool: TyContract<boolean>;
 export declare const T_UInt: TyContract<BigNumber>;
 export declare const T_Bytes: TyContract<string>;
 export declare const T_Digest: TyContract<BigNumber>;
+export declare const setAddressUnwrapper: (f: (x: any) => string) => void;
 export declare const T_Address: TyContract<string>;
+export declare const addressEq: (x: any, y: any) => boolean;
 export declare const T_Array: <T>(ctc: TyContract<T>, sz: number) => TyContract<T[]>;
 export declare const T_Tuple: <T>(ctcs: TyContract<T>[]) => TyContract<T[]>;
 export declare const T_Object: <T>(co: {
@@ -87,7 +89,6 @@ export declare const uintToBytes: (i: BigNumber) => string;
 export declare const bigNumberToHex: (u: num, size?: number) => string;
 export declare const bytesEq: (x: any, y: any) => boolean;
 export declare const digestEq: (x: any, y: any) => boolean;
-export declare const addressEq: (x: any, y: any) => boolean;
 export declare const randomUInt: () => BigNumber;
 export declare const hasRandom: {
     random: () => BigNumber;

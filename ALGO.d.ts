@@ -6,7 +6,6 @@ declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
 declare type Address = string;
-declare type RawAddress = Uint8Array;
 declare type SecretKey = Uint8Array;
 declare type Wallet = {
     addr: Address;
@@ -36,7 +35,7 @@ declare type Recv = {
     didTimeout: false;
     data: Array<ContractOut>;
     value: BigNumber;
-    from: RawAddress;
+    from: string;
 } | {
     didTimeout: true;
 };
@@ -45,7 +44,7 @@ declare type ContractAttached = {
     sendrecv: (...argz: any) => Promise<Recv>;
     recv: (...argz: any) => Promise<Recv>;
     wait: (...argz: any) => any;
-    iam: (some_addr: RawAddress) => RawAddress;
+    iam: (some_addr: any) => any;
 };
 declare type ContractOut = any;
 declare type ContractInfo = {
@@ -80,6 +79,7 @@ export declare const atomicUnit = "\u03BCALGO";
  * @example  parseCurrency(100).toString() // => '100000000'
  */
 export declare function parseCurrency(amt: CurrencyAmount): BigNumber;
+export declare const minimumBalance: BigNumber;
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.

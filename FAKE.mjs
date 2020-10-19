@@ -42,6 +42,7 @@ export const transfer = async (from, to, value) => {
   BLOCKS.push(block);
 };
 export const connectAccount = async (networkAccount) => {
+  stdlib.setAddressUnwrapper((x) => x.address ? x.address : x);
   const { address } = networkAccount;
   const attach = (bin, infoP) => {
     void(bin);
@@ -208,6 +209,7 @@ export const atomicUnit = 'FAKE';
 export function parseCurrency(amt) {
   return stdlib.bigNumberify(amt.toString());
 }
+export const minimumBalance = parseCurrency(0);
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.

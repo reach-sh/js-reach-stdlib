@@ -5,7 +5,7 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, ge, eq, getDEBUG, isBigNumber, digest, lt } from './shared.mjs';
+import { add, assert, bigNumberify, debug, ge, eq, getDEBUG, isBigNumber, digest, lt, setAddressUnwrapper } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
@@ -202,6 +202,7 @@ const fetchAndRejectInvalidReceiptFor = async (txHash) => {
   return await rejectInvalidReceiptFor(txHash, r);
 };
 export const connectAccount = async (networkAccount) => {
+  setAddressUnwrapper((x) => x.address ? x.address : x);
   // XXX networkAccount MUST be a Wallet or Signer to deploy/attach
   const provider = await getProvider();
   const address = await getAddr({ networkAccount });
@@ -535,8 +536,8 @@ export const [getFaucet, setFaucet] = replaceableThunk(async () => {
     // TODO: allow the user to set the faucet via mnemnonic.
     return await getDefaultAccount();
   } else if (networkDesc.type === 'window') {
-    // @ts-ignore
-    if (window.ethereum.chainId === '0xNaN') {
+    // @ts-ignore // 0x539 = 1337
+    if (window.ethereum.chainId === '0xNaN' || window.ethereum.chainId == '0x539') {
       // XXX this is a hacky way of checking if we're on a devnet
       // XXX only localhost:8545 is supported
       const p = new ethers.providers.JsonRpcProvider('http://localhost:8545');
@@ -745,6 +746,7 @@ export const atomicUnit = 'WEI';
 export function parseCurrency(amt) {
   return bigNumberify(ethers.utils.parseUnits(amt.toString(), 'ether'));
 }
+export const minimumBalance = parseCurrency(0);
 const initOrDefaultArgs = (init) => ({
   argsMay: init ? Some(init.args) : None,
   value: init ? init.value : bigNumberify(0),
