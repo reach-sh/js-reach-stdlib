@@ -1,6 +1,8 @@
 import algosdk from 'algosdk';
 import ethers from 'ethers';
 import { CurrencyAmount, OnProgress } from './shared';
+import * as CBR from './CBR';
+import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Val } from './CBR';
 export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
@@ -52,6 +54,28 @@ declare type ContractInfo = {
     creationRound: number;
     ApplicationID: number;
 };
+declare type NV = Uint8Array;
+declare type ALGO_Ty<BV extends CBR_Val> = {
+    name: string;
+    canonicalize: (uv: unknown) => BV;
+    netSize: number | 'all';
+    toNet(bv: BV): NV;
+    fromNet(nv: NV): BV;
+};
+export declare const T_Null: ALGO_Ty<CBR_Null>;
+export declare const T_Bool: ALGO_Ty<CBR_Bool>;
+export declare const T_UInt: ALGO_Ty<CBR_UInt>;
+export declare const T_Bytes: ALGO_Ty<CBR_Bytes>;
+export declare const T_Digest: ALGO_Ty<CBR_Digest>;
+export declare const T_Address: ALGO_Ty<CBR_Address>;
+export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
+export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
+export declare const T_Object: (coMap: {
+    [key: string]: ALGO_Ty<CBR.CBR_Val>;
+}) => ALGO_Ty<CBR_Object>;
+export declare const T_Data: (coMap: {
+    [key: string]: ALGO_Ty<CBR.CBR_Val>;
+}) => ALGO_Ty<CBR_Data>;
 declare const setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
 export { setAlgodClient };
 declare const setIndexer: (val: Promise<algosdk.Indexer>) => void;
@@ -98,4 +122,5 @@ export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract = false;
+export declare const addressEq: (x: any, y: any) => boolean;
 //# sourceMappingURL=ALGO.d.ts.map

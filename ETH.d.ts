@@ -1,5 +1,7 @@
 import ethers, { Signer } from 'ethers';
-import { CurrencyAmount, IContract, IAccount, OnProgress } from './shared';
+import { CurrencyAmount, IAccount, IContract, OnProgress } from './shared';
+import * as CBR from './CBR';
+import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Val } from './CBR';
 export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
@@ -30,7 +32,7 @@ declare type ContractInfo = {
     init?: ContractInitInfo;
 };
 declare type Digest = string;
-declare type Contract = IContract<ContractInfo, Digest, Address>;
+declare type Contract = IContract<ContractInfo, Digest, Address, AnyETH_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
 declare type ContractInitInfo = {
     args: Array<any>;
@@ -39,6 +41,30 @@ declare type ContractInitInfo = {
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
+declare type ETH_Ty<BV extends CBR_Val, NV> = {
+    name: string;
+    defaultValue: BV;
+    canonicalize: (uv: unknown) => BV;
+    munge: (bv: BV) => NV;
+    unmunge: (nv: NV) => BV;
+};
+declare type AnyETH_Ty = ETH_Ty<CBR_Val, any>;
+export declare const T_Null: ETH_Ty<CBR_Null, false>;
+export declare const T_Bool: ETH_Ty<CBR_Bool, boolean>;
+export declare const T_UInt: ETH_Ty<CBR_UInt, BigNumber>;
+export declare const T_Bytes: ETH_Ty<CBR_Bytes, string>;
+export declare const T_Digest: ETH_Ty<CBR_Digest, BigNumber>;
+export declare const T_Address: ETH_Ty<CBR_Address, string>;
+export declare const T_Array: <T>(ctc: ETH_Ty<CBR.CBR_Val, T>, size: number) => ETH_Ty<CBR.CBR_Array, T[]>;
+export declare const T_Tuple: <T>(ctcs: ETH_Ty<CBR.CBR_Val, T>[]) => ETH_Ty<CBR.CBR_Tuple, T[]>;
+export declare const T_Object: <T>(co: {
+    [key: string]: ETH_Ty<CBR.CBR_Val, T>;
+}) => ETH_Ty<CBR.CBR_Object, {
+    [key: string]: T;
+}>;
+export declare const T_Data: <T>(co: {
+    [key: string]: ETH_Ty<CBR.CBR_Val, T>;
+}) => ETH_Ty<CBR.CBR_Data, T[]>;
 declare const setProvider: (val: Promise<ethers.ethers.providers.Provider>) => void;
 export { setProvider };
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
@@ -47,8 +73,8 @@ export declare const transfer: (from: AccountTransferable, to: AccountTransferab
 declare type Hash = string;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
-export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>;
-export declare const getFaucet: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>, setFaucet: (val: Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string>, ContractInfo>>) => void;
+export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, ETH_Ty<CBR.CBR_Val, any>>, ContractInfo>>;
+export declare const getFaucet: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, ETH_Ty<CBR.CBR_Val, any>>, ContractInfo>>, setFaucet: (val: Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, ETH_Ty<CBR.CBR_Val, any>>, ContractInfo>>) => void;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
@@ -76,4 +102,5 @@ export declare const minimumBalance: BigNumber;
  * @example  formatCurrency(bigNumberify('100000000000000000000')); // => '100'
  */
 export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare const addressEq: (x: any, y: any) => boolean;
 //# sourceMappingURL=ETH.d.ts.map

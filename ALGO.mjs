@@ -5,24 +5,221 @@ import base32 from 'hi-base32';
 import ethers from 'ethers';
 import url from 'url';
 import Timeout from 'await-timeout';
-import { debug, getDEBUG, toHex, isBigNumber, bigNumberify, bigNumberToHex, hexToBigNumber, T_UInt, T_Bool, T_Digest, T_Address, setDigestWidth, setAddressUnwrapper } from './shared.mjs';
+import { debug, getDEBUG, toHex, isBigNumber, bigNumberify, setDigestWidth, mkAddressEq } from './shared.mjs';
+import * as CBR from './CBR.mjs';
 import waitPort from 'wait-port';
-import { replaceableThunk } from './shared_impl.mjs';
+import { labelMaps, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
-// ctc[ALGO] = {
-//   address: string
-//   appId: confirmedTxn.TransactionResults.CreatedAppIndex; // ?
-//   creationRound: int // bigint?
-//   logic_sig: LogicSig
-//
-//   // internal fields
-//   // * not required to call acc.attach(bin, ctc)
-//   // * required by backend
-//   sendrecv: function
-//   recv: function
+// const V_Null: CBR_Null = null;
+export const T_Null = {
+  ...CBR.BT_Null,
+  netSize: 0,
+  toNet: (bv) => (void(bv), new Uint8Array([])),
+  fromNet: (nv) => (void(nv), null),
+};
+export const T_Bool = {
+  ...CBR.BT_Bool,
+  netSize: 8,
+  toNet: (bv) => {
+    return T_UInt.toNet(BigNumber.from(bv ? 1 : 0));
+  },
+  fromNet: (nv) => {
+    return T_UInt.fromNet(nv).eq(1);
+  },
+};
+// const V_Bool = (val: boolean): CBR_Bool => T_Bool.canonicalize(val);
+export const T_UInt = {
+  ...CBR.BT_UInt,
+  netSize: 8,
+  toNet: (bv) => (ethers.utils.zeroPad(ethers.utils.arrayify(bv), 8)),
+  fromNet: (nv) => {
+    // debug(`fromNet: UInt`);
+    // if (getDEBUG()) console.log(nv);
+    return ethers.BigNumber.from(nv);
+  },
+};
+// const V_UInt = (n: BigNumber): CBR_UInt => {
+//   return T_UInt.canonicalize(n);
 // }
+/** @description For arbitrary utf8 strings */
+const stringyNet = {
+  toNet: (bv) => (ethers.utils.toUtf8Bytes(bv)),
+  fromNet: (nv) => (ethers.utils.toUtf8String(nv)),
+};
+/** @description For hex strings representing bytes */
+const bytestringyNet = {
+  toNet: (bv) => (ethers.utils.arrayify(bv)),
+  fromNet: (nv) => (ethers.utils.hexlify(nv)),
+};
+export const T_Bytes = {
+  ...CBR.BT_Bytes,
+  ...stringyNet,
+  netSize: 'all',
+};
+// const V_Bytes = (s: string): CBR_Bytes => {
+//   return T_Bytes.canonicalize(s);
+// }
+export const T_Digest = {
+  ...CBR.BT_Digest,
+  ...bytestringyNet,
+  netSize: 32,
+};
+// /** @description You probably don't want to manually create this */
+// const V_Digest = (s: string): CBR_Digest => {
+//   return T_Digest.canonicalize(s);
+// }
+function addressUnwrapper(x) {
+  return (x && x.addr) ?
+    '0x' + Buffer.from(algosdk.decodeAddress(x.addr).publicKey).toString('hex') :
+    x;
+}
+export const T_Address = {
+  ...CBR.BT_Address,
+  ...bytestringyNet,
+  netSize: 32,
+  canonicalize: (uv) => {
+    const val = addressUnwrapper(uv);
+    return CBR.BT_Address.canonicalize(val || uv);
+  },
+};
+// const V_Address = (s: string): CBR_Address => {
+//   return T_Address.canonicalize(s);
+// }
+export const T_Array = (co, size) => ({
+  ...CBR.BT_Array(co, size),
+  netSize: (co.netSize === 'all') ? 'all' : size * co.netSize,
+  toNet: (bv) => {
+    return ethers.utils.concat(bv.map((v) => co.toNet(v)));
+  },
+  fromNet: (nv) => {
+    if (co.netSize === 'all') {
+      // XXX there can only be one
+      return [co.fromNet(nv)];
+    } else {
+      const chunks = new Array(size).fill(null);
+      let rest = nv;
+      for (const i in chunks) {
+        chunks[i] = co.fromNet(rest.slice(0, co.netSize));
+        rest = rest.slice(co.netSize);
+      }
+      // TODO: assert size of nv/rest is correct?
+      return chunks;
+    }
+  },
+});
+// const V_Array = (
+//   co: ALGO_Ty<CBR_Val>,
+//   size: number,
+// ) => (val: Array<unknown>): CBR_Array => {
+//   return T_Array(co, size).canonicalize(val);
+// }
+export const T_Tuple = (cos) => ({
+  ...CBR.BT_Tuple(cos),
+  netSize: ((cos.some((co) => co.netSize === 'all')) ?
+    'all'
+    // @ts-ignore // ts should know this from the condition
+    :
+    cos.reduce((acc, co) => acc + co.netSize, 0)),
+  toNet: (bv) => {
+    const val = cos.map((co, i) => co.toNet(bv[i]));
+    return ethers.utils.concat(val);
+  },
+  // TODO: share more code w/ T_Array.fromNet
+  fromNet: (nv) => {
+    const chunks = new Array(cos.length).fill(null);
+    let rest = nv;
+    for (const i in cos) {
+      const co = cos[i];
+      if (co.netSize === 'all') {
+        // XXX consumes it all
+        chunks[i] = co.fromNet(rest);
+        rest = rest.slice(rest.length);
+      } else {
+        chunks[i] = co.fromNet(rest.slice(0, co.netSize));
+        rest = rest.slice(co.netSize);
+      }
+    }
+    return chunks;
+  },
+});
+export const T_Object = (coMap) => {
+  const cos = Object.values(coMap);
+  const netSize = cos.some((co) => co.netSize === 'all') ?
+    'all'
+    // @ts-ignore // ts should know this from the condition
+    :
+    cos.reduce((acc, co) => acc + co.netSize, 0);
+  const { ascLabels } = labelMaps(coMap);
+  return {
+    ...CBR.BT_Object(coMap),
+    netSize,
+    toNet: (bv) => {
+      const chunks = ascLabels.map((label) => coMap[label].toNet(bv[label]));
+      return ethers.utils.concat(chunks);
+    },
+    // TODO: share more code w/ T_Array.fromNet and T_Tuple.fromNet
+    fromNet: (nv) => {
+      const obj = {};
+      let rest = nv;
+      for (const iStr in ascLabels) {
+        const i = parseInt(iStr);
+        const label = ascLabels[i];
+        const co = coMap[label];
+        if (co.netSize === 'all') {
+          // XXX consumes it all
+          obj[label] = co.fromNet(rest);
+          rest = rest.slice(rest.length);
+        } else {
+          obj[label] = co.fromNet(rest.slice(0, co.netSize));
+          rest = rest.slice(co.netSize);
+        }
+      }
+      return obj;
+    },
+  };
+};
+// 1 byte for the label
+// the rest right-padded with zeroes
+// up to the size of the largest variant
+export const T_Data = (coMap) => {
+  const cos = Object.values(coMap);
+  const valSize = cos.some((co) => co.netSize === 'all') ?
+    'all'
+    // @ts-ignore // ts should know this from the cond above
+    :
+    Math.max(cos.map((co) => co.netSize));
+  const netSize = valSize === 'all' ?
+    'all' : valSize + 1;
+  const { ascLabels, labelMap } = labelMaps(coMap);
+  return {
+    ...CBR.BT_Data(coMap),
+    netSize,
+    toNet: ([label, val]) => {
+      const i = labelMap[label];
+      const lab_nv = new Uint8Array([i]);
+      const val_co = coMap[label];
+      const val_nv = val_co.toNet(val);
+      if (valSize === 'all') {
+        return ethers.utils.concat([lab_nv, val_nv]);
+      } else {
+        const padding = new Uint8Array(valSize - val_nv.length);
+        return ethers.utils.concat([lab_nv, val_nv, padding]);
+      }
+    },
+    fromNet: (nv) => {
+      const i = nv[0];
+      const label = ascLabels[i];
+      const val_co = coMap[label];
+      const rest = nv.slice(1);
+      const sliceTo = val_co.netSize === 'all' ?
+        rest.length : val_co.netSize;
+      const val = val_co.fromNet(rest.slice(0, sliceTo));
+      return [label, val];
+    },
+  };
+};
 // Common interface exports
 // TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
 const token = process.env.ALGO_TOKEN || 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
@@ -169,7 +366,7 @@ async function compileFor(bin, ApplicationID) {
   const { appApproval, appClear, ctc, steps } = algob;
   const subst_appid = (x) => replaceUint8Array('ApplicationID',
     // @ts-ignore XXX
-    safeify(T_UInt, bigNumberify(ApplicationID)), x);
+    T_UInt.toNet(bigNumberify(ApplicationID)), x);
   const ctc_bin = await compileTEAL('ctc_subst', subst_appid(ctc));
   const subst_ctc = (x) => replaceAddr('ContractAddr', ctc_bin.hash, x);
   let appApproval_subst = appApproval;
@@ -204,42 +401,6 @@ const format_failed_request = (e) => {
   const msg = e.text ? JSON.parse(e.text) : e;
   return `\n${db64}\n${JSON.stringify(msg)}`;
 };
-const presafeify = (ty, x) => {
-  void(ty);
-  return x;
-};
-const safeify = (ty, x) => {
-  if (ty.name === 'Address') {
-    return Buffer.from(x.slice(2), 'hex');
-  }
-  if (isBigNumber(x)) {
-    // XXX Does it matter that this is not msgpacked as an int?
-    const size = x.lt(bigNumberify(2).pow(64)) ? 8 : 32;
-    const h = '0x' + bigNumberToHex(x, size);
-    debug(`${x} =${size}> ${h}`);
-    const r = ethers.utils.arrayify(h);
-    return r;
-  }
-  if (typeof x === 'boolean') {
-    return safeify(T_UInt, bigNumberify(x ? 1 : 0));
-  }
-  if (typeof x === 'string') {
-    return ethers.utils.arrayify(x);
-  }
-  throw Error(`can't safeify ${JSON.stringify(x)}`);
-};
-const desafeify = (ty, v) => {
-  if (ty.name === 'Bool') {
-    return desafeify(T_UInt, v).eq(1);
-  }
-  if (ty.name === 'UInt') {
-    return hexToBigNumber('0x' + v.toString('hex'));
-  }
-  if (ty.name === 'Bytes' || ty.name === 'Digest' || ty.name === 'Address') {
-    return '0x' + v.toString('hex');
-  }
-  throw Error(`can't desafeify ${JSON.stringify(ty)} and ${JSON.stringify(v)}`);
-};
 const doQuery = async (dhead, query) => {
   //debug(`${dhead} --- QUERY = ${JSON.stringify(query)}`);
   let res;
@@ -262,7 +423,6 @@ const argsSlice = (args, cnt) => cnt == 0 ? [] : args.slice(-1 * cnt);
 export const connectAccount = async (networkAccount) => {
   // XXX become the monster
   setDigestWidth(8);
-  setAddressUnwrapper((x) => x.addr ? '0x' + Buffer.from(algosdk.decodeAddress(x.addr).publicKey).toString('hex') : x);
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
@@ -325,19 +485,13 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         debug(`${dhead} --- isHalt = ${JSON.stringify(isHalt)}`);
         const actual_args = [sim_r.prevSt, sim_r.nextSt, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
-        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
+        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys]; //.map(oldify);
         debug(`${dhead} --- ARGS = ${JSON.stringify(actual_args)}`);
-        const canon_args = actual_args.map((m, i) => actual_tys[i].canonicalize(m));
-        debug(`${dhead} --- CANON: ${JSON.stringify(canon_args)}`);
-        const presafe_args = canon_args.map((c, i) => presafeify(actual_tys[i], c));
-        debug(`${dhead} --- PRESAFE: ${JSON.stringify(presafe_args)}`);
-        const munged_args =
-          // XXX this needs to be customized for Algorand, so I don't have to safeify. Ideally munge would return Uint8Array for everything.
-          presafe_args.map((p, i) => actual_tys[i].munge(p));
-        debug(`${dhead} --- MUNGE: ${JSON.stringify(munged_args)}`);
-        const safe_args = munged_args.map((m, i) => safeify(actual_tys[i], m));
+        const safe_args = actual_args.map((m, i) => actual_tys[i].toNet(m));
         safe_args.forEach((x) => {
-          if (!(typeof x === 'string' || x instanceof Uint8Array)) {
+          if (!(x instanceof Uint8Array)) {
+            // The types say this is impossible now,
+            // but we'll leave it in for a while just in case...
             throw Error(`expect safe program argument, got ${JSON.stringify(x)}`);
           }
         });
@@ -428,11 +582,15 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- ctc_args = ${JSON.stringify(ctc_args)}`);
         const args = argsSlice(ctc_args, evt_cnt);
         debug(`${dhead} --- args = ${JSON.stringify(args)}`);
-        const args_bufs = args.map((x) => Buffer.from(x, 'base64'));
-        debug(`${dhead} --- args_bufs = ${JSON.stringify(args_bufs)}`);
-        const args_un = args_bufs.map((v, i) => desafeify(tys[i], v));
+        /** @description base64->hex->arrayify */
+        const reNetify = (x) => {
+          const s = Buffer.from(x, 'base64').toString('hex');
+          // debug(`${dhead} --- deNetify ${s}`);
+          return ethers.utils.arrayify('0x' + s);
+        };
+        const args_un = args.map((x, i) => tys[i].fromNet(reNetify(x)));
         debug(`${dhead} --- args_un = ${JSON.stringify(args_un)}`);
-        const totalFromFee = desafeify(T_UInt, Buffer.from(ctc_args[3], 'base64'));
+        const totalFromFee = T_UInt.fromNet(reNetify(ctc_args[3]));
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         const fromAddr = txn['payment-transaction'].receiver;
         const from = T_Address.canonicalize({ addr: fromAddr });
@@ -620,3 +778,4 @@ export const wait = async (delta, onProgress) => {
   return await waitUntilTime(now.add(delta), onProgress);
 };
 export const verifyContract = false; // XXX
+export const addressEq = mkAddressEq(T_Address);

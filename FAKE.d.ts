@@ -1,6 +1,7 @@
 import ethers from 'ethers';
 import * as stdlib from './shared';
 import { CurrencyAmount, OnProgress } from './shared';
+import * as CBR from './CBR';
 export * from './shared';
 export declare const debug: (msg: any) => void;
 declare type BigNumber = ethers.BigNumber;
@@ -16,7 +17,7 @@ declare type ContractInfo = {
     creation_block: number;
 };
 declare type Digest = Array<any>;
-declare type Contract = stdlib.IContract<ContractInfo, Digest, Address>;
+declare type Contract = stdlib.IContract<ContractInfo, Digest, Address, FAKE_Ty>;
 declare type Account = stdlib.IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
 declare type AccountTransferrable = stdlib.IAccountTransferable<NetworkAccount>;
 export declare const balanceOf: (acc: Account) => Promise<ethers.ethers.BigNumber>;
@@ -27,7 +28,7 @@ export declare const transfer: (from: AccountTransferrable, to: AccountTransferr
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
-export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string>, ContractInfo>>;
+export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string, CBR.BackendTy<CBR.CBR_Val>>, ContractInfo>>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;
@@ -56,4 +57,16 @@ export declare const minimumBalance: BigNumber;
  */
 export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
 export declare const setFaucet = false;
+declare type FAKE_Ty = CBR.BackendTy<CBR.CBR_Val>;
+export declare const T_Null: FAKE_Ty;
+export declare const T_Bool: FAKE_Ty;
+export declare const T_UInt: FAKE_Ty;
+export declare const T_Bytes: FAKE_Ty;
+export declare const T_Address: FAKE_Ty;
+export declare const T_Digest: FAKE_Ty;
+export declare const T_Object: (obj: any) => FAKE_Ty;
+export declare const T_Data: (obj: any) => FAKE_Ty;
+export declare const T_Array: (co: FAKE_Ty, size: number) => FAKE_Ty;
+export declare const T_Tuple: (cos: Array<FAKE_Ty>) => FAKE_Ty;
+export declare const addressEq: (x: any, y: any) => boolean;
 //# sourceMappingURL=FAKE.d.ts.map

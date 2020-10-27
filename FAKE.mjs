@@ -1,6 +1,7 @@
 import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import * as stdlib from './shared.mjs';
+import * as CBR from './CBR.mjs';
 export * from './shared.mjs';
 export const debug = (msg) => {
   stdlib.debug(`${BLOCKS.length}: ${msg}}`);
@@ -42,7 +43,6 @@ export const transfer = async (from, to, value) => {
   BLOCKS.push(block);
 };
 export const connectAccount = async (networkAccount) => {
-  stdlib.setAddressUnwrapper((x) => x.address ? x.address : x);
   const { address } = networkAccount;
   const attach = (bin, infoP) => {
     void(bin);
@@ -80,9 +80,7 @@ export const connectAccount = async (networkAccount) => {
         actual: tys.length,
         message: 'tys does not have expected length',
       });
-      const data = args.slice(args.length - evt_cnt).map((v, i) => {
-        return out_tys[i].munge(v);
-      });
+      const data = args.slice(args.length - evt_cnt);
       const last_block = await getLastBlock();
       const ctcInfo = await infoP;
       if (!timeout_delay || stdlib.lt(BLOCKS.length, stdlib.add(last_block, timeout_delay))) {
@@ -227,3 +225,41 @@ export function formatCurrency(amt, decimals = 0) {
   return amt.toString();
 }
 export const setFaucet = false; // XXX
+export const T_Null = CBR.BT_Null;
+export const T_Bool = CBR.BT_Bool;
+export const T_UInt = CBR.BT_UInt;
+export const T_Bytes = CBR.BT_Bytes;
+export const T_Address = {
+  ...CBR.BT_Address,
+  // FAKE is more lenient about what addresses look like
+  canonicalize: (uv) => {
+    if (typeof uv === 'string') {
+      return uv;
+    } else if (typeof uv === 'object' && uv !== null) {
+      const obj = uv;
+      if (typeof obj.address === 'string') {
+        return obj.address;
+      } else {
+        throw Error(`address must be a string, but got ${JSON.stringify(obj.address)}`);
+      }
+    }
+    if (typeof uv !== 'string') {
+      throw Error(`address must be a string, but got ${JSON.stringify(uv)}`);
+    } else {
+      return uv;
+    }
+  },
+};
+// TODO: make FAKE use string digests like everyone else
+export const T_Digest = {
+  name: 'Digest',
+  canonicalize: (arr) => {
+    // assumed to be an array
+    return arr;
+  },
+};
+export const T_Object = (obj) => CBR.BT_Object(obj);
+export const T_Data = (obj) => CBR.BT_Data(obj);
+export const T_Array = (co, size) => CBR.BT_Array(co, size);
+export const T_Tuple = (cos) => CBR.BT_Tuple(cos);
+export const addressEq = stdlib.mkAddressEq(T_Address);

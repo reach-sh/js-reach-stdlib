@@ -5,8 +5,9 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, ge, eq, getDEBUG, isBigNumber, digest, lt, setAddressUnwrapper } from './shared.mjs';
-import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
+import { add, assert, bigNumberify, debug, digest, eq, ge, getDEBUG, hexToString, isBigNumber, lt, toHex, mkAddressEq } from './shared.mjs';
+import * as CBR from './CBR.mjs';
+import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(256).sub(1);
@@ -21,6 +22,178 @@ function isSome(m) {
 const Some = (m) => [m];
 const None = [];
 void(isSome);
+const V_Null = null;
+export const T_Null = {
+  ...CBR.BT_Null,
+  defaultValue: V_Null,
+  // null is represented in solidity as false
+  munge: (bv) => (void(bv), false),
+  unmunge: (nv) => (void(nv), V_Null),
+};
+export const T_Bool = {
+  ...CBR.BT_Bool,
+  defaultValue: false,
+  munge: (bv) => bv,
+  unmunge: (nv) => V_Bool(nv),
+};
+const V_Bool = (b) => {
+  return T_Bool.canonicalize(b);
+};
+export const T_UInt = {
+  ...CBR.BT_UInt,
+  defaultValue: ethers.BigNumber.from(0),
+  munge: (bv) => bv,
+  unmunge: (nv) => V_UInt(nv),
+};
+const V_UInt = (n) => {
+  return T_UInt.canonicalize(n);
+};
+export const T_Bytes = {
+  ...CBR.BT_Bytes,
+  defaultValue: '',
+  munge: (bv) => toHex(bv),
+  unmunge: (nv) => V_Bytes(hexToString(nv)),
+};
+const V_Bytes = (s) => {
+  return T_Bytes.canonicalize(s);
+};
+export const T_Digest = {
+  ...CBR.BT_Digest,
+  defaultValue: ethers.utils.keccak256([]),
+  munge: (bv) => BigNumber.from(bv),
+  // XXX likely not the correct unmunge type?
+  unmunge: (nv) => V_Digest(nv.toHexString()),
+};
+const V_Digest = (s) => {
+  return T_Digest.canonicalize(s);
+};
+
+function addressUnwrapper(x) {
+  // TODO: set it up so that .address is always there
+  if (typeof x === 'string') {
+    return x;
+  } else if (x.networkAccount && x.networkAccount.address) {
+    return (x.networkAccount.address);
+  } else if (x.address) {
+    return x.address;
+  } else {
+    throw Error(`Failed to unwrap address ${x}`);
+  }
+}
+export const T_Address = {
+  ...CBR.BT_Address,
+  canonicalize: (uv) => {
+    const val = addressUnwrapper(uv);
+    return CBR.BT_Address.canonicalize(val || uv);
+  },
+  defaultValue: '0x' + Array(64).fill('0').join(''),
+  munge: (bv) => bv,
+  unmunge: (nv) => V_Address(nv),
+};
+const V_Address = (s) => {
+  // Uses ETH-specific canonicalize!
+  return T_Address.canonicalize(s);
+};
+export const T_Array = (ctc, size) => ({
+  ...CBR.BT_Array(ctc, size),
+  defaultValue: Array(size).fill(ctc.defaultValue),
+  munge: (bv) => {
+    return bv.map((arg) => ctc.munge(arg));
+  },
+  unmunge: (nv) => {
+    return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
+  },
+});
+const V_Array = (ctc, size) => (val) => {
+  return T_Array(ctc, size).canonicalize(val);
+};
+export const T_Tuple = (ctcs) => ({
+  ...CBR.BT_Tuple(ctcs),
+  defaultValue: ctcs.map(ctc => ctc.defaultValue),
+  munge: (bv) => {
+    return bv.map((arg, i) => ctcs[i].munge(arg));
+  },
+  unmunge: (args) => {
+    return V_Tuple(ctcs)(args.map((arg, i) => ctcs[i].unmunge(arg)));
+  },
+});
+const V_Tuple = (ctcs) => (val) => {
+  return T_Tuple(ctcs).canonicalize(val);
+};
+export const T_Object = (co) => ({
+  ...CBR.BT_Object(co),
+  defaultValue: (() => {
+    const obj = {};
+    for (const prop in co) {
+      obj[prop] = co[prop].defaultValue;
+    }
+    return obj;
+  })(),
+  munge: (bv) => {
+    const obj = {};
+    for (const prop in co) {
+      obj[prop] = co[prop].munge(bv[prop]);
+    }
+    return obj;
+  },
+  unmunge: (bv) => {
+    const obj = {};
+    for (const prop in co) {
+      obj[prop] = co[prop].unmunge(bv[prop]);
+    }
+    return V_Object(co)(obj);
+  },
+});
+const V_Object = (co) => (val) => {
+  return T_Object(co).canonicalize(val);
+};
+export const T_Data = (co) => {
+  // TODO: not duplicate between this and CBR.ts
+  const { ascLabels, labelMap } = labelMaps(co);
+  return {
+    ...CBR.BT_Data(co),
+    defaultValue: (() => {
+      const label = ascLabels[0];
+      return [label, co[label].defaultValue];
+      // return {ty, val: [label, co[label].defaultValue]};
+    })(),
+    // Data representation in js is a 2-tuple:
+    // [label, val]
+    // where label : string
+    // and val : co[label]
+    //
+    // Data representation in solidity is an N+1-tuple: (actually a struct)
+    // [labelInt, v0, ..., vN]
+    // where labelInt : number, 0 <= labelInt < N
+    // vN : co[ascLabels[i]]
+    //
+    munge: ([label, v]) => {
+      const i = labelMap[label];
+      const vals = ascLabels.map((label) => {
+        const vco = co[label];
+        return vco.munge(vco.defaultValue);
+      });
+      vals[i] = co[label].munge(v);
+      const ret = [i];
+      return ret.concat(vals);
+    },
+    // Note: when it comes back from solidity, vs behaves like an N+1-tuple,
+    // but also has secret extra keys you can access,
+    // based on the struct field names.
+    // e.g. Maybe has keys vs["which"], vs["_None"], and vs["_Some"],
+    // corresponding to    vs[0],       vs[1],       and vs[2] respectively.
+    // We don't currently use these, but we could.
+    unmunge: (vs) => {
+      const i = vs[0];
+      const label = ascLabels[i];
+      const val = vs[i + 1];
+      return V_Data(co)([label, co[label].unmunge(val)]);
+    },
+  };
+};
+const V_Data = (co) => (val) => {
+  return T_Data(co).canonicalize(val);
+};
 const connectorMode = getConnectorMode();
 // Certain functions either behave differently,
 // or are only available on an "isolated" network.
@@ -202,7 +375,11 @@ const fetchAndRejectInvalidReceiptFor = async (txHash) => {
   return await rejectInvalidReceiptFor(txHash, r);
 };
 export const connectAccount = async (networkAccount) => {
-  setAddressUnwrapper((x) => x.address ? x.address : x);
+  // @ts-ignore // TODO
+  if (networkAccount.getAddress && !networkAccount.address) {
+    // @ts-ignore
+    networkAccount.address = await getAddr({ networkAccount });
+  }
   // XXX networkAccount MUST be a Wallet or Signer to deploy/attach
   const provider = await getProvider();
   const address = await getAddr({ networkAccount });
@@ -348,7 +525,8 @@ export const connectAccount = async (networkAccount) => {
     })();
     const updateLast = (o) => {
       if (!o.blockNumber) {
-        throw Error(`Expected blockNumber, ${o}`);
+        console.log(o);
+        throw Error(`Expected blockNumber in ${Object.keys(o)}`);
       }
       setLastBlock(o.blockNumber);
     };
@@ -477,7 +655,17 @@ export const connectAccount = async (networkAccount) => {
           const ok_t = await provider.getTransaction(ok_e.transactionHash);
           // The .gas field doesn't exist on this anymore, apparently?
           // debug(`${ok_evt} gas was ${ok_t.gas} ${ok_t.gasPrice}`);
-          updateLast(ok_t);
+          if (ok_t.blockNumber) {
+            assert(ok_t.blockNumber == ok_r.blockNumber, 'recept & transaction block numbers should match');
+            if (ok_e.blockNumber) {
+              assert(ok_t.blockNumber == ok_e.blockNumber, 'event & transaction block numbers should match');
+            }
+          } else {
+            // XXX For some reason ok_t sometimes doesn't have blockNumber
+            console.log(`WARNING: no blockNumber on transaction.`);
+            console.log(ok_t);
+          }
+          updateLast(ok_r);
           const ok_vals = await getEventData(ok_evt, ok_e);
           if (ok_vals.length !== out_tys.length) {
             throw Error(`Expected ${out_tys.length} values from event data, but got ${ok_vals.length}.`);
@@ -777,3 +965,4 @@ export function formatCurrency(amt, decimals = 18) {
     return amtStr;
   }
 }
+export const addressEq = mkAddressEq(T_Address);

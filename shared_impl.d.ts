@@ -6,4 +6,15 @@ export declare function replaceableThunk<T>(thunk: () => T): [() => T, (val: T) 
  * @description Only perform side effects from thunk on the first call.
  */
 export declare function memoizeThunk<T>(thunk: () => T): () => T;
+/**
+ * @description ascLabels[i] = label; labelMap[label] = i;
+ */
+export declare const labelMaps: (co: {
+    [key: string]: unknown;
+}) => {
+    ascLabels: Array<string>;
+    labelMap: {
+        [key: string]: number;
+    };
+};
 //# sourceMappingURL=shared_impl.d.ts.map
