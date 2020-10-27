@@ -1,0 +1,174 @@
+import ethers from 'ethers';
+export const BV_Null = null;
+export const BT_Null = {
+  name: 'Null',
+  canonicalize: (val) => {
+    // Doesn't check with triple eq; we're being lenient here
+    if (val != null) {
+      throw Error(`Expected null, but got ${JSON.stringify(val)}`);
+    }
+    return BV_Null;
+  },
+};
+export const BT_Bool = {
+  name: 'Bool',
+  canonicalize: (val) => {
+    if (typeof(val) !== 'boolean') {
+      throw Error(`Expected boolean, but got ${JSON.stringify(val)}`);
+    }
+    return val;
+  },
+};
+export const BV_Bool = (val) => {
+  return BT_Bool.canonicalize(val);
+};
+export const BT_UInt = {
+  name: 'UInt',
+  canonicalize: (uv) => {
+    try {
+      const val = ethers.BigNumber.from(uv);
+      return val;
+    } catch (e) {
+      if (typeof(uv) === 'string') {
+        throw Error(`String does not represent a BigNumber. ${JSON.stringify(uv)}`);
+      } else {
+        throw Error(`Expected BigNumber, number, or string, but got ${JSON.stringify(uv)}`);
+      }
+    }
+  },
+};
+export const BV_UInt = (val) => {
+  return BT_UInt.canonicalize(val);
+};
+export const BT_Bytes = {
+  name: 'Bytes',
+  canonicalize: (val) => {
+    if (typeof(val) !== 'string') {
+      throw Error(`Bytes expected string, but got ${JSON.stringify(val)}`);
+    }
+    return val;
+  },
+};
+export const BV_Bytes = (val) => {
+  return BT_Bytes.canonicalize(val);
+};
+// TODO: check digest length, or something similar?
+// That's probably best left to connector-specific code.
+export const BT_Digest = {
+  name: 'Digest',
+  canonicalize: (val) => {
+    if (typeof val !== 'string') {
+      throw Error(`${val} is not a valid digest`);
+    }
+    return val;
+  },
+};
+/** @description You probably don't want to create a BV_Digest manually. */
+export const BV_Digest = (val) => {
+  return BT_Digest.canonicalize(val);
+};
+export const BT_Address = ({
+  name: 'Address',
+  canonicalize: (val) => {
+    if (typeof val !== 'string') {
+      throw Error(`Address must be a string, but got: ${JSON.stringify(val)}`);
+    } else if (val.slice(0, 2) !== '0x') {
+      throw Error(`Address must start with 0x, but got: ${JSON.stringify(val)}`);
+    } else if (!ethers.utils.isHexString(val)) {
+      throw Error(`Address must be a valid hex string, but got: ${JSON.stringify(val)}`);
+    }
+    return val;
+  },
+});
+// XXX: don't use this. Use net-specific ones
+export const BV_Address = (val) => {
+  return BT_Address.canonicalize(val);
+};
+export const BT_Array = (ctc, size) => {
+  // TODO: check ctc, sz for sanity
+  return {
+    name: `Array(${ctc.name}, ${size})`,
+    canonicalize: (args) => {
+      if (!Array.isArray(args)) {
+        throw Error(`Expected an Array, but got ${JSON.stringify(args)}`);
+      }
+      if (size != args.length) {
+        throw Error(`Expected array of length ${size}, but got ${args.length}`);
+      }
+      const val = args.map((arg) => ctc.canonicalize(arg));
+      return val;
+    },
+  };
+};
+// Note: curried
+/** @example BV_Array(BT_UInt, 3)([1, 2, 3]) */
+export const BV_Array = (ctc, size) => (val) => {
+  return BT_Array(ctc, size).canonicalize(val);
+};
+export const BT_Tuple = (ctcs) => {
+  // TODO: check ctcs for sanity
+  return {
+    name: `Tuple(${ctcs.map((ctc) => ` ${ctc.name} `)})`,
+    canonicalize: (args) => {
+      if (!Array.isArray(args)) {
+        throw Error(`Expected a Tuple, but got ${JSON.stringify(args)}`);
+      }
+      if (ctcs.length != args.length) {
+        throw Error(`Expected tuple of size ${ctcs.length}, but got ${args.length}`);
+      }
+      const val = args.map((arg, i) => ctcs[i].canonicalize(arg));
+      return val;
+    },
+  };
+};
+// Note: curried
+/** @example BV_Tuple([BT_UInt, BT_Bytes])([42, 'hello']) */
+export const BV_Tuple = (ctcs) => (val) => {
+  return BT_Tuple(ctcs).canonicalize(val);
+};
+export const BT_Object = (co) => {
+  // TODO: check co for sanity
+  return {
+    name: `Object(${Object.keys(co).map((k) => ` ${k}: ${co[k].name} `)})`,
+    canonicalize: (vo) => {
+      if (typeof(vo) !== 'object') {
+        throw Error(`Expected object, but got ${JSON.stringify(vo)}`);
+      }
+      const obj = {};
+      for (const prop in co) {
+        // This is dumb but it's how ESLint says to do it
+        // https://eslint.org/docs/rules/no-prototype-builtins
+        if (!{}.hasOwnProperty.call(vo, prop)) {
+          throw Error(`Expected prop ${prop}, but didn't found it in ${Object.keys(vo)}`);
+        }
+        obj[prop] = co[prop].canonicalize(vo[prop]);
+      }
+      return obj;
+    },
+  };
+};
+// Note: curried
+/** @example BV_Object({x: BT_UInt})({x: 3}) */
+export const BV_Object = (co) => (val) => {
+  return BT_Object(co).canonicalize(val);
+};
+export const BT_Data = (co) => {
+  // TODO: check co for sanity
+  return {
+    name: `Data(${Object.keys(co).map((k) => ` ${k}: ${co[k].name} `)})`,
+    canonicalize: (io) => {
+      if (!(Array.isArray(io) && io.length == 2 && typeof io[0] == 'string')) {
+        throw Error(`Expected an array of length two to represent a data instance, but got ${JSON.stringify(io)}`);
+      }
+      const vn = io[0];
+      if (!{}.hasOwnProperty.call(co, vn)) {
+        throw Error(`Expected a variant in ${Object.keys(co)}, but got ${vn}`);
+      }
+      return [vn, co[vn].canonicalize(io[1])];
+    },
+  };
+};
+/** @example BV_Data({x: BT_UInt, y: BT_Bytes})(['x', 3]); */
+export const BV_Data = (co) => (val) => {
+  return BT_Data(co).canonicalize(val);
+};
