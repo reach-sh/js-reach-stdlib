@@ -5,12 +5,13 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, digest, eq, ge, getDEBUG, hexToString, isBigNumber, lt, toHex, mkAddressEq } from './shared.mjs';
+import { add, assert, bigNumberify, debug, makeDigest, eq, ge, getDEBUG, stringToHex, hexToString, isBigNumber, isHex, bigNumberToHex, lt, mkAddressEq, makeRandom } from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(256).sub(1);
+export const { randomUInt, hasRandom } = makeRandom(32);
 
 function isNone(m) {
   return m.length === 0;
@@ -22,6 +23,39 @@ function isSome(m) {
 const Some = (m) => [m];
 const None = [];
 void(isSome);
+const kek = (arg) => {
+  if (typeof(arg) === 'string') {
+    if (isHex(arg)) {
+      return arg;
+    } else {
+      return ethers.utils.toUtf8Bytes(arg);
+    }
+  } else if (typeof(arg) === 'boolean') {
+    return kek(arg ? 1 : 0);
+  } else if (typeof(arg) === 'number') {
+    return '0x' + bigNumberToHex(arg);
+  } else if (isBigNumber(arg)) {
+    return '0x' + bigNumberToHex(arg);
+  } else if (arg && arg.constructor && arg.constructor.name == 'Uint8Array') {
+    return arg;
+  } else if (arg && arg.constructor && arg.constructor.name == 'Buffer') {
+    return '0x' + arg.toString('hex');
+  } else if (Array.isArray(arg)) {
+    return ethers.utils.concat(arg.map((x) => ethers.utils.arrayify(kek(x))));
+  } else if (Object.keys(arg).length > 0) {
+    if (Object.keys(arg).length > 1) {
+      // XXX
+      console.log(`WARNING: digest known not to match solidity keccak256` +
+        ` on objects with more than 1 field.` +
+        ` This can cause: "The message you are trying to send appears to be invalid"`);
+    }
+    const { ascLabels } = labelMaps(arg);
+    return kek(ascLabels.map((label => arg[label])));
+  } else {
+    throw Error(`Can't kek this: ${JSON.stringify(arg)}`);
+  }
+};
+export const digest = makeDigest((t, v) => kek(t.munge(v)));
 const V_Null = null;
 export const T_Null = {
   ...CBR.BT_Null,
@@ -51,7 +85,7 @@ const V_UInt = (n) => {
 export const T_Bytes = {
   ...CBR.BT_Bytes,
   defaultValue: '',
-  munge: (bv) => toHex(bv),
+  munge: (bv) => stringToHex(bv),
   unmunge: (nv) => V_Bytes(hexToString(nv)),
 };
 const V_Bytes = (s) => {
@@ -70,8 +104,14 @@ const V_Digest = (s) => {
 
 function addressUnwrapper(x) {
   // TODO: set it up so that .address is always there
+  // Just putting it here to appease BT_Address.canonicalize
   if (typeof x === 'string') {
-    return x;
+    // XXX is this actually needed?
+    if (x.slice(0, 2) !== '0x') {
+      return '0x' + x;
+    } else {
+      return x;
+    }
   } else if (x.networkAccount && x.networkAccount.address) {
     return (x.networkAccount.address);
   } else if (x.address) {
@@ -107,6 +147,7 @@ export const T_Array = (ctc, size) => ({
 const V_Array = (ctc, size) => (val) => {
   return T_Array(ctc, size).canonicalize(val);
 };
+// XXX fix me Dan, I'm type checking wrong!
 export const T_Tuple = (ctcs) => ({
   ...CBR.BT_Tuple(ctcs),
   defaultValue: ctcs.map(ctc => ctc.defaultValue),
@@ -907,7 +948,11 @@ export const verifyContract = async (ctcInfo, backend) => {
   }
   if (isNone(argsMay)) {
     const st = await provider.getStorageAt(address, 0, creation_block);
-    const expectedSt = digest(0, creation_block);
+    const expectedSt =
+      // @ts-ignore XXX
+      digest(T_Tuple([T_UInt, T_UInt]), [T_UInt.canonicalize(0),
+        T_UInt.canonicalize(creation_block),
+      ]);
     if (st !== expectedSt) {
       console.log('st expected: ' + expectedSt);
       console.log('st actual  : ' + st);

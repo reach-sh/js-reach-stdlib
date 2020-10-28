@@ -58,19 +58,20 @@ export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
 export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare function protect(ctc: AnyBackendTy, v: unknown, ai?: unknown): any;
-export declare const setDigestWidth: (sz: number) => void;
-export declare const toHex: (x: any) => string;
 export declare const isHex: typeof ethers.ethers.utils.isHexString;
 export declare const hexToString: typeof ethers.ethers.utils.toUtf8String;
-export declare const digest: (...args: Array<any>) => string;
+export declare const stringToHex: (x: string) => string;
+export declare const makeDigest: (prep: any) => (t: any, v: any) => string;
 export declare const hexToBigNumber: (h: string) => BigNumber;
 export declare const uintToBytes: (i: BigNumber) => string;
 export declare const bigNumberToHex: (u: num, size?: number) => string;
 export declare const bytesEq: (x: any, y: any) => boolean;
 export declare const digestEq: (x: any, y: any) => boolean;
-export declare const randomUInt: () => BigNumber;
-export declare const hasRandom: {
-    random: () => BigNumber;
+export declare const makeRandom: (width: number) => {
+    randomUInt: () => BigNumber;
+    hasRandom: {
+        random: () => BigNumber;
+    };
 };
 export declare const eq: (a: num, b: num) => boolean;
 export declare const add: (a: num, b: num) => BigNumber;
@@ -82,6 +83,7 @@ export declare const ge: (a: num, b: num) => boolean;
 export declare const gt: (a: num, b: num) => boolean;
 export declare const le: (a: num, b: num) => boolean;
 export declare const lt: (a: num, b: num) => boolean;
+export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare type CurrencyAmount = string | number | BigNumber;

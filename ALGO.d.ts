@@ -7,6 +7,9 @@ export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
+export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
+    random: () => ethers.ethers.BigNumber;
+};
 declare type Address = string;
 declare type SecretKey = Uint8Array;
 declare type Wallet = {
@@ -29,6 +32,7 @@ declare type Backend = {
             appClear: string;
             ctc: string;
             steps: Array<string | null>;
+            stepargs: Array<number>;
             unsupported: boolean;
         };
     };
@@ -62,6 +66,7 @@ declare type ALGO_Ty<BV extends CBR_Val> = {
     toNet(bv: BV): NV;
     fromNet(nv: NV): BV;
 };
+export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;
 export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;

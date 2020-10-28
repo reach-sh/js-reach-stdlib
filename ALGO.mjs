@@ -5,14 +5,15 @@ import base32 from 'hi-base32';
 import ethers from 'ethers';
 import url from 'url';
 import Timeout from 'await-timeout';
-import { debug, getDEBUG, toHex, isBigNumber, bigNumberify, setDigestWidth, mkAddressEq } from './shared.mjs';
+import { debug, getDEBUG, isBigNumber, bigNumberify, mkAddressEq, makeDigest, argsSlice, makeRandom } from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import waitPort from 'wait-port';
 import { labelMaps, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
-// const V_Null: CBR_Null = null;
+export const { randomUInt, hasRandom } = makeRandom(8);
+export const digest = makeDigest((t, v) => t.toNet(v));
 export const T_Null = {
   ...CBR.BT_Null,
   netSize: 0,
@@ -21,15 +22,10 @@ export const T_Null = {
 };
 export const T_Bool = {
   ...CBR.BT_Bool,
-  netSize: 8,
-  toNet: (bv) => {
-    return T_UInt.toNet(BigNumber.from(bv ? 1 : 0));
-  },
-  fromNet: (nv) => {
-    return T_UInt.fromNet(nv).eq(1);
-  },
+  netSize: 1,
+  toNet: (bv) => new Uint8Array([bv ? 1 : 0]),
+  fromNet: (nv) => nv[0] == 1,
 };
-// const V_Bool = (val: boolean): CBR_Bool => T_Bool.canonicalize(val);
 export const T_UInt = {
   ...CBR.BT_UInt,
   netSize: 8,
@@ -40,9 +36,6 @@ export const T_UInt = {
     return ethers.BigNumber.from(nv);
   },
 };
-// const V_UInt = (n: BigNumber): CBR_UInt => {
-//   return T_UInt.canonicalize(n);
-// }
 /** @description For arbitrary utf8 strings */
 const stringyNet = {
   toNet: (bv) => (ethers.utils.toUtf8Bytes(bv)),
@@ -58,18 +51,12 @@ export const T_Bytes = {
   ...stringyNet,
   netSize: 'all',
 };
-// const V_Bytes = (s: string): CBR_Bytes => {
-//   return T_Bytes.canonicalize(s);
-// }
 export const T_Digest = {
   ...CBR.BT_Digest,
   ...bytestringyNet,
   netSize: 32,
 };
-// /** @description You probably don't want to manually create this */
-// const V_Digest = (s: string): CBR_Digest => {
-//   return T_Digest.canonicalize(s);
-// }
+
 function addressUnwrapper(x) {
   return (x && x.addr) ?
     '0x' + Buffer.from(algosdk.decodeAddress(x.addr).publicKey).toString('hex') :
@@ -84,9 +71,6 @@ export const T_Address = {
     return CBR.BT_Address.canonicalize(val || uv);
   },
 };
-// const V_Address = (s: string): CBR_Address => {
-//   return T_Address.canonicalize(s);
-// }
 export const T_Array = (co, size) => ({
   ...CBR.BT_Array(co, size),
   netSize: (co.netSize === 'all') ? 'all' : size * co.netSize,
@@ -109,12 +93,6 @@ export const T_Array = (co, size) => ({
     }
   },
 });
-// const V_Array = (
-//   co: ALGO_Ty<CBR_Val>,
-//   size: number,
-// ) => (val: Array<unknown>): CBR_Array => {
-//   return T_Array(co, size).canonicalize(val);
-// }
 export const T_Tuple = (cos) => ({
   ...CBR.BT_Tuple(cos),
   netSize: ((cos.some((co) => co.netSize === 'all')) ?
@@ -239,7 +217,7 @@ const [getIndexer, setIndexer] = replaceableThunk(async () => {
 });
 export { setIndexer };
 // eslint-disable-next-line max-len
-const FAUCET = algosdk.mnemonicToSecretKey((process.env.ALGO_FAUCET_PASSPHRASE || 'pulp abstract olive name enjoy trick float comfort verb danger eternal laptop acquire fetch message marble jump level spirit during benefit sure dry absent history'));
+const FAUCET = algosdk.mnemonicToSecretKey((process.env.ALGO_FAUCET_PASSPHRASE || 'close year slice mind voice cousin brass goat anxiety drink tourist child stock amused rescue pitch exhibit guide occur wide barrel process type able please'));
 // if using the default:
 // assert(FAUCET.addr === 'EYTSJVJIMJDUSRRNTMVLORTLTOVDWZ6SWOSY77JHPDWSD7K3P53IB3GUPQ');
 // Helpers
@@ -331,9 +309,6 @@ const sign_and_send_sync = async (label, sk, txn) => {
     throw Error(`${label} txn failed:\n${JSON.stringify(txn)}\nwith:\n${JSON.stringify(e)}`);
   }
 };
-// const fillTxn = async (round_width, txn) => {
-//   return fillTxnWithParams(false, round_width, await getTxnParams(), txn);
-// };
 export const transfer = async (from, to, value) => {
   const valuen = value.toNumber();
   const sender = from.networkAccount;
@@ -357,13 +332,13 @@ function must_be_supported(bin) {
   const algob = bin._Connectors.ALGO;
   const { unsupported } = algob;
   if (unsupported) {
-    throw Error(`This Reach application is not supported on Algorand.`);
+    throw Error(`This Reach application is not supported by Algorand.`);
   }
 }
 async function compileFor(bin, ApplicationID) {
   must_be_supported(bin);
   const algob = bin._Connectors.ALGO;
-  const { appApproval, appClear, ctc, steps } = algob;
+  const { appApproval, appClear, ctc, steps, stepargs } = algob;
   const subst_appid = (x) => replaceUint8Array('ApplicationID',
     // @ts-ignore XXX
     T_UInt.toNet(bigNumberify(ApplicationID)), x);
@@ -377,6 +352,12 @@ async function compileFor(bin, ApplicationID) {
     const mN = `m${mi}`;
     const mc_subst = subst_ctc(subst_appid(mc));
     const cr = await compileTEAL(mN, mc_subst);
+    const plen = cr.result.length;
+    const alen = stepargs[mi];
+    const tlen = plen + alen;
+    if (tlen > 1000) {
+      throw Error(`This Reach application is not supported by Algorand (program(${plen}) + args(${alen}) = total(${tlen}) > 1000)`);
+    }
     appApproval_subst =
       replaceAddr(mN, cr.hash, appApproval_subst);
     return cr;
@@ -419,10 +400,7 @@ const doQuery = async (dhead, query) => {
   const txn = res.transactions[0];
   return txn;
 };
-const argsSlice = (args, cnt) => cnt == 0 ? [] : args.slice(-1 * cnt);
 export const connectAccount = async (networkAccount) => {
-  // XXX become the monster
-  setDigestWidth(8);
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
@@ -495,7 +473,8 @@ export const connectAccount = async (networkAccount) => {
             throw Error(`expect safe program argument, got ${JSON.stringify(x)}`);
           }
         });
-        debug(`${dhead} --- PREPARE: ${JSON.stringify(safe_args.map(toHex))}`);
+        const ui8h = (x) => Buffer.from(x).toString('hex');
+        debug(`${dhead} --- PREPARE: ${JSON.stringify(safe_args.map(ui8h))}`);
         const handler_with_args = algosdk.makeLogicSig(handler.result, safe_args);
         debug(`${dhead} --- PREPARED`); // XXX display handler_with_args usefully, like with base64ify toBytes
         const whichAppl = isHalt ?

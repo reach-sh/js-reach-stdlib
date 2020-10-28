@@ -6,6 +6,9 @@ export * from './shared';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
+export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
+    random: () => ethers.ethers.BigNumber;
+};
 declare type Wallet = ethers.Wallet;
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = {
@@ -49,6 +52,7 @@ declare type ETH_Ty<BV extends CBR_Val, NV> = {
     unmunge: (nv: NV) => BV;
 };
 declare type AnyETH_Ty = ETH_Ty<CBR_Val, any>;
+export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ETH_Ty<CBR_Null, false>;
 export declare const T_Bool: ETH_Ty<CBR_Bool, boolean>;
 export declare const T_UInt: ETH_Ty<CBR_UInt, BigNumber>;

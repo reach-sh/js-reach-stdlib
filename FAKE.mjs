@@ -1,13 +1,14 @@
 import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import * as stdlib from './shared.mjs';
-import * as CBR from './CBR.mjs';
 export * from './shared.mjs';
+export { T_Null, T_Bool, T_UInt, T_Bytes, T_Address, T_Digest, T_Object, T_Data, T_Array, T_Tuple, addressEq, digest } from './ETH.mjs';
 export const debug = (msg) => {
   stdlib.debug(`${BLOCKS.length}: ${msg}}`);
 };
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(256).sub(1);
+export const { randomUInt, hasRandom } = stdlib.makeRandom(32);
 // This can be exposed to the user for checking the trace of blocks
 // for testing.
 const BLOCKS = [];
@@ -80,7 +81,7 @@ export const connectAccount = async (networkAccount) => {
         actual: tys.length,
         message: 'tys does not have expected length',
       });
-      const data = args.slice(args.length - evt_cnt);
+      const data = stdlib.argsSlice(args, evt_cnt);
       const last_block = await getLastBlock();
       const ctcInfo = await infoP;
       if (!timeout_delay || stdlib.lt(BLOCKS.length, stdlib.add(last_block, timeout_delay))) {
@@ -151,7 +152,7 @@ export const connectAccount = async (networkAccount) => {
   return { deploy, attach, networkAccount };
 };
 const makeAccount = () => {
-  const address = stdlib.toHex(stdlib.randomUInt());
+  const address = '0x' + stdlib.bigNumberToHex(randomUInt());
   BALANCES[address] = stdlib.bigNumberify(0);
   return { address };
 };
@@ -225,41 +226,3 @@ export function formatCurrency(amt, decimals = 0) {
   return amt.toString();
 }
 export const setFaucet = false; // XXX
-export const T_Null = CBR.BT_Null;
-export const T_Bool = CBR.BT_Bool;
-export const T_UInt = CBR.BT_UInt;
-export const T_Bytes = CBR.BT_Bytes;
-export const T_Address = {
-  ...CBR.BT_Address,
-  // FAKE is more lenient about what addresses look like
-  canonicalize: (uv) => {
-    if (typeof uv === 'string') {
-      return uv;
-    } else if (typeof uv === 'object' && uv !== null) {
-      const obj = uv;
-      if (typeof obj.address === 'string') {
-        return obj.address;
-      } else {
-        throw Error(`address must be a string, but got ${JSON.stringify(obj.address)}`);
-      }
-    }
-    if (typeof uv !== 'string') {
-      throw Error(`address must be a string, but got ${JSON.stringify(uv)}`);
-    } else {
-      return uv;
-    }
-  },
-};
-// TODO: make FAKE use string digests like everyone else
-export const T_Digest = {
-  name: 'Digest',
-  canonicalize: (arr) => {
-    // assumed to be an array
-    return arr;
-  },
-};
-export const T_Object = (obj) => CBR.BT_Object(obj);
-export const T_Data = (obj) => CBR.BT_Data(obj);
-export const T_Array = (co, size) => CBR.BT_Array(co, size);
-export const T_Tuple = (cos) => CBR.BT_Tuple(cos);
-export const addressEq = stdlib.mkAddressEq(T_Address);
