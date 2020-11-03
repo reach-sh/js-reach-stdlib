@@ -5,7 +5,24 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, makeDigest, eq, ge, getDEBUG, stringToHex, hexToString, isBigNumber, isHex, bigNumberToHex, lt, mkAddressEq, makeRandom } from './shared.mjs';
+import {
+  add,
+  assert,
+  bigNumberify,
+  debug,
+  makeDigest,
+  eq,
+  ge,
+  getDEBUG,
+  //stringToHex,
+  hexToString,
+  isBigNumber,
+  isHex,
+  bigNumberToHex,
+  lt,
+  mkAddressEq,
+  makeRandom,
+} from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
@@ -82,14 +99,14 @@ export const T_UInt = {
 const V_UInt = (n) => {
   return T_UInt.canonicalize(n);
 };
-export const T_Bytes = {
-  ...CBR.BT_Bytes,
-  defaultValue: '',
-  munge: (bv) => stringToHex(bv),
-  unmunge: (nv) => V_Bytes(hexToString(nv)),
-};
-const V_Bytes = (s) => {
-  return T_Bytes.canonicalize(s);
+export const T_Bytes = (len) => {
+  const me = {
+    ...CBR.BT_Bytes(len),
+    defaultValue: ''.padEnd(len, '\0'),
+    munge: (bv) => Array.from(ethers.utils.toUtf8Bytes(bv)),
+    unmunge: (nv) => me.canonicalize(hexToString(ethers.utils.hexlify(nv))),
+  };
+  return me;
 };
 export const T_Digest = {
   ...CBR.BT_Digest,
@@ -243,7 +260,8 @@ const isIsolatedNetwork = connectorMode.startsWith('ETH-test-dockerized') ||
   connectorMode.startsWith('ETH-test-embedded');
 const networkDesc = connectorMode == 'ETH-test-embedded-ganache' ? {
   type: 'embedded-ganache',
-} : connectorMode == 'ETH-test-dockerized-geth' ? {
+} : (connectorMode == 'ETH-test-dockerized-geth' ||
+  connectorMode == 'ETH-live') ? {
   type: 'uri',
   uri: process.env.ETH_NODE_URI || 'http://localhost:8545',
   network: process.env.ETH_NODE_NETWORK || 'unspecified',
@@ -622,7 +640,7 @@ export const connectAccount = async (networkAccount) => {
           const r_fn = await callC(funcName, lastBlock, munged, value);
           r_maybe = await r_fn.wait();
         } catch (e) {
-          debug(e);
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR (${e})`);
           // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
           await Timeout.set(1);
           const current_block = await getNetworkTimeNumber();
@@ -735,6 +753,12 @@ export const connectAccount = async (networkAccount) => {
     return { getInfo, sendrecv, recv, wait, iam };
   };
   return { deploy, attach, networkAccount };
+};
+export const newAccountFromSecret = async (secret) => {
+  const provider = await getProvider();
+  const networkAccount = (new ethers.Wallet(secret)).connect(provider);
+  const acc = await connectAccount(networkAccount);
+  return acc;
 };
 export const newAccountFromMnemonic = async (phrase) => {
   const provider = await getProvider();

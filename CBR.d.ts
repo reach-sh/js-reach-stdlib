@@ -22,8 +22,7 @@ export declare const BT_Bool: BackendTy<CBR_Bool>;
 export declare const BV_Bool: (val: boolean) => CBR_Bool;
 export declare const BT_UInt: BackendTy<CBR_UInt>;
 export declare const BV_UInt: (val: BigNumber) => CBR_UInt;
-export declare const BT_Bytes: BackendTy<CBR_Bytes>;
-export declare const BV_Bytes: (val: string) => CBR_Bytes;
+export declare const BT_Bytes: (len: number) => BackendTy<CBR_Bytes>;
 export declare const BT_Digest: BackendTy<CBR_Digest>;
 /** @description You probably don't want to create a BV_Digest manually. */
 export declare const BV_Digest: (val: string) => CBR_Digest;

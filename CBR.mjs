@@ -40,18 +40,25 @@ export const BT_UInt = {
 export const BV_UInt = (val) => {
   return BT_UInt.canonicalize(val);
 };
-export const BT_Bytes = {
-  name: 'Bytes',
+export const BT_Bytes = (len) => ({
+  name: `Bytes(${len})`,
   canonicalize: (val) => {
     if (typeof(val) !== 'string') {
       throw Error(`Bytes expected string, but got ${JSON.stringify(val)}`);
     }
-    return val;
+    const checkLen = (label, alen, fill) => {
+      if (val.length > alen) {
+        throw Error(`Bytes(${len}) must be a ${label}string less than or equal to ${alen}, but given ${label}string of length ${val.length}`);
+      }
+      return val.padEnd(alen, fill);
+    };
+    if (val.slice(0, 2) === '0x') {
+      return checkLen('hex ', len * 2 + 2, '0');
+    } else {
+      return checkLen('', len, '\0');
+    }
   },
-};
-export const BV_Bytes = (val) => {
-  return BT_Bytes.canonicalize(val);
-};
+});
 // TODO: check digest length, or something similar?
 // That's probably best left to connector-specific code.
 export const BT_Digest = {

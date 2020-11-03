@@ -193,6 +193,7 @@ export function waitUntilTime(targetTime, onProgress) {
   onProg({ currentTime, targetTime });
   return currentTime;
 }
+export const newAccountFromSecret = false; // XXX
 export const newAccountFromMnemonic = false; // XXX
 export const verifyContract = false; // XXX
 /** @description the display name of the standard unit of currency for the network */

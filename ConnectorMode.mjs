@@ -2,6 +2,7 @@ import { process } from './shim.mjs';
 // Order is significant, earlier = default for shared prefix
 // e.g. ETH defaults to ETH-test-dockerized-geth
 const knownConnectorModes = [
+  'ETH-live',
   'ETH-test-dockerized-geth',
   'ETH-test-embedded-ganache',
   'ETH-test-browser-window',

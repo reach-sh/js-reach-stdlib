@@ -46,11 +46,11 @@ const bytestringyNet = {
   toNet: (bv) => (ethers.utils.arrayify(bv)),
   fromNet: (nv) => (ethers.utils.hexlify(nv)),
 };
-export const T_Bytes = {
-  ...CBR.BT_Bytes,
+export const T_Bytes = (len) => ({
+  ...CBR.BT_Bytes(len),
   ...stringyNet,
-  netSize: 'all',
-};
+  netSize: len,
+});
 export const T_Digest = {
   ...CBR.BT_Digest,
   ...bytestringyNet,
@@ -73,32 +73,25 @@ export const T_Address = {
 };
 export const T_Array = (co, size) => ({
   ...CBR.BT_Array(co, size),
-  netSize: (co.netSize === 'all') ? 'all' : size * co.netSize,
+  netSize: size * co.netSize,
   toNet: (bv) => {
     return ethers.utils.concat(bv.map((v) => co.toNet(v)));
   },
   fromNet: (nv) => {
-    if (co.netSize === 'all') {
-      // XXX there can only be one
-      return [co.fromNet(nv)];
-    } else {
-      const chunks = new Array(size).fill(null);
-      let rest = nv;
-      for (const i in chunks) {
-        chunks[i] = co.fromNet(rest.slice(0, co.netSize));
-        rest = rest.slice(co.netSize);
-      }
-      // TODO: assert size of nv/rest is correct?
-      return chunks;
+    const chunks = new Array(size).fill(null);
+    let rest = nv;
+    for (const i in chunks) {
+      chunks[i] = co.fromNet(rest.slice(0, co.netSize));
+      rest = rest.slice(co.netSize);
     }
+    // TODO: assert size of nv/rest is correct?
+    return chunks;
   },
 });
 export const T_Tuple = (cos) => ({
   ...CBR.BT_Tuple(cos),
-  netSize: ((cos.some((co) => co.netSize === 'all')) ?
-    'all'
+  netSize: (
     // @ts-ignore // ts should know this from the condition
-    :
     cos.reduce((acc, co) => acc + co.netSize, 0)),
   toNet: (bv) => {
     const val = cos.map((co, i) => co.toNet(bv[i]));
@@ -110,24 +103,16 @@ export const T_Tuple = (cos) => ({
     let rest = nv;
     for (const i in cos) {
       const co = cos[i];
-      if (co.netSize === 'all') {
-        // XXX consumes it all
-        chunks[i] = co.fromNet(rest);
-        rest = rest.slice(rest.length);
-      } else {
-        chunks[i] = co.fromNet(rest.slice(0, co.netSize));
-        rest = rest.slice(co.netSize);
-      }
+      chunks[i] = co.fromNet(rest.slice(0, co.netSize));
+      rest = rest.slice(co.netSize);
     }
     return chunks;
   },
 });
 export const T_Object = (coMap) => {
   const cos = Object.values(coMap);
-  const netSize = cos.some((co) => co.netSize === 'all') ?
-    'all'
+  const netSize =
     // @ts-ignore // ts should know this from the condition
-    :
     cos.reduce((acc, co) => acc + co.netSize, 0);
   const { ascLabels } = labelMaps(coMap);
   return {
@@ -145,14 +130,8 @@ export const T_Object = (coMap) => {
         const i = parseInt(iStr);
         const label = ascLabels[i];
         const co = coMap[label];
-        if (co.netSize === 'all') {
-          // XXX consumes it all
-          obj[label] = co.fromNet(rest);
-          rest = rest.slice(rest.length);
-        } else {
-          obj[label] = co.fromNet(rest.slice(0, co.netSize));
-          rest = rest.slice(co.netSize);
-        }
+        obj[label] = co.fromNet(rest.slice(0, co.netSize));
+        rest = rest.slice(co.netSize);
       }
       return obj;
     },
@@ -163,13 +142,10 @@ export const T_Object = (coMap) => {
 // up to the size of the largest variant
 export const T_Data = (coMap) => {
   const cos = Object.values(coMap);
-  const valSize = cos.some((co) => co.netSize === 'all') ?
-    'all'
+  const valSize =
     // @ts-ignore // ts should know this from the cond above
-    :
     Math.max(cos.map((co) => co.netSize));
-  const netSize = valSize === 'all' ?
-    'all' : valSize + 1;
+  const netSize = valSize + 1;
   const { ascLabels, labelMap } = labelMaps(coMap);
   return {
     ...CBR.BT_Data(coMap),
@@ -179,20 +155,15 @@ export const T_Data = (coMap) => {
       const lab_nv = new Uint8Array([i]);
       const val_co = coMap[label];
       const val_nv = val_co.toNet(val);
-      if (valSize === 'all') {
-        return ethers.utils.concat([lab_nv, val_nv]);
-      } else {
-        const padding = new Uint8Array(valSize - val_nv.length);
-        return ethers.utils.concat([lab_nv, val_nv, padding]);
-      }
+      const padding = new Uint8Array(valSize - val_nv.length);
+      return ethers.utils.concat([lab_nv, val_nv, padding]);
     },
     fromNet: (nv) => {
       const i = nv[0];
       const label = ascLabels[i];
       const val_co = coMap[label];
       const rest = nv.slice(1);
-      const sliceTo = val_co.netSize === 'all' ?
-        rest.length : val_co.netSize;
+      const sliceTo = val_co.netSize;
       const val = val_co.fromNet(rest.slice(0, sliceTo));
       return [label, val];
     },
@@ -737,6 +708,7 @@ export async function getDefaultAccount() {
   return await getFaucet();
 }
 export const setFaucet = false; // XXX
+export const newAccountFromSecret = false; // XXX
 export const newAccountFromMnemonic = false; // XXX
 export const getNetworkTime = async () => bigNumberify(await getLastRound());
 export const waitUntilTime = async (targetTime, onProgress) => {

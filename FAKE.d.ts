@@ -36,6 +36,7 @@ export declare const newTestAccount: (startingBalance: BigNumber) => Promise<std
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;
+export declare const newAccountFromSecret = false;
 export declare const newAccountFromMnemonic = false;
 export declare const verifyContract = false;
 /** @description the display name of the standard unit of currency for the network */

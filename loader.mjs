@@ -21,14 +21,4 @@ export async function loadStdlib(connectorMode) {
     default:
       throw Error(`impossible: unknown connector ${connector}`);
   }
-  // const module = `./${connector}`;
-  // try {
-  //   return await import(module);
-  // } catch (e) {
-  //   try {
-  //     return await import(`${module}.js`);
-  //   } catch (e) {
-  //     return await import(`${module}.mjs`);
-  //   }
-  // }
 }

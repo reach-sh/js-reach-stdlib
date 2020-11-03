@@ -62,7 +62,7 @@ declare type NV = Uint8Array;
 declare type ALGO_Ty<BV extends CBR_Val> = {
     name: string;
     canonicalize: (uv: unknown) => BV;
-    netSize: number | 'all';
+    netSize: number;
     toNet(bv: BV): NV;
     fromNet(nv: NV): BV;
 };
@@ -70,7 +70,7 @@ export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;
 export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;
-export declare const T_Bytes: ALGO_Ty<CBR_Bytes>;
+export declare const T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
 export declare const T_Digest: ALGO_Ty<CBR_Digest>;
 export declare const T_Address: ALGO_Ty<CBR_Address>;
 export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
@@ -122,6 +122,7 @@ export declare function formatCurrency(amt: BigNumber, decimals?: number): strin
 export declare function getFaucet(): Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare const setFaucet = false;
+export declare const newAccountFromSecret = false;
 export declare const newAccountFromMnemonic = false;
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
