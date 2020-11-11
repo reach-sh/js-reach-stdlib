@@ -50,6 +50,8 @@ declare type ETH_Ty<BV extends CBR_Val, NV> = {
     canonicalize: (uv: unknown) => BV;
     munge: (bv: BV) => NV;
     unmunge: (nv: NV) => BV;
+    /** @description describes the shape of the munged value */
+    paramType: string;
 };
 declare type AnyETH_Ty = ETH_Ty<CBR_Val, any>;
 export declare const digest: (t: any, v: any) => string;

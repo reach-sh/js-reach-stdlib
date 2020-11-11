@@ -5,24 +5,7 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import {
-  add,
-  assert,
-  bigNumberify,
-  debug,
-  makeDigest,
-  eq,
-  ge,
-  getDEBUG,
-  //stringToHex,
-  hexToString,
-  isBigNumber,
-  isHex,
-  bigNumberToHex,
-  lt,
-  mkAddressEq,
-  makeRandom,
-} from './shared.mjs';
+import { add, assert, bigNumberify, debug, makeDigest, eq, ge, getDEBUG, hexToString, isBigNumber, lt, mkAddressEq, makeRandom } from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
@@ -40,39 +23,17 @@ function isSome(m) {
 const Some = (m) => [m];
 const None = [];
 void(isSome);
-const kek = (arg) => {
-  if (typeof(arg) === 'string') {
-    if (isHex(arg)) {
-      return arg;
+export const digest = makeDigest((t, v) => {
+  // Note: abiCoder.encode doesn't correctly handle an empty tuple type
+  if (t.paramType === 'tuple()') {
+    if (Array.isArray(v) && v.length === 0) {
+      return v;
     } else {
-      return ethers.utils.toUtf8Bytes(arg);
+      throw Error(`impossible: digest tuple() with non-empty array: ${JSON.stringify(v)}`);
     }
-  } else if (typeof(arg) === 'boolean') {
-    return kek(arg ? 1 : 0);
-  } else if (typeof(arg) === 'number') {
-    return '0x' + bigNumberToHex(arg);
-  } else if (isBigNumber(arg)) {
-    return '0x' + bigNumberToHex(arg);
-  } else if (arg && arg.constructor && arg.constructor.name == 'Uint8Array') {
-    return arg;
-  } else if (arg && arg.constructor && arg.constructor.name == 'Buffer') {
-    return '0x' + arg.toString('hex');
-  } else if (Array.isArray(arg)) {
-    return ethers.utils.concat(arg.map((x) => ethers.utils.arrayify(kek(x))));
-  } else if (Object.keys(arg).length > 0) {
-    if (Object.keys(arg).length > 1) {
-      // XXX
-      console.log(`WARNING: digest known not to match solidity keccak256` +
-        ` on objects with more than 1 field.` +
-        ` This can cause: "The message you are trying to send appears to be invalid"`);
-    }
-    const { ascLabels } = labelMaps(arg);
-    return kek(ascLabels.map((label => arg[label])));
-  } else {
-    throw Error(`Can't kek this: ${JSON.stringify(arg)}`);
   }
-};
-export const digest = makeDigest((t, v) => kek(t.munge(v)));
+  return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
+});
 const V_Null = null;
 export const T_Null = {
   ...CBR.BT_Null,
@@ -80,12 +41,14 @@ export const T_Null = {
   // null is represented in solidity as false
   munge: (bv) => (void(bv), false),
   unmunge: (nv) => (void(nv), V_Null),
+  paramType: 'bool',
 };
 export const T_Bool = {
   ...CBR.BT_Bool,
   defaultValue: false,
   munge: (bv) => bv,
   unmunge: (nv) => V_Bool(nv),
+  paramType: 'bool',
 };
 const V_Bool = (b) => {
   return T_Bool.canonicalize(b);
@@ -95,6 +58,7 @@ export const T_UInt = {
   defaultValue: ethers.BigNumber.from(0),
   munge: (bv) => bv,
   unmunge: (nv) => V_UInt(nv),
+  paramType: 'uint256',
 };
 const V_UInt = (n) => {
   return T_UInt.canonicalize(n);
@@ -105,6 +69,7 @@ export const T_Bytes = (len) => {
     defaultValue: ''.padEnd(len, '\0'),
     munge: (bv) => Array.from(ethers.utils.toUtf8Bytes(bv)),
     unmunge: (nv) => me.canonicalize(hexToString(ethers.utils.hexlify(nv))),
+    paramType: `uint8[${len}]`,
   };
   return me;
 };
@@ -114,6 +79,7 @@ export const T_Digest = {
   munge: (bv) => BigNumber.from(bv),
   // XXX likely not the correct unmunge type?
   unmunge: (nv) => V_Digest(nv.toHexString()),
+  paramType: 'uint256',
 };
 const V_Digest = (s) => {
   return T_Digest.canonicalize(s);
@@ -143,9 +109,10 @@ export const T_Address = {
     const val = addressUnwrapper(uv);
     return CBR.BT_Address.canonicalize(val || uv);
   },
-  defaultValue: '0x' + Array(64).fill('0').join(''),
+  defaultValue: '0x' + Array(40).fill('0').join(''),
   munge: (bv) => bv,
   unmunge: (nv) => V_Address(nv),
+  paramType: 'address',
 };
 const V_Address = (s) => {
   // Uses ETH-specific canonicalize!
@@ -160,6 +127,7 @@ export const T_Array = (ctc, size) => ({
   unmunge: (nv) => {
     return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
   },
+  paramType: `${ctc.paramType}[${size}]`,
 });
 const V_Array = (ctc, size) => (val) => {
   return T_Array(ctc, size).canonicalize(val);
@@ -174,6 +142,7 @@ export const T_Tuple = (ctcs) => ({
   unmunge: (args) => {
     return V_Tuple(ctcs)(args.map((arg, i) => ctcs[i].unmunge(arg)));
   },
+  paramType: `tuple(${ctcs.map((ctc) => ctc.paramType).join(',')})`,
 });
 const V_Tuple = (ctcs) => (val) => {
   return T_Tuple(ctcs).canonicalize(val);
@@ -201,6 +170,11 @@ export const T_Object = (co) => ({
     }
     return V_Object(co)(obj);
   },
+  paramType: (() => {
+    const { ascLabels } = labelMaps(co);
+    const tupFields = ascLabels.map((label) => `${co[label].paramType} ${label}`).join(',');
+    return `tuple(${tupFields})`;
+  })(),
 });
 const V_Object = (co) => (val) => {
   return T_Object(co).canonicalize(val);
@@ -247,6 +221,13 @@ export const T_Data = (co) => {
       const val = vs[i + 1];
       return V_Data(co)([label, co[label].unmunge(val)]);
     },
+    paramType: (() => {
+      const { ascLabels } = labelMaps(co);
+      // See comment on unmunge about field names that we could use but currently don't
+      const optionTys = ascLabels.map((label) => `${co[label].paramType} _${label}`);
+      const tupFields = [`${T_UInt.paramType} which`].concat(optionTys).join(',');
+      return `tuple(${tupFields})`;
+    })(),
   };
 };
 const V_Data = (co) => (val) => {
