@@ -1,4 +1,5 @@
 import ethers from 'ethers';
+import { CBR_Address } from './CBR';
 export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;
@@ -31,6 +32,7 @@ export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy exte
     recv: (label: string, okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
+    selfAddress: () => CBR_Address;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
     networkAccount: NetworkAccount;

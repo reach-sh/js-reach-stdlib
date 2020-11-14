@@ -434,6 +434,9 @@ export const connectAccount = async (networkAccount) => {
       throw Error(`I should be ${some_addr}, but am ${address}`);
     }
   };
+  const selfAddress = () => {
+    return address;
+  };
   const deploy = (bin) => {
     if (!ethers.Signer.isSigner(networkAccount)) {
       throw Error(`Signer required to deploy, ${networkAccount}`);
@@ -512,8 +515,9 @@ export const connectAccount = async (networkAccount) => {
           // Danger: deadlock possible
           return await infoP;
         },
-        // iam doesn't make sense to check before ctc deploy, but it is harmless.
+        // iam/selfAddress don't make sense to check before ctc deploy, but are harmless.
         iam,
+        selfAddress,
       };
       // Return a wrapper around the impl. This obj and its fields do not mutate,
       // but the fields are closures around a mutating ref to impl.
@@ -523,6 +527,7 @@ export const connectAccount = async (networkAccount) => {
         wait: (...args) => impl.wait(...args),
         getInfo: (...args) => impl.getInfo(...args),
         iam: (...args) => impl.iam(...args),
+        selfAddress: (...args) => impl.selfAddress(...args),
       };
     };
     switch (bin._Connectors.ETH.deployMode) {
@@ -578,6 +583,7 @@ export const connectAccount = async (networkAccount) => {
         }
         const info = await infoP;
         await verifyContract(info, bin);
+        debug(`${shad}: contract verified`);
         if (!ethers.Signer.isSigner(networkAccount)) {
           throw Error(`networkAccount must be a Signer (read: Wallet). ${networkAccount}`);
         }
@@ -731,7 +737,7 @@ export const connectAccount = async (networkAccount) => {
       return p;
     };
     // Note: wait is the local one not the global one of the same name.
-    return { getInfo, sendrecv, recv, wait, iam };
+    return { getInfo, sendrecv, recv, wait, iam, selfAddress };
   };
   return { deploy, attach, networkAccount };
 };
@@ -884,14 +890,43 @@ export const verifyContract = async (ctcInfo, backend) => {
   const { address, creation_block, init, creator } = ctcInfo;
   const { argsMay, value } = initOrDefaultArgs(init);
   const factory = new ethers.ContractFactory(ABI, Bytecode);
-  // TODO: is there a way to get the creation_block & bytecode with a single api call?
-  // https://docs.ethers.io/v5/api/providers/provider/#Provider-getCode
+  debug(`verifyContract: ${address}`);
+  debug(JSON.stringify(ctcInfo));
   const provider = await getProvider();
-  const nocode = await provider.getCode(address, creation_block - 1);
-  if (nocode !== '0x') {
-    throw Error(`Contract was deployed earlier than ${creation_block} (as was claimed)`);
+  const now = await getNetworkTimeNumber();
+  const { chainId } = await provider.getNetwork();
+  // TODO: allow user to specify lenient verification? (for chains we don't know about)
+  const lenient = [
+    152709604825713,
+  ].includes(chainId);
+  if (lenient) {
+    debug(`verifyContract: using lenient contract verification for chainId=${chainId}`);
   }
-  const actual = await provider.getCode(address, creation_block);
+  const deployEvent = isNone(argsMay) ? 'e0' : 'e1';
+  debug(`verifyContract: checking logs for ${deployEvent}...`);
+  // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
+  // "Keep in mind that many backends will discard old events"
+  // TODO: find another way to validate creation block if much time has passed?
+  const logs = await provider.getLogs({
+    fromBlock: creation_block,
+    toBlock: now,
+    address: address,
+    topics: [factory.interface.getEventTopic(deployEvent)],
+  });
+  if (logs.length < 1) {
+    throw Error(`Contract was claimed to be deployed at ${creation_block},` +
+      ` but the current block is ${now} and it hasn't been deployed yet.`);
+  }
+  const log = logs[0];
+  if (log.blockNumber !== creation_block) {
+    throw Error(`Contract was deployed at blockNumber ${log.blockNumber},` +
+      ` but was claimed to be deployed at ${creation_block}.`);
+  }
+  debug(`verifyContract: checking code...`);
+  // https://docs.ethers.io/v5/api/providers/provider/#Provider-getCode
+  // We can safely getCode at the current block;
+  // Reach programs don't change their ETH code over time.
+  const actual = await provider.getCode(address);
   // XXX should this also pass {value}, like factory.deploy() does?
   const deployData = factory.getDeployTransaction(...argsMay).data;
   if (typeof deployData !== 'string') {
@@ -943,6 +978,11 @@ export const verifyContract = async (ctcInfo, backend) => {
       throw Error(`Contract bytecode does not match expected bytecode.`);
     }
   }
+  // It's tedious to write the next sections w/ lenience, so just skip them.
+  // Checking balance & storage at certain old block #s is not supported by some backends.
+  if (lenient)
+    return true;
+  debug(`verifyContract: checking balance...`);
   const bal = await provider.getBalance(address, creation_block);
   // bal is allowed to exceed expectations, for example,
   // if someone spuriously transferred extra money to the contract
@@ -951,6 +991,7 @@ export const verifyContract = async (ctcInfo, backend) => {
     console.log('bal actual  : ' + bal);
     throw Error(`Contract initial balance does not match expected initial balance`);
   }
+  debug(`verifyContract: checking contract storage...`);
   if (isNone(argsMay)) {
     const st = await provider.getStorageAt(address, 0, creation_block);
     const expectedSt =

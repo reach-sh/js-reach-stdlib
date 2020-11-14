@@ -71,6 +71,9 @@ export const connectAccount = async (networkAccount) => {
         throw Error(`I should be ${some_addr}, but am ${address}`);
       }
     };
+    const selfAddress = () => {
+      return address;
+    };
     const wait = async (delta) => {
       // Don't wait from current time, wait from last_block
       return waitUntilTime(stdlib.add(await getLastBlock(), delta));
@@ -139,7 +142,7 @@ export const connectAccount = async (networkAccount) => {
       return { didTimeout: true };
     };
     const getInfo = async () => await infoP;
-    return { getInfo, sendrecv, recv, iam, wait };
+    return { getInfo, sendrecv, recv, iam, selfAddress, wait };
   };
   const deploy = (bin) => {
     const contract = makeAccount();

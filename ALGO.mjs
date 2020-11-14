@@ -8,7 +8,7 @@ import Timeout from 'await-timeout';
 import { debug, getDEBUG, isBigNumber, bigNumberify, mkAddressEq, makeDigest, argsSlice, makeRandom } from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import waitPort from 'wait-port';
-import { labelMaps, replaceableThunk } from './shared_impl.mjs';
+import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
@@ -90,9 +90,7 @@ export const T_Array = (co, size) => ({
 });
 export const T_Tuple = (cos) => ({
   ...CBR.BT_Tuple(cos),
-  netSize: (
-    // @ts-ignore // ts should know this from the condition
-    cos.reduce((acc, co) => acc + co.netSize, 0)),
+  netSize: (cos.reduce((acc, co) => acc + co.netSize, 0)),
   toNet: (bv) => {
     const val = cos.map((co, i) => co.toNet(bv[i]));
     return ethers.utils.concat(val);
@@ -111,9 +109,7 @@ export const T_Tuple = (cos) => ({
 });
 export const T_Object = (coMap) => {
   const cos = Object.values(coMap);
-  const netSize =
-    // @ts-ignore // ts should know this from the condition
-    cos.reduce((acc, co) => acc + co.netSize, 0);
+  const netSize = cos.reduce((acc, co) => acc + co.netSize, 0);
   const { ascLabels } = labelMaps(coMap);
   return {
     ...CBR.BT_Object(coMap),
@@ -142,9 +138,7 @@ export const T_Object = (coMap) => {
 // up to the size of the largest variant
 export const T_Data = (coMap) => {
   const cos = Object.values(coMap);
-  const valSize =
-    // @ts-ignore // ts should know this from the cond above
-    Math.max(cos.map((co) => co.netSize));
+  const valSize = Math.max(...cos.map((co) => co.netSize));
   const netSize = valSize + 1;
   const { ascLabels, labelMap } = labelMaps(coMap);
   return {
@@ -189,6 +183,10 @@ const [getIndexer, setIndexer] = replaceableThunk(async () => {
 export { setIndexer };
 // eslint-disable-next-line max-len
 const FAUCET = algosdk.mnemonicToSecretKey((process.env.ALGO_FAUCET_PASSPHRASE || 'close year slice mind voice cousin brass goat anxiety drink tourist child stock amused rescue pitch exhibit guide occur wide barrel process type able please'));
+const [getFaucet, setFaucet] = replaceableThunk(async () => {
+  return await connectAccount(FAUCET);
+});
+export { getFaucet, setFaucet };
 // if using the default:
 // assert(FAUCET.addr === 'EYTSJVJIMJDUSRRNTMVLORTLTOVDWZ6SWOSY77JHPDWSD7K3P53IB3GUPQ');
 // Helpers
@@ -310,9 +308,7 @@ async function compileFor(bin, ApplicationID) {
   must_be_supported(bin);
   const algob = bin._Connectors.ALGO;
   const { appApproval, appClear, ctc, steps, stepargs } = algob;
-  const subst_appid = (x) => replaceUint8Array('ApplicationID',
-    // @ts-ignore XXX
-    T_UInt.toNet(bigNumberify(ApplicationID)), x);
+  const subst_appid = (x) => replaceUint8Array('ApplicationID', T_UInt.toNet(bigNumberify(ApplicationID)), x);
   const ctc_bin = await compileTEAL('ctc_subst', subst_appid(ctc));
   const subst_ctc = (x) => replaceAddr('ContractAddr', ctc_bin.hash, x);
   let appApproval_subst = appApproval;
@@ -367,7 +363,6 @@ const doQuery = async (dhead, query) => {
     return null;
   }
   debug(`${dhead} --- RESULT = ${JSON.stringify(res)}`);
-  // @ts-ignore XXX
   const txn = res.transactions[0];
   return txn;
 };
@@ -375,12 +370,17 @@ export const connectAccount = async (networkAccount) => {
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
-  const pk = algosdk.decodeAddress(thisAcc.addr).publicKey;
   const pks = T_Address.canonicalize(thisAcc);
   debug(`${shad}: connectAccount`);
+  const selfAddress = memoizeThunk(() => {
+    return pks;
+    // const pk = algosdk.decodeAddress(thisAcc.addr).publicKey;
+    // return '0x' + Buffer.from(pk).toString('hex');
+    // XXX why does this differ from the below?
+    // return thisAcc.addr
+  });
   const iam = (some_addr) => {
-    const pks = '0x' + Buffer.from(pk).toString('hex');
-    if (some_addr == pks) {
+    if (some_addr === pks) {
       return some_addr;
     } else {
       throw Error(`I should be ${some_addr}, but am ${pks}`);
@@ -393,7 +393,7 @@ export const connectAccount = async (networkAccount) => {
     let lastRound = ctcInfo.creationRound;
     debug(`${shad}: attach ${ApplicationID} created at ${lastRound}`);
     const bin_comp = await compileFor(bin, ApplicationID);
-    // XXX call verify
+    await verifyContract(ctcInfo, bin);
     const ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
@@ -434,7 +434,7 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         debug(`${dhead} --- isHalt = ${JSON.stringify(isHalt)}`);
         const actual_args = [sim_r.prevSt, sim_r.nextSt, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
-        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys]; //.map(oldify);
+        const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
         debug(`${dhead} --- ARGS = ${JSON.stringify(actual_args)}`);
         const safe_args = actual_args.map((m, i) => actual_tys[i].toNet(m));
         safe_args.forEach((x) => {
@@ -526,9 +526,7 @@ export const connectAccount = async (networkAccount) => {
           await Timeout.set(2000);
           continue;
         }
-        const ctc_args =
-          // @ts-ignore XXX
-          txn.signature.logicsig.args;
+        const ctc_args = txn.signature.logicsig.args;
         debug(`${dhead} --- ctc_args = ${JSON.stringify(ctc_args)}`);
         const args = argsSlice(ctc_args, evt_cnt);
         debug(`${dhead} --- args = ${JSON.stringify(args)}`);
@@ -564,7 +562,7 @@ export const connectAccount = async (networkAccount) => {
         };
       }
     };
-    return { getInfo, sendrecv, recv, iam, wait };
+    return { getInfo, sendrecv, recv, iam, selfAddress, wait };
   };
   const deployP = async (bin) => {
     must_be_supported(bin);
@@ -625,6 +623,7 @@ export const connectAccount = async (networkAccount) => {
       recv: async (...args) => (await implP).recv(...args),
       wait: async (...args) => (await implP).wait(...args),
       iam,
+      selfAddress,
     };
   };
   const attach = (bin, ctcInfoP) => {
@@ -635,16 +634,13 @@ export const connectAccount = async (networkAccount) => {
   };
   return { deploy, attach, networkAccount };
 };
-const getBalanceAt = async (addr, round) => {
-  void(round);
-  // XXX use indexer LookupAccountById(addr).round(round)
-  return (await (await getAlgodClient()).accountInformation(addr).do()).amount;
-};
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
   if (!networkAccount)
     throw Error(`acc.networkAccount missing. Got: ${acc}`);
-  return bigNumberify(await getBalanceAt(networkAccount.addr, await getLastRound()));
+  const client = await getAlgodClient();
+  const { amount } = await client.accountInformation(networkAccount.addr).do();
+  return bigNumberify(amount);
 };
 const showBalance = async (note, networkAccount) => {
   const bal = await balanceOf({ networkAccount });
@@ -700,16 +696,24 @@ export function formatCurrency(amt, decimals = 6) {
   // Have to roundtrip thru Number to drop trailing zeroes
   return Number(algosStr.slice(0, algosStr.length - 1)).toString();
 }
-export async function getFaucet() {
-  return await connectAccount(FAUCET);
-}
 // TODO: get from AlgoSigner if in browser
 export async function getDefaultAccount() {
   return await getFaucet();
 }
-export const setFaucet = false; // XXX
-export const newAccountFromSecret = false; // XXX
-export const newAccountFromMnemonic = false; // XXX
+/**
+ * @param mnemonic 25 words, space-separated
+ */
+export const newAccountFromMnemonic = async (mnemonic) => {
+  return await connectAccount(algosdk.mnemonicToSecretKey(mnemonic));
+};
+/**
+ * @param secret a Uint8Array, or its hex string representation
+ */
+export const newAccountFromSecret = async (secret) => {
+  const sk = ethers.utils.arrayify(secret);
+  const mnemonic = algosdk.secretKeyToMnemonic(sk);
+  return await newAccountFromMnemonic(mnemonic);
+};
 export const getNetworkTime = async () => bigNumberify(await getLastRound());
 export const waitUntilTime = async (targetTime, onProgress) => {
   const onProg = onProgress || (() => {});
@@ -728,5 +732,19 @@ export const wait = async (delta, onProgress) => {
   debug(`wait: delta=${delta} now=${now}, until=${now.add(delta)}`);
   return await waitUntilTime(now.add(delta), onProgress);
 };
-export const verifyContract = false; // XXX
+// XXX: implement this
+export const verifyContract = async (ctcInfo, backend) => {
+  void(ctcInfo);
+  void(backend);
+  // XXX verify contract was deployed at creationRound
+  // XXX verify something about ApplicationId
+  // XXX (above) attach creator info to ContractInfo
+  // XXX verify creator was the one that deployed the contract
+  // XXX verify deployed contract code matches backend
+  // (after deployMode:firstMsg is implemented)
+  // XXX (above) attach initial args to ContractInfo
+  // XXX verify contract storage matches expectations based on initial args
+  // (don't bother checking ctc balance at creationRound, the ctc enforces this)
+  return true;
+};
 export const addressEq = mkAddressEq(T_Address);

@@ -51,6 +51,7 @@ declare type ContractAttached = {
     recv: (...argz: any) => Promise<Recv>;
     wait: (...argz: any) => any;
     iam: (some_addr: any) => any;
+    selfAddress: () => CBR_Address;
 };
 declare type ContractOut = any;
 declare type ContractInfo = {
@@ -85,6 +86,16 @@ declare const setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
 export { setAlgodClient };
 declare const setIndexer: (val: Promise<algosdk.Indexer>) => void;
 export { setIndexer };
+declare const getFaucet: () => Promise<{
+    deploy: (bin: Backend) => ContractAttached;
+    attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
+    networkAccount: Wallet;
+}>, setFaucet: (val: Promise<{
+    deploy: (bin: Backend) => ContractAttached;
+    attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
+    networkAccount: Wallet;
+}>) => void;
+export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: BigNumber) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
@@ -119,14 +130,18 @@ export declare const minimumBalance: BigNumber;
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
  */
 export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
-export declare function getFaucet(): Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
-export declare const setFaucet = false;
-export declare const newAccountFromSecret = false;
-export declare const newAccountFromMnemonic = false;
+/**
+ * @param mnemonic 25 words, space-separated
+ */
+export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Account>;
+/**
+ * @param secret a Uint8Array, or its hex string representation
+ */
+export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-export declare const verifyContract = false;
+export declare const verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
 export declare const addressEq: (x: any, y: any) => boolean;
 //# sourceMappingURL=ALGO.d.ts.map
