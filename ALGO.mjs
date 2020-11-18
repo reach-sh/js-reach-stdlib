@@ -8,7 +8,7 @@ import Timeout from 'await-timeout';
 import { debug, getDEBUG, isBigNumber, bigNumberify, mkAddressEq, makeDigest, argsSlice, makeRandom } from './shared.mjs';
 import * as CBR from './CBR.mjs';
 import waitPort from 'wait-port';
-import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
+import { labelMaps, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 const BigNumber = ethers.BigNumber;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
@@ -187,8 +187,6 @@ const [getFaucet, setFaucet] = replaceableThunk(async () => {
   return await connectAccount(FAUCET);
 });
 export { getFaucet, setFaucet };
-// if using the default:
-// assert(FAUCET.addr === 'EYTSJVJIMJDUSRRNTMVLORTLTOVDWZ6SWOSY77JHPDWSD7K3P53IB3GUPQ');
 // Helpers
 async function wait1port(theServer, thePort) {
   thePort = typeof thePort === 'string' ? parseInt(thePort, 10) : thePort;
@@ -372,13 +370,9 @@ export const connectAccount = async (networkAccount) => {
   const shad = thisAcc.addr.substring(2, 6);
   const pks = T_Address.canonicalize(thisAcc);
   debug(`${shad}: connectAccount`);
-  const selfAddress = memoizeThunk(() => {
+  const selfAddress = () => {
     return pks;
-    // const pk = algosdk.decodeAddress(thisAcc.addr).publicKey;
-    // return '0x' + Buffer.from(pk).toString('hex');
-    // XXX why does this differ from the below?
-    // return thisAcc.addr
-  });
+  };
   const iam = (some_addr) => {
     if (some_addr === pks) {
       return some_addr;
