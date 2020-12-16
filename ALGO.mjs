@@ -1,3 +1,6 @@
+// ****************************************************************************
+// standard library for Javascript users
+// ****************************************************************************
 // XXX: do not import any types from algosdk; instead copy/paste them below
 // XXX: can stop doing this workaround once @types/algosdk is shippable
 import algosdk from 'algosdk';
@@ -5,190 +8,47 @@ import base32 from 'hi-base32';
 import ethers from 'ethers';
 import url from 'url';
 import Timeout from 'await-timeout';
-import { debug, getDEBUG, isBigNumber, bigNumberify, mkAddressEq, makeDigest, argsSlice, makeRandom } from './shared.mjs';
-import * as CBR from './CBR.mjs';
+import buffer from 'buffer';
+const { Buffer } = buffer;
+import { debug, getDEBUG, isBigNumber, bigNumberify, argsSlice, makeRandom } from './shared.mjs';
 import waitPort from 'wait-port';
-import { labelMaps, replaceableThunk } from './shared_impl.mjs';
+import { replaceableThunk } from './shared_impl.mjs';
+import { stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
 export * from './shared.mjs';
-const BigNumber = ethers.BigNumber;
-export const UInt_max = BigNumber.from(2).pow(64).sub(1);
-export const { randomUInt, hasRandom } = makeRandom(8);
-export const digest = makeDigest((t, v) => t.toNet(v));
-export const T_Null = {
-  ...CBR.BT_Null,
-  netSize: 0,
-  toNet: (bv) => (void(bv), new Uint8Array([])),
-  fromNet: (nv) => (void(nv), null),
-};
-export const T_Bool = {
-  ...CBR.BT_Bool,
-  netSize: 1,
-  toNet: (bv) => new Uint8Array([bv ? 1 : 0]),
-  fromNet: (nv) => nv[0] == 1,
-};
-export const T_UInt = {
-  ...CBR.BT_UInt,
-  netSize: 8,
-  toNet: (bv) => (ethers.utils.zeroPad(ethers.utils.arrayify(bv), 8)),
-  fromNet: (nv) => {
-    // debug(`fromNet: UInt`);
-    // if (getDEBUG()) console.log(nv);
-    return ethers.BigNumber.from(nv);
-  },
-};
-/** @description For arbitrary utf8 strings */
-const stringyNet = {
-  toNet: (bv) => (ethers.utils.toUtf8Bytes(bv)),
-  fromNet: (nv) => (ethers.utils.toUtf8String(nv)),
-};
-/** @description For hex strings representing bytes */
-const bytestringyNet = {
-  toNet: (bv) => (ethers.utils.arrayify(bv)),
-  fromNet: (nv) => (ethers.utils.hexlify(nv)),
-};
-export const T_Bytes = (len) => ({
-  ...CBR.BT_Bytes(len),
-  ...stringyNet,
-  netSize: len,
-});
-export const T_Digest = {
-  ...CBR.BT_Digest,
-  ...bytestringyNet,
-  netSize: 32,
-};
-
-function addressUnwrapper(x) {
-  return (x && x.addr) ?
-    '0x' + Buffer.from(algosdk.decodeAddress(x.addr).publicKey).toString('hex') :
-    x;
-}
-export const T_Address = {
-  ...CBR.BT_Address,
-  ...bytestringyNet,
-  netSize: 32,
-  canonicalize: (uv) => {
-    const val = addressUnwrapper(uv);
-    return CBR.BT_Address.canonicalize(val || uv);
-  },
-};
-export const T_Array = (co, size) => ({
-  ...CBR.BT_Array(co, size),
-  netSize: size * co.netSize,
-  toNet: (bv) => {
-    return ethers.utils.concat(bv.map((v) => co.toNet(v)));
-  },
-  fromNet: (nv) => {
-    const chunks = new Array(size).fill(null);
-    let rest = nv;
-    for (const i in chunks) {
-      chunks[i] = co.fromNet(rest.slice(0, co.netSize));
-      rest = rest.slice(co.netSize);
-    }
-    // TODO: assert size of nv/rest is correct?
-    return chunks;
-  },
-});
-export const T_Tuple = (cos) => ({
-  ...CBR.BT_Tuple(cos),
-  netSize: (cos.reduce((acc, co) => acc + co.netSize, 0)),
-  toNet: (bv) => {
-    const val = cos.map((co, i) => co.toNet(bv[i]));
-    return ethers.utils.concat(val);
-  },
-  // TODO: share more code w/ T_Array.fromNet
-  fromNet: (nv) => {
-    const chunks = new Array(cos.length).fill(null);
-    let rest = nv;
-    for (const i in cos) {
-      const co = cos[i];
-      chunks[i] = co.fromNet(rest.slice(0, co.netSize));
-      rest = rest.slice(co.netSize);
-    }
-    return chunks;
-  },
-});
-export const T_Object = (coMap) => {
-  const cos = Object.values(coMap);
-  const netSize = cos.reduce((acc, co) => acc + co.netSize, 0);
-  const { ascLabels } = labelMaps(coMap);
-  return {
-    ...CBR.BT_Object(coMap),
-    netSize,
-    toNet: (bv) => {
-      const chunks = ascLabels.map((label) => coMap[label].toNet(bv[label]));
-      return ethers.utils.concat(chunks);
-    },
-    // TODO: share more code w/ T_Array.fromNet and T_Tuple.fromNet
-    fromNet: (nv) => {
-      const obj = {};
-      let rest = nv;
-      for (const iStr in ascLabels) {
-        const i = parseInt(iStr);
-        const label = ascLabels[i];
-        const co = coMap[label];
-        obj[label] = co.fromNet(rest.slice(0, co.netSize));
-        rest = rest.slice(co.netSize);
-      }
-      return obj;
-    },
-  };
-};
-// 1 byte for the label
-// the rest right-padded with zeroes
-// up to the size of the largest variant
-export const T_Data = (coMap) => {
-  const cos = Object.values(coMap);
-  const valSize = Math.max(...cos.map((co) => co.netSize));
-  const netSize = valSize + 1;
-  const { ascLabels, labelMap } = labelMaps(coMap);
-  return {
-    ...CBR.BT_Data(coMap),
-    netSize,
-    toNet: ([label, val]) => {
-      const i = labelMap[label];
-      const lab_nv = new Uint8Array([i]);
-      const val_co = coMap[label];
-      const val_nv = val_co.toNet(val);
-      const padding = new Uint8Array(valSize - val_nv.length);
-      return ethers.utils.concat([lab_nv, val_nv, padding]);
-    },
-    fromNet: (nv) => {
-      const i = nv[0];
-      const label = ascLabels[i];
-      const val_co = coMap[label];
-      const rest = nv.slice(1);
-      const sliceTo = val_co.netSize;
-      const val = val_co.fromNet(rest.slice(0, sliceTo));
-      return [label, val];
-    },
-  };
-};
-// Common interface exports
-// TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
-const token = process.env.ALGO_TOKEN || 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
-const server = process.env.ALGO_SERVER || 'http://localhost';
-const port = process.env.ALGO_PORT || 4180;
-const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
-  await wait1port(server, port);
-  return new algosdk.Algodv2(token, server, port);
-});
-export { setAlgodClient };
-const itoken = process.env.ALGO_INDEXER_TOKEN || 'reach-devnet';
-const iserver = process.env.ALGO_INDEXER_SERVER || 'http://localhost';
-const iport = process.env.ALGO_INDEXER_PORT || 8980;
-const [getIndexer, setIndexer] = replaceableThunk(async () => {
-  await wait1port(iserver, iport);
-  return new algosdk.Indexer(itoken, iserver, iport);
-});
-export { setIndexer };
-// eslint-disable-next-line max-len
-const FAUCET = algosdk.mnemonicToSecretKey((process.env.ALGO_FAUCET_PASSPHRASE || 'close year slice mind voice cousin brass goat anxiety drink tourist child stock amused rescue pitch exhibit guide occur wide barrel process type able please'));
-const [getFaucet, setFaucet] = replaceableThunk(async () => {
-  return await connectAccount(FAUCET);
-});
-export { getFaucet, setFaucet };
+// ctc[ALGO] = {
+//   address: string
+//   appId: confirmedTxn.TransactionResults.CreatedAppIndex; // ?
+//   creationRound: int // bigint?
+//   logic_sig: LogicSig
+//
+//   // internal fields
+//   // * not required to call acc.attach(bin, ctc)
+//   // * required by backend
+//   sendrecv: function
+//   recv: function
+// }
+// ****************************************************************************
 // Helpers
+// ****************************************************************************
+function uint8ArrayToStr(a, enc = 'utf8') {
+  return Buffer.from(a).toString(enc);
+}
+const [getWaitPort, setWaitPort] = replaceableThunk(() => true);
+export { setWaitPort };
+const [getBrowser, setBrowserRaw] = replaceableThunk(() => false);
+const setBrowser = (b) => {
+  if (b) {
+    // When in browser, we cannot waitPort
+    setWaitPort(false);
+  }
+  setBrowserRaw(b);
+};
+export { setBrowser };
+const rawDefaultToken = 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
+const rawDefaultItoken = 'reach-devnet';
 async function wait1port(theServer, thePort) {
+  if (!getWaitPort())
+    return;
   thePort = typeof thePort === 'string' ? parseInt(thePort, 10) : thePort;
   const { hostname } = url.parse(theServer);
   const args = {
@@ -221,10 +81,23 @@ const waitForConfirmation = async (txId, untilRound) => {
   } while (lastRound < untilRound);
   throw { type: 'waitForConfirmation', txId, untilRound, lastRound };
 };
-const sendAndConfirm = async (stx_or_stxs, txn) => {
-  const txID = txn.txID().toString();
-  const untilRound = txn.lastRound;
-  const req = (await getAlgodClient()).sendRawTransaction(stx_or_stxs);
+const sendAndConfirm = async (stx_or_stxs) => {
+  // @ts-ignore
+  let { lastRound, txID, tx } = stx_or_stxs;
+  let sendme = tx;
+  if (Array.isArray(stx_or_stxs)) {
+    if (stx_or_stxs.length === 0) {
+      debug(`Sending nothing... why...?`);
+      // @ts-ignore
+      return null;
+    }
+    debug(`Sending multiple...`);
+    lastRound = stx_or_stxs[0].lastRound;
+    txID = stx_or_stxs[0].txID;
+    sendme = stx_or_stxs.map((stx) => stx.tx);
+  }
+  const untilRound = lastRound;
+  const req = (await getAlgodClient()).sendRawTransaction(sendme);
   // @ts-ignore XXX
   debug(`sendAndConfirm: ${base64ify(req.txnBytesToPost)}`);
   try {
@@ -234,7 +107,7 @@ const sendAndConfirm = async (stx_or_stxs, txn) => {
   }
   return await waitForConfirmation(txID, untilRound);
 };
-// // Backend
+// Backend
 const compileTEAL = async (label, code) => {
   debug(`compile ${label}`);
   let s, r;
@@ -268,20 +141,125 @@ const getTxnParams = async () => {
     await Timeout.set(1000);
   }
 };
-const sign_and_send_sync = async (label, sk, txn) => {
-  const txn_s = txn.signTxn(sk);
+
+function regroup(thisAcc, txns) {
+  // Sorry this is so dumb.
+  // Basically, if these go thru AlgoSigner,
+  // it will mangle them,
+  //  so we need to recalculate the group hash.
+  if (thisAcc.AlgoSigner) {
+    const roundtrip_txns = txns
+      .map(x => clean_for_AlgoSigner(x))
+      .map(x => unclean_for_AlgoSigner(x));
+    // console.log(`deployP: group`);
+    // console.log(Buffer.from(txns[0].group, 'base64').toString('base64'));
+    algosdk.assignGroupID(roundtrip_txns);
+    // console.log(`deploy: roundtrip group`);
+    // console.log(Buffer.from(roundtrip_txns[0].group, 'base64').toString('base64'));
+    const group = roundtrip_txns[0].group;
+    for (const txn of txns) {
+      txn.group = group;
+    }
+    return roundtrip_txns;
+  } else {
+    return txns;
+  }
+}
+// A copy/paste of some logic from AlgoSigner
+// packages/extension/src/background/messaging/task.ts
+function unclean_for_AlgoSigner(txnOrig) {
+  const txn = { ...txnOrig };
+  Object.keys({ ...txnOrig }).forEach(key => {
+    if (txn[key] === undefined || txn[key] === null) {
+      delete txn[key];
+    }
+  });
+  // Modify base64 encoded fields
+  if ('note' in txn && txn.note !== undefined) {
+    txn.note = new Uint8Array(Buffer.from(txn.note));
+  }
+  // Application transactions only
+  if (txn && txn.type === 'appl') {
+    if ('appApprovalProgram' in txn) {
+      txn.appApprovalProgram = Uint8Array.from(Buffer.from(txn.appApprovalProgram, 'base64'));
+    }
+    if ('appClearProgram' in txn) {
+      txn.appClearProgram = Uint8Array.from(Buffer.from(txn.appClearProgram, 'base64'));
+    }
+    if ('appArgs' in txn) {
+      var tempArgs = [];
+      txn.appArgs.forEach((element) => {
+        tempArgs.push(Uint8Array.from(Buffer.from(element, 'base64')));
+      });
+      txn.appArgs = tempArgs;
+    }
+  }
+  return txn;
+}
+const clean_for_AlgoSigner = (txnOrig) => {
+  // Make a copy with just the properties, because reasons
+  const txn = { ...txnOrig };
+  // Weirdly, AlgoSigner *requires* the note to be a string
+  if (txn.note) {
+    txn.note = uint8ArrayToStr(txn.note, 'utf8');
+  }
+  // Also weirdly:
+  // "Creation of PaymentTx has extra or invalid fields: name,tag,appArgs."
+  delete txn.name;
+  delete txn.tag;
+  // "Creation of ApplTx has extra or invalid fields: name,tag."
+  if (txn.type !== 'appl') {
+    delete txn.appArgs;
+  } else {
+    if (txn.appArgs) {
+      if (txn.appArgs.length === 0) {
+        txn.appArgs = [];
+      } else {
+        // This seems wrong, but it works...
+        // XXX The morally correct thing to do would be to msgpack unparse
+        txn.appArgs = [uint8ArrayToStr(txn.appArgs, 'base64')];
+      }
+    }
+  }
+  // Validation failed for transaction because of invalid properties [from,to]
+  if (txn.from && txn.from.publicKey) {
+    txn.from = algosdk.encodeAddress(txn.from.publicKey);
+  }
+  if (txn.to && txn.to.publicKey) {
+    txn.to = algosdk.encodeAddress(txn.to.publicKey);
+  }
+  // Uncaught (in promise) First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.
+  // No idea what it's talking about, but probably GenesisHash?
+  if (txn.genesisHash) {
+    if (typeof txn.genesisHash !== 'string') {
+      txn.genesisHash = uint8ArrayToStr(txn.genesisHash, 'base64');
+    }
+  }
+  console.log({ genesisHash: txn.genesisHash });
+  // uncaught (in promise) lease must be a Uint8Array.
+  delete txn.lease; // it is... but how about we just delete it instead
+  // Some more uint8Array BS
+  if (txn.appApprovalProgram) {
+    txn.appApprovalProgram = uint8ArrayToStr(txn.appApprovalProgram, 'base64');
+  }
+  if (txn.appClearProgram) {
+    txn.appClearProgram = uint8ArrayToStr(txn.appClearProgram, 'base64');
+  }
+  if (txn.group) {
+    txn.group = uint8ArrayToStr(txn.group, 'base64');
+  }
+  // AlgoSigner does weird things with fees if you don't specify flatFee
+  txn.flatFee = true;
+  return txn;
+};
+const sign_and_send_sync = async (label, networkAccount, txn) => {
+  const txn_s = await signTxn(networkAccount, txn);
   try {
-    return await sendAndConfirm(txn_s, txn);
+    return await sendAndConfirm(txn_s);
   } catch (e) {
+    console.log(e);
     throw Error(`${label} txn failed:\n${JSON.stringify(txn)}\nwith:\n${JSON.stringify(e)}`);
   }
-};
-export const transfer = async (from, to, value) => {
-  const valuen = value.toNumber();
-  const sender = from.networkAccount;
-  const receiver = to.networkAccount.addr;
-  const note = algosdk.encodeObj('@reach-sh/ALGO.mjs transfer');
-  return await sign_and_send_sync(`transfer ${JSON.stringify(from)} ${JSON.stringify(to)} ${valuen}`, sender.sk, algosdk.makePaymentTxnWithSuggestedParams(sender.addr, receiver, valuen, undefined, note, await getTxnParams()));
 };
 // XXX I'd use x.replaceAll if I could (not supported in this node version), but it would be better to extend ConnectorInfo so these are functions
 const replaceAll = (orig, what, whatp) => {
@@ -364,6 +342,114 @@ const doQuery = async (dhead, query) => {
   const txn = res.transactions[0];
   return txn;
 };
+const showBalance = async (note, networkAccount) => {
+  const bal = await balanceOf({ networkAccount });
+  const showBal = formatCurrency(bal, 2);
+  console.log('%s: balance: %s algos', note, showBal);
+};
+// ****************************************************************************
+// Common Interface Exports
+// ****************************************************************************
+export const { addressEq, digest } = compiledStdlib;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const { randomUInt, hasRandom } = makeRandom(8);
+// TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
+const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
+  debug(`Setting algod client to default`);
+  const browser = getBrowser();
+  const token = browser ?
+    { 'X-Algo-API-Token': rawDefaultToken } :
+    process.env.ALGO_TOKEN || rawDefaultToken;
+  const server = browser ?
+    '/algod' :
+    process.env.ALGO_SERVER || 'http://localhost';
+  const port = browser ?
+    '' :
+    process.env.ALGO_PORT || '4180';
+  if (!browser)
+    await wait1port(server, port);
+  return new algosdk.Algodv2(token, server, port);
+});
+export { setAlgodClient };
+const [getIndexer, setIndexer] = replaceableThunk(async () => {
+  debug(`setting indexer to default`);
+  const browser = getBrowser();
+  const itoken = browser ?
+    rawDefaultItoken :
+    process.env.ALGO_INDEXER_TOKEN || rawDefaultItoken;
+  const iserver = browser ?
+    '/indexer' :
+    process.env.ALGO_INDEXER_SERVER || 'http://localhost';
+  const iport = browser ?
+    '' :
+    process.env.ALGO_INDEXER_PORT || 8980;
+  await wait1port(iserver, iport);
+  return new algosdk.Indexer(itoken, iserver, iport);
+});
+export { setIndexer };
+// eslint-disable-next-line max-len
+const rawFaucetDefaultMnemonic = 'close year slice mind voice cousin brass goat anxiety drink tourist child stock amused rescue pitch exhibit guide occur wide barrel process type able please';
+const [getFaucet, setFaucet] = replaceableThunk(async () => {
+  const browser = getBrowser();
+  const FAUCET = algosdk.mnemonicToSecretKey(browser ?
+    rawFaucetDefaultMnemonic :
+    process.env.ALGO_FAUCET_PASSPHRASE || rawFaucetDefaultMnemonic);
+  return await connectAccount(FAUCET);
+});
+export { getFaucet, setFaucet };
+export const transfer = async (from, to, value) => {
+  const valuen = value.toNumber();
+  const sender = from.networkAccount;
+  const receiver = to.networkAccount.addr;
+  const note = algosdk.encodeObj('@reach-sh/ALGO.mjs transfer');
+  return await sign_and_send_sync(`transfer ${JSON.stringify(from)} ${JSON.stringify(to)} ${valuen}`, sender, algosdk.makePaymentTxnWithSuggestedParams(sender.addr, receiver, valuen, undefined, note, await getTxnParams()));
+};
+async function signTxn(networkAccount, txnOrig) {
+  const { sk, AlgoSigner } = networkAccount;
+  if (sk) {
+    const tx = txnOrig.signTxn(sk);
+    const ret = {
+      tx,
+      txID: txnOrig.txID().toString(),
+      lastRound: txnOrig.lastRound,
+    };
+    return ret;
+  } else if (AlgoSigner) {
+    // TODO: clean up txn before signing
+    const txn = clean_for_AlgoSigner(txnOrig);
+    // XXX the following comment is dead code that was previously used for debugging purposes.
+    // It is left here for now because it might be useful later.
+    // But this should eventually be deleted
+    // if (sk) {
+    //   const re_tx = txnOrig.signTxn ? txnOrig : new algosdk__src__transaction.Transaction(txnOrig);
+    //   re_tx.group = txnOrig.group;
+    //   const sk_tx = re_tx.signTxn(sk);
+    //   const sk_ret = {
+    //     tx: sk_tx,
+    //     txID: re_tx.txID().toString(),
+    //     lastRound: txnOrig.lastRound,
+    //   }
+    //   console.log('signed sk_ret');
+    //   console.log({txID: sk_ret.txID});
+    //   console.log(msgpack.decode(sk_ret.tx));
+    // }
+    debug('AlgoSigner.sign ...');
+    const stx_obj = await AlgoSigner.sign(txn);
+    debug('...signed');
+    debug({ stx_obj });
+    const ret = {
+      tx: Buffer.from(stx_obj.blob, 'base64'),
+      txID: stx_obj.txID,
+      lastRound: txnOrig.lastRound,
+    };
+    // debug('signed AlgoSigner')
+    // debug({txID: ret.txID});
+    // debug(msgpack.decode(ret.tx));
+    return ret;
+  } else {
+    throw Error(`networkAccount has neither sk nor AlgoSigner: ${JSON.stringify(networkAccount)}`);
+  }
+}
 export const connectAccount = async (networkAccount) => {
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
@@ -392,7 +478,11 @@ export const connectAccount = async (networkAccount) => {
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, timeout_delay, sim_p) => {
+    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+      const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
+      if (!onlyIf) {
+        return await doRecv(true);
+      }
       const funcName = `m${funcNum}`;
       const dhead = `${shad}: ${label} sendrecv ${funcName} ${timeout_delay}`;
       debug(`${dhead} --- START`);
@@ -461,13 +551,22 @@ export const connectAccount = async (networkAccount) => {
           ...txnFromContracts,
         ];
         algosdk.assignGroupID(txns);
-        const sign_me = (x) => x.signTxn(thisAcc.sk);
-        const txnAppl_s = sign_me(txnAppl);
-        const txnFromHandler_s = algosdk.signLogicSigTransactionObject(txnFromHandler, handler_with_args).blob;
-        debug(`txnFromHandler_s: ${base64ify(txnFromHandler_s)}`);
-        const txnToHandler_s = sign_me(txnToHandler);
-        const txnToContract_s = sign_me(txnToContract);
-        const txnFromContracts_s = txnFromContracts.map((txn) => algosdk.signLogicSigTransactionObject(txn, ctc_prog).blob);
+        regroup(thisAcc, txns);
+        const signLSTO = (txn, ls) => {
+          const tx_obj = algosdk.signLogicSigTransactionObject(txn, ls);
+          return {
+            tx: tx_obj.blob,
+            txID: tx_obj.txID,
+            lastRound: txn.lastRound,
+          };
+        };
+        const sign_me = async (x) => await signTxn(thisAcc, x);
+        const txnAppl_s = await sign_me(txnAppl);
+        const txnFromHandler_s = signLSTO(txnFromHandler, handler_with_args);
+        // debug(`txnFromHandler_s: ${base64ify(txnFromHandler_s)}`);
+        const txnToHandler_s = await sign_me(txnToHandler);
+        const txnToContract_s = await sign_me(txnToContract);
+        const txnFromContracts_s = txnFromContracts.map((txn) => signLSTO(txn, ctc_prog));
         const txns_s = [
           txnAppl_s,
           txnToHandler_s,
@@ -478,20 +577,23 @@ export const connectAccount = async (networkAccount) => {
         debug(`${dhead} --- SEND: ${txns_s.length}`);
         let res;
         try {
-          res = await sendAndConfirm(txns_s, txnAppl);
+          res = await sendAndConfirm(txns_s);
+          // XXX we should inspect res and if we failed because we didn't get picked out of the queue, then we shouldn't error, but should retry and let the timeout logic happen.
+          debug(`${dhead} --- SUCCESS: ${JSON.stringify(res)}`);
         } catch (e) {
+          const handle_error = (!soloSend) ? debug : ((x) => { throw Error(x); });
           if (e.type == 'sendRawTransaction') {
-            throw Error(`${dhead} --- FAIL:\n${format_failed_request(e.e)}`);
+            handle_error(`${dhead} --- FAIL:\n${format_failed_request(e.e)}`);
           } else {
-            throw Error(`${dhead} --- FAIL:\n${JSON.stringify(e)}`);
+            handle_error(`${dhead} --- FAIL:\n${JSON.stringify(e)}`);
           }
         }
-        // XXX we should inspect res and if we failed because we didn't get picked out of the queue, then we shouldn't error, but should retry and let the timeout logic happen.
-        debug(`${dhead} --- SUCCESS: ${JSON.stringify(res)}`);
-        return await recv(label, funcNum, evt_cnt, out_tys, timeout_delay);
+        return await doRecv(false);
       }
     };
-    const recv = async (label, funcNum, evt_cnt, tys, timeout_delay) => {
+    const recv = async (label, funcNum, evt_cnt, tys, waitIfNotPresent, timeout_delay) => {
+      // Ignoring this, because no ALGO dev node
+      void(waitIfNotPresent);
       const funcName = `m${funcNum}`;
       const dhead = `${shad}: ${label} recv ${funcName} ${timeout_delay}`;
       debug(`${dhead} --- START`);
@@ -510,7 +612,10 @@ export const connectAccount = async (networkAccount) => {
         let query = indexer.searchForTransactions()
           .address(handler.hash)
           .addressRole('sender')
-          .minRound(lastRound);
+          // Look at the next one after the last message
+          // XXX when we implement firstMsg, this won't work on the first
+          // message
+          .minRound(lastRound + 1);
         if (timeoutRound) {
           query = query.maxRound(timeoutRound);
         }
@@ -556,7 +661,7 @@ export const connectAccount = async (networkAccount) => {
         };
       }
     };
-    return { getInfo, sendrecv, recv, iam, selfAddress, wait };
+    return { getInfo, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
   };
   const deployP = async (bin) => {
     must_be_supported(bin);
@@ -566,7 +671,7 @@ export const connectAccount = async (networkAccount) => {
     const appApproval0_subst = replaceAddr('Deployer', thisAcc.addr, appApproval0);
     const appApproval0_bin = await compileTEAL('appApproval0', appApproval0_subst);
     const appClear_bin = await compileTEAL('appClear', appClear);
-    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc.sk, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 1));
+    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 1));
     const ApplicationID = createRes['application-index'];
     if (!ApplicationID) {
       throw Error(`No application-index in ${JSON.stringify(createRes)}`);
@@ -587,9 +692,15 @@ export const connectAccount = async (networkAccount) => {
       ...txnToHandlers,
     ];
     algosdk.assignGroupID(txns);
-    const txnUpdate_s = txnUpdate.signTxn(thisAcc.sk);
-    const txnToContract_s = txnToContract.signTxn(thisAcc.sk);
-    const txnToHandlers_s = txnToHandlers.map((tx) => tx.signTxn(thisAcc.sk));
+    regroup(thisAcc, txns);
+    const txnUpdate_s = await signTxn(thisAcc, txnUpdate);
+    const txnToContract_s = await signTxn(thisAcc, txnToContract);
+    // This is written a dumb way to make sure signatures happen one at a time.
+    // AlgoSigner errors if multiple sigs are trying to happen at the same time.
+    const txnToHandlers_s = [];
+    for (const tx of txnToHandlers) {
+      txnToHandlers_s.push(await signTxn(thisAcc, tx));
+    }
     const txns_s = [
       txnUpdate_s,
       txnToContract_s,
@@ -597,7 +708,7 @@ export const connectAccount = async (networkAccount) => {
     ];
     let updateRes;
     try {
-      updateRes = await sendAndConfirm(txns_s, txnUpdate);
+      updateRes = await sendAndConfirm(txns_s);
     } catch (e) {
       throw Error(`deploy: ${JSON.stringify(e)}`);
     }
@@ -618,6 +729,7 @@ export const connectAccount = async (networkAccount) => {
       wait: async (...args) => (await implP).wait(...args),
       iam,
       selfAddress,
+      stdlib: compiledStdlib,
     };
   };
   const attach = (bin, ctcInfoP) => {
@@ -626,7 +738,7 @@ export const connectAccount = async (networkAccount) => {
   const deploy = (bin) => {
     return deferP(deployP(bin));
   };
-  return { deploy, attach, networkAccount };
+  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
 };
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
@@ -636,21 +748,24 @@ export const balanceOf = async (acc) => {
   const { amount } = await client.accountInformation(networkAccount.addr).do();
   return bigNumberify(amount);
 };
-const showBalance = async (note, networkAccount) => {
-  const bal = await balanceOf({ networkAccount });
-  const showBal = formatCurrency(bal, 2);
-  console.log('%s: balance: %s algos', note, showBal);
+export const createAccount = async () => {
+  const networkAccount = algosdk.generateAccount();
+  return await connectAccount(networkAccount);
+};
+export const fundFromFaucet = async (account, value) => {
+  const faucet = await getFaucet();
+  await transfer(faucet, account, value);
 };
 export const newTestAccount = async (startingBalance) => {
-  const networkAccount = algosdk.generateAccount();
+  const account = await createAccount();
   if (getDEBUG()) {
-    await showBalance('before', networkAccount);
+    await showBalance('before', account.networkAccount);
   }
-  await transfer({ networkAccount: FAUCET }, { networkAccount }, startingBalance);
+  await fundFromFaucet(account, startingBalance);
   if (getDEBUG()) {
-    await showBalance('after', networkAccount);
+    await showBalance('after', account.networkAccount);
   }
-  return await connectAccount(networkAccount);
+  return account;
 };
 /** @description the display name of the standard unit of currency for the network */
 export const standardUnit = 'ALGO';
@@ -690,9 +805,10 @@ export function formatCurrency(amt, decimals = 6) {
   // Have to roundtrip thru Number to drop trailing zeroes
   return Number(algosStr.slice(0, algosStr.length - 1)).toString();
 }
-// TODO: get from AlgoSigner if in browser
+// XXX The getDefaultAccount pattern doesn't really work w/ AlgoSigner
+// AlgoSigner does not expose a "currently-selected account"
 export async function getDefaultAccount() {
-  return await getFaucet();
+  throw Error(`Please use newAccountFromAlgoSigner instead`);
 }
 /**
  * @param mnemonic 25 words, space-separated
@@ -707,6 +823,20 @@ export const newAccountFromSecret = async (secret) => {
   const sk = ethers.utils.arrayify(secret);
   const mnemonic = algosdk.secretKeyToMnemonic(sk);
   return await newAccountFromMnemonic(mnemonic);
+};
+export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger) => {
+  if (!AlgoSigner) {
+    throw Error(`AlgoSigner is falsy`);
+  }
+  const accts = await AlgoSigner.accounts({ ledger });
+  if (!Array.isArray(accts)) {
+    throw Error(`AlgoSigner.accounts('${ledger}') is not an array: ${accts}`);
+  }
+  if (!accts.map(x => x.address).includes(addr)) {
+    throw Error(`Address ${addr} not found in AlgoSigner accounts`);
+  }
+  let networkAccount = { addr, AlgoSigner };
+  return await connectAccount(networkAccount);
 };
 export const getNetworkTime = async () => bigNumberify(await getLastRound());
 export const waitUntilTime = async (targetTime, onProgress) => {
@@ -741,4 +871,3 @@ export const verifyContract = async (ctcInfo, backend) => {
   // (don't bother checking ctc balance at creationRound, the ctc enforces this)
   return true;
 };
-export const addressEq = mkAddressEq(T_Address);

@@ -1,20 +1,27 @@
 import algosdk from 'algosdk';
 import ethers from 'ethers';
 import { CurrencyAmount, OnProgress } from './shared';
-import * as CBR from './CBR';
-import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Val } from './CBR';
+import { CBR_Address, CBR_Val } from './CBR';
+import { ALGO_Ty } from './ALGO_compiled';
 export * from './shared';
 declare type BigNumber = ethers.BigNumber;
-declare const BigNumber: typeof ethers.ethers.BigNumber;
-export declare const UInt_max: BigNumber;
-export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
-    random: () => ethers.ethers.BigNumber;
-};
 declare type Address = string;
 declare type SecretKey = Uint8Array;
+declare type AlgoSigner = {
+    sign: (txn: TXN) => Promise<{
+        blob: string;
+        txID: string;
+    }>;
+    accounts: (args: {
+        ledger: string;
+    }) => Promise<Array<{
+        address: string;
+    }>>;
+};
 declare type Wallet = {
     addr: Address;
-    sk: SecretKey;
+    sk?: SecretKey;
+    AlgoSigner?: AlgoSigner;
 };
 declare type TxnInfo = {
     'confirmed-round': number;
@@ -52,6 +59,7 @@ declare type ContractAttached = {
     wait: (...argz: any) => any;
     iam: (some_addr: any) => any;
     selfAddress: () => CBR_Address;
+    stdlib: Object;
 };
 declare type ContractOut = any;
 declare type ContractInfo = {
@@ -59,29 +67,20 @@ declare type ContractInfo = {
     creationRound: number;
     ApplicationID: number;
 };
-declare type NV = Uint8Array;
-declare type ALGO_Ty<BV extends CBR_Val> = {
-    name: string;
-    canonicalize: (uv: unknown) => BV;
-    netSize: number;
-    toNet(bv: BV): NV;
-    fromNet(nv: NV): BV;
+declare const setWaitPort: (val: boolean) => void;
+export { setWaitPort };
+declare const setBrowser: (b: boolean) => void;
+export { setBrowser };
+declare type TXN = any;
+export declare const addressEq: (x: any, y: any) => boolean, digest: (t: any, v: any) => string;
+export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
+    [key: string]: ALGO_Ty<CBR_Val>;
+}) => ALGO_Ty<import("./CBR").CBR_Object>, T_Data: (coMap: {
+    [key: string]: ALGO_Ty<CBR_Val>;
+}) => ALGO_Ty<import("./CBR").CBR_Data>, T_Bytes: (len: number) => ALGO_Ty<string>, T_Address: ALGO_Ty<string>, T_Digest: ALGO_Ty<string>;
+export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
+    random: () => ethers.ethers.BigNumber;
 };
-export declare const digest: (t: any, v: any) => string;
-export declare const T_Null: ALGO_Ty<CBR_Null>;
-export declare const T_Bool: ALGO_Ty<CBR_Bool>;
-export declare const T_UInt: ALGO_Ty<CBR_UInt>;
-export declare const T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
-export declare const T_Digest: ALGO_Ty<CBR_Digest>;
-export declare const T_Address: ALGO_Ty<CBR_Address>;
-export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
-export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
-export declare const T_Object: (coMap: {
-    [key: string]: ALGO_Ty<CBR.CBR_Val>;
-}) => ALGO_Ty<CBR_Object>;
-export declare const T_Data: (coMap: {
-    [key: string]: ALGO_Ty<CBR.CBR_Val>;
-}) => ALGO_Ty<CBR_Data>;
 declare const setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
 export { setAlgodClient };
 declare const setIndexer: (val: Promise<algosdk.Indexer>) => void;
@@ -90,10 +89,128 @@ declare const getFaucet: () => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
 }>, setFaucet: (val: Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
 }>) => void;
 export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: BigNumber) => Promise<TxnInfo>;
@@ -101,12 +218,195 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
 }>;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
+export declare const createAccount: () => Promise<{
+    deploy: (bin: Backend) => ContractAttached;
+    attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
+    networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
+}>;
+export declare const fundFromFaucet: (account: Account, value: BigNumber) => Promise<void>;
 export declare const newTestAccount: (startingBalance: BigNumber) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
 }>;
 /** @description the display name of the standard unit of currency for the network */
 export declare const standardUnit = "ALGO";
@@ -139,9 +439,72 @@ export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Accou
  * @param secret a Uint8Array, or its hex string representation
  */
 export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
+export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<{
+    deploy: (bin: Backend) => ContractAttached;
+    attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
+    networkAccount: Wallet;
+    stdlib: {
+        addressEq: (x: any, y: any) => boolean;
+        digest: (t: any, v: any) => string;
+        UInt_max: ethers.ethers.BigNumber;
+        T_Null: ALGO_Ty<null>;
+        T_Bool: ALGO_Ty<boolean>;
+        T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+        T_Bytes: (len: number) => ALGO_Ty<string>;
+        T_Address: ALGO_Ty<string>;
+        T_Digest: ALGO_Ty<string>;
+        T_Object: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Object>;
+        T_Data: (coMap: {
+            [key: string]: ALGO_Ty<CBR_Val>;
+        }) => ALGO_Ty<import("./CBR").CBR_Data>;
+        T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+        T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+        Array_set<T>(arr: T[], idx: number, elem: T): T[];
+        setDEBUG: (b: boolean) => void;
+        getDEBUG: () => boolean;
+        debug: (msg: any) => void;
+        assert: (d: any, ai?: any) => void;
+        isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+        bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+        isHex: typeof ethers.ethers.utils.isHexString;
+        hexToString: typeof ethers.ethers.utils.toUtf8String;
+        stringToHex: (x: string) => string;
+        makeDigest: (prep: any) => (t: any, v: any) => string;
+        hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+        uintToBytes: (i: ethers.ethers.BigNumber) => string;
+        bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+        bytesEq: (x: any, y: any) => boolean;
+        digestEq: (x: any, y: any) => boolean;
+        makeRandom: (width: number) => {
+            randomUInt: () => ethers.ethers.BigNumber;
+            hasRandom: {
+                random: () => ethers.ethers.BigNumber;
+            };
+        };
+        eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+        argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+        argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+        Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mkAddressEq: (T_Address: {
+            canonicalize: (addr: any) => any;
+        }) => (x: any, y: any) => boolean;
+    };
+}>;
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
-export declare const addressEq: (x: any, y: any) => boolean;
 //# sourceMappingURL=ALGO.d.ts.map

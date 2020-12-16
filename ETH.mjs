@@ -1,3 +1,6 @@
+// ****************************************************************************
+// standard library for Javascript users
+// ****************************************************************************
 import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import http from 'http';
@@ -5,13 +8,10 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, makeDigest, eq, ge, getDEBUG, hexToString, isBigNumber, lt, mkAddressEq, makeRandom } from './shared.mjs';
-import * as CBR from './CBR.mjs';
-import { labelMaps, memoizeThunk, replaceableThunk } from './shared_impl.mjs';
+import { add, assert, bigNumberify, debug, eq, ge, getDEBUG, isBigNumber, lt, makeRandom, argsSplit } from './shared.mjs';
+import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
-const BigNumber = ethers.BigNumber;
-export const UInt_max = BigNumber.from(2).pow(256).sub(1);
-export const { randomUInt, hasRandom } = makeRandom(32);
+import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
 
 function isNone(m) {
   return m.length === 0;
@@ -23,216 +23,6 @@ function isSome(m) {
 const Some = (m) => [m];
 const None = [];
 void(isSome);
-export const digest = makeDigest((t, v) => {
-  // Note: abiCoder.encode doesn't correctly handle an empty tuple type
-  if (t.paramType === 'tuple()') {
-    if (Array.isArray(v) && v.length === 0) {
-      return v;
-    } else {
-      throw Error(`impossible: digest tuple() with non-empty array: ${JSON.stringify(v)}`);
-    }
-  }
-  return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
-});
-const V_Null = null;
-export const T_Null = {
-  ...CBR.BT_Null,
-  defaultValue: V_Null,
-  // null is represented in solidity as false
-  munge: (bv) => (void(bv), false),
-  unmunge: (nv) => (void(nv), V_Null),
-  paramType: 'bool',
-};
-export const T_Bool = {
-  ...CBR.BT_Bool,
-  defaultValue: false,
-  munge: (bv) => bv,
-  unmunge: (nv) => V_Bool(nv),
-  paramType: 'bool',
-};
-const V_Bool = (b) => {
-  return T_Bool.canonicalize(b);
-};
-export const T_UInt = {
-  ...CBR.BT_UInt,
-  defaultValue: ethers.BigNumber.from(0),
-  munge: (bv) => bv,
-  unmunge: (nv) => V_UInt(nv),
-  paramType: 'uint256',
-};
-const V_UInt = (n) => {
-  return T_UInt.canonicalize(n);
-};
-export const T_Bytes = (len) => {
-  const me = {
-    ...CBR.BT_Bytes(len),
-    defaultValue: ''.padEnd(len, '\0'),
-    munge: (bv) => Array.from(ethers.utils.toUtf8Bytes(bv)),
-    unmunge: (nv) => me.canonicalize(hexToString(ethers.utils.hexlify(nv))),
-    paramType: `uint8[${len}]`,
-  };
-  return me;
-};
-export const T_Digest = {
-  ...CBR.BT_Digest,
-  defaultValue: ethers.utils.keccak256([]),
-  munge: (bv) => BigNumber.from(bv),
-  // XXX likely not the correct unmunge type?
-  unmunge: (nv) => V_Digest(nv.toHexString()),
-  paramType: 'uint256',
-};
-const V_Digest = (s) => {
-  return T_Digest.canonicalize(s);
-};
-
-function addressUnwrapper(x) {
-  // TODO: set it up so that .address is always there
-  // Just putting it here to appease BT_Address.canonicalize
-  if (typeof x === 'string') {
-    // XXX is this actually needed?
-    if (x.slice(0, 2) !== '0x') {
-      return '0x' + x;
-    } else {
-      return x;
-    }
-  } else if (x.networkAccount && x.networkAccount.address) {
-    return (x.networkAccount.address);
-  } else if (x.address) {
-    return x.address;
-  } else {
-    throw Error(`Failed to unwrap address ${x}`);
-  }
-}
-export const T_Address = {
-  ...CBR.BT_Address,
-  canonicalize: (uv) => {
-    const val = addressUnwrapper(uv);
-    return CBR.BT_Address.canonicalize(val || uv);
-  },
-  defaultValue: '0x' + Array(40).fill('0').join(''),
-  munge: (bv) => bv,
-  unmunge: (nv) => V_Address(nv),
-  paramType: 'address',
-};
-const V_Address = (s) => {
-  // Uses ETH-specific canonicalize!
-  return T_Address.canonicalize(s);
-};
-export const T_Array = (ctc, size) => ({
-  ...CBR.BT_Array(ctc, size),
-  defaultValue: Array(size).fill(ctc.defaultValue),
-  munge: (bv) => {
-    return bv.map((arg) => ctc.munge(arg));
-  },
-  unmunge: (nv) => {
-    return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
-  },
-  paramType: `${ctc.paramType}[${size}]`,
-});
-const V_Array = (ctc, size) => (val) => {
-  return T_Array(ctc, size).canonicalize(val);
-};
-// XXX fix me Dan, I'm type checking wrong!
-export const T_Tuple = (ctcs) => ({
-  ...CBR.BT_Tuple(ctcs),
-  defaultValue: ctcs.map(ctc => ctc.defaultValue),
-  munge: (bv) => {
-    return bv.map((arg, i) => ctcs[i].munge(arg));
-  },
-  unmunge: (args) => {
-    return V_Tuple(ctcs)(args.map((arg, i) => ctcs[i].unmunge(arg)));
-  },
-  paramType: `tuple(${ctcs.map((ctc) => ctc.paramType).join(',')})`,
-});
-const V_Tuple = (ctcs) => (val) => {
-  return T_Tuple(ctcs).canonicalize(val);
-};
-export const T_Object = (co) => ({
-  ...CBR.BT_Object(co),
-  defaultValue: (() => {
-    const obj = {};
-    for (const prop in co) {
-      obj[prop] = co[prop].defaultValue;
-    }
-    return obj;
-  })(),
-  munge: (bv) => {
-    const obj = {};
-    for (const prop in co) {
-      obj[prop] = co[prop].munge(bv[prop]);
-    }
-    return obj;
-  },
-  unmunge: (bv) => {
-    const obj = {};
-    for (const prop in co) {
-      obj[prop] = co[prop].unmunge(bv[prop]);
-    }
-    return V_Object(co)(obj);
-  },
-  paramType: (() => {
-    const { ascLabels } = labelMaps(co);
-    const tupFields = ascLabels.map((label) => `${co[label].paramType} ${label}`).join(',');
-    return `tuple(${tupFields})`;
-  })(),
-});
-const V_Object = (co) => (val) => {
-  return T_Object(co).canonicalize(val);
-};
-export const T_Data = (co) => {
-  // TODO: not duplicate between this and CBR.ts
-  const { ascLabels, labelMap } = labelMaps(co);
-  return {
-    ...CBR.BT_Data(co),
-    defaultValue: (() => {
-      const label = ascLabels[0];
-      return [label, co[label].defaultValue];
-      // return {ty, val: [label, co[label].defaultValue]};
-    })(),
-    // Data representation in js is a 2-tuple:
-    // [label, val]
-    // where label : string
-    // and val : co[label]
-    //
-    // Data representation in solidity is an N+1-tuple: (actually a struct)
-    // [labelInt, v0, ..., vN]
-    // where labelInt : number, 0 <= labelInt < N
-    // vN : co[ascLabels[i]]
-    //
-    munge: ([label, v]) => {
-      const i = labelMap[label];
-      const vals = ascLabels.map((label) => {
-        const vco = co[label];
-        return vco.munge(vco.defaultValue);
-      });
-      vals[i] = co[label].munge(v);
-      const ret = [i];
-      return ret.concat(vals);
-    },
-    // Note: when it comes back from solidity, vs behaves like an N+1-tuple,
-    // but also has secret extra keys you can access,
-    // based on the struct field names.
-    // e.g. Maybe has keys vs["which"], vs["_None"], and vs["_Some"],
-    // corresponding to    vs[0],       vs[1],       and vs[2] respectively.
-    // We don't currently use these, but we could.
-    unmunge: (vs) => {
-      const i = vs[0];
-      const label = ascLabels[i];
-      const val = vs[i + 1];
-      return V_Data(co)([label, co[label].unmunge(val)]);
-    },
-    paramType: (() => {
-      const { ascLabels } = labelMaps(co);
-      // See comment on unmunge about field names that we could use but currently don't
-      const optionTys = ascLabels.map((label) => `${co[label].paramType} _${label}`);
-      const tupFields = [`${T_UInt.paramType} which`].concat(optionTys).join(',');
-      return `tuple(${tupFields})`;
-    })(),
-  };
-};
-const V_Data = (co) => (val) => {
-  return T_Data(co).canonicalize(val);
-};
 const connectorMode = getConnectorMode();
 // Certain functions either behave differently,
 // or are only available on an "isolated" network.
@@ -329,6 +119,30 @@ const getDevnet = memoizeThunk(async () => {
   await getPortConnection();
   return await doHealthcheck();
 });
+/** @description convenience function for drilling down to the actual address */
+const getAddr = async (acc) => {
+  if (!acc.networkAccount)
+    throw Error(`Expected acc.networkAccount`);
+  // TODO better type design here
+  // @ts-ignore
+  if (acc.networkAccount.address) {
+    // @ts-ignore
+    return acc.networkAccount.address;
+  }
+  if (acc.networkAccount.getAddress) {
+    return await acc.networkAccount.getAddress();
+  }
+  throw Error(`Expected acc.networkAccount.address or acc.networkAccount.getAddress`);
+};
+const rejectInvalidReceiptFor = async (txHash, r) => new Promise((resolve, reject) => !r ? reject(`No receipt for txHash: ${txHash}`) :
+  r.transactionHash !== txHash ? reject(`Bad txHash; ${txHash} !== ${r.transactionHash}`) :
+  !r.status ? reject(`Transaction: ${txHash} was reverted by EVM\n${r}`) :
+  resolve(r));
+const fetchAndRejectInvalidReceiptFor = async (txHash) => {
+  const provider = await getProvider();
+  const r = await provider.getTransactionReceipt(txHash);
+  return await rejectInvalidReceiptFor(txHash, r);
+};
 const [getProvider, setProvider] = replaceableThunk(async () => {
   if (networkDesc.type == 'uri') {
     await getDevnet();
@@ -359,26 +173,74 @@ const [getProvider, setProvider] = replaceableThunk(async () => {
     throw Error(`Using stdlib/ETH is incompatible with REACH_CONNECTOR_MODE=${connectorMode}`);
   }
 });
-export { setProvider };
-const ethersBlockOnceP = async () => {
+const getNetworkTimeNumber = async () => {
   const provider = await getProvider();
-  return new Promise((resolve) => provider.once('block', (n) => resolve(n)));
+  return await provider.getBlockNumber();
 };
-/** @description convenience function for drilling down to the actual address */
-const getAddr = async (acc) => {
-  if (!acc.networkAccount)
-    throw Error(`Expected acc.networkAccount`);
-  // TODO better type design here
-  // @ts-ignore
-  if (acc.networkAccount.address) {
-    // @ts-ignore
-    return acc.networkAccount.address;
+const fastForwardTo = async (targetTime, onProgress) => {
+  // console.log(`>>> FFWD TO: ${targetTime}`);
+  const onProg = onProgress || (() => {});
+  requireIsolatedNetwork('fastForwardTo');
+  let currentTime;
+  while (lt(currentTime = await getNetworkTime(), targetTime)) {
+    onProg({ currentTime, targetTime });
+    await stepTime();
   }
-  if (acc.networkAccount.getAddress) {
-    return await acc.networkAccount.getAddress();
-  }
-  throw Error(`Expected acc.networkAccount.address or acc.networkAccount.getAddress`);
+  // Also report progress at completion time
+  onProg({ currentTime, targetTime });
+  // console.log(`<<< FFWD TO: ${targetTime} complete. It's ${currentTime}`);
+  return currentTime;
 };
+const requireIsolatedNetwork = (label) => {
+  if (!isIsolatedNetwork) {
+    throw Error(`Invalid operation ${label} in REACH_CONNECTOR_MODE=${connectorMode}`);
+  }
+};
+const initOrDefaultArgs = (init) => ({
+  argsMay: init ? Some(init.args) : None,
+  value: init ? init.value : bigNumberify(0),
+});
+// onProgress callback is optional, it will be given an obj
+// {currentTime, targetTime}
+const actuallyWaitUntilTime = async (targetTime, onProgress) => {
+  const onProg = onProgress || (() => {});
+  const provider = await getProvider();
+  return await new Promise((resolve) => {
+    const onBlock = async (currentTimeNum) => {
+      const currentTime = bigNumberify(currentTimeNum);
+      // Does not block on the progress fn if it is async
+      onProg({ currentTime, targetTime });
+      if (ge(currentTime, targetTime)) {
+        provider.off('block', onBlock);
+        resolve(currentTime);
+      }
+    };
+    provider.on('block', onBlock);
+    // Also "re-emit" the current block
+    // Note: this sometimes causes the starting block
+    // to be processed twice, which should be harmless.
+    getNetworkTime().then(onBlock);
+  });
+};
+const getDummyAccount = memoizeThunk(async () => {
+  const provider = await getProvider();
+  const networkAccount = ethers.Wallet.createRandom().connect(provider);
+  const acc = await connectAccount(networkAccount);
+  return acc;
+});
+const stepTime = async () => {
+  requireIsolatedNetwork('stepTime');
+  const faucet = await getFaucet();
+  const acc = await getDummyAccount();
+  return await transfer(faucet, acc, parseCurrency(0));
+};
+// ****************************************************************************
+// Common Interface Exports
+// ****************************************************************************
+export const { addressEq, digest } = compiledStdlib;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const { randomUInt, hasRandom } = makeRandom(32);
+export { setProvider };
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
   if (!networkAccount)
@@ -404,15 +266,6 @@ export const transfer = async (from, to, value) => {
     throw Error(`Expected from.networkAccount.sendTransaction: ${from}`);
   debug(`sender.sendTransaction(${JSON.stringify(txn)})`);
   return await sender.sendTransaction(txn);
-};
-const rejectInvalidReceiptFor = async (txHash, r) => new Promise((resolve, reject) => !r ? reject(`No receipt for txHash: ${txHash}`) :
-  r.transactionHash !== txHash ? reject(`Bad txHash; ${txHash} !== ${r.transactionHash}`) :
-  !r.status ? reject(`Transaction: ${txHash} was reverted by EVM\n${r}`) :
-  resolve(r));
-const fetchAndRejectInvalidReceiptFor = async (txHash) => {
-  const provider = await getProvider();
-  const r = await provider.getTransactionReceipt(txHash);
-  return await rejectInvalidReceiptFor(txHash, r);
 };
 export const connectAccount = async (networkAccount) => {
   // @ts-ignore // TODO
@@ -481,7 +334,7 @@ export const connectAccount = async (networkAccount) => {
           void(args);
           throw Error(`Cannot wait yet; contract is not actually deployed`);
         },
-        sendrecv: async (label, funcNum, evt_cnt, tys, args, value, out_tys, timeout_delay, sim_p) => {
+        sendrecv: async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
           debug(`${shad}: ${label} sendrecv m${funcNum} (deferred deploy)`);
           void(evt_cnt);
           void(sim_p);
@@ -490,26 +343,20 @@ export const connectAccount = async (networkAccount) => {
           void(out_tys);
           // The following must be true for the first sendrecv.
           try {
+            assert(onlyIf, true);
+            assert(soloSend, true);
             assert(eq(funcNum, 1));
             assert(!timeout_delay);
           } catch (e) {
             throw Error(`impossible: Deferred deploy sendrecv assumptions violated.\n${e}`);
           }
           // shim impl is replaced with real impl
-          impl = performDeploy({ args, value });
+          impl = performDeploy({ args: [
+              [0], args,
+            ], value });
           await infoP; // Wait for the deploy to actually happen.
           // simulated recv
-          // return {
-          //   didTimeout: false,
-          //   // should be the final "evt_cnt" number of args,
-          //   // not all args
-          //   data: args,
-          //   value,
-          //   // Because this is the 1st sendrecv, balance = value
-          //   balance: value,
-          //   from: address,
-          // };
-          return await impl.recv(label, funcNum, evt_cnt, out_tys, timeout_delay);
+          return await impl.recv(label, funcNum, evt_cnt, out_tys, false, timeout_delay);
         },
         getInfo: async () => {
           // Danger: deadlock possible
@@ -518,6 +365,7 @@ export const connectAccount = async (networkAccount) => {
         // iam/selfAddress don't make sense to check before ctc deploy, but are harmless.
         iam,
         selfAddress,
+        stdlib: compiledStdlib,
       };
       // Return a wrapper around the impl. This obj and its fields do not mutate,
       // but the fields are closures around a mutating ref to impl.
@@ -528,6 +376,7 @@ export const connectAccount = async (networkAccount) => {
         getInfo: (...args) => impl.getInfo(...args),
         iam: (...args) => impl.iam(...args),
         selfAddress: (...args) => impl.selfAddress(...args),
+        stdlib: compiledStdlib,
       };
     };
     switch (bin._Connectors.ETH.deployMode) {
@@ -556,6 +405,7 @@ export const connectAccount = async (networkAccount) => {
     const { getLastBlock, setLastBlock } = (() => {
       let lastBlock = null;
       const setLastBlock = (n) => {
+        debug(`lastBlock from ${lastBlock} to ${n}`);
         lastBlock = n;
       };
       const getLastBlock = async () => {
@@ -591,8 +441,8 @@ export const connectAccount = async (networkAccount) => {
         return _ethersC;
       };
     })();
-    const callC = async (funcName, lastBlock, args, value) => {
-      return (await getC())[funcName]([lastBlock, ...args], { value });
+    const callC = async (funcName, arg, value) => {
+      return (await getC())[funcName](arg, { value });
     };
     const getEventData = async (ok_evt, ok_e) => {
       const ethersC = await getC();
@@ -601,6 +451,9 @@ export const connectAccount = async (networkAccount) => {
       return ok_args_abi.map(a => args[a.name]);
     };
     const getLogs = async (fromBlock, toBlock, ok_evt) => {
+      if (fromBlock > toBlock) {
+        return [];
+      }
       const ethersC = await getC();
       return await provider.getLogs({
         fromBlock,
@@ -610,12 +463,17 @@ export const connectAccount = async (networkAccount) => {
       });
     };
     const getInfo = async () => await infoP;
-    const sendrecv_impl = async (label, funcNum, tys, args, value, out_tys, timeout_delay) => {
+    const sendrecv_impl = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay) => {
+      const doRecv = async (waitIfNotPresent) => await recv_impl(label, funcNum, out_tys, waitIfNotPresent, timeout_delay);
+      if (!onlyIf) {
+        return await doRecv(true);
+      }
       const funcName = `m${funcNum}`;
       if (tys.length !== args.length) {
         throw Error(`tys.length (${tys.length}) !== args.length (${args.length})`);
       }
       const munged = args.map((m, i) => tys[i].munge(tys[i].canonicalize(m)));
+      const [munged_svs, munged_msg] = argsSplit(munged, evt_cnt);
       debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- START --- ${JSON.stringify(munged)}`);
       const lastBlock = await getLastBlock();
       let block_send_attempt = lastBlock;
@@ -624,43 +482,51 @@ export const connectAccount = async (networkAccount) => {
         let r_maybe = null;
         debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY`);
         try {
-          const r_fn = await callC(funcName, lastBlock, munged, value);
+          const arg = [
+            [lastBlock, ...munged_svs], munged_msg,
+          ];
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND ARG --- ${JSON.stringify(arg)}`);
+          const r_fn = await callC(funcName, arg, value);
           r_maybe = await r_fn.wait();
+          assert(r_maybe !== null);
+          const ok_r = await fetchAndRejectInvalidReceiptFor(r_maybe.transactionHash);
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- OKAY`);
+          // XXX It might be a little dangerous to rely on the polling to just work
+          // It may be the case that the next line could speed things up?
+          // last_block = ok_r.blockNumber;
+          // XXX ^ but do not globally mutate lastBlock.
+          // wait relies on lastBlock to refer to the last ctc event
+          void(ok_r);
         } catch (e) {
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR (${e})`);
-          // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
-          await Timeout.set(1);
-          const current_block = await getNetworkTimeNumber();
-          if (current_block == block_send_attempt) {
-            block_repeat_count++;
-          }
-          block_send_attempt = current_block;
-          if ( /* timeout_delay && */ block_repeat_count > 32) {
-            if (e.code === 'UNPREDICTABLE_GAS_LIMIT') {
-              let error = e;
-              while (error.error) {
-                error = error.error;
-              }
-              console.log(`impossible: The message you are trying to send appears to be invalid.`);
-              console.log(error);
+          if (!soloSend) {
+            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SKIPPING (${e})`);
+          } else {
+            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR (${e})`);
+            // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
+            await Timeout.set(1);
+            const current_block = await getNetworkTimeNumber();
+            if (current_block == block_send_attempt) {
+              block_repeat_count++;
             }
-            console.log(`args:`);
-            console.log(munged);
-            throw Error(`${shad}: ${label} send ${funcName} ${timeout_delay} --- REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
+            block_send_attempt = current_block;
+            if ( /* timeout_delay && */ block_repeat_count > 32) {
+              if (e.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                let error = e;
+                while (error.error) {
+                  error = error.error;
+                }
+                console.log(`impossible: The message you are trying to send appears to be invalid.`);
+                console.log(error);
+              }
+              console.log(`args:`);
+              console.log(munged);
+              throw Error(`${shad}: ${label} send ${funcName} ${timeout_delay} --- REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
+            }
+            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY FAIL --- ${lastBlock} ${current_block} ${block_repeat_count} ${block_send_attempt}`);
+            continue;
           }
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY FAIL --- ${lastBlock} ${current_block} ${block_repeat_count} ${block_send_attempt}`);
-          continue;
         }
-        assert(r_maybe !== null);
-        const ok_r = await fetchAndRejectInvalidReceiptFor(r_maybe.transactionHash);
-        debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- OKAY`);
-        // XXX It might be a little dangerous to rely on the polling to just work
-        // It may be the case that the next line could speed things up?
-        // last_block = ok_r.blockNumber;
-        // XXX ^ but do not globally mutate lastBlock.
-        // wait relies on lastBlock to refer to the last ctc event
-        void(ok_r);
-        return await recv_impl(label, funcNum, out_tys, timeout_delay);
+        return await doRecv(false);
       }
       // XXX If we were trying to join, but we got sniped, then we'll
       // think that there is a timeout and then we'll wait forever for
@@ -668,30 +534,34 @@ export const connectAccount = async (networkAccount) => {
       debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- FAIL/TIMEOUT`);
       return { didTimeout: true };
     };
-    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, timeout_delay, sim_p) => {
-      void(evt_cnt);
+    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       void(sim_p);
-      return await sendrecv_impl(label, funcNum, tys, args, value, out_tys, timeout_delay);
+      return await sendrecv_impl(label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay);
     };
     // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
-    const recv_impl = async (label, okNum, out_tys, timeout_delay) => {
+    const recv_impl = async (label, okNum, out_tys, waitIfNotPresent, timeout_delay) => {
+      const isFirstMsgDeploy = (okNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
       const lastBlock = await getLastBlock();
       const ok_evt = `e${okNum}`;
       debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- START`);
-      let block_poll_start = lastBlock;
+      // look after the last block
+      const block_poll_start_init = lastBlock + (isFirstMsgDeploy ? 0 : 1);
+      let block_poll_start = block_poll_start_init;
       let block_poll_end = block_poll_start;
       while (!timeout_delay || lt(block_poll_start, add(lastBlock, timeout_delay))) {
-        // console.log(
-        //   `~~~ ${label} is polling [${block_poll_start}, ${block_poll_end}]\n` +
-        //     `  ~ ${label} will stop polling at ${last_block} + ${timeout_delay} = ${last_block + timeout_delay}`,
-        // );
+        debug(`${shad}: ${label} recv ${ok_evt} --- GET ${block_poll_start} ${block_poll_end}`);
         const es = await getLogs(block_poll_start, block_poll_end, ok_evt);
         if (es.length == 0) {
           debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- RETRY`);
           block_poll_start = block_poll_end;
           await Timeout.set(1);
-          void(ethersBlockOnceP); // This might be a better option too, because we won't need to delay
           block_poll_end = await getNetworkTimeNumber();
+          if (waitIfNotPresent && block_poll_start == block_poll_end) {
+            await waitUntilTime(bigNumberify(block_poll_end + 1));
+          }
+          if (block_poll_start <= lastBlock) {
+            block_poll_start = block_poll_start_init;
+          }
           continue;
         } else {
           debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY`);
@@ -711,8 +581,12 @@ export const connectAccount = async (networkAccount) => {
             console.log(`WARNING: no blockNumber on transaction.`);
             console.log(ok_t);
           }
+          debug(`${shad}: ${label} recv ${ok_evt} --- AT ${ok_r.blockNumber}`);
           updateLast(ok_r);
-          const ok_vals = await getEventData(ok_evt, ok_e);
+          const ok_ed = await getEventData(ok_evt, ok_e);
+          debug(`${shad}: ${label} recv ${ok_evt} --- DATA -- ${JSON.stringify(ok_ed)}`);
+          const ok_vals = ok_ed[0][1] || [];
+          debug(`${shad}: ${label} recv ${ok_evt} --- MSG -- ${JSON.stringify(ok_vals)}`);
           if (ok_vals.length !== out_tys.length) {
             throw Error(`Expected ${out_tys.length} values from event data, but got ${ok_vals.length}.`);
           }
@@ -724,9 +598,9 @@ export const connectAccount = async (networkAccount) => {
       debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- TIMEOUT`);
       return { didTimeout: true };
     };
-    const recv = async (label, okNum, ok_cnt, out_tys, timeout_delay) => {
+    const recv = async (label, okNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
       void(ok_cnt);
-      return await recv_impl(label, okNum, out_tys, timeout_delay);
+      return await recv_impl(label, okNum, out_tys, waitIfNotPresent, timeout_delay);
     };
     const wait = async (delta) => {
       const lastBlock = await getLastBlock();
@@ -737,9 +611,9 @@ export const connectAccount = async (networkAccount) => {
       return p;
     };
     // Note: wait is the local one not the global one of the same name.
-    return { getInfo, sendrecv, recv, wait, iam, selfAddress };
+    return { getInfo, sendrecv, recv, wait, iam, selfAddress, stdlib: compiledStdlib };
   };
-  return { deploy, attach, networkAccount };
+  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
 };
 export const newAccountFromSecret = async (secret) => {
   const provider = await getProvider();
@@ -786,27 +660,30 @@ export const [getFaucet, setFaucet] = replaceableThunk(async () => {
   }
   throw Error(`getFaucet not supported in this context.`);
 });
+export const createAccount = async () => {
+  debug(`createAccount with 0 balance.`);
+  const provider = await getProvider();
+  const networkAccount = ethers.Wallet.createRandom().connect(provider);
+  return await connectAccount(networkAccount);
+};
+export const fundFromFaucet = async (account, value) => {
+  const faucet = await getFaucet();
+  await transfer(faucet, account, value);
+};
 export const newTestAccount = async (startingBalance) => {
   debug(`newTestAccount(${startingBalance})`);
   requireIsolatedNetwork('newTestAccount');
-  const provider = await getProvider();
-  const faucet = await getFaucet();
-  const networkAccount = ethers.Wallet.createRandom().connect(provider);
-  const to = networkAccount.address;
-  const acc = await connectAccount(networkAccount);
+  const acc = await createAccount();
+  const to = getAddr(acc);
   try {
     debug(`newTestAccount awaiting transfer: ${to}`);
-    await transfer(faucet, acc, startingBalance);
+    await fundFromFaucet(acc, startingBalance);
     debug(`newTestAccount got transfer: ${to}`);
     return acc;
   } catch (e) {
     console.log(`newTestAccount: Trouble with account ${to}`);
     throw e;
   }
-};
-const getNetworkTimeNumber = async () => {
-  const provider = await getProvider();
-  return await provider.getBlockNumber();
 };
 export const getNetworkTime = async () => {
   return bigNumberify(await getNetworkTimeNumber());
@@ -826,59 +703,6 @@ export const waitUntilTime = async (targetTime, onProgress) => {
   } else {
     return await actuallyWaitUntilTime(targetTime, onProgress);
   }
-};
-// onProgress callback is optional, it will be given an obj
-// {currentTime, targetTime}
-const actuallyWaitUntilTime = async (targetTime, onProgress) => {
-  const onProg = onProgress || (() => {});
-  const provider = await getProvider();
-  return await new Promise((resolve) => {
-    const onBlock = async (currentTimeNum) => {
-      const currentTime = bigNumberify(currentTimeNum);
-      // Does not block on the progress fn if it is async
-      onProg({ currentTime, targetTime });
-      if (ge(currentTime, targetTime)) {
-        provider.off('block', onBlock);
-        resolve(currentTime);
-      }
-    };
-    provider.on('block', onBlock);
-    // Also "re-emit" the current block
-    // Note: this sometimes causes the starting block
-    // to be processed twice, which should be harmless.
-    getNetworkTime().then(onBlock);
-  });
-};
-const fastForwardTo = async (targetTime, onProgress) => {
-  // console.log(`>>> FFWD TO: ${targetTime}`);
-  const onProg = onProgress || (() => {});
-  requireIsolatedNetwork('fastForwardTo');
-  let currentTime;
-  while (lt(currentTime = await getNetworkTime(), targetTime)) {
-    onProg({ currentTime, targetTime });
-    await stepTime();
-  }
-  // Also report progress at completion time
-  onProg({ currentTime, targetTime });
-  // console.log(`<<< FFWD TO: ${targetTime} complete. It's ${currentTime}`);
-  return currentTime;
-};
-const requireIsolatedNetwork = (label) => {
-  if (!isIsolatedNetwork) {
-    throw Error(`Invalid operation ${label} in REACH_CONNECTOR_MODE=${connectorMode}`);
-  }
-};
-const getDummyAccount = memoizeThunk(async () => {
-  const provider = await getProvider();
-  const networkAccount = ethers.Wallet.createRandom().connect(provider);
-  const acc = await connectAccount(networkAccount);
-  return acc;
-});
-const stepTime = async () => {
-  requireIsolatedNetwork('stepTime');
-  const faucet = await getFaucet();
-  const acc = await getDummyAccount();
-  return await transfer(faucet, acc, parseCurrency(0));
 };
 // Check the contract info and the associated deployed bytecode;
 // Verify that:
@@ -1026,10 +850,6 @@ export function parseCurrency(amt) {
   return bigNumberify(ethers.utils.parseUnits(amt.toString(), 'ether'));
 }
 export const minimumBalance = parseCurrency(0);
-const initOrDefaultArgs = (init) => ({
-  argsMay: init ? Some(init.args) : None,
-  value: init ? init.value : bigNumberify(0),
-});
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.
@@ -1056,4 +876,3 @@ export function formatCurrency(amt, decimals = 18) {
     return amtStr;
   }
 }
-export const addressEq = mkAddressEq(T_Address);

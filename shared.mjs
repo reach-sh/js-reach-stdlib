@@ -1,7 +1,21 @@
 import crypto from 'crypto';
 import ethers from 'ethers';
-const BigNumber = ethers.BigNumber;
+// ****************************************************************************
+// Helpers
+// ****************************************************************************
 let DEBUG = process.env.REACH_DEBUG ? true : false;
+const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
+const BigNumber = ethers.BigNumber;
+// Hex helpers
+// const un0x           = h => h.replace(/^0x/, ''); // unused
+const hexTo0x = (h) => '0x' + h.replace(/^0x/, '');
+const byteToHex = (b) => (b & 0xFF).toString(16).padStart(2, '0');
+const byteArrayToHex = (b) => Array.from(b, byteToHex).join('');
+const format_ai = (ai) => JSON.stringify(ai);
+const forceHex = (x) => isHex(x) ? x : stringToHex(x);
+// ****************************************************************************
+// Utility exports
+// ****************************************************************************
 export const setDEBUG = (b) => {
   if (b === false || b === true) {
     DEBUG = b;
@@ -20,7 +34,6 @@ export const assert = (d, ai = null) => {
     throw Error(format_ai(ai));
   }
 };
-const { hexlify, toUtf8Bytes, toUtf8String, isHexString } = ethers.utils;
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
 export const checkedBigNumberify = (at, m, x) => {
@@ -30,14 +43,8 @@ export const checkedBigNumberify = (at, m, x) => {
   }
   throw Error(`bigNumberify: ${x} out of range [0, ${m}] at ${at}`);
 };
-// Hex helpers
-// const un0x           = h => h.replace(/^0x/, ''); // unused
-const hexTo0x = (h) => '0x' + h.replace(/^0x/, '');
-const byteToHex = (b) => (b & 0xFF).toString(16).padStart(2, '0');
-const byteArrayToHex = (b) => Array.from(b, byteToHex).join('');
 // Contracts
 // .canonicalize turns stuff into the "canonical backend representation"
-const format_ai = (ai) => JSON.stringify(ai);
 export function protect(ctc, v, ai = null) {
   try {
     return ctc.canonicalize(v);
@@ -69,7 +76,6 @@ export const bigNumberToHex = (u, size = 32) => {
   // XXX why do we slice off the 0x?
   return hexlify(nFix).slice(2);
 };
-const forceHex = (x) => isHex(x) ? x : stringToHex(x);
 export const bytesEq = (x, y) => {
   debug(`bytesEq '${x}' '${y}'`);
   return forceHex(x) === forceHex(y);
@@ -94,6 +100,7 @@ export const le = (a, b) => bigNumberify(a).lte(bigNumberify(b));
 export const lt = (a, b) => bigNumberify(a).lt(bigNumberify(b));
 // Array helpers
 export const argsSlice = (args, cnt) => cnt == 0 ? [] : args.slice(-1 * cnt);
+export const argsSplit = (args, cnt) => cnt == 0 ? [args, []] : [args.slice(0, args.length - cnt), args.slice(-1 * cnt)];
 export function Array_set(arr, idx, elem) {
   const arrp = arr.slice();
   arrp[idx] = elem;

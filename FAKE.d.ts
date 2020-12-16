@@ -2,14 +2,7 @@ import ethers from 'ethers';
 import * as stdlib from './shared';
 import { CurrencyAmount, OnProgress } from './shared';
 export * from './shared';
-export { T_Null, T_Bool, T_UInt, T_Bytes, T_Address, T_Digest, T_Object, T_Data, T_Array, T_Tuple, addressEq, digest } from './ETH';
-export declare const debug: (msg: any) => void;
 declare type BigNumber = ethers.BigNumber;
-declare const BigNumber: typeof ethers.ethers.BigNumber;
-export declare const UInt_max: BigNumber;
-export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
-    random: () => ethers.ethers.BigNumber;
-};
 declare type Address = string;
 declare type NetworkAccount = {
     address: Address;
@@ -20,11 +13,124 @@ declare type ContractInfo = {
     address: Address;
     creation_block: number;
 };
-declare type Digest = Array<any>;
+declare type Digest = string;
 declare type Contract = stdlib.IContract<ContractInfo, Digest, Address, FAKE_Ty>;
 declare type Account = stdlib.IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
 declare type AccountTransferrable = stdlib.IAccountTransferable<NetworkAccount>;
+export declare const addressEq: (x: any, y: any) => boolean, digest: (t: any, v: any) => string;
+export declare const T_Null: {
+    name: string;
+    defaultValue: null;
+    canonicalize: (uv: unknown) => null;
+    munge: (bv: null) => false;
+    unmunge: (nv: false) => null;
+    paramType: string;
+}, T_Bool: {
+    name: string;
+    defaultValue: boolean;
+    canonicalize: (uv: unknown) => boolean;
+    munge: (bv: boolean) => boolean;
+    unmunge: (nv: boolean) => boolean;
+    paramType: string;
+}, T_UInt: {
+    name: string;
+    defaultValue: ethers.ethers.BigNumber;
+    canonicalize: (uv: unknown) => ethers.ethers.BigNumber;
+    munge: (bv: ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    unmunge: (nv: ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    paramType: string;
+}, T_Tuple: <T>(ctcs: {
+    name: string;
+    defaultValue: import("./CBR").CBR_Val;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+    munge: (bv: import("./CBR").CBR_Val) => T;
+    unmunge: (nv: T) => import("./CBR").CBR_Val;
+    paramType: string;
+}[]) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Tuple;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Tuple;
+    munge: (bv: import("./CBR").CBR_Tuple) => T[];
+    unmunge: (nv: T[]) => import("./CBR").CBR_Tuple;
+    paramType: string;
+}, T_Array: <T>(ctc: {
+    name: string;
+    defaultValue: import("./CBR").CBR_Val;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+    munge: (bv: import("./CBR").CBR_Val) => T;
+    unmunge: (nv: T) => import("./CBR").CBR_Val;
+    paramType: string;
+}, size: number) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Array;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Array;
+    munge: (bv: import("./CBR").CBR_Array) => T[];
+    unmunge: (nv: T[]) => import("./CBR").CBR_Array;
+    paramType: string;
+}, T_Object: <T>(co: {
+    [key: string]: {
+        name: string;
+        defaultValue: import("./CBR").CBR_Val;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+        munge: (bv: import("./CBR").CBR_Val) => T;
+        unmunge: (nv: T) => import("./CBR").CBR_Val;
+        paramType: string;
+    };
+}) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Object;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Object;
+    munge: (bv: import("./CBR").CBR_Object) => {
+        [key: string]: T;
+    };
+    unmunge: (nv: {
+        [key: string]: T;
+    }) => import("./CBR").CBR_Object;
+    paramType: string;
+}, T_Data: <T>(co: {
+    [key: string]: {
+        name: string;
+        defaultValue: import("./CBR").CBR_Val;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+        munge: (bv: import("./CBR").CBR_Val) => T;
+        unmunge: (nv: T) => import("./CBR").CBR_Val;
+        paramType: string;
+    };
+}) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Data;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Data;
+    munge: (bv: import("./CBR").CBR_Data) => T[];
+    unmunge: (nv: T[]) => import("./CBR").CBR_Data;
+    paramType: string;
+}, T_Bytes: (len: number) => {
+    name: string;
+    defaultValue: string;
+    canonicalize: (uv: unknown) => string;
+    munge: (bv: string) => number[];
+    unmunge: (nv: number[]) => string;
+    paramType: string;
+}, T_Address: {
+    name: string;
+    defaultValue: string;
+    canonicalize: (uv: unknown) => string;
+    munge: (bv: string) => string;
+    unmunge: (nv: string) => string;
+    paramType: string;
+}, T_Digest: {
+    name: string;
+    defaultValue: string;
+    canonicalize: (uv: unknown) => string;
+    munge: (bv: string) => ethers.ethers.BigNumber;
+    unmunge: (nv: ethers.ethers.BigNumber) => string;
+    paramType: string;
+};
+export declare const debug: (msg: any) => void;
+export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
+    random: () => ethers.ethers.BigNumber;
+};
 export declare const balanceOf: (acc: Account) => Promise<ethers.ethers.BigNumber>;
+export declare const fundFromFaucet: (toa: AccountTransferrable, value: BigNumber) => Promise<void>;
 /**
  * @description performs a transfer & creates a transfer block
  */
@@ -32,7 +138,8 @@ export declare const transfer: (from: AccountTransferrable, to: AccountTransferr
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
-export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, Digest, string, any>, ContractInfo>>;
+export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
+export declare const createAccount: () => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;

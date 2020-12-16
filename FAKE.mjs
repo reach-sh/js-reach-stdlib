@@ -1,15 +1,14 @@
+// ****************************************************************************
+// standard library for Javascript users
+// ****************************************************************************
 import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import * as stdlib from './shared.mjs';
 export * from './shared.mjs';
-export { T_Null, T_Bool, T_UInt, T_Bytes, T_Address, T_Digest, T_Object, T_Data, T_Array, T_Tuple, addressEq, digest } from './ETH.mjs';
-import { T_Address } from './ETH.mjs';
-export const debug = (msg) => {
-  stdlib.debug(`${BLOCKS.length}: ${msg}}`);
-};
-const BigNumber = ethers.BigNumber;
-export const UInt_max = BigNumber.from(2).pow(256).sub(1);
-export const { randomUInt, hasRandom } = stdlib.makeRandom(32);
+import { stdlib as compiledStdlib, typeDefs } from './FAKE_compiled.mjs';
+// ****************************************************************************
+// Helpers
+// ****************************************************************************
 // This can be exposed to the user for checking the trace of blocks
 // for testing.
 const BLOCKS = [];
@@ -18,8 +17,17 @@ const BALANCES = {};
 const toAcct = (address) => ({
   networkAccount: { address },
 });
-export const balanceOf = async (acc) => {
-  return BALANCES[acc.networkAccount.address];
+const STATES = {};
+const checkStateTransition = async (label, which, prevSt, nextSt) => {
+  await Timeout.set(Math.random() < 0.5 ? 20 : 0);
+  const cur = STATES[which];
+  debug(`${label} cst prevSt(${JSON.stringify(prevSt)}) on cur(${JSON.stringify(cur)}) to ${JSON.stringify(nextSt)} --- check`);
+  if (!stdlib.bytesEq(cur, prevSt)) {
+    return false;
+  }
+  debug(`${label} cst prevSt(${JSON.stringify(prevSt)}) on cur(${JSON.stringify(STATES[which])}) to ${JSON.stringify(nextSt)} --- assign`);
+  STATES[which] = nextSt;
+  return true;
 };
 /**
  * @description performs a transfer; no block created
@@ -32,6 +40,34 @@ const transfer_ = (froma, toa, value, is_ctc) => {
   debug(`transfer_ ${froma} -> ${toa} of ${value}`);
   BALANCES[toa] = stdlib.add(BALANCES[toa], value);
   BALANCES[froma] = stdlib.sub(BALANCES[froma], value);
+};
+const makeAccount = () => {
+  const address = ethers.Wallet.createRandom().address;
+  BALANCES[address] = stdlib.bigNumberify(0);
+  return { address };
+};
+// ****************************************************************************
+// Common Interface Exports
+// ****************************************************************************
+export const { addressEq, digest } = compiledStdlib;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const debug = (msg) => {
+  stdlib.debug(`${BLOCKS.length}: ${msg}}`);
+};
+export const { randomUInt, hasRandom } = stdlib.makeRandom(32);
+export const balanceOf = async (acc) => {
+  return BALANCES[acc.networkAccount.address];
+};
+export const fundFromFaucet = async (toa, value) => {
+  const faucet = await getFaucet();
+  const faucetAddress = faucet.networkAccount.address;
+  const faucetFunds = BALANCES[faucetAddress] || stdlib.bigNumberify(0);
+  // For FAKE, the faucet may need to add funds on demand,
+  // if the user created an account without a starting balance.
+  if (stdlib.le(faucetFunds, value)) {
+    BALANCES[faucetAddress] = faucetFunds.add(value);
+  }
+  transfer(faucet, toa, value);
 };
 /**
  * @description performs a transfer & creates a transfer block
@@ -78,7 +114,11 @@ export const connectAccount = async (networkAccount) => {
       // Don't wait from current time, wait from last_block
       return waitUntilTime(stdlib.add(await getLastBlock(), delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, timeout_delay, sim_p) => {
+    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+      const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
+      if (!onlyIf) {
+        return await doRecv(true);
+      }
       void(tys);
       stdlib.assert(args.length === tys.length, {
         expected: args.length,
@@ -87,53 +127,88 @@ export const connectAccount = async (networkAccount) => {
       });
       const data = stdlib.argsSlice(args, evt_cnt);
       const last_block = await getLastBlock();
+      const timeout_until_block = timeout_delay && stdlib.add(last_block, timeout_delay);
+      debug(`${label} send ${funcNum} --- timeout is ${timeout_delay}, not sending unless ${BLOCKS.length} less than ${timeout_until_block}`);
       const ctcInfo = await infoP;
-      if (!timeout_delay || stdlib.lt(BLOCKS.length, stdlib.add(last_block, timeout_delay))) {
+      if (!timeout_until_block || stdlib.lt(BLOCKS.length, timeout_until_block)) {
         debug(`${label} send ${funcNum} --- post`);
-        transfer({ networkAccount }, toAcct(ctcInfo.address), value);
         const stubbedRecv = {
           didTimeout: false,
           data,
           value,
           from: address,
         };
-        const { txns } = sim_p(stubbedRecv);
-        // Instead of processing these atomically & rolling back on failure
-        // it is just assumed that using FAKE means it is all in one JS thread.
-        // (A failed transfer will crash the whole thing.)
-        for (const txn of txns) {
-          transfer_(ctcInfo.address, txn.to, txn.amt, true);
+        const { prevSt, nextSt, txns } = sim_p(stubbedRecv);
+        if (await checkStateTransition(label, ctcInfo.address, prevSt, nextSt)) {
+          debug(`${label} send ${funcNum} --- post succeeded`);
+          transfer({ networkAccount }, toAcct(ctcInfo.address), value);
+          // Instead of processing these atomically & rolling back on failure
+          // it is just assumed that using FAKE means it is all in one JS
+          // thread.  (A failed transfer will crash the whole thing.)
+          for (const txn of txns) {
+            transfer_(ctcInfo.address, txn.to, txn.amt, true);
+          }
+          const theBlockNum = BLOCKS.length - 1;
+          const transferBlock = BLOCKS[theBlockNum];
+          if (transferBlock.type !== 'transfer') {
+            throw Error(`impossible: intervening block ${JSON.stringify(BLOCKS)}`);
+          }
+          const event = { ...stubbedRecv, funcNum, txns };
+          const block = { ...transferBlock, type: 'event', event, time: theBlockNum };
+          debug(`sendrecv: ${theBlockNum} transforming transfer block into event block: ${JSON.stringify(block)}`);
+          BLOCKS[theBlockNum] = block;
+          return await doRecv(false);
+        } else {
+          debug(`${label} send ${funcNum} --- post failed`);
+          if (soloSend) {
+            throw Error(`post failed`);
+          } else {
+            return await doRecv(true);
+          }
         }
-        const transferBlock = BLOCKS[BLOCKS.length - 1];
-        if (transferBlock.type !== 'transfer') {
-          throw Error('impossible: intervening block');
-        }
-        const event = { ...stubbedRecv, funcNum, txns };
-        const block = { ...transferBlock, type: 'event', event };
-        debug(`sendrecv: transforming transfer block into event block: ${JSON.stringify(block)}`);
-        BLOCKS[BLOCKS.length - 1] = block;
-        return await recv(label, funcNum, evt_cnt, out_tys, timeout_delay);
       } else {
         debug(`${label} send ${funcNum} --- timeout`);
         return { didTimeout: true };
       }
     };
-    const recv = async (label, funcNum, ok_cnt, out_tys, timeout_delay) => {
+    const findBlock = (from, to, funcNum) => {
+      for (let i = from; i <= to; i++) {
+        const b = BLOCKS[i];
+        if (!b || b.type !== 'event' || !b.event || !stdlib.eq(b.event.funcNum, funcNum)) {
+          continue;
+        } else {
+          return b;
+        }
+      }
+      return false;
+    };
+    const recv = async (label, funcNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
       void(ok_cnt);
       void(out_tys);
       const last_block = await getLastBlock();
-      let check_block = last_block;
-      while (!timeout_delay || stdlib.lt(check_block, stdlib.add(last_block, timeout_delay))) {
-        debug(`${label} recv ${funcNum} --- check ${check_block}`);
-        const b = BLOCKS[check_block];
-        if (!b || b.type !== 'event' || !b.event || !stdlib.eq(b.event.funcNum, funcNum)) {
-          debug(`${label} recv ${funcNum} --- wait`);
-          check_block = Math.min(check_block + 1, BLOCKS.length);
-          await Timeout.set(1);
+      const timeout_until_block = timeout_delay && stdlib.add(last_block, timeout_delay);
+      debug(`${label} recv ${funcNum} --- timeout is ${timeout_delay}, waiting until ${timeout_until_block}`);
+      // look after the last block
+      let check_block = last_block + 1;
+      while (!timeout_until_block || stdlib.lt(BLOCKS.length, timeout_until_block)) {
+        debug(`${label} recv ${funcNum} --- check ${last_block} ${check_block}`);
+        const b = findBlock(last_block + 1, check_block, funcNum);
+        if (!b) {
+          debug(`${label} recv ${funcNum} --- wait (${waitIfNotPresent})`);
+          await Timeout.set(20);
+          if (waitIfNotPresent) {
+            check_block++;
+            if (check_block >= BLOCKS.length - 1) {
+              await waitUntilTime(check_block);
+            }
+          } else {
+            check_block = Math.min(check_block + 1, BLOCKS.length - 1);
+          }
           continue;
         } else {
-          debug(`${label} recv ${funcNum} --- recv`);
-          setLastBlock(check_block);
+          const found_block = b.time;
+          debug(`${label} recv ${funcNum} --- AT ${found_block}`);
+          setLastBlock(found_block);
           const evt = b.event;
           return { didTimeout: false, data: evt.data, value: evt.value, from: evt.from };
         }
@@ -142,23 +217,21 @@ export const connectAccount = async (networkAccount) => {
       return { didTimeout: true };
     };
     const getInfo = async () => await infoP;
-    return { getInfo, sendrecv, recv, iam, selfAddress, wait };
+    return { getInfo, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
   };
   const deploy = (bin) => {
     const contract = makeAccount();
     debug(`new contract: ${contract.address}`);
+    STATES[contract.address] =
+      // @ts-ignore XXX
+      digest(T_Tuple([T_UInt]), [stdlib.bigNumberify(0)]);
     BLOCKS.push({ type: 'contract', address: contract.address });
     return attach(bin, {
       ...contract,
       creation_block: BLOCKS.length - 1,
     });
   };
-  return { deploy, attach, networkAccount };
-};
-const makeAccount = () => {
-  const address = ethers.Wallet.createRandom().address;
-  BALANCES[address] = stdlib.bigNumberify(0);
-  return { address };
+  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
 };
 const REACHY_RICH_P = (async () => {
   return await connectAccount({ address: T_Address.defaultValue });
@@ -170,11 +243,15 @@ export async function getFaucet() {
   return REACHY_RICH_P;
 }
 export const newTestAccount = async (startingBalance) => {
-  const REACHY_RICH = await REACHY_RICH_P;
+  const account = await createAccount();
+  debug(`new account: ${account.networkAccount.address}`);
+  await fundFromFaucet(account, startingBalance);
+  return account;
+};
+export const createAccount = async () => {
+  // Create account without any starting balance
   const networkAccount = makeAccount();
-  debug(`new account: ${networkAccount.address}`);
-  BALANCES[REACHY_RICH.networkAccount.address] = startingBalance;
-  transfer(REACHY_RICH, { networkAccount }, startingBalance);
+  debug(`createAccount: ${networkAccount.address}`);
   return await connectAccount(networkAccount);
 };
 export function getNetworkTime() {
@@ -185,11 +262,13 @@ export function wait(delta, onProgress) {
 }
 export function waitUntilTime(targetTime, onProgress) {
   targetTime = stdlib.bigNumberify(targetTime);
+  debug(`waitUntilTime: ${targetTime}`);
   const onProg = onProgress || (() => {});
   // FAKE is basically synchronous,
   // so it doesn't make sense to actually "wait" idly.
   let currentTime;
   while (stdlib.lt((currentTime = getNetworkTime()), targetTime)) {
+    debug(`waitUntilTime: waited`);
     onProg({ currentTime, targetTime });
     BLOCKS.push({ type: 'wait', currentTime, targetTime });
   }

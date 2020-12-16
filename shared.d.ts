@@ -6,7 +6,6 @@ export interface AnyBackendTy {
 }
 declare type BigNumber = ethers.BigNumber;
 declare type num = BigNumber | number;
-declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare type OnProgress = (obj: {
     currentTime: BigNumber;
     targetTime: BigNumber;
@@ -28,16 +27,18 @@ export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
 };
 export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
-    sendrecv: (label: string, funcNum: number, evt_cnt: number, tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => ISimRes<Digest, RawAddress>) => Promise<IRecv<RawAddress>>;
-    recv: (label: string, okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
+    sendrecv: (label: string, funcNum: number, evt_cnt: number, tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => ISimRes<Digest, RawAddress>) => Promise<IRecv<RawAddress>>;
+    recv: (label: string, okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, waitIfNotPresent: boolean, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
     selfAddress: () => CBR_Address;
+    stdlib: Object;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
     attach: (bin: Backend, ctc: ContractInfo | Promise<ContractInfo>) => Contract;
+    stdlib: Object;
 };
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any> | {
     networkAccount: NetworkAccount;
@@ -52,6 +53,9 @@ export declare type ISimTxn<RawAddress> = {
     to: RawAddress;
     amt: BigNumber;
 };
+export declare type CurrencyAmount = string | number | BigNumber;
+export type { Connector } from './ConnectorMode';
+declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (msg: any) => void;
@@ -86,10 +90,9 @@ export declare const gt: (a: num, b: num) => boolean;
 export declare const le: (a: num, b: num) => boolean;
 export declare const lt: (a: num, b: num) => boolean;
 export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
+export declare const argsSplit: <T>(args: T[], cnt: number) => [T[], T[]];
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
-export declare type CurrencyAmount = string | number | BigNumber;
-export type { Connector } from './ConnectorMode';
 export declare const mkAddressEq: (T_Address: {
     canonicalize: (addr: any) => any;
 }) => (x: any, y: any) => boolean;
