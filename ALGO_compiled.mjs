@@ -3,10 +3,12 @@
 // ****************************************************************************
 import * as shared from './shared.mjs';
 import algosdk from 'algosdk';
+import buffer from 'buffer';
 import ethers from 'ethers';
 import * as CBR from './CBR.mjs';
 import { labelMaps } from './shared_impl.mjs';
 const BigNumber = ethers.BigNumber;
+const Buffer = buffer.Buffer;
 export const UInt_max = BigNumber.from(2).pow(64).sub(1);
 export const digest = shared.makeDigest((t, v) => t.toNet(v));
 export const T_Null = {
