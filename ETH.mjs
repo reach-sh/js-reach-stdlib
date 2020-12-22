@@ -305,10 +305,15 @@ export const connectAccount = async (networkAccount) => {
       debug(`${shad}: performDeploy with ${JSON.stringify(init)}`);
       const { argsMay, value } = initOrDefaultArgs(init);
       const { ABI, Bytecode } = bin._Connectors.ETH;
+      debug(`${shad}: making contract factory`);
       const factory = new ethers.ContractFactory(ABI, Bytecode, networkAccount);
       (async () => {
+        debug(`${shad}: deploying factory`);
         const contract = await factory.deploy(...argsMay, { value });
+        debug(`${shad}: deploying factory; done: ${contract.address}`);
+        debug(`${shad}: waiting for receipt: ${contract.deployTransaction.hash}`);
         const deploy_r = await contract.deployTransaction.wait();
+        debug(`${shad}: got receipt; ${deploy_r.blockNumber}`);
         const info = {
           address: contract.address,
           creation_block: deploy_r.blockNumber,
