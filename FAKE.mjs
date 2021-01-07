@@ -4,6 +4,7 @@
 import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import * as stdlib from './shared.mjs';
+const { bigNumberify } = stdlib;
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './FAKE_compiled.mjs';
 // ****************************************************************************
@@ -114,7 +115,8 @@ export const connectAccount = async (networkAccount) => {
       // Don't wait from current time, wait from last_block
       return waitUntilTime(stdlib.add(await getLastBlock(), delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+      void(hasLastTime);
       const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
         return await doRecv(true);
@@ -134,6 +136,7 @@ export const connectAccount = async (networkAccount) => {
         debug(`${label} send ${funcNum} --- post`);
         const stubbedRecv = {
           didTimeout: false,
+          time: bigNumberify(0),
           data,
           value,
           from: address,
@@ -210,25 +213,35 @@ export const connectAccount = async (networkAccount) => {
           debug(`${label} recv ${funcNum} --- AT ${found_block}`);
           setLastBlock(found_block);
           const evt = b.event;
-          return { didTimeout: false, data: evt.data, value: evt.value, from: evt.from };
+          return {
+            didTimeout: false,
+            time: bigNumberify(found_block),
+            data: evt.data,
+            value: evt.value,
+            from: evt.from,
+          };
         }
       }
       debug(`${label} recv ${funcNum} --- timeout`);
       return { didTimeout: true };
     };
     const getInfo = async () => await infoP;
-    return { getInfo, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
+    const creationTime = async () => bigNumberify((await getInfo()).creation_block);
+    return { getInfo, creationTime, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
   };
   const deploy = (bin) => {
     const contract = makeAccount();
     debug(`new contract: ${contract.address}`);
+    const this_block = BLOCKS.length;
     STATES[contract.address] =
       // @ts-ignore XXX
-      digest(T_Tuple([T_UInt]), [stdlib.bigNumberify(0)]);
+      digest(T_Tuple([T_UInt, T_UInt]), [stdlib.bigNumberify(0),
+        stdlib.bigNumberify(this_block),
+      ]);
     BLOCKS.push({ type: 'contract', address: contract.address });
     return attach(bin, {
       ...contract,
-      creation_block: BLOCKS.length - 1,
+      creation_block: this_block,
     });
   };
   return { deploy, attach, networkAccount, stdlib: compiledStdlib };

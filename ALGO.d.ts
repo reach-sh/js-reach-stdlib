@@ -47,6 +47,7 @@ declare type Backend = {
 declare type Recv = {
     didTimeout: false;
     data: Array<ContractOut>;
+    time: BigNumber;
     value: BigNumber;
     from: string;
 } | {
@@ -54,6 +55,7 @@ declare type Recv = {
 };
 declare type ContractAttached = {
     getInfo: () => Promise<ContractInfo>;
+    creationTime: () => Promise<BigNumber>;
     sendrecv: (...argz: any) => Promise<Recv>;
     recv: (...argz: any) => Promise<Recv>;
     wait: (...argz: any) => any;

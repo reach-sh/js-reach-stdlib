@@ -21,13 +21,15 @@ export declare type IRecvNoTimeout<RawAddress> = {
     data: Array<any>;
     value: BigNumber;
     from: RawAddress;
+    time: BigNumber;
 };
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
 };
 export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
-    sendrecv: (label: string, funcNum: number, evt_cnt: number, tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => ISimRes<Digest, RawAddress>) => Promise<IRecv<RawAddress>>;
+    creationTime: () => Promise<BigNumber>;
+    sendrecv: (label: string, funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => ISimRes<Digest, RawAddress>) => Promise<IRecv<RawAddress>>;
     recv: (label: string, okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, waitIfNotPresent: boolean, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;

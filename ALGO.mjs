@@ -478,7 +478,12 @@ export const connectAccount = async (networkAccount) => {
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+      if (hasLastTime !== false) {
+        const ltidx = hasLastTime.toNumber();
+        tys.splice(ltidx, 1);
+        args.splice(ltidx, 1);
+      }
       const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
         return await doRecv(true);
@@ -493,6 +498,7 @@ export const connectAccount = async (networkAccount) => {
       const fake_res = {
         didTimeout: false,
         data: argsSlice(args, evt_cnt),
+        time: bigNumberify(0),
         value: value,
         from: pks,
       };
@@ -517,7 +523,7 @@ export const connectAccount = async (networkAccount) => {
         const totalFromFee = txnFromContracts.reduce(((sum, txn) => sum + txn.fee), 0);
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
         debug(`${dhead} --- isHalt = ${JSON.stringify(isHalt)}`);
-        const actual_args = [sim_r.prevSt, sim_r.nextSt, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
+        const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
         const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
         debug(`${dhead} --- ARGS = ${JSON.stringify(actual_args)}`);
         const safe_args = actual_args.map((m, i) => actual_tys[i].toNet(m));
@@ -656,12 +662,14 @@ export const connectAccount = async (networkAccount) => {
         return {
           didTimeout: false,
           data: args_un,
+          time: bigNumberify(lastRound),
           value,
           from,
         };
       }
     };
-    return { getInfo, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
+    const creationTime = async () => bigNumberify((await getInfo()).creationRound);
+    return { getInfo, creationTime, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
   };
   const deployP = async (bin) => {
     must_be_supported(bin);
@@ -724,6 +732,7 @@ export const connectAccount = async (networkAccount) => {
   const deferP = (implP) => {
     return {
       getInfo: async () => (await implP).getInfo(),
+      creationTime: async () => (await implP).creationTime(),
       sendrecv: async (...args) => (await implP).sendrecv(...args),
       recv: async (...args) => (await implP).recv(...args),
       wait: async (...args) => (await implP).wait(...args),
