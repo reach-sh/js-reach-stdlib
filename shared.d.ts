@@ -98,4 +98,15 @@ export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare const mkAddressEq: (T_Address: {
     canonicalize: (addr: any) => any;
 }) => (x: any, y: any) => boolean;
+export declare const parseFixedPoint: (x: {
+    sign: boolean;
+    i: {
+        i: num;
+        scale: num;
+    };
+}) => number;
+export declare const parseInt: (x: {
+    sign: boolean;
+    i: num;
+}) => number;
 //# sourceMappingURL=shared.d.ts.map

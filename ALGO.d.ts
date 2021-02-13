@@ -149,6 +149,17 @@ declare const getFaucet: () => Promise<{
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>, setFaucet: (val: Promise<{
     deploy: (bin: Backend) => ContractAttached;
@@ -212,6 +223,17 @@ declare const getFaucet: () => Promise<{
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>) => void;
 export { getFaucet, setFaucet };
@@ -278,6 +300,17 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
@@ -343,6 +376,17 @@ export declare const createAccount: () => Promise<{
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>;
 export declare const fundFromFaucet: (account: Account, value: BigNumber) => Promise<void>;
@@ -408,6 +452,17 @@ export declare const newTestAccount: (startingBalance: BigNumber) => Promise<{
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>;
 /** @description the display name of the standard unit of currency for the network */
@@ -503,6 +558,17 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
+        parseFixedPoint: (x: {
+            sign: boolean;
+            i: {
+                i: number | ethers.ethers.BigNumber;
+                scale: number | ethers.ethers.BigNumber;
+            };
+        }) => number;
+        parseInt: (x: {
+            sign: boolean;
+            i: number | ethers.ethers.BigNumber;
+        }) => number;
     };
 }>;
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;

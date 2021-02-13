@@ -109,3 +109,5 @@ export function Array_set(arr, idx, elem) {
 export const Array_zip = (x, y) => x.map((e, i) => [e, y[i]]);
 // XXX this doesn't really belong here, but hard to relocate due to dep on bytesEq
 export const mkAddressEq = (T_Address) => (x, y) => bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
+export const parseFixedPoint = (x) => parseInt({ sign: x.sign, i: x.i.i }) / bigNumberify(x.i.scale).toNumber();
+export const parseInt = (x) => bigNumberify(x.i).toNumber() * (x.sign ? 1 : (-1));

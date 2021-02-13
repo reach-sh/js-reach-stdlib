@@ -96,6 +96,17 @@ export declare const stdlib: {
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;
+    parseFixedPoint: (x: {
+        sign: boolean;
+        i: {
+            i: number | ethers.ethers.BigNumber;
+            scale: number | ethers.ethers.BigNumber;
+        };
+    }) => number;
+    parseInt: (x: {
+        sign: boolean;
+        i: number | ethers.ethers.BigNumber;
+    }) => number;
 };
 export {};
 //# sourceMappingURL=ETH_compiled.d.ts.map

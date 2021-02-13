@@ -277,5 +277,16 @@ export declare const stdlib: {
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;
+    parseFixedPoint: (x: {
+        sign: boolean;
+        i: {
+            i: number | import("ethers").BigNumber;
+            scale: number | import("ethers").BigNumber;
+        };
+    }) => number;
+    parseInt: (x: {
+        sign: boolean;
+        i: number | import("ethers").BigNumber;
+    }) => number;
 };
 //# sourceMappingURL=FAKE_compiled.d.ts.map
