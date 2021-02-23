@@ -17,10 +17,8 @@
     "await-timeout": "^0.6.0",
     "ethers": "^5.0.19",
     "hi-base32": "^0.5.0",
-    "wait-port": "^0.2.9"
-  },
-  "optionalDependencies": {
-    "ganache-core": "^2.11.2"
+    "wait-port": "^0.2.9",
+    "express": "^4.17.1"
   },
   "repository": {
     "type": "git",
@@ -36,9 +34,7 @@
   "scripts": {
     "beautify": "js-beautify --indent-size=2 --end-with-newline --brace-style=collapse-preserve-inline --replace *.mjs",
     "format": "eslint --ignore-path .gitignore --ext .mjs --fix .",
-    "test": "node --experimental-modules ETH-test.mjs",
     "runner": "node --experimental-modules --unhandled-rejections=strict runner.mjs",
-    "zzz": "node --experimental-modules --unhandled-rejections=strict test.mjs",
     "tsc": "tsc"
   }
 }
