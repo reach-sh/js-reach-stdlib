@@ -10,7 +10,7 @@ import url from 'url';
 import Timeout from 'await-timeout';
 import buffer from 'buffer';
 const { Buffer } = buffer;
-import { debug, getDEBUG, isBigNumber, bigNumberify, argsSlice, makeRandom } from './shared.mjs';
+import { debug, getDEBUG, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
 import waitPort from 'wait-port';
 import { replaceableThunk } from './shared_impl.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
@@ -398,7 +398,7 @@ const [getFaucet, setFaucet] = replaceableThunk(async () => {
 });
 export { getFaucet, setFaucet };
 export const transfer = async (from, to, value) => {
-  const valuen = value.toNumber();
+  const valuen = bigNumberToNumber(value);
   const sender = from.networkAccount;
   const receiver = to.networkAccount.addr;
   const note = algosdk.encodeObj('@reach-sh/ALGO.mjs transfer');
@@ -810,7 +810,9 @@ export function formatCurrency(amt, decimals = 6) {
     throw Error(`Expected decimals to be a nonnegative integer, but got ${decimals}.`);
   }
   // Use decimals+1 and then slice it off to truncate instead of round
-  const algosStr = algosdk.microalgosToAlgos(amt.toNumber()).toFixed(decimals + 1);
+  const algosStr = algosdk
+    .microalgosToAlgos(bigNumberify(amt).toNumber())
+    .toFixed(decimals + 1);
   // Have to roundtrip thru Number to drop trailing zeroes
   return Number(algosStr.slice(0, algosStr.length - 1)).toString();
 }

@@ -36,6 +36,7 @@ export const assert = (d, ai = null) => {
 };
 export const { isBigNumber } = BigNumber;
 export const bigNumberify = (x) => BigNumber.from(x);
+export const bigNumberToNumber = (x) => bigNumberify(x).toNumber();
 export const checkedBigNumberify = (at, m, x) => {
   const xb = bigNumberify(x);
   if (xb.gte(0) && xb.lte(m)) {
@@ -107,6 +108,15 @@ export function Array_set(arr, idx, elem) {
   return arrp;
 }
 export const Array_zip = (x, y) => x.map((e, i) => [e, y[i]]);
+export const mapRef = (m, f) => {
+  const v = m[f];
+  // console.log(`Reading map ${JSON.stringify(m)} field ${JSON.stringify(f)} => ${JSON.stringify(v)}`);
+  if (v === undefined) {
+    return ['None', null];
+  } else {
+    return ['Some', v];
+  }
+};
 // XXX this doesn't really belong here, but hard to relocate due to dep on bytesEq
 export const mkAddressEq = (T_Address) => (x, y) => bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
 export const parseFixedPoint = (x) => parseInt({ sign: x.sign, i: x.i.i }) / bigNumberify(x.i.scale).toNumber();

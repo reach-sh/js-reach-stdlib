@@ -64,6 +64,7 @@ export declare const debug: (msg: any) => void;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
+export declare const bigNumberToNumber: (x: any) => number;
 export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare function protect(ctc: AnyBackendTy, v: unknown, ai?: unknown): any;
 export declare const isHex: typeof ethers.ethers.utils.isHexString;
@@ -95,6 +96,7 @@ export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
 export declare const argsSplit: <T>(args: T[], cnt: number) => [T[], T[]];
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+export declare const mapRef: (m: any, f: any) => any;
 export declare const mkAddressEq: (T_Address: {
     canonicalize: (addr: any) => any;
 }) => (x: any, y: any) => boolean;

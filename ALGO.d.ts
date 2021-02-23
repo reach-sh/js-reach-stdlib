@@ -117,6 +117,7 @@ declare const getFaucet: () => Promise<{
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -146,6 +147,7 @@ declare const getFaucet: () => Promise<{
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
@@ -191,6 +193,7 @@ declare const getFaucet: () => Promise<{
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -220,6 +223,7 @@ declare const getFaucet: () => Promise<{
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
@@ -237,7 +241,7 @@ declare const getFaucet: () => Promise<{
     };
 }>) => void;
 export { getFaucet, setFaucet };
-export declare const transfer: (from: Account, to: Account, value: BigNumber) => Promise<TxnInfo>;
+export declare const transfer: (from: Account, to: Account, value: any) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
@@ -268,6 +272,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -297,6 +302,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
@@ -344,6 +350,7 @@ export declare const createAccount: () => Promise<{
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -373,6 +380,7 @@ export declare const createAccount: () => Promise<{
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
@@ -389,8 +397,8 @@ export declare const createAccount: () => Promise<{
         }) => number;
     };
 }>;
-export declare const fundFromFaucet: (account: Account, value: BigNumber) => Promise<void>;
-export declare const newTestAccount: (startingBalance: BigNumber) => Promise<{
+export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
+export declare const newTestAccount: (startingBalance: any) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -420,6 +428,7 @@ export declare const newTestAccount: (startingBalance: BigNumber) => Promise<{
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -449,6 +458,7 @@ export declare const newTestAccount: (startingBalance: BigNumber) => Promise<{
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;
@@ -486,7 +496,7 @@ export declare const minimumBalance: BigNumber;
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
  */
-export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare function formatCurrency(amt: any, decimals?: number): string;
 export declare function getDefaultAccount(): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated
@@ -526,6 +536,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
+        bigNumberToNumber: (x: any) => number;
         checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
         isHex: typeof ethers.ethers.utils.isHexString;
         hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -555,6 +566,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
         argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
         argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
         Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+        mapRef: (m: any, f: any) => any;
         mkAddressEq: (T_Address: {
             canonicalize: (addr: any) => any;
         }) => (x: any, y: any) => boolean;

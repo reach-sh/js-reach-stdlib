@@ -65,7 +65,7 @@ export const BT_Digest = {
   name: 'Digest',
   canonicalize: (val) => {
     if (typeof val !== 'string') {
-      throw Error(`${val} is not a valid digest`);
+      throw Error(`${JSON.stringify(val)} is not a valid digest`);
     }
     return val;
   },

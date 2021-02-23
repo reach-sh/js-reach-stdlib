@@ -34,13 +34,13 @@ const checkStateTransition = async (label, which, prevSt, nextSt) => {
  * @description performs a transfer; no block created
  */
 const transfer_ = (froma, toa, value, is_ctc) => {
-  if (is_ctc) {
+  const v = bigNumberify(value);
+  if (is_ctc)
     debug('transfer_: contract is paying out to someone');
-  }
-  stdlib.assert(stdlib.le(value, BALANCES[froma]));
-  debug(`transfer_ ${froma} -> ${toa} of ${value}`);
-  BALANCES[toa] = stdlib.add(BALANCES[toa], value);
-  BALANCES[froma] = stdlib.sub(BALANCES[froma], value);
+  stdlib.assert(stdlib.le(v, BALANCES[froma]));
+  debug(`transfer_ ${froma} -> ${toa} of ${v}`);
+  BALANCES[toa] = stdlib.add(BALANCES[toa], v);
+  BALANCES[froma] = stdlib.sub(BALANCES[froma], v);
 };
 const makeAccount = () => {
   const address = ethers.Wallet.createRandom().address;
@@ -320,6 +320,6 @@ export function formatCurrency(amt, decimals = 0) {
     throw Error(`Expected decimals to be a nonnegative integer, but got ${decimals}.`);
   }
   void(decimals); // There are no fractional quantities in FAKE
-  return amt.toString();
+  return bigNumberify(amt).toString();
 }
 export const setFaucet = false; // XXX

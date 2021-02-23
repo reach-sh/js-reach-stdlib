@@ -1,8 +1,8 @@
-import { loadStdlib } from './loader.mjs';
 import { createSecureServer } from 'http2';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import express from 'express';
+import { loadStdlib } from './loader.mjs';
 const withApiKey = () => {
   const key = process.env.REACH_RPC_KEY;
   if (!key) {
@@ -16,34 +16,47 @@ const withApiKey = () => {
     next() :
     res.status(403).json({});
 };
-export const serveRpc = async (backend) => {
+export const mkStdlibProxy = async (lib) => {
   const makeHandle = (container) => (val) => {
     const id = container.length;
     container[id] = val;
     return id;
   };
   const ACC = [];
-  const makeACC = makeHandle(ACC);
-  const CTC = [];
-  const makeCTC = makeHandle(CTC);
-  const real_stdlib = await loadStdlib();
-  const { debug } = real_stdlib;
-  // XXX bigNumberify in this object should be pushed into the standard library
+  const mkACC = makeHandle(ACC);
   const rpc_stdlib = {
-    ...real_stdlib,
-    'newTestAccount': (async (bal) => makeACC(await real_stdlib.newTestAccount(real_stdlib.bigNumberify(bal)))),
-    'balanceOf': (async (id) => await real_stdlib.balanceOf(ACC[id])),
-    'formatCurrency': (async (x, y) => await real_stdlib.formatCurrency(real_stdlib.bigNumberify(x), y)),
-    'bigNumbertoNumber': (async (x) => real_stdlib.bigNumberify(x).toNumber()),
+    ...lib,
+    newTestAccount: async (bal) => mkACC(await lib.newTestAccount(bal)),
+    getDefaultAccount: async () => mkACC(await lib.getDefaultAccount()),
+    newAccountFromSecret: async (s) => mkACC(await lib.newAccountFromSecret(s)),
+    newAccountFromMnemonic: async (s) => mkACC(await lib.newAccountFromMnemonic(s)),
+    createAccount: async () => mkACC(await lib.createAccount()),
+    fundFromFaucet: (id, bal) => lib.fundFromFaucet(ACC[id], bal),
+    connectAccount: async (id) => mkACC(await lib.connectAccount(ACC[id].networkAccount)),
+    balanceOf: async (id) => lib.balanceOf(ACC[id]),
+    transfer: async (from, to, bal) => lib.transfer(ACC[from], ACC[to], bal),
   };
+  return {
+    ACC,
+    mkACC,
+    makeHandle,
+    rpc_stdlib,
+  };
+};
+export const serveRpc = async (backend) => {
+  const real_stdlib = await loadStdlib();
+  const { ACC, makeHandle, rpc_stdlib } = await mkStdlibProxy(real_stdlib);
+  const CTC = [];
+  const mkCTC = makeHandle(CTC);
+  const { debug } = real_stdlib;
+  const app = express();
   const rpc_acc = {
-    'attach': (async (id, ...args) => makeCTC(await ACC[id].attach(backend, ...args))),
-    'deploy': (async (id) => makeCTC(await ACC[id].deploy(backend))),
+    attach: async (id, ...args) => mkCTC(await ACC[id].attach(backend, ...args)),
+    deploy: async (id) => mkCTC(await ACC[id].deploy(backend)),
   };
   const rpc_ctc = {
-    'getInfo': (async (id) => await CTC[id].getInfo()),
+    getInfo: async (id) => CTC[id].getInfo(),
   };
-  const app = express();
   const makeRPC = (olab, obj) => {
     const router = express.Router();
     for (const k in obj) {
@@ -104,13 +117,7 @@ export const serveRpc = async (backend) => {
     resolve(ans);
   };
   app.use(withApiKey());
-  // app.use((req, res, next) => {
-  //   debug(`LOG ${req.url}`);
-  //   next(); });
   app.use(express.json());
-  // app.use((req, res, next) => {
-  //   debug(`LOGb ${req.url} ${req.body}`);
-  //   next(); });
   app.use(`/stdlib`, makeRPC('stdlib', rpc_stdlib));
   app.use(`/acc`, makeRPC('acc', rpc_acc));
   app.use(`/ctc`, makeRPC('ctc', rpc_ctc));
@@ -119,6 +126,10 @@ export const serveRpc = async (backend) => {
   app.post(`/stop`, (_, res) => {
     res.json(true);
     process.exit(0);
+  });
+  app.post(`/health`, (req, res) => {
+    void(req);
+    res.json(true);
   });
   app.disable('X-Powered-By');
   const fetchOrFail = (envvar, desc) => {

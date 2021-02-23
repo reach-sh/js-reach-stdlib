@@ -130,15 +130,15 @@ export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
 };
 export declare const balanceOf: (acc: Account) => Promise<ethers.ethers.BigNumber>;
-export declare const fundFromFaucet: (toa: AccountTransferrable, value: BigNumber) => Promise<void>;
+export declare const fundFromFaucet: (toa: AccountTransferrable, value: any) => Promise<void>;
 /**
  * @description performs a transfer & creates a transfer block
  */
-export declare const transfer: (from: AccountTransferrable, to: AccountTransferrable, value: BigNumber) => Promise<void>;
+export declare const transfer: (from: AccountTransferrable, to: AccountTransferrable, value: any) => Promise<void>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
-export declare const newTestAccount: (startingBalance: BigNumber) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
+export declare const newTestAccount: (startingBalance: any) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
 export declare const createAccount: () => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
@@ -167,6 +167,6 @@ export declare const minimumBalance: BigNumber;
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100')); // => '100'
  */
-export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare function formatCurrency(amt: any, decimals?: number): string;
 export declare const setFaucet = false;
 //# sourceMappingURL=FAKE.d.ts.map

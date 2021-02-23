@@ -154,7 +154,7 @@ export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
 export { setProvider };
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
 /** @description Arg order follows "src before dst" convention */
-export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: BigNumber) => Promise<any>;
+export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: any) => Promise<any>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromSecret: (secret: string) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
@@ -189,8 +189,8 @@ export declare const createAccount: () => Promise<IAccount<NetworkAccount, Backe
     unmunge: (nv: any) => import("./CBR").CBR_Val;
     paramType: string;
 }>, ContractInfo>>;
-export declare const fundFromFaucet: (account: AccountTransferable, value: BigNumber) => Promise<void>;
-export declare const newTestAccount: (startingBalance: BigNumber) => Promise<Account>;
+export declare const fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
+export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
@@ -216,5 +216,5 @@ export declare const minimumBalance: BigNumber;
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100000000000000000000')); // => '100'
  */
-export declare function formatCurrency(amt: BigNumber, decimals?: number): string;
+export declare function formatCurrency(amt: any, decimals?: number): string;
 //# sourceMappingURL=ETH.d.ts.map

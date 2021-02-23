@@ -8,7 +8,7 @@ import url from 'url';
 import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, eq, ge, getDEBUG, isBigNumber, lt, makeRandom, argsSplit } from './shared.mjs';
+import { add, assert, bigNumberify, debug, eq, ge, getDEBUG, lt, makeRandom, argsSplit } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
@@ -150,14 +150,14 @@ const [getProvider, setProvider] = replaceableThunk(async () => {
     provider.pollingInterval = 500; // ms
     return provider;
   } else if (networkDesc.type == 'embedded-ganache') {
-    const { default: ganache } = await import('ganache-core');
-    if (!ganache) {
-      throw Error(`Sorry, optional dependency ganache cannot be found.`);
-    }
-    const default_balance_ether = 999999999;
-    const ganachep = ganache.provider({ default_balance_ether });
+    throw Error(`Sorry, optional dependency ganache cannot be found.`);
+    // XXX delete the embedded-ganache network type?
+    // Nobody uses it and it seems to only cause issues.
+    // const { default: ganache } = await import('ganache-core');
+    // const default_balance_ether = 999999999;
+    // const ganachep = ganache.provider({ default_balance_ether });
     // @ts-ignore
-    return new ethers.providers.Web3Provider(ganachep);
+    // return new ethers.providers.Web3Provider(ganachep);
   } else if (networkDesc.type == 'window') {
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -257,11 +257,9 @@ export const balanceOf = async (acc) => {
 };
 /** @description Arg order follows "src before dst" convention */
 export const transfer = async (from, to, value) => {
-  if (!isBigNumber(value))
-    throw Error(`Expected a BigNumber: ${value}`);
   const sender = from.networkAccount;
   const receiver = getAddr(to);
-  const txn = { to: receiver, value };
+  const txn = { to: receiver, value: bigNumberify(value) };
   if (!sender || !sender.sendTransaction)
     throw Error(`Expected from.networkAccount.sendTransaction: ${from}`);
   debug(`sender.sendTransaction(${JSON.stringify(txn)})`);
@@ -481,6 +479,7 @@ export const connectAccount = async (networkAccount) => {
       if (tys.length !== args.length) {
         throw Error(`tys.length (${tys.length}) !== args.length (${args.length})`);
       }
+      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND --- ARGS ${JSON.stringify(args)}`);
       const munged = args.map((m, i) => tys[i].munge(tys[i].canonicalize(m)));
       const [munged_svs, munged_msg] = argsSplit(munged, evt_cnt);
       debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- START --- ${JSON.stringify(munged)}`);
@@ -492,9 +491,11 @@ export const connectAccount = async (networkAccount) => {
         debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY`);
         try {
           const arg = [munged_svs, munged_msg];
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND ARG --- ${JSON.stringify(arg)}`);
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND ARG --- ${JSON.stringify(arg)} --- ${JSON.stringify(value)}`);
           const r_fn = await callC(funcName, arg, value);
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- POST CALL`);
           r_maybe = await r_fn.wait();
+          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- POST WAIT`);
           assert(r_maybe !== null);
           const ok_r = await fetchAndRejectInvalidReceiptFor(r_maybe.transactionHash);
           debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- OKAY`);
@@ -508,7 +509,7 @@ export const connectAccount = async (networkAccount) => {
           if (!soloSend) {
             debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SKIPPING (${e})`);
           } else {
-            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR (${e})`);
+            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR: ${e.stack}`);
             // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
             await Timeout.set(1);
             const current_block = await getNetworkTimeNumber();
@@ -881,7 +882,8 @@ export function formatCurrency(amt, decimals = 18) {
   // Truncate
   decimals = Math.min(decimals, 18);
   const decimalsToForget = 18 - decimals;
-  const divAmt = amt.div(bigNumberify(10).pow(decimalsToForget));
+  const divAmt = bigNumberify(amt)
+    .div(bigNumberify(10).pow(decimalsToForget));
   const amtStr = ethers.utils.formatUnits(divAmt, decimals);
   // If the str ends with .0, chop it off
   if (amtStr.slice(amtStr.length - 2) == '.0') {

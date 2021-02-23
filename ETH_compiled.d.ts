@@ -64,6 +64,7 @@ export declare const stdlib: {
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
     bigNumberify: (x: any) => ethers.ethers.BigNumber;
+    bigNumberToNumber: (x: any) => number;
     checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
     isHex: typeof ethers.ethers.utils.isHexString;
     hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -93,6 +94,7 @@ export declare const stdlib: {
     argsSlice: <T_5>(args: T_5[], cnt: number) => T_5[];
     argsSplit: <T_6>(args: T_6[], cnt: number) => [T_6[], T_6[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+    mapRef: (m: any, f: any) => any;
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;

@@ -245,6 +245,7 @@ export declare const stdlib: {
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof import("ethers").BigNumber.isBigNumber;
     bigNumberify: (x: any) => import("ethers").BigNumber;
+    bigNumberToNumber: (x: any) => number;
     checkedBigNumberify: (at: string, m: import("ethers").BigNumber, x: any) => import("ethers").BigNumber;
     isHex: typeof import("@ethersproject/bytes").isHexString;
     hexToString: typeof import("@ethersproject/strings").toUtf8String;
@@ -274,6 +275,7 @@ export declare const stdlib: {
     argsSlice: <T_5>(args: T_5[], cnt: number) => T_5[];
     argsSplit: <T_6>(args: T_6[], cnt: number) => [T_6[], T_6[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+    mapRef: (m: any, f: any) => any;
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;
