@@ -14,6 +14,7 @@ import { debug, getDEBUG, isBigNumber, bigNumberify, bigNumberToNumber, argsSlic
 import waitPort from 'wait-port';
 import { replaceableThunk } from './shared_impl.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
+import { process, window } from './shim.mjs';
 export * from './shared.mjs';
 // ctc[ALGO] = {
 //   address: string
@@ -44,6 +45,10 @@ const setBrowser = (b) => {
   setBrowserRaw(b);
 };
 export { setBrowser };
+// Yes, this is dumb. TODO something better
+if (process.env.REACH_CONNECTOR_MODE == 'ETH-test-browser') {
+  setBrowser(true);
+}
 const rawDefaultToken = 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
 const rawDefaultItoken = 'reach-devnet';
 async function wait1port(theServer, thePort) {
@@ -819,7 +824,21 @@ export function formatCurrency(amt, decimals = 6) {
 // XXX The getDefaultAccount pattern doesn't really work w/ AlgoSigner
 // AlgoSigner does not expose a "currently-selected account"
 export async function getDefaultAccount() {
-  throw Error(`Please use newAccountFromAlgoSigner instead`);
+  if (!window.prompt) {
+    throw Error(`Cannot prompt the user for default account with window.prompt`);
+  }
+  const mnemonic = window.prompt(`Please paste the mnemonic for your account, or cancel to generate a new one`);
+  if (mnemonic) {
+    debug(`Creating account from user-provided mnemonic`);
+    return await newAccountFromMnemonic(mnemonic);
+  } else {
+    debug(`No mnemonic provided. Randomly generating a new account secret instead.`);
+    return await createAccount();
+    // throw Error(`User declined to provide a mnemonic`);
+    // XXX: figure out how to let the user pick which wallet they want to use.
+    // AlgoSigner, My Algo Wallet, etc.
+    // throw Error(`Please use newAccountFromAlgoSigner instead`);
+  }
 }
 /**
  * @param mnemonic 25 words, space-separated
