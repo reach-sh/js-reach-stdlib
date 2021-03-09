@@ -45,6 +45,19 @@ const setBrowser = (b) => {
   setBrowserRaw(b);
 };
 export { setBrowser };
+const [getSignStrategy, setSignStrategy] = replaceableThunk(() => 'mnemonic');
+export { getSignStrategy, setSignStrategy };
+const [getAlgoSigner, setAlgoSigner] = replaceableThunk(async () => {
+  if (window.AlgoSigner) {
+    const AlgoSigner = window.AlgoSigner;
+    await AlgoSigner.connect();
+    return AlgoSigner;
+  } else {
+    // TODO: wait for a few seconds and try again before giving up
+    throw Error(`Can't find AlgoSigner. Please refresh the page and try again.`);
+  }
+});
+export { setAlgoSigner };
 // Yes, this is dumb. TODO something better
 if (process.env.REACH_CONNECTOR_MODE == 'ETH-test-browser') {
   setBrowser(true);
@@ -290,7 +303,18 @@ async function compileFor(bin, ApplicationID) {
   const algob = bin._Connectors.ALGO;
   const { appApproval, appClear, ctc, steps, stepargs } = algob;
   const subst_appid = (x) => replaceUint8Array('ApplicationID', T_UInt.toNet(bigNumberify(ApplicationID)), x);
+  const checkLen = (label, actual, expected) => {
+    if (actual > expected) {
+      throw Error(`This Reach application is not supported by Algorand: ${label} length is ${actual}, but should be less than ${expected}.`);
+    }
+  };
+  // Get these from stdlib
+  const LogicSigMaxSize = 1000;
+  // const MaxAppArgs = 16;
+  const MaxAppTotalArgLen = 2048;
+  const MaxAppProgramLen = 1024;
   const ctc_bin = await compileTEAL('ctc_subst', subst_appid(ctc));
+  checkLen(`Escrow Contract`, ctc_bin.result.length, LogicSigMaxSize);
   const subst_ctc = (x) => replaceAddr('ContractAddr', ctc_bin.hash, x);
   let appApproval_subst = appApproval;
   const stepCode_bin = await Promise.all(steps.map(async (mc, mi) => {
@@ -300,18 +324,17 @@ async function compileFor(bin, ApplicationID) {
     const mN = `m${mi}`;
     const mc_subst = subst_ctc(subst_appid(mc));
     const cr = await compileTEAL(mN, mc_subst);
-    const plen = cr.result.length;
-    const alen = stepargs[mi];
-    const tlen = plen + alen;
-    if (tlen > 1000) {
-      throw Error(`This Reach application is not supported by Algorand (program(${plen}) + args(${alen}) = total(${tlen}) > 1000)`);
-    }
+    checkLen(`${mN} Contract`, cr.result.length, LogicSigMaxSize);
+    // XXX check arg count
+    checkLen(`${mN} Contract Arguments`, stepargs[mi], MaxAppTotalArgLen);
     appApproval_subst =
       replaceAddr(mN, cr.hash, appApproval_subst);
     return cr;
   }));
   const appApproval_bin = await compileTEAL('appApproval_subst', appApproval_subst);
+  checkLen(`Approval Contract`, appApproval_bin.result.length, MaxAppProgramLen);
   const appClear_bin = await compileTEAL('appClear', appClear);
+  checkLen(`Clear Contract`, appClear_bin.result.length, MaxAppProgramLen);
   return {
     appApproval: appApproval_bin,
     appClear: appClear_bin,
@@ -514,7 +537,8 @@ export const connectAccount = async (networkAccount) => {
       while (true) {
         const params = await getTxnParams();
         if (timeout_delay) {
-          const tdn = timeout_delay.toNumber();
+          // This 1000 is MaxTxnLife --- https://github.com/algorand/go-algorand/blob/master/config/consensus.go#L560
+          const tdn = Math.min(1000, timeout_delay.toNumber());
           params.lastRound = lastRound + tdn;
           if (params.firstRound > params.lastRound) {
             debug(`${dhead} --- FAIL/TIMEOUT`);
@@ -541,14 +565,14 @@ export const connectAccount = async (networkAccount) => {
         });
         const ui8h = (x) => Buffer.from(x).toString('hex');
         debug(`${dhead} --- PREPARE: ${JSON.stringify(safe_args.map(ui8h))}`);
-        const handler_with_args = algosdk.makeLogicSig(handler.result, safe_args);
-        debug(`${dhead} --- PREPARED`); // XXX display handler_with_args usefully, like with base64ify toBytes
+        const handler_sig = algosdk.makeLogicSig(handler.result, []);
+        debug(`${dhead} --- PREPARED`);
         const whichAppl = isHalt ?
           // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
           algosdk.makeApplicationDeleteTxn :
           algosdk.makeApplicationNoOpTxn;
         // XXX if it is a halt, generate closeremaindertos for all the handlers and the contract account
-        const txnAppl = whichAppl(thisAcc.addr, params, ApplicationID);
+        const txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args);
         const txnFromHandler = algosdk.makePaymentTxnWithSuggestedParams(handler.hash, thisAcc.addr, 0, undefined, ui8z, params);
         debug(`${dhead} --- txnFromHandler = ${JSON.stringify(txnFromHandler)}`);
         const txnToHandler = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, handler.hash, txnFromHandler.fee, undefined, ui8z, params);
@@ -573,7 +597,7 @@ export const connectAccount = async (networkAccount) => {
         };
         const sign_me = async (x) => await signTxn(thisAcc, x);
         const txnAppl_s = await sign_me(txnAppl);
-        const txnFromHandler_s = signLSTO(txnFromHandler, handler_with_args);
+        const txnFromHandler_s = signLSTO(txnFromHandler, handler_sig);
         // debug(`txnFromHandler_s: ${base64ify(txnFromHandler_s)}`);
         const txnToHandler_s = await sign_me(txnToHandler);
         const txnToContract_s = await sign_me(txnToContract);
@@ -620,7 +644,7 @@ export const connectAccount = async (networkAccount) => {
         if (timeoutRound && timeoutRound < currentRound) {
           return { didTimeout: true };
         }
-        let query = indexer.searchForTransactions()
+        let hquery = indexer.searchForTransactions()
           .address(handler.hash)
           .addressRole('sender')
           // Look at the next one after the last message
@@ -628,39 +652,52 @@ export const connectAccount = async (networkAccount) => {
           // message
           .minRound(lastRound + 1);
         if (timeoutRound) {
-          query = query.maxRound(timeoutRound);
+          hquery = hquery.maxRound(timeoutRound);
         }
-        const txn = await doQuery(dhead, query);
-        if (!txn) {
+        const htxn = await doQuery(dhead, hquery);
+        if (!htxn) {
           // XXX perhaps wait until a new round has happened using wait
           await Timeout.set(2000);
           continue;
         }
-        const ctc_args = txn.signature.logicsig.args;
+        debug(`${dhead} --- htxn = ${JSON.stringify(htxn)}`);
+        const theRound = htxn['confirmed-round'];
+        let query = indexer.searchForTransactions()
+          .applicationID(ApplicationID)
+          .txType('appl')
+          .round(theRound);
+        const txn = await doQuery(dhead, query);
+        if (!txn) {
+          // XXX This is probably really bad
+          continue;
+        }
+        debug(`${dhead} --- txn = ${JSON.stringify(txn)}`);
+        const ctc_args = txn['application-transaction']['application-args'];
         debug(`${dhead} --- ctc_args = ${JSON.stringify(ctc_args)}`);
         const args = argsSlice(ctc_args, evt_cnt);
         debug(`${dhead} --- args = ${JSON.stringify(args)}`);
         /** @description base64->hex->arrayify */
         const reNetify = (x) => {
           const s = Buffer.from(x, 'base64').toString('hex');
-          // debug(`${dhead} --- deNetify ${s}`);
+          debug(`${dhead} --- reNetify(${x}) = ${s}`);
           return ethers.utils.arrayify('0x' + s);
         };
+        debug(`${dhead} --- tys = ${JSON.stringify(tys)}`);
         const args_un = args.map((x, i) => tys[i].fromNet(reNetify(x)));
         debug(`${dhead} --- args_un = ${JSON.stringify(args_un)}`);
         const totalFromFee = T_UInt.fromNet(reNetify(ctc_args[3]));
         debug(`${dhead} --- totalFromFee = ${JSON.stringify(totalFromFee)}`);
-        const fromAddr = txn['payment-transaction'].receiver;
+        const fromAddr = htxn['payment-transaction'].receiver;
         const from = T_Address.canonicalize({ addr: fromAddr });
         debug(`${dhead} --- from = ${JSON.stringify(from)} = ${fromAddr}`);
         const oldLastRound = lastRound;
-        lastRound = txn['confirmed-round'];
+        lastRound = theRound;
         debug(`${dhead} --- updating round from ${oldLastRound} to ${lastRound}`);
         // XXX ideally we'd get the whole transaction group before and not need to do this.
         const ptxn = await doQuery(dhead, indexer.searchForTransactions()
           .address(bin_comp.ctc.hash)
           .addressRole('receiver')
-          .round(lastRound));
+          .round(theRound));
         const value = bigNumberify(ptxn['payment-transaction'].amount)
           .sub(totalFromFee);
         debug(`${dhead} --- value = ${JSON.stringify(value)}`);
@@ -827,17 +864,28 @@ export async function getDefaultAccount() {
   if (!window.prompt) {
     throw Error(`Cannot prompt the user for default account with window.prompt`);
   }
-  const mnemonic = window.prompt(`Please paste the mnemonic for your account, or cancel to generate a new one`);
-  if (mnemonic) {
-    debug(`Creating account from user-provided mnemonic`);
-    return await newAccountFromMnemonic(mnemonic);
+  const signStrategy = getSignStrategy();
+  if (signStrategy === 'mnemonic') {
+    const mnemonic = window.prompt(`Please paste the mnemonic for your account, or cancel to generate a new one`);
+    if (mnemonic) {
+      debug(`Creating account from user-provided mnemonic`);
+      return await newAccountFromMnemonic(mnemonic);
+    } else {
+      debug(`No mnemonic provided. Randomly generating a new account secret instead.`);
+      return await createAccount();
+    }
+  } else if (signStrategy === 'AlgoSigner') {
+    const ledger = 'Reach Devnet'; // XXX decide how to support other ledgers
+    const AlgoSigner = await getAlgoSigner();
+    const addr = window.prompt(`Please paste your account's address. (This account must be listed in AlgoSigner.)`);
+    if (!addr) {
+      throw Error(`No address provided`);
+    }
+    return await newAccountFromAlgoSigner(addr, AlgoSigner, ledger);
+  } else if (signStrategy === 'MyAlgo') {
+    throw Error(`MyAlgo wallet support is not yet implemented`);
   } else {
-    debug(`No mnemonic provided. Randomly generating a new account secret instead.`);
-    return await createAccount();
-    // throw Error(`User declined to provide a mnemonic`);
-    // XXX: figure out how to let the user pick which wallet they want to use.
-    // AlgoSigner, My Algo Wallet, etc.
-    // throw Error(`Please use newAccountFromAlgoSigner instead`);
+    throw Error(`signStrategy '${signStrategy}' not recognized. Valid options are 'mnemonic', 'AlgoSigner', and 'MyAlgo'.`);
   }
 }
 /**

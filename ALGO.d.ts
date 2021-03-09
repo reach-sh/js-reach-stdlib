@@ -73,6 +73,11 @@ declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
 declare const setBrowser: (b: boolean) => void;
 export { setBrowser };
+declare type SignStrategy = 'mnemonic' | 'AlgoSigner' | 'MyAlgo';
+declare const getSignStrategy: () => SignStrategy, setSignStrategy: (val: SignStrategy) => void;
+export { getSignStrategy, setSignStrategy };
+declare const setAlgoSigner: (val: Promise<AlgoSigner>) => void;
+export { setAlgoSigner };
 declare type TXN = any;
 export declare const addressEq: (x: any, y: any) => boolean, digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {

@@ -21,6 +21,7 @@ declare type Stdout = {
 declare const processShim: Process;
 declare type Window = {
     ethereum?: ethers.providers.ExternalProvider;
+    AlgoSigner?: any;
     prompt?: (s: string) => string | null;
 };
 declare const windowShim: Window;
