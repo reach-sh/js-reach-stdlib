@@ -58,8 +58,10 @@ const [getAlgoSigner, setAlgoSigner] = replaceableThunk(async () => {
   }
 });
 export { setAlgoSigner };
-// Yes, this is dumb. TODO something better
-if (process.env.REACH_CONNECTOR_MODE == 'ETH-test-browser') {
+if (process.env.REACH_CONNECTOR_MODE == 'ALGO-browser'
+  // Yes, this is dumb. TODO something better
+  ||
+  process.env.REACH_CONNECTOR_MODE === 'ETH-browser') {
   setBrowser(true);
 }
 const rawDefaultToken = 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';

@@ -4,10 +4,11 @@ import { process } from './shim.mjs';
 const knownConnectorModes = [
   'ETH-test-dockerized-geth',
   'ETH-test-embedded-ganache',
-  'ETH-test-browser-window',
   'ETH-live',
+  'ETH-browser',
   'FAKE-test-embedded-mock',
   'ALGO-test-dockerized-algod',
+  'ALGO-browser',
 ];
 
 function isKnownConnector(s) {

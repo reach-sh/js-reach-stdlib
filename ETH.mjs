@@ -26,7 +26,7 @@ void(isSome);
 const connectorMode = getConnectorMode();
 // Certain functions either behave differently,
 // or are only available on an "isolated" network.
-// Note: ETH-test-browser-window is NOT considered isolated.
+// Note: ETH-browser is NOT considered isolated.
 const isIsolatedNetwork = connectorMode.startsWith('ETH-test-dockerized') ||
   connectorMode.startsWith('ETH-test-embedded');
 const networkDesc = connectorMode == 'ETH-test-embedded-ganache' ? {
@@ -36,7 +36,7 @@ const networkDesc = connectorMode == 'ETH-test-embedded-ganache' ? {
   type: 'uri',
   uri: process.env.ETH_NODE_URI || 'http://localhost:8545',
   network: process.env.ETH_NODE_NETWORK || 'unspecified',
-} : connectorMode == 'ETH-test-browser-window' ? {
+} : connectorMode == 'ETH-browser' ? {
   type: 'window',
 } : {
   type: 'skip',
@@ -480,9 +480,12 @@ export const connectAccount = async (networkAccount) => {
         throw Error(`tys.length (${tys.length}) !== args.length (${args.length})`);
       }
       debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND --- ARGS ${JSON.stringify(args)}`);
-      const munged = args.map((m, i) => tys[i].munge(tys[i].canonicalize(m)));
-      const [munged_svs, munged_msg] = argsSplit(munged, evt_cnt);
-      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- START --- ${JSON.stringify(munged)}`);
+      const [args_svs, args_msg] = argsSplit(args, evt_cnt);
+      const [tys_svs, tys_msg] = argsSplit(tys, evt_cnt);
+      // @ts-ignore XXX
+      const arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
+      const arg = arg_ty.munge([args_svs, args_msg]);
+      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- START --- ${JSON.stringify(arg)}`);
       const lastBlock = await getLastBlock();
       let block_send_attempt = lastBlock;
       let block_repeat_count = 0;
@@ -490,7 +493,6 @@ export const connectAccount = async (networkAccount) => {
         let r_maybe = null;
         debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY`);
         try {
-          const arg = [munged_svs, munged_msg];
           debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND ARG --- ${JSON.stringify(arg)} --- ${JSON.stringify(value)}`);
           const r_fn = await callC(funcName, arg, value);
           debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- POST CALL`);
@@ -527,7 +529,7 @@ export const connectAccount = async (networkAccount) => {
                 console.log(error);
               }
               console.log(`args:`);
-              console.log(munged);
+              console.log(arg);
               throw Error(`${shad}: ${label} send ${funcName} ${timeout_delay} --- REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
             }
             debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY FAIL --- ${lastBlock} ${current_block} ${block_repeat_count} ${block_send_attempt}`);
@@ -593,12 +595,9 @@ export const connectAccount = async (networkAccount) => {
           updateLast(ok_r);
           const ok_ed = await getEventData(ok_evt, ok_e);
           debug(`${shad}: ${label} recv ${ok_evt} --- DATA -- ${JSON.stringify(ok_ed)}`);
-          const ok_vals = ok_ed[0][1] || [];
+          const ok_vals = ok_ed[0][1];
           debug(`${shad}: ${label} recv ${ok_evt} --- MSG -- ${JSON.stringify(ok_vals)}`);
-          if (ok_vals.length !== out_tys.length) {
-            throw Error(`Expected ${out_tys.length} values from event data, but got ${ok_vals.length}.`);
-          }
-          const data = ok_vals.map((v, i) => out_tys[i].unmunge(v));
+          const data = T_Tuple(out_tys).unmunge(ok_vals);
           debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY --- ${JSON.stringify(ok_vals)}`);
           return {
             didTimeout: false,

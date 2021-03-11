@@ -6,7 +6,7 @@ const processShim = (() => {
     return {
       env: {
         // XXX: figure out how to handle this stuff better
-        REACH_CONNECTOR_MODE: 'ETH-test-browser',
+        REACH_CONNECTOR_MODE: 'ETH-browser',
       },
       stdout: {
         write: () => {},

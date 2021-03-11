@@ -2,23 +2,45 @@ import * as stdlib_ETH from './ETH.mjs';
 import * as stdlib_ALGO from './ALGO.mjs';
 import * as stdlib_FAKE from './FAKE.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
+import { process } from './shim.mjs';
 export { getConnectorMode, getConnector };
 // XXX make an interface for Stdlib, return Promise<Stdlib>
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
-export async function loadStdlib(connectorMode) {
-  connectorMode = connectorMode ?
-    canonicalizeConnectorMode(connectorMode) :
-    getConnectorMode();
+export async function loadStdlib(connectorModeOrEnv) {
+  if (!connectorModeOrEnv) {
+    // @ts-ignore // XXX why doesn't TS understand that Env satisfies {[key: string}: string} ?
+    return await loadStdlib(process.env);
+  }
+  let connectorModeStr;
+  if (typeof connectorModeOrEnv === 'string') {
+    connectorModeStr = connectorModeOrEnv;
+  } else if (connectorModeOrEnv['REACH_CONNECTOR_MODE']) {
+    connectorModeStr = connectorModeOrEnv['REACH_CONNECTOR_MODE'];
+  } else if (connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE']) {
+    connectorModeStr = connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE'];
+  } else {
+    throw Error(`Argument to loadStdlib is missing a connector mode: ${loadStdlib}`);
+  }
+  const connectorMode = canonicalizeConnectorMode(connectorModeStr);
   const connector = getConnector(connectorMode);
+  let stdlib;
   switch (connector) {
     case 'ETH':
-      return stdlib_ETH;
+      stdlib = stdlib_ETH;
+      break;
     case 'ALGO':
-      return stdlib_ALGO;
+      stdlib = stdlib_ALGO;
+      break;
     case 'FAKE':
-      return stdlib_FAKE;
+      stdlib = stdlib_FAKE;
+      break;
     default:
       throw Error(`impossible: unknown connector ${connector}`);
   }
+  if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
+    let debug = (connectorModeOrEnv['REACH_DEBUG'] || connectorModeOrEnv['REACT_APP_REACH_DEBUG']) ? true : false;
+    stdlib.setDEBUG(debug);
+  }
+  return stdlib;
 }

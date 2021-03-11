@@ -1,5 +1,5 @@
 export declare type Connector = 'ETH' | 'ALGO' | 'FAKE';
-export declare type ConnectorMode = 'ETH-test-dockerized-geth' | 'ETH-test-embedded-ganache' | 'ETH-test-browser-window' | 'ETH-live' | 'FAKE-test-embedded-mock' | 'ALGO-test-dockerized-algod';
+export declare type ConnectorMode = 'ETH-test-dockerized-geth' | 'ETH-test-embedded-ganache' | 'ETH-live' | 'ETH-browser' | 'FAKE-test-embedded-mock' | 'ALGO-test-dockerized-algod' | 'ALGO-browser';
 export declare function canonicalizeConnectorMode(connectorMode: string): ConnectorMode;
 export declare function getConnectorMode(): ConnectorMode;
 export declare function getConnector(connectorMode?: string): Connector;

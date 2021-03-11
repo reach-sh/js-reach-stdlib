@@ -106,10 +106,18 @@ const T_Array = (ctc, size) => ({
   ...CBR.BT_Array(ctc, size),
   defaultValue: Array(size).fill(ctc.defaultValue),
   munge: (bv) => {
-    return bv.map((arg) => ctc.munge(arg));
+    if (size == 0) {
+      return false;
+    } else {
+      return bv.map((arg) => ctc.munge(arg));
+    }
   },
   unmunge: (nv) => {
-    return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
+    if (size == 0) {
+      return [];
+    } else {
+      return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
+    }
   },
   paramType: `${ctc.paramType}[${size}]`,
 });
@@ -121,10 +129,14 @@ const T_Tuple = (ctcs) => ({
   ...CBR.BT_Tuple(ctcs),
   defaultValue: ctcs.map(ctc => ctc.defaultValue),
   munge: (bv) => {
-    return bv.map((arg, i) => ctcs[i].munge(arg));
+    if (ctcs.length == 0) {
+      return false;
+    } else {
+      return bv.map((arg, i) => ctcs[i].munge(arg));
+    }
   },
   unmunge: (args) => {
-    return V_Tuple(ctcs)(args.map((arg, i) => ctcs[i].unmunge(arg)));
+    return V_Tuple(ctcs)(ctcs.map((ctc, i) => ctc.unmunge(args[i])));
   },
   paramType: `tuple(${ctcs.map((ctc) => ctc.paramType).join(',')})`,
 });
@@ -142,10 +154,16 @@ const T_Object = (co) => ({
   })(),
   munge: (bv) => {
     const obj = {};
+    let none = true;
     for (const prop in co) {
+      none = false;
       obj[prop] = co[prop].munge(bv[prop]);
     }
-    return obj;
+    if (none) {
+      return false;
+    } else {
+      return obj;
+    }
   },
   unmunge: (bv) => {
     const obj = {};
