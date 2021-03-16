@@ -735,7 +735,8 @@ export const verifyContract = async (ctcInfo, backend) => {
   const { chainId } = await provider.getNetwork();
   // TODO: allow user to specify lenient verification? (for chains we don't know about)
   const lenient = [
-    152709604825713,
+    152709604825713, // https://kovan2.arbitrum.io/rpc
+    // XXX ^ this will probably change over time
   ].includes(chainId);
   if (lenient) {
     debug(`verifyContract: using lenient contract verification for chainId=${chainId}`);

@@ -158,37 +158,9 @@ export declare const transfer: (from: AccountTransferable, to: AccountTransferab
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromSecret: (secret: string) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
-export declare const getDefaultAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, {
-    name: string;
-    defaultValue: import("./CBR").CBR_Val;
-    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
-    munge: (bv: import("./CBR").CBR_Val) => any;
-    unmunge: (nv: any) => import("./CBR").CBR_Val;
-    paramType: string;
-}>, ContractInfo>>;
-export declare const getFaucet: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, {
-    name: string;
-    defaultValue: import("./CBR").CBR_Val;
-    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
-    munge: (bv: import("./CBR").CBR_Val) => any;
-    unmunge: (nv: any) => import("./CBR").CBR_Val;
-    paramType: string;
-}>, ContractInfo>>, setFaucet: (val: Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, {
-    name: string;
-    defaultValue: import("./CBR").CBR_Val;
-    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
-    munge: (bv: import("./CBR").CBR_Val) => any;
-    unmunge: (nv: any) => import("./CBR").CBR_Val;
-    paramType: string;
-}>, ContractInfo>>) => void;
-export declare const createAccount: () => Promise<IAccount<NetworkAccount, Backend, IContract<ContractInfo, string, string, {
-    name: string;
-    defaultValue: import("./CBR").CBR_Val;
-    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
-    munge: (bv: import("./CBR").CBR_Val) => any;
-    unmunge: (nv: any) => import("./CBR").CBR_Val;
-    paramType: string;
-}>, ContractInfo>>;
+export declare const getDefaultAccount: () => Promise<Account>;
+export declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
+export declare const createAccount: () => Promise<Account>;
 export declare const fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
 export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;

@@ -242,6 +242,7 @@ export const connectAccount = async (networkAccount) => {
     return attach(bin, {
       ...contract,
       creation_block: this_block,
+      // events: {},
     });
   };
   return { deploy, attach, networkAccount, stdlib: compiledStdlib };

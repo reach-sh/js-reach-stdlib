@@ -138,8 +138,8 @@ export declare const transfer: (from: AccountTransferrable, to: AccountTransferr
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
-export declare const newTestAccount: (startingBalance: any) => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
-export declare const createAccount: () => Promise<stdlib.IAccount<NetworkAccount, null, stdlib.IContract<ContractInfo, string, string, any>, ContractInfo>>;
+export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
+export declare const createAccount: () => Promise<Account>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;
