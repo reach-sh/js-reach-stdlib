@@ -106,6 +106,25 @@ export const T_Tuple = (cos) => ({
     return chunks;
   },
 });
+export const T_Struct = (cos) => ({
+  ...CBR.BT_Struct(cos),
+  netSize: (cos.reduce((acc, co) => acc + co[1].netSize, 0)),
+  toNet: (bv) => {
+    const val = cos.map(([k, co]) => co.toNet(bv[k]));
+    return ethers.utils.concat(val);
+  },
+  // TODO: share more code w/ T_Array.fromNet
+  fromNet: (nv) => {
+    const obj = {};
+    let rest = nv;
+    for (const i in cos) {
+      const [k, co] = cos[i];
+      obj[k] = co.fromNet(rest.slice(0, co.netSize));
+      rest = rest.slice(co.netSize);
+    }
+    return obj;
+  },
+});
 export const T_Object = (coMap) => {
   const cos = Object.values(coMap);
   const netSize = cos.reduce((acc, co) => acc + co.netSize, 0);
@@ -174,6 +193,7 @@ export const typeDefs = {
   T_Data,
   T_Array,
   T_Tuple,
+  T_Struct,
 };
 export const stdlib = {
   ...shared,

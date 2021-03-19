@@ -22,6 +22,7 @@ export declare type IRecvNoTimeout<RawAddress> = {
     value: BigNumber;
     from: RawAddress;
     time: BigNumber;
+    getOutput: (o_lab: string, o_ctc: any) => Promise<any>;
 };
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
@@ -29,7 +30,7 @@ export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
 export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     creationTime: () => Promise<BigNumber>;
-    sendrecv: (label: string, funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => ISimRes<Digest, RawAddress>) => Promise<IRecv<RawAddress>>;
+    sendrecv: (label: string, funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, RawAddress>>) => Promise<IRecv<RawAddress>>;
     recv: (label: string, okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, waitIfNotPresent: boolean, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
@@ -41,6 +42,7 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = 
     deploy: (bin: Backend) => Contract;
     attach: (bin: Backend, ctc: ContractInfo | Promise<ContractInfo>) => Contract;
     stdlib: Object;
+    getAddress: () => string;
 };
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any> | {
     networkAccount: NetworkAccount;

@@ -1,6 +1,6 @@
 import * as shared from './shared';
 import ethers from 'ethers';
-import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Val } from './CBR';
+import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Struct, CBR_Val } from './CBR';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
@@ -21,6 +21,7 @@ export declare const T_Digest: ALGO_Ty<CBR_Digest>;
 export declare const T_Address: ALGO_Ty<CBR_Address>;
 export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
 export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
+export declare const T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 export declare const T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<CBR_Object>;
@@ -43,6 +44,7 @@ export declare const typeDefs: {
     }) => ALGO_Ty<CBR_Data>;
     T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
+    T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 };
 export declare const stdlib: {
     addressEq: (x: any, y: any) => boolean;
@@ -62,6 +64,7 @@ export declare const stdlib: {
     }) => ALGO_Ty<CBR_Data>;
     T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
+    T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
     setDEBUG: (b: boolean) => void;

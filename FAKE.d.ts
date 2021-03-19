@@ -124,6 +124,20 @@ export declare const T_Null: {
     munge: (bv: string) => ethers.ethers.BigNumber;
     unmunge: (nv: ethers.ethers.BigNumber) => string;
     paramType: string;
+}, T_Struct: <T>(ctcs: [string, {
+    name: string;
+    defaultValue: import("./CBR").CBR_Val;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+    munge: (bv: import("./CBR").CBR_Val) => T;
+    unmunge: (nv: T) => import("./CBR").CBR_Val;
+    paramType: string;
+}][]) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Struct;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Struct;
+    munge: (bv: import("./CBR").CBR_Struct) => T[];
+    unmunge: (nv: T[]) => import("./CBR").CBR_Struct;
+    paramType: string;
 };
 export declare const debug: (msg: any) => void;
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {

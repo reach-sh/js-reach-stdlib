@@ -50,6 +50,7 @@ declare type Recv = {
     time: BigNumber;
     value: BigNumber;
     from: string;
+    getOutput: (o_lab: string, o_ctc: any) => Promise<any>;
 } | {
     didTimeout: true;
 };
@@ -84,7 +85,7 @@ export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: AL
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<import("./CBR").CBR_Object>, T_Data: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
-}) => ALGO_Ty<import("./CBR").CBR_Data>, T_Bytes: (len: number) => ALGO_Ty<string>, T_Address: ALGO_Ty<string>, T_Digest: ALGO_Ty<string>;
+}) => ALGO_Ty<import("./CBR").CBR_Data>, T_Bytes: (len: number) => ALGO_Ty<string>, T_Address: ALGO_Ty<string>, T_Digest: ALGO_Ty<string>, T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
 };
@@ -96,6 +97,7 @@ declare const getFaucet: () => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -114,6 +116,7 @@ declare const getFaucet: () => Promise<{
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
@@ -172,6 +175,7 @@ declare const getFaucet: () => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -190,6 +194,7 @@ declare const getFaucet: () => Promise<{
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
@@ -251,6 +256,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -269,6 +275,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
@@ -329,6 +336,7 @@ export declare const createAccount: () => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -347,6 +355,7 @@ export declare const createAccount: () => Promise<{
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
@@ -407,6 +416,7 @@ export declare const newTestAccount: (startingBalance: any) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -425,6 +435,7 @@ export declare const newTestAccount: (startingBalance: any) => Promise<{
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
@@ -515,6 +526,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
+    getAddress: () => CBR_Address;
     stdlib: {
         addressEq: (x: any, y: any) => boolean;
         digest: (t: any, v: any) => string;
@@ -533,6 +545,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
         }) => ALGO_Ty<import("./CBR").CBR_Data>;
         T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
         T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+        T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
         protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;

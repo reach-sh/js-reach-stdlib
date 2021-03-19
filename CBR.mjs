@@ -133,6 +133,21 @@ export const BT_Tuple = (ctcs) => {
 export const BV_Tuple = (ctcs) => (val) => {
   return BT_Tuple(ctcs).canonicalize(val);
 };
+export const BT_Struct = (ctcs) => {
+  return {
+    name: `Struct([${ctcs.map(([k, ctc]) => ` [${k}, ${ctc.name}] `)}])`,
+    canonicalize: (arg) => {
+      const obj = {};
+      ctcs.forEach(([k, ctc], i) => {
+        obj[k] = ctc.canonicalize(Array.isArray(arg) ? arg[i] : arg[k]);
+      });
+      return obj;
+    },
+  };
+};
+export const BV_Struct = (ctcs) => (val) => {
+  return BT_Struct(ctcs).canonicalize(val);
+};
 export const BT_Object = (co) => {
   // TODO: check co for sanity
   return {

@@ -30,7 +30,7 @@ declare type ContractInfo = {
 };
 declare type Digest = string;
 declare type Contract = IContract<ContractInfo, Digest, Address, AnyETH_Ty>;
-declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
+declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo> | any;
 declare type ContractInitInfo = {
     args: Array<any>;
     value: BigNumber;
@@ -147,6 +147,20 @@ export declare const T_Null: {
     munge: (bv: string) => ethers.ethers.BigNumber;
     unmunge: (nv: ethers.ethers.BigNumber) => string;
     paramType: string;
+}, T_Struct: <T>(ctcs: [string, {
+    name: string;
+    defaultValue: import("./CBR").CBR_Val;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+    munge: (bv: import("./CBR").CBR_Val) => T;
+    unmunge: (nv: T) => import("./CBR").CBR_Val;
+    paramType: string;
+}][]) => {
+    name: string;
+    defaultValue: import("./CBR").CBR_Struct;
+    canonicalize: (uv: unknown) => import("./CBR").CBR_Struct;
+    munge: (bv: import("./CBR").CBR_Struct) => T[];
+    unmunge: (nv: T[]) => import("./CBR").CBR_Struct;
+    paramType: string;
 };
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
@@ -158,9 +172,9 @@ export declare const transfer: (from: AccountTransferable, to: AccountTransferab
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromSecret: (secret: string) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
-export declare const getDefaultAccount: () => Promise<Account>;
-export declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
-export declare const createAccount: () => Promise<Account>;
+export declare const getDefaultAccount: () => Promise<any>;
+export declare const getFaucet: () => Promise<any>, setFaucet: (val: Promise<any>) => void;
+export declare const createAccount: () => Promise<any>;
 export declare const fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
 export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;

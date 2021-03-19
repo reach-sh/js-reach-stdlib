@@ -143,6 +143,30 @@ const T_Tuple = (ctcs) => ({
 const V_Tuple = (ctcs) => (val) => {
   return T_Tuple(ctcs).canonicalize(val);
 };
+const T_Struct = (ctcs) => ({
+  ...CBR.BT_Struct(ctcs),
+  defaultValue: (() => {
+    const obj = {};
+    ctcs.forEach(([prop, co]) => {
+      obj[prop] = co.defaultValue;
+    });
+    return obj;
+  })(),
+  munge: (bv) => {
+    if (ctcs.length == 0) {
+      return false;
+    } else {
+      return ctcs.map(([k, ctc]) => ctc.munge(bv[k]));
+    }
+  },
+  unmunge: (args) => {
+    return V_Struct(ctcs)(ctcs.map(([k, ctc], i) => { void(k); return ctc.unmunge(args[i]); }));
+  },
+  paramType: `tuple(${ctcs.map(([k, ctc]) => { void (k); return ctc.paramType; }).join(',')})`,
+});
+const V_Struct = (ctcs) => (val) => {
+  return T_Struct(ctcs).canonicalize(val);
+};
 const T_Object = (co) => ({
   ...CBR.BT_Object(co),
   defaultValue: (() => {
@@ -246,6 +270,7 @@ export const typeDefs = {
   T_Data,
   T_Array,
   T_Tuple,
+  T_Struct,
 };
 export const addressEq = shared.mkAddressEq(T_Address);
 export const stdlib = {

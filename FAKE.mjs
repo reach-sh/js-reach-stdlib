@@ -51,7 +51,7 @@ const makeAccount = () => {
 // Common Interface Exports
 // ****************************************************************************
 export const { addressEq, digest } = compiledStdlib;
-export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const debug = (msg) => {
   stdlib.debug(`${BLOCKS.length}: ${msg}}`);
 };
@@ -83,6 +83,9 @@ export const transfer = async (from, to, value) => {
 };
 export const connectAccount = async (networkAccount) => {
   const { address } = networkAccount;
+  const selfAddress = () => {
+    return address;
+  };
   const attach = (bin, infoP) => {
     void(bin);
     // state
@@ -107,9 +110,6 @@ export const connectAccount = async (networkAccount) => {
       } else {
         throw Error(`I should be ${some_addr}, but am ${address}`);
       }
-    };
-    const selfAddress = () => {
-      return address;
     };
     const wait = async (delta) => {
       // Don't wait from current time, wait from last_block
@@ -140,8 +140,13 @@ export const connectAccount = async (networkAccount) => {
           data,
           value,
           from: address,
+          getOutput: (async (o_lab, o_ctc) => {
+            void(o_lab);
+            void(o_ctc);
+            throw Error(`FAKE does not support remote calls`);
+          }),
         };
-        const { prevSt, nextSt, txns } = sim_p(stubbedRecv);
+        const { prevSt, nextSt, txns } = await sim_p(stubbedRecv);
         if (await checkStateTransition(label, ctcInfo.address, prevSt, nextSt)) {
           debug(`${label} send ${funcNum} --- post succeeded`);
           transfer({ networkAccount }, toAcct(ctcInfo.address), value);
@@ -219,6 +224,11 @@ export const connectAccount = async (networkAccount) => {
             data: evt.data,
             value: evt.value,
             from: evt.from,
+            getOutput: (async (o_lab, o_ctc) => {
+              void(o_lab);
+              void(o_ctc);
+              throw Error(`FAKE does not support remote calls`);
+            }),
           };
         }
       }
@@ -245,7 +255,7 @@ export const connectAccount = async (networkAccount) => {
       // events: {},
     });
   };
-  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
+  return { deploy, attach, networkAccount, getAddress: selfAddress, stdlib: compiledStdlib };
 };
 const REACHY_RICH_P = (async () => {
   return await connectAccount({ address: T_Address.defaultValue });

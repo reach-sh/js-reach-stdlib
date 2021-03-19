@@ -381,7 +381,7 @@ const showBalance = async (note, networkAccount) => {
 // Common Interface Exports
 // ****************************************************************************
 export const { addressEq, digest } = compiledStdlib;
-export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(8);
 // TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
 const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
@@ -531,8 +531,13 @@ export const connectAccount = async (networkAccount) => {
         time: bigNumberify(0),
         value: value,
         from: pks,
+        getOutput: (async (o_lab, o_ctc) => {
+          void(o_lab);
+          void(o_ctc);
+          throw Error(`Algorand does not support remote calls`);
+        }),
       };
-      const sim_r = sim_p(fake_res);
+      const sim_r = await sim_p(fake_res);
       debug(`${dhead} --- SIMULATE ${JSON.stringify(sim_r)}`);
       const isHalt = sim_r.isHalt;
       const sim_txns = sim_r.txns;
@@ -703,12 +708,18 @@ export const connectAccount = async (networkAccount) => {
         const value = bigNumberify(ptxn['payment-transaction'].amount)
           .sub(totalFromFee);
         debug(`${dhead} --- value = ${JSON.stringify(value)}`);
+        const getOutput = (o_lab, o_ctc) => {
+          void(o_lab);
+          void(o_ctc);
+          throw Error(`Algorand does not support remote calls`);
+        };
         return {
           didTimeout: false,
           data: args_un,
           time: bigNumberify(lastRound),
           value,
           from,
+          getOutput,
         };
       }
     };
@@ -791,7 +802,7 @@ export const connectAccount = async (networkAccount) => {
   const deploy = (bin) => {
     return deferP(deployP(bin));
   };
-  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
+  return { deploy, attach, networkAccount, getAddress: selfAddress, stdlib: compiledStdlib };
 };
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;

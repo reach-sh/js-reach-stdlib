@@ -1,7 +1,7 @@
 import ethers from 'ethers';
 import * as shared from './shared';
 import * as CBR from './CBR';
-import { CBR_UInt, CBR_Bytes, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Val } from './CBR';
+import { CBR_UInt, CBR_Bytes, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Struct, CBR_Val } from './CBR';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
@@ -34,6 +34,7 @@ export declare const typeDefs: {
     }) => ETH_Ty<CBR.CBR_Data, T_1[]>;
     T_Array: <T_2>(ctc: ETH_Ty<CBR.CBR_Val, T_2>, size: number) => ETH_Ty<CBR.CBR_Array, T_2[]>;
     T_Tuple: <T_3>(ctcs: ETH_Ty<CBR.CBR_Val, T_3>[]) => ETH_Ty<CBR.CBR_Tuple, T_3[]>;
+    T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
 };
 export declare const addressEq: (x: any, y: any) => boolean;
 export declare const stdlib: {
@@ -56,8 +57,9 @@ export declare const stdlib: {
     }) => ETH_Ty<CBR.CBR_Data, T_1[]>;
     T_Array: <T_2>(ctc: ETH_Ty<CBR.CBR_Val, T_2>, size: number) => ETH_Ty<CBR.CBR_Array, T_2[]>;
     T_Tuple: <T_3>(ctcs: ETH_Ty<CBR.CBR_Val, T_3>[]) => ETH_Ty<CBR.CBR_Tuple, T_3[]>;
+    T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
-    Array_set<T_4>(arr: T_4[], idx: number, elem: T_4): T_4[];
+    Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (msg: any) => void;
@@ -91,8 +93,8 @@ export declare const stdlib: {
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    argsSlice: <T_5>(args: T_5[], cnt: number) => T_5[];
-    argsSplit: <T_6>(args: T_6[], cnt: number) => [T_6[], T_6[]];
+    argsSlice: <T_6>(args: T_6[], cnt: number) => T_6[];
+    argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
     mkAddressEq: (T_Address: {

@@ -11,7 +11,10 @@ export declare type CBR_Object = {
 export declare type CBR_Data = [string, CBR_Val];
 export declare type CBR_Array = Array<CBR_Val>;
 export declare type CBR_Tuple = Array<CBR_Val>;
-export declare type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple;
+export declare type CBR_Struct = {
+    [key: string]: CBR_Val;
+};
+export declare type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple | CBR_Struct;
 export declare type BackendTy<T extends CBR_Val> = {
     name: string;
     canonicalize: (uv: unknown) => T;
@@ -34,6 +37,8 @@ export declare const BV_Array: (ctc: BackendTy<CBR_Val>, size: number) => (val: 
 export declare const BT_Tuple: (ctcs: Array<BackendTy<CBR_Val>>) => BackendTy<CBR_Tuple>;
 /** @example BV_Tuple([BT_UInt, BT_Bytes])([42, 'hello']) */
 export declare const BV_Tuple: (ctcs: Array<BackendTy<CBR_Val>>) => (val: unknown[]) => CBR_Tuple;
+export declare const BT_Struct: (ctcs: Array<[string, BackendTy<CBR_Val>]>) => BackendTy<CBR_Struct>;
+export declare const BV_Struct: (ctcs: Array<[string, BackendTy<CBR_Val>]>) => (val: any) => CBR_Struct;
 export declare const BT_Object: (co: {
     [key: string]: BackendTy<CBR_Val>;
 }) => BackendTy<CBR_Object>;

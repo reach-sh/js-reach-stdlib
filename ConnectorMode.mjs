@@ -3,7 +3,6 @@ import { process } from './shim.mjs';
 // e.g. ETH defaults to ETH-test-dockerized-geth
 const knownConnectorModes = [
   'ETH-test-dockerized-geth',
-  'ETH-test-embedded-ganache',
   'ETH-live',
   'ETH-browser',
   'FAKE-test-embedded-mock',
@@ -30,7 +29,7 @@ export function canonicalizeConnectorMode(connectorMode) {
   if (canonicalized) {
     return canonicalized;
   } else {
-    throw Error(`Unrecognized REACH_CONNECTOR_MODE=${connectorMode}`);
+    throw Error(`Unrecognized REACH_CONNECTOR_MODE='${connectorMode}'`);
   }
 }
 export function getConnectorMode() {

@@ -28,10 +28,9 @@ const connectorMode = getConnectorMode();
 // or are only available on an "isolated" network.
 // Note: ETH-browser is NOT considered isolated.
 const isIsolatedNetwork = connectorMode.startsWith('ETH-test-dockerized') ||
-  connectorMode.startsWith('ETH-test-embedded');
-const networkDesc = connectorMode == 'ETH-test-embedded-ganache' ? {
-  type: 'embedded-ganache',
-} : (connectorMode == 'ETH-test-dockerized-geth' ||
+  // @ts-ignore
+  process.env['REACH_ISOLATED_NETWORK'];
+const networkDesc = (connectorMode == 'ETH-test-dockerized-geth' ||
   connectorMode == 'ETH-live') ? {
   type: 'uri',
   uri: process.env.ETH_NODE_URI || 'http://localhost:8545',
@@ -149,15 +148,6 @@ const [getProvider, setProvider] = replaceableThunk(async () => {
     const provider = new ethers.providers.JsonRpcProvider(networkDesc.uri);
     provider.pollingInterval = 500; // ms
     return provider;
-  } else if (networkDesc.type == 'embedded-ganache') {
-    throw Error(`Sorry, optional dependency ganache cannot be found.`);
-    // XXX delete the embedded-ganache network type?
-    // Nobody uses it and it seems to only cause issues.
-    // const { default: ganache } = await import('ganache-core');
-    // const default_balance_ether = 999999999;
-    // const ganachep = ganache.provider({ default_balance_ether });
-    // @ts-ignore
-    // return new ethers.providers.Web3Provider(ganachep);
   } else if (networkDesc.type == 'window') {
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -238,7 +228,7 @@ const stepTime = async () => {
 // Common Interface Exports
 // ****************************************************************************
 export const { addressEq, digest } = compiledStdlib;
-export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest } = typeDefs;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(32);
 export { setProvider };
 export const balanceOf = async (acc) => {
@@ -288,6 +278,10 @@ export const connectAccount = async (networkAccount) => {
   const selfAddress = () => {
     return address;
   };
+  let gasLimit;
+  const setGasLimit = (ngl) => {
+    gasLimit = bigNumberify(ngl);
+  };
   const deploy = (bin) => {
     if (!ethers.Signer.isSigner(networkAccount)) {
       throw Error(`Signer required to deploy, ${networkAccount}`);
@@ -307,7 +301,7 @@ export const connectAccount = async (networkAccount) => {
       const factory = new ethers.ContractFactory(ABI, Bytecode, networkAccount);
       (async () => {
         debug(`${shad}: deploying factory`);
-        const contract = await factory.deploy(...argsMay, { value });
+        const contract = await factory.deploy(...argsMay, { value, gasLimit });
         debug(`${shad}: deploying factory; done: ${contract.address}`);
         debug(`${shad}: waiting for receipt: ${contract.deployTransaction.hash}`);
         const deploy_r = await contract.deployTransaction.wait();
@@ -448,7 +442,7 @@ export const connectAccount = async (networkAccount) => {
       };
     })();
     const callC = async (funcName, arg, value) => {
-      return (await getC())[funcName](arg, { value });
+      return (await getC())[funcName](arg, { value, gasLimit });
     };
     const getEventData = async (ok_evt, ok_e) => {
       const ethersC = await getC();
@@ -598,11 +592,29 @@ export const connectAccount = async (networkAccount) => {
           const ok_vals = ok_ed[0][1];
           debug(`${shad}: ${label} recv ${ok_evt} --- MSG -- ${JSON.stringify(ok_vals)}`);
           const data = T_Tuple(out_tys).unmunge(ok_vals);
+          const getOutput = async (o_lab, o_ctc) => {
+            let dhead = `${shad}: ${label} recv ${ok_evt} --- getOutput: ${o_lab} ${JSON.stringify(o_ctc)}`;
+            debug(`${dhead}`);
+            const oe_evt = `oe_${o_lab}`;
+            const theBlock = ok_r.blockNumber;
+            dhead = `${dhead} oe(${JSON.stringify(oe_evt)})`;
+            const oe_e = (await getLogs(theBlock, theBlock, oe_evt))[0];
+            dhead = `${dhead} log(${JSON.stringify(oe_e)})`;
+            debug(`${dhead}`);
+            const oe_ed = (await getEventData(oe_evt, oe_e))[0];
+            dhead = `${dhead} data(${JSON.stringify(oe_ed)})`;
+            debug(`${dhead}`);
+            const oe_edu = o_ctc.unmunge(oe_ed);
+            dhead = `${dhead} unmunge(${JSON.stringify(oe_edu)})`;
+            debug(`${dhead}`);
+            return oe_edu;
+          };
           debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY --- ${JSON.stringify(ok_vals)}`);
           return {
             didTimeout: false,
             time: bigNumberify(ok_r.blockNumber),
             data,
+            getOutput,
             value: ok_t.value,
             from: ok_t.from,
           };
@@ -627,7 +639,7 @@ export const connectAccount = async (networkAccount) => {
     // Note: wait is the local one not the global one of the same name.
     return { getInfo, creationTime, sendrecv, recv, wait, iam, selfAddress, stdlib: compiledStdlib };
   };
-  return { deploy, attach, networkAccount, stdlib: compiledStdlib };
+  return { deploy, attach, networkAccount, setGasLimit, getAddress: selfAddress, stdlib: compiledStdlib };
 };
 export const newAccountFromSecret = async (secret) => {
   const provider = await getProvider();
@@ -660,7 +672,7 @@ export const [getFaucet, setFaucet] = replaceableThunk(async () => {
     // On isolated networks, the default account is assumed to be the faucet.
     // Furthermore, it is assumed that the faucet Signer is "unlocked",
     // so no further secrets need be provided in order to access its funds.
-    // This is true of reach-provided devnets & embedded ganache.
+    // This is true of reach-provided devnets.
     // TODO: allow the user to set the faucet via mnemnonic.
     return await getDefaultAccount();
   } else if (networkDesc.type === 'window') {

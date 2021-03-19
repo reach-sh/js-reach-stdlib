@@ -116,6 +116,21 @@ export declare const typeDefs: {
         unmunge: (nv: T_3[]) => import("./CBR").CBR_Tuple;
         paramType: string;
     };
+    T_Struct: <T_4>(ctcs: [string, {
+        name: string;
+        defaultValue: import("./CBR").CBR_Val;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+        munge: (bv: import("./CBR").CBR_Val) => T_4;
+        unmunge: (nv: T_4) => import("./CBR").CBR_Val;
+        paramType: string;
+    }][]) => {
+        name: string;
+        defaultValue: import("./CBR").CBR_Struct;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Struct;
+        munge: (bv: import("./CBR").CBR_Struct) => T_4[];
+        unmunge: (nv: T_4[]) => import("./CBR").CBR_Struct;
+        paramType: string;
+    };
 };
 export declare const stdlib: {
     addressEq: (x: any, y: any) => boolean;
@@ -237,8 +252,23 @@ export declare const stdlib: {
         unmunge: (nv: T_3[]) => import("./CBR").CBR_Tuple;
         paramType: string;
     };
+    T_Struct: <T_4>(ctcs: [string, {
+        name: string;
+        defaultValue: import("./CBR").CBR_Val;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Val;
+        munge: (bv: import("./CBR").CBR_Val) => T_4;
+        unmunge: (nv: T_4) => import("./CBR").CBR_Val;
+        paramType: string;
+    }][]) => {
+        name: string;
+        defaultValue: import("./CBR").CBR_Struct;
+        canonicalize: (uv: unknown) => import("./CBR").CBR_Struct;
+        munge: (bv: import("./CBR").CBR_Struct) => T_4[];
+        unmunge: (nv: T_4[]) => import("./CBR").CBR_Struct;
+        paramType: string;
+    };
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
-    Array_set<T_4>(arr: T_4[], idx: number, elem: T_4): T_4[];
+    Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (msg: any) => void;
@@ -272,8 +302,8 @@ export declare const stdlib: {
     gt: (a: number | import("ethers").BigNumber, b: number | import("ethers").BigNumber) => boolean;
     le: (a: number | import("ethers").BigNumber, b: number | import("ethers").BigNumber) => boolean;
     lt: (a: number | import("ethers").BigNumber, b: number | import("ethers").BigNumber) => boolean;
-    argsSlice: <T_5>(args: T_5[], cnt: number) => T_5[];
-    argsSplit: <T_6>(args: T_6[], cnt: number) => [T_6[], T_6[]];
+    argsSlice: <T_6>(args: T_6[], cnt: number) => T_6[];
+    argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
     mkAddressEq: (T_Address: {
