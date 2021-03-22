@@ -253,7 +253,9 @@ export const transfer = async (from, to, value) => {
   if (!sender || !sender.sendTransaction)
     throw Error(`Expected from.networkAccount.sendTransaction: ${from}`);
   debug(`sender.sendTransaction(${JSON.stringify(txn)})`);
-  return await sender.sendTransaction(txn);
+  const r = await (await sender.sendTransaction(txn)).wait();
+  assert(r !== null);
+  return fetchAndRejectInvalidReceiptFor(r.transactionHash);
 };
 export const connectAccount = async (networkAccount) => {
   // @ts-ignore // TODO
@@ -700,11 +702,11 @@ export const newTestAccount = async (startingBalance) => {
   debug(`newTestAccount(${startingBalance})`);
   requireIsolatedNetwork('newTestAccount');
   const acc = await createAccount();
-  const to = getAddr(acc);
+  const to = await getAddr(acc);
   try {
     debug(`newTestAccount awaiting transfer: ${to}`);
     await fundFromFaucet(acc, startingBalance);
-    debug(`newTestAccount got transfer: ${to}`);
+    debug(`newTestAccount got transfer: ${JSON.stringify(to)}`);
     return acc;
   } catch (e) {
     console.log(`newTestAccount: Trouble with account ${to}`);

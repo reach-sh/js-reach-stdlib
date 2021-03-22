@@ -7,6 +7,7 @@ const knownConnectorModes = [
   'ETH-browser',
   'FAKE-test-embedded-mock',
   'ALGO-test-dockerized-algod',
+  'ALGO-live',
   'ALGO-browser',
 ];
 
