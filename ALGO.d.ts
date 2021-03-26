@@ -69,6 +69,7 @@ declare type ContractInfo = {
     getInfo?: () => Promise<ContractInfo>;
     creationRound: number;
     ApplicationID: number;
+    Deployer: Address;
 };
 declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
