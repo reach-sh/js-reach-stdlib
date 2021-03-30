@@ -17,7 +17,7 @@ const withApiKey = () => {
     next() :
     res.status(403).json({});
 };
-const mkKont = () => {
+export const mkKont = () => {
   // TODO consider replacing stringly-typed exceptions with structured
   // descendants of `Error` base class
   const UNTRACKED = 'Untracked continuation ID:';
@@ -67,7 +67,6 @@ export const mkStdlibProxy = async (lib) => {
   const account = mkKont();
   const rpc_stdlib = {
     ...lib,
-    mkKont,
     newTestAccount: async (bal) => account.track(await lib.newTestAccount(bal)),
     getDefaultAccount: async () => account.track(await lib.getDefaultAccount()),
     newAccountFromSecret: async (s) => account.track(await lib.newAccountFromSecret(s)),
@@ -94,6 +93,8 @@ export const serveRpc = async (backend) => {
   const rpc_acc = {
     attach: async (id, ...args) => contract.track(await account.id(id).attach(backend, ...args)),
     deploy: async (id) => contract.track(await account.id(id).deploy(backend)),
+    getAddress: async (id) => await account.id(id).getAddress(),
+    setGasLimit: async (id, ...args) => await account.id(id).setGasLimit(...args),
   };
   const rpc_ctc = {
     getInfo: async (id) => contract.id(id).getInfo(),
@@ -102,12 +103,19 @@ export const serveRpc = async (backend) => {
     const { was } = kont;
     const client = `client ${req.ip}: ${req.method} ${req.originalUrl} ${JSON.stringify(req.body)}`;
     try {
+      debug(`Attempting to process request by ${client}`);
       await f(req, res);
     } catch (e) {
-      debug(`Witnessed exception triggered by ${client}: ${e.message}\n${e.stack}`);
+      debug(`!! Witnessed exception triggered by ${client}:\n  ${e.stack}`);
       const [s, message] = was.untracked(e) ? [404, String(e)] :
         [500, 'Unspecified fault'];
-      res.status(s).json({ message, request: req.body });
+      if (!res.headersSent) {
+        res.status(s).json({ message, request: req.body });
+        debug(`!! HTTP ${s}: "${message}" response sent to client`);
+      } else {
+        res.end();
+        debug(`!! Response already initiated; unable to send appropriate payload`);
+      }
     }
   })();
   const mkRPC = (olab, obj) => {
@@ -199,7 +207,7 @@ export const serveRpc = async (backend) => {
       ].join(''));
       process.exit(1);
     }
-    const fq = resolve(f);
+    const fq = resolve(`./tls/${f}`);
     if (!existsSync(fq)) {
       console.error(`\nPath: ${fq} does not exist!\n`);
       process.exit(1);
