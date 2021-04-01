@@ -73,8 +73,6 @@ declare type ContractInfo = {
 };
 declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
-declare const setBrowser: (b: boolean) => void;
-export { setBrowser };
 declare type SignStrategy = 'mnemonic' | 'AlgoSigner' | 'MyAlgo';
 declare const getSignStrategy: () => SignStrategy, setSignStrategy: (val: SignStrategy) => void;
 export { getSignStrategy, setSignStrategy };
@@ -605,5 +603,5 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-export declare const verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
+export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<true>;
 //# sourceMappingURL=ALGO.d.ts.map

@@ -36,15 +36,6 @@ function uint8ArrayToStr(a, enc = 'utf8') {
 }
 const [getWaitPort, setWaitPort] = replaceableThunk(() => true);
 export { setWaitPort };
-const [getBrowser, setBrowserRaw] = replaceableThunk(() => false);
-const setBrowser = (b) => {
-  if (b) {
-    // When in browser, we cannot waitPort
-    setWaitPort(false);
-  }
-  setBrowserRaw(b);
-};
-export { setBrowser };
 const [getSignStrategy, setSignStrategy] = replaceableThunk(() => 'mnemonic');
 export { getSignStrategy, setSignStrategy };
 const [getAlgoSigner, setAlgoSigner] = replaceableThunk(async () => {
@@ -62,7 +53,7 @@ if (process.env.REACH_CONNECTOR_MODE == 'ALGO-browser'
   // Yes, this is dumb. TODO something better
   ||
   process.env.REACH_CONNECTOR_MODE === 'ETH-browser') {
-  setBrowser(true);
+  setWaitPort(false);
 }
 const rawDefaultToken = 'c87f5580d7a866317b4bfe9e8b8d1dda955636ccebfa88c12b414db208dd9705';
 const rawDefaultItoken = 'reach-devnet';
@@ -357,20 +348,23 @@ const format_failed_request = (e) => {
   const msg = e.text ? JSON.parse(e.text) : e;
   return `\n${db64}\n${JSON.stringify(msg)}`;
 };
-const doQuery = async (dhead, query) => {
-  //debug(`${dhead} --- QUERY = ${JSON.stringify(query)}`);
+const doQuery_ = async (dhead, query) => {
+  debug(`${dhead} --- QUERY = ${JSON.stringify(query)}`);
   let res;
   try {
     res = await query.do();
   } catch (e) {
     throw Error(`${dhead} --- QUERY FAIL: ${JSON.stringify(e)}`);
   }
+  debug(`${dhead} --- RESULT = ${JSON.stringify(res)}`);
+  return res;
+};
+const doQuery = async (dhead, query) => {
+  const res = await doQuery_(dhead, query);
   if (res.transactions.length == 0) {
-    // debug(`${dhead} --- RESULT = empty`);
     // XXX Look at the round in res and wait for a new round
     return null;
   }
-  debug(`${dhead} --- RESULT = ${JSON.stringify(res)}`);
   const txn = res.transactions[0];
   return txn;
 };
@@ -388,33 +382,18 @@ export const { randomUInt, hasRandom } = makeRandom(8);
 // TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
 const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
   debug(`Setting algod client to default`);
-  const browser = getBrowser();
-  const token = browser ?
-    { 'X-Algo-API-Token': rawDefaultToken } :
-    process.env.ALGO_TOKEN || rawDefaultToken;
-  const server = browser ?
-    '/algod' :
-    process.env.ALGO_SERVER || 'http://localhost';
-  const port = browser ?
-    '' :
-    process.env.ALGO_PORT || '4180';
-  if (!browser)
-    await wait1port(server, port);
+  const token = process.env.ALGO_TOKEN || rawDefaultToken;
+  const server = process.env.ALGO_SERVER || 'http://localhost';
+  const port = process.env.ALGO_PORT || '4180';
+  await wait1port(server, port);
   return new algosdk.Algodv2(token, server, port);
 });
 export { setAlgodClient };
 const [getIndexer, setIndexer] = replaceableThunk(async () => {
   debug(`setting indexer to default`);
-  const browser = getBrowser();
-  const itoken = browser ?
-    rawDefaultItoken :
-    process.env.ALGO_INDEXER_TOKEN || rawDefaultItoken;
-  const iserver = browser ?
-    '/indexer' :
-    process.env.ALGO_INDEXER_SERVER || 'http://localhost';
-  const iport = browser ?
-    '' :
-    process.env.ALGO_INDEXER_PORT || 8980;
+  const itoken = process.env.ALGO_INDEXER_TOKEN || rawDefaultItoken;
+  const iserver = process.env.ALGO_INDEXER_SERVER || 'http://localhost';
+  const iport = process.env.ALGO_INDEXER_PORT || '8980';
   await wait1port(iserver, iport);
   return new algosdk.Indexer(itoken, iserver, iport);
 });
@@ -422,10 +401,7 @@ export { setIndexer };
 // eslint-disable-next-line max-len
 const rawFaucetDefaultMnemonic = 'husband sock drift razor piece february loop nose crew object salon come sketch frost grocery capital young strategy catalog dial seminar sword betray absent army';
 const [getFaucet, setFaucet] = replaceableThunk(async () => {
-  const browser = getBrowser();
-  const FAUCET = algosdk.mnemonicToSecretKey(browser ?
-    rawFaucetDefaultMnemonic :
-    process.env.ALGO_FAUCET_PASSPHRASE || rawFaucetDefaultMnemonic);
+  const FAUCET = algosdk.mnemonicToSecretKey(process.env.ALGO_FAUCET_PASSPHRASE || rawFaucetDefaultMnemonic);
   return await connectAccount(FAUCET);
 });
 export { getFaucet, setFaucet };
@@ -939,18 +915,54 @@ export const wait = async (delta, onProgress) => {
   debug(`wait: delta=${delta} now=${now}, until=${now.add(delta)}`);
   return await waitUntilTime(now.add(delta), onProgress);
 };
-// XXX: implement this
-export const verifyContract = async (ctcInfo, backend) => {
-  void(ctcInfo);
-  void(backend);
-  // XXX verify contract was deployed at creationRound
-  // XXX verify something about ApplicationId
-  // XXX (above) attach creator info to ContractInfo
-  // XXX verify creator was the one that deployed the contract
-  // XXX verify deployed contract code matches backend
-  // (after deployMode:firstMsg is implemented)
-  // XXX (above) attach initial args to ContractInfo
-  // XXX verify contract storage matches expectations based on initial args
-  // (don't bother checking ctc balance at creationRound, the ctc enforces this)
+export const verifyContract = async (info, bin) => {
+  const { ApplicationID, Deployer, creationRound } = info;
+  const compiled = await compileFor(bin, info);
+  const { appApproval, appClear } = compiled;
+  let dhead = `verifyContract`;
+  const chk = (p, msg) => {
+    if (!p) {
+      throw Error(`verifyContract failed: ${msg}`);
+    }
+  };
+  const chkeq = (a, e, msg) => {
+    const as = JSON.stringify(a);
+    const es = JSON.stringify(e);
+    chk(as === es, `${msg}: expected ${es}, got ${as}`);
+  };
+  const client = await getAlgodClient();
+  const appInfo = await client.getApplicationByID(ApplicationID).do();
+  const appInfo_p = appInfo['params'];
+  debug(`${dhead} -- appInfo_p = ${JSON.stringify(appInfo_p)}`);
+  const indexer = await getIndexer();
+  const cquery = indexer.searchForTransactions()
+    .applicationID(ApplicationID)
+    .txType('appl')
+    .round(creationRound);
+  let ctxn = null;
+  while (!ctxn) {
+    const cres = await doQuery_(dhead, cquery);
+    if (cres['current-round'] < creationRound) {
+      debug(`${dhead} -- waiting for creationRound`);
+      await Timeout.set(1000);
+      continue;
+    }
+    ctxn = cres.transactions[0];
+  }
+  debug(`${dhead} -- ctxn = ${JSON.stringify(ctxn)}`);
+  const fmtp = (x) => uint8ArrayToStr(x.result, 'base64');
+  chk(ctxn, `Cannot query for creationRound accuracy`);
+  chk(appInfo_p, `Cannot lookup ApplicationId`);
+  chkeq(appInfo_p['approval-program'], fmtp(appApproval), `Approval program does not match Reach backend`);
+  chkeq(appInfo_p['clear-state-program'], fmtp(appClear), `ClearState program does not match Reach backend`);
+  chkeq(appInfo_p['creator'], Deployer, `Deployer does not match contract information`);
+  const catxn = ctxn['application-transaction'];
+  chkeq(catxn['approval-program'], appInfo_p['approval-program'], `creationRound Approval program`);
+  chkeq(catxn['clear-state-program'], appInfo_p['clear-state-program'], `creationRound ClearState program`);
+  chkeq(catxn['on-completion'], 'update', `creationRound on-completion`);
+  chkeq(ctxn['sender'], Deployer, `creationRound Deployer`);
+  // Note: (after deployMode:firstMsg is implemented)
+  // 1. (above) attach initial args to ContractInfo
+  // 2. verify contract storage matches expectations based on initial args
   return true;
 };
