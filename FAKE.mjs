@@ -334,3 +334,4 @@ export function formatCurrency(amt, decimals = 0) {
   return bigNumberify(amt).toString();
 }
 export const setFaucet = false; // XXX
+export const reachStdlib = compiledStdlib;

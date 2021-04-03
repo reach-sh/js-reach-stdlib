@@ -966,3 +966,4 @@ export const verifyContract = async (info, bin) => {
   // 2. verify contract storage matches expectations based on initial args
   return true;
 };
+export const reachStdlib = compiledStdlib;

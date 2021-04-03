@@ -604,4 +604,77 @@ export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<true>;
+export declare const reachStdlib: {
+    addressEq: (x: any, y: any) => boolean;
+    digest: (t: any, v: any) => string;
+    UInt_max: ethers.ethers.BigNumber;
+    T_Null: ALGO_Ty<null>;
+    T_Bool: ALGO_Ty<boolean>;
+    T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
+    T_Bytes: (len: number) => ALGO_Ty<string>;
+    T_Address: ALGO_Ty<string>;
+    T_Digest: ALGO_Ty<string>;
+    T_Object: (coMap: {
+        [key: string]: ALGO_Ty<CBR_Val>;
+    }) => ALGO_Ty<import("./CBR").CBR_Object>;
+    T_Data: (coMap: {
+        [key: string]: ALGO_Ty<CBR_Val>;
+    }) => ALGO_Ty<import("./CBR").CBR_Data>;
+    T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
+    T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
+    T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
+    protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
+    Array_set<T>(arr: T[], idx: number, elem: T): T[];
+    setDEBUG: (b: boolean) => void;
+    getDEBUG: () => boolean;
+    debug: (msg: any) => void;
+    assert: (d: any, ai?: any) => void;
+    isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
+    bigNumberify: (x: any) => ethers.ethers.BigNumber;
+    bigNumberToNumber: (x: any) => number;
+    checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
+    isHex: typeof ethers.ethers.utils.isHexString;
+    hexToString: typeof ethers.ethers.utils.toUtf8String;
+    stringToHex: (x: string) => string;
+    makeDigest: (prep: any) => (t: any, v: any) => string;
+    hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
+    uintToBytes: (i: ethers.ethers.BigNumber) => string;
+    bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+    bytesEq: (x: any, y: any) => boolean;
+    digestEq: (x: any, y: any) => boolean;
+    makeRandom: (width: number) => {
+        randomUInt: () => ethers.ethers.BigNumber;
+        hasRandom: {
+            random: () => ethers.ethers.BigNumber;
+        };
+    };
+    eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
+    argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+    Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
+    mapRef: (m: any, f: any) => any;
+    mkAddressEq: (T_Address: {
+        canonicalize: (addr: any) => any;
+    }) => (x: any, y: any) => boolean;
+    parseFixedPoint: (x: {
+        sign: boolean;
+        i: {
+            i: number | ethers.ethers.BigNumber;
+            scale: number | ethers.ethers.BigNumber;
+        };
+    }) => number;
+    parseInt: (x: {
+        sign: boolean;
+        i: number | ethers.ethers.BigNumber;
+    }) => number;
+};
 //# sourceMappingURL=ALGO.d.ts.map

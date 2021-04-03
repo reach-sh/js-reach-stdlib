@@ -906,3 +906,4 @@ export function formatCurrency(amt, decimals = 18) {
     return amtStr;
   }
 }
+export const reachStdlib = compiledStdlib;
