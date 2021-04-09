@@ -215,7 +215,7 @@ const actuallyWaitUntilTime = async (targetTime, onProgress) => {
 const getDummyAccount = memoizeThunk(async () => {
   const provider = await getProvider();
   const networkAccount = ethers.Wallet.createRandom().connect(provider);
-  const acc = await connectAccount(networkAccount);
+  const acc = await connectAccount(networkAccount, 'Dummy');
   return acc;
 });
 const stepTime = async () => {
@@ -257,7 +257,7 @@ export const transfer = async (from, to, value) => {
   assert(r !== null);
   return fetchAndRejectInvalidReceiptFor(r.transactionHash);
 };
-export const connectAccount = async (networkAccount) => {
+export const connectAccount = async (networkAccount, _label) => {
   // @ts-ignore // TODO
   if (networkAccount.getAddress && !networkAccount.address) {
     // @ts-ignore
@@ -270,6 +270,7 @@ export const connectAccount = async (networkAccount) => {
     throw Error(`Expected networkAccount.address: ${networkAccount}`);
   }
   const shad = address.substring(2, 6);
+  const label = _label || shad;
   const iam = (some_addr) => {
     if (some_addr == address) {
       return address;
@@ -333,7 +334,7 @@ export const connectAccount = async (networkAccount) => {
           void(args);
           throw Error(`Cannot wait yet; contract is not actually deployed`);
         },
-        sendrecv: async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+        sendrecv: async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
           debug(`${shad}: ${label} sendrecv m${funcNum} (deferred deploy)`);
           void(evt_cnt);
           void(sim_p);
@@ -356,7 +357,7 @@ export const connectAccount = async (networkAccount) => {
             ], value });
           await infoP; // Wait for the deploy to actually happen.
           // simulated recv
-          return await impl.recv(label, funcNum, evt_cnt, out_tys, false, timeout_delay);
+          return await impl.recv(funcNum, evt_cnt, out_tys, false, timeout_delay);
         },
         getInfo: async () => {
           // Danger: deadlock possible
@@ -465,9 +466,9 @@ export const connectAccount = async (networkAccount) => {
       });
     };
     const getInfo = async () => await infoP;
-    const sendrecv_impl = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay) => {
+    const sendrecv_impl = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay) => {
       void(hasLastTime);
-      const doRecv = async (waitIfNotPresent) => await recv_impl(label, funcNum, out_tys, waitIfNotPresent, timeout_delay);
+      const doRecv = async (waitIfNotPresent) => await recv_impl(funcNum, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
         return await doRecv(true);
       }
@@ -540,12 +541,12 @@ export const connectAccount = async (networkAccount) => {
       debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- FAIL/TIMEOUT`);
       return { didTimeout: true };
     };
-    const sendrecv = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       void(sim_p);
-      return await sendrecv_impl(label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay);
+      return await sendrecv_impl(funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay);
     };
     // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
-    const recv_impl = async (label, okNum, out_tys, waitIfNotPresent, timeout_delay) => {
+    const recv_impl = async (okNum, out_tys, waitIfNotPresent, timeout_delay) => {
       const isFirstMsgDeploy = (okNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
       const lastBlock = await getLastBlock();
       const ok_evt = `e${okNum}`;
@@ -625,9 +626,9 @@ export const connectAccount = async (networkAccount) => {
       debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- TIMEOUT`);
       return { didTimeout: true };
     };
-    const recv = async (label, okNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
+    const recv = async (okNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
       void(ok_cnt);
-      return await recv_impl(label, okNum, out_tys, waitIfNotPresent, timeout_delay);
+      return await recv_impl(okNum, out_tys, waitIfNotPresent, timeout_delay);
     };
     const wait = async (delta) => {
       const lastBlock = await getLastBlock();
@@ -643,29 +644,29 @@ export const connectAccount = async (networkAccount) => {
   };
   return { deploy, attach, networkAccount, setGasLimit, getAddress: selfAddress, stdlib: compiledStdlib };
 };
-export const newAccountFromSecret = async (secret) => {
+export const newAccountFromSecret = async (secret, label) => {
   const provider = await getProvider();
   const networkAccount = (new ethers.Wallet(secret)).connect(provider);
-  const acc = await connectAccount(networkAccount);
+  const acc = await connectAccount(networkAccount, label);
   return acc;
 };
-export const newAccountFromMnemonic = async (phrase) => {
+export const newAccountFromMnemonic = async (phrase, label) => {
   const provider = await getProvider();
   const networkAccount = ethers.Wallet.fromMnemonic(phrase).connect(provider);
-  const acc = await connectAccount(networkAccount);
+  const acc = await connectAccount(networkAccount, label);
   return acc;
 };
-export const getDefaultAccount = memoizeThunk(async () => {
+export const getDefaultAccount = async (label) => {
   debug(`getDefaultAccount`);
   if (isIsolatedNetwork || networkDesc.type == 'window') {
     const provider = await getProvider();
     // TODO: teach ts what the specialized type of provider is in this branch
     // @ts-ignore
     const signer = provider.getSigner();
-    return await connectAccount(signer);
+    return await connectAccount(signer, label);
   }
   throw Error(`Default account not available for REACH_CONNECTOR_MODE=${connectorMode}`);
-});
+};
 // TODO: Should users be able to access this directly?
 // TODO: define a faucet on Ropsten & other testnets?
 export const [getFaucet, setFaucet] = replaceableThunk(async () => {
@@ -676,32 +677,32 @@ export const [getFaucet, setFaucet] = replaceableThunk(async () => {
     // so no further secrets need be provided in order to access its funds.
     // This is true of reach-provided devnets.
     // TODO: allow the user to set the faucet via mnemnonic.
-    return await getDefaultAccount();
+    return await getDefaultAccount('Faucet');
   } else if (networkDesc.type === 'window') {
     // @ts-ignore // 0x539 = 1337
     if (window.ethereum.chainId === '0xNaN' || window.ethereum.chainId == '0x539') {
       // XXX this is a hacky way of checking if we're on a devnet
       // XXX only localhost:8545 is supported
       const p = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-      return await connectAccount(p.getSigner());
+      return await connectAccount(p.getSigner(), 'Faucet');
     }
   }
   throw Error(`getFaucet not supported in this context.`);
 });
-export const createAccount = async () => {
+export const createAccount = async (label) => {
   debug(`createAccount with 0 balance.`);
   const provider = await getProvider();
   const networkAccount = ethers.Wallet.createRandom().connect(provider);
-  return await connectAccount(networkAccount);
+  return await connectAccount(networkAccount, label);
 };
 export const fundFromFaucet = async (account, value) => {
   const faucet = await getFaucet();
   await transfer(faucet, account, value);
 };
-export const newTestAccount = async (startingBalance) => {
+export const newTestAccount = async (startingBalance, label) => {
   debug(`newTestAccount(${startingBalance})`);
   requireIsolatedNetwork('newTestAccount');
-  const acc = await createAccount();
+  const acc = await createAccount(label);
   const to = await getAddr(acc);
   try {
     debug(`newTestAccount awaiting transfer: ${to}`);

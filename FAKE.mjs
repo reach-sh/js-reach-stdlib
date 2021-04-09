@@ -81,8 +81,9 @@ export const transfer = async (from, to, value) => {
   debug(`transfer: ${JSON.stringify(block)}`);
   BLOCKS.push(block);
 };
-export const connectAccount = async (networkAccount) => {
+export const connectAccount = async (networkAccount, _label) => {
   const { address } = networkAccount;
+  const label = _label || address.substring(2, 6);
   const selfAddress = () => {
     return address;
   };
@@ -115,9 +116,9 @@ export const connectAccount = async (networkAccount) => {
       // Don't wait from current time, wait from last_block
       return waitUntilTime(stdlib.add(await getLastBlock(), delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       void(hasLastTime);
-      const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
+      const doRecv = async (waitIfNotPresent) => await recv(funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
         return await doRecv(true);
       }
@@ -190,7 +191,7 @@ export const connectAccount = async (networkAccount) => {
       }
       return false;
     };
-    const recv = async (label, funcNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
+    const recv = async (funcNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
       void(ok_cnt);
       void(out_tys);
       const last_block = await getLastBlock();
@@ -258,7 +259,7 @@ export const connectAccount = async (networkAccount) => {
   return { deploy, attach, networkAccount, getAddress: selfAddress, stdlib: compiledStdlib };
 };
 const REACHY_RICH_P = (async () => {
-  return await connectAccount({ address: T_Address.defaultValue });
+  return await connectAccount({ address: T_Address.defaultValue }, 'Faucet');
 })();
 export async function getDefaultAccount() {
   return REACHY_RICH_P;
@@ -266,17 +267,17 @@ export async function getDefaultAccount() {
 export async function getFaucet() {
   return REACHY_RICH_P;
 }
-export const newTestAccount = async (startingBalance) => {
-  const account = await createAccount();
+export const newTestAccount = async (startingBalance, label) => {
+  const account = await createAccount(label);
   debug(`new account: ${account.networkAccount.address}`);
   await fundFromFaucet(account, startingBalance);
   return account;
 };
-export const createAccount = async () => {
+export const createAccount = async (label) => {
   // Create account without any starting balance
   const networkAccount = makeAccount();
   debug(`createAccount: ${networkAccount.address}`);
-  return await connectAccount(networkAccount);
+  return await connectAccount(networkAccount, label);
 };
 export function getNetworkTime() {
   return stdlib.bigNumberify(BLOCKS.length);

@@ -149,11 +149,11 @@ export declare const fundFromFaucet: (toa: AccountTransferrable, value: any) => 
  * @description performs a transfer & creates a transfer block
  */
 export declare const transfer: (from: AccountTransferrable, to: AccountTransferrable, value: any) => Promise<void>;
-export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
+export declare const connectAccount: (networkAccount: NetworkAccount, _label: string) => Promise<Account>;
 export declare function getDefaultAccount(): Promise<Account>;
 export declare function getFaucet(): Promise<Account>;
-export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
-export declare const createAccount: () => Promise<Account>;
+export declare const newTestAccount: (startingBalance: any, label: string) => Promise<Account>;
+export declare const createAccount: (label: string) => Promise<Account>;
 export declare function getNetworkTime(): ethers.ethers.BigNumber;
 export declare function wait(delta: BigNumber | number, onProgress?: OnProgress): BigNumber;
 export declare function waitUntilTime(targetTime: BigNumber | number, onProgress?: OnProgress): BigNumber;

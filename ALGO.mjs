@@ -424,7 +424,7 @@ export { setIndexer };
 const rawFaucetDefaultMnemonic = 'husband sock drift razor piece february loop nose crew object salon come sketch frost grocery capital young strategy catalog dial seminar sword betray absent army';
 const [getFaucet, setFaucet] = replaceableThunk(async () => {
   const FAUCET = algosdk.mnemonicToSecretKey(process.env.ALGO_FAUCET_PASSPHRASE || rawFaucetDefaultMnemonic);
-  return await connectAccount(FAUCET);
+  return await connectAccount(FAUCET, 'Faucet');
 });
 export { getFaucet, setFaucet };
 export const transfer = async (from, to, value) => {
@@ -480,10 +480,11 @@ async function signTxn(networkAccount, txnOrig) {
     throw Error(`networkAccount has neither sk nor AlgoSigner: ${JSON.stringify(networkAccount)}`);
   }
 }
-export const connectAccount = async (networkAccount) => {
+export const connectAccount = async (networkAccount, _label) => {
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
+  const label = _label || shad;
   const pks = T_Address.canonicalize(thisAcc);
   debug(`${shad}: connectAccount`);
   const selfAddress = () => {
@@ -508,13 +509,13 @@ export const connectAccount = async (networkAccount) => {
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
-    const sendrecv = async (label, funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       if (hasLastTime !== false) {
         const ltidx = hasLastTime.toNumber();
         tys.splice(ltidx, 1);
         args.splice(ltidx, 1);
       }
-      const doRecv = async (waitIfNotPresent) => await recv(label, funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
+      const doRecv = async (waitIfNotPresent) => await recv(funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
         return await doRecv(true);
       }
@@ -636,7 +637,7 @@ export const connectAccount = async (networkAccount) => {
         return await doRecv(false);
       }
     };
-    const recv = async (label, funcNum, evt_cnt, tys, waitIfNotPresent, timeout_delay) => {
+    const recv = async (funcNum, evt_cnt, tys, waitIfNotPresent, timeout_delay) => {
       // Ignoring this, because no ALGO dev node
       void(waitIfNotPresent);
       const funcName = `m${funcNum}`;
@@ -802,16 +803,16 @@ export const balanceOf = async (acc) => {
   const { amount } = await client.accountInformation(networkAccount.addr).do();
   return bigNumberify(amount);
 };
-export const createAccount = async () => {
+export const createAccount = async (label) => {
   const networkAccount = algosdk.generateAccount();
-  return await connectAccount(networkAccount);
+  return await connectAccount(networkAccount, label);
 };
 export const fundFromFaucet = async (account, value) => {
   const faucet = await getFaucet();
   await transfer(faucet, account, value);
 };
-export const newTestAccount = async (startingBalance) => {
-  const account = await createAccount();
+export const newTestAccount = async (startingBalance, label) => {
+  const account = await createAccount(label);
   if (getDEBUG()) {
     await showBalance('before', account.networkAccount);
   }
@@ -863,7 +864,7 @@ export function formatCurrency(amt, decimals = 6) {
 }
 // XXX The getDefaultAccount pattern doesn't really work w/ AlgoSigner
 // AlgoSigner does not expose a "currently-selected account"
-export async function getDefaultAccount() {
+export async function getDefaultAccount(label) {
   if (!window.prompt) {
     throw Error(`Cannot prompt the user for default account with window.prompt`);
   }
@@ -872,10 +873,10 @@ export async function getDefaultAccount() {
     const mnemonic = window.prompt(`Please paste the mnemonic for your account, or cancel to generate a new one`);
     if (mnemonic) {
       debug(`Creating account from user-provided mnemonic`);
-      return await newAccountFromMnemonic(mnemonic);
+      return await newAccountFromMnemonic(mnemonic, label);
     } else {
       debug(`No mnemonic provided. Randomly generating a new account secret instead.`);
-      return await createAccount();
+      return await createAccount(label);
     }
   } else if (signStrategy === 'AlgoSigner') {
     const ledger = 'Reach Devnet'; // XXX decide how to support other ledgers
@@ -884,7 +885,7 @@ export async function getDefaultAccount() {
     if (!addr) {
       throw Error(`No address provided`);
     }
-    return await newAccountFromAlgoSigner(addr, AlgoSigner, ledger);
+    return await newAccountFromAlgoSigner(addr, AlgoSigner, ledger, label);
   } else if (signStrategy === 'MyAlgo') {
     throw Error(`MyAlgo wallet support is not yet implemented`);
   } else {
@@ -894,18 +895,18 @@ export async function getDefaultAccount() {
 /**
  * @param mnemonic 25 words, space-separated
  */
-export const newAccountFromMnemonic = async (mnemonic) => {
-  return await connectAccount(algosdk.mnemonicToSecretKey(mnemonic));
+export const newAccountFromMnemonic = async (mnemonic, label) => {
+  return await connectAccount(algosdk.mnemonicToSecretKey(mnemonic), label);
 };
 /**
  * @param secret a Uint8Array, or its hex string representation
  */
-export const newAccountFromSecret = async (secret) => {
+export const newAccountFromSecret = async (secret, label) => {
   const sk = ethers.utils.arrayify(secret);
   const mnemonic = algosdk.secretKeyToMnemonic(sk);
-  return await newAccountFromMnemonic(mnemonic);
+  return await newAccountFromMnemonic(mnemonic, label);
 };
-export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger) => {
+export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger, label) => {
   if (!AlgoSigner) {
     throw Error(`AlgoSigner is falsy`);
   }
@@ -917,7 +918,7 @@ export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger) => {
     throw Error(`Address ${addr} not found in AlgoSigner accounts`);
   }
   let networkAccount = { addr, AlgoSigner };
-  return await connectAccount(networkAccount);
+  return await connectAccount(networkAccount, label);
 };
 export const getNetworkTime = async () => bigNumberify(await getLastRound());
 export const waitUntilTime = async (targetTime, onProgress) => {

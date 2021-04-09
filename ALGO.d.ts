@@ -251,7 +251,7 @@ declare const getFaucet: () => Promise<{
 }>) => void;
 export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: any) => Promise<TxnInfo>;
-export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<{
+export declare const connectAccount: (networkAccount: NetworkAccount, _label: string) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -331,7 +331,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
     };
 }>;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
-export declare const createAccount: () => Promise<{
+export declare const createAccount: (label: string) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -411,7 +411,7 @@ export declare const createAccount: () => Promise<{
     };
 }>;
 export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
-export declare const newTestAccount: (startingBalance: any) => Promise<{
+export declare const newTestAccount: (startingBalance: any, label: string) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -512,16 +512,16 @@ export declare const minimumBalance: BigNumber;
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
  */
 export declare function formatCurrency(amt: any, decimals?: number): string;
-export declare function getDefaultAccount(): Promise<Account>;
+export declare function getDefaultAccount(label: string): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated
  */
-export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Account>;
+export declare const newAccountFromMnemonic: (mnemonic: string, label: string) => Promise<Account>;
 /**
  * @param secret a Uint8Array, or its hex string representation
  */
-export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
-export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<{
+export declare const newAccountFromSecret: (secret: string | Uint8Array, label: string) => Promise<Account>;
+export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string, label: string) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
