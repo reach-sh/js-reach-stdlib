@@ -5,14 +5,13 @@ const knownConnectorModes = [
   'ETH-test-dockerized-geth',
   'ETH-live',
   'ETH-browser',
-  'FAKE-test-embedded-mock',
   'ALGO-test-dockerized-algod',
   'ALGO-live',
   'ALGO-browser',
 ];
 
 function isKnownConnector(s) {
-  return (s === 'ETH' || s === 'ALGO' || s === 'FAKE');
+  return (s === 'ETH' || s === 'ALGO');
 }
 const connectorModeDefaults = {};
 // Populate connectorModeDefaults
