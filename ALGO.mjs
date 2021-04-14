@@ -424,7 +424,7 @@ export { setIndexer };
 const rawFaucetDefaultMnemonic = 'husband sock drift razor piece february loop nose crew object salon come sketch frost grocery capital young strategy catalog dial seminar sword betray absent army';
 const [getFaucet, setFaucet] = replaceableThunk(async () => {
   const FAUCET = algosdk.mnemonicToSecretKey(process.env.ALGO_FAUCET_PASSPHRASE || rawFaucetDefaultMnemonic);
-  return await connectAccount(FAUCET, 'Faucet');
+  return await connectAccount(FAUCET);
 });
 export { getFaucet, setFaucet };
 export const transfer = async (from, to, value) => {
@@ -480,11 +480,11 @@ async function signTxn(networkAccount, txnOrig) {
     throw Error(`networkAccount has neither sk nor AlgoSigner: ${JSON.stringify(networkAccount)}`);
   }
 }
-export const connectAccount = async (networkAccount, _label) => {
+export const connectAccount = async (networkAccount) => {
   const indexer = await getIndexer();
   const thisAcc = networkAccount;
   const shad = thisAcc.addr.substring(2, 6);
-  const label = _label || shad;
+  let label = shad;
   const pks = T_Address.canonicalize(thisAcc);
   debug(`${shad}: connectAccount`);
   const selfAddress = () => {
@@ -793,7 +793,13 @@ export const connectAccount = async (networkAccount, _label) => {
   const deploy = (bin) => {
     return deferP(deployP(bin));
   };
-  return { deploy, attach, networkAccount, getAddress: selfAddress, stdlib: compiledStdlib };
+
+  function setDebugLabel(newLabel) {
+    label = newLabel;
+    // @ts-ignore
+    return this;
+  }
+  return { deploy, attach, networkAccount, getAddress: selfAddress, stdlib: compiledStdlib, setDebugLabel };
 };
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
@@ -803,16 +809,16 @@ export const balanceOf = async (acc) => {
   const { amount } = await client.accountInformation(networkAccount.addr).do();
   return bigNumberify(amount);
 };
-export const createAccount = async (label) => {
+export const createAccount = async () => {
   const networkAccount = algosdk.generateAccount();
-  return await connectAccount(networkAccount, label);
+  return await connectAccount(networkAccount);
 };
 export const fundFromFaucet = async (account, value) => {
   const faucet = await getFaucet();
   await transfer(faucet, account, value);
 };
-export const newTestAccount = async (startingBalance, label) => {
-  const account = await createAccount(label);
+export const newTestAccount = async (startingBalance) => {
+  const account = await createAccount();
   if (getDEBUG()) {
     await showBalance('before', account.networkAccount);
   }
@@ -864,7 +870,7 @@ export function formatCurrency(amt, decimals = 6) {
 }
 // XXX The getDefaultAccount pattern doesn't really work w/ AlgoSigner
 // AlgoSigner does not expose a "currently-selected account"
-export async function getDefaultAccount(label) {
+export async function getDefaultAccount() {
   if (!window.prompt) {
     throw Error(`Cannot prompt the user for default account with window.prompt`);
   }
@@ -873,10 +879,10 @@ export async function getDefaultAccount(label) {
     const mnemonic = window.prompt(`Please paste the mnemonic for your account, or cancel to generate a new one`);
     if (mnemonic) {
       debug(`Creating account from user-provided mnemonic`);
-      return await newAccountFromMnemonic(mnemonic, label);
+      return await newAccountFromMnemonic(mnemonic);
     } else {
       debug(`No mnemonic provided. Randomly generating a new account secret instead.`);
-      return await createAccount(label);
+      return await createAccount();
     }
   } else if (signStrategy === 'AlgoSigner') {
     const ledger = 'Reach Devnet'; // XXX decide how to support other ledgers
@@ -885,7 +891,7 @@ export async function getDefaultAccount(label) {
     if (!addr) {
       throw Error(`No address provided`);
     }
-    return await newAccountFromAlgoSigner(addr, AlgoSigner, ledger, label);
+    return await newAccountFromAlgoSigner(addr, AlgoSigner, ledger);
   } else if (signStrategy === 'MyAlgo') {
     throw Error(`MyAlgo wallet support is not yet implemented`);
   } else {
@@ -895,18 +901,18 @@ export async function getDefaultAccount(label) {
 /**
  * @param mnemonic 25 words, space-separated
  */
-export const newAccountFromMnemonic = async (mnemonic, label) => {
-  return await connectAccount(algosdk.mnemonicToSecretKey(mnemonic), label);
+export const newAccountFromMnemonic = async (mnemonic) => {
+  return await connectAccount(algosdk.mnemonicToSecretKey(mnemonic));
 };
 /**
  * @param secret a Uint8Array, or its hex string representation
  */
-export const newAccountFromSecret = async (secret, label) => {
+export const newAccountFromSecret = async (secret) => {
   const sk = ethers.utils.arrayify(secret);
   const mnemonic = algosdk.secretKeyToMnemonic(sk);
-  return await newAccountFromMnemonic(mnemonic, label);
+  return await newAccountFromMnemonic(mnemonic);
 };
-export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger, label) => {
+export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger) => {
   if (!AlgoSigner) {
     throw Error(`AlgoSigner is falsy`);
   }
@@ -918,7 +924,7 @@ export const newAccountFromAlgoSigner = async (addr, AlgoSigner, ledger, label) 
     throw Error(`Address ${addr} not found in AlgoSigner accounts`);
   }
   let networkAccount = { addr, AlgoSigner };
-  return await connectAccount(networkAccount, label);
+  return await connectAccount(networkAccount);
 };
 export const getNetworkTime = async () => bigNumberify(await getLastRound());
 export const waitUntilTime = async (targetTime, onProgress) => {

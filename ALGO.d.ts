@@ -170,6 +170,7 @@ declare const getFaucet: () => Promise<{
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>, setFaucet: (val: Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
@@ -248,10 +249,11 @@ declare const getFaucet: () => Promise<{
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>) => void;
 export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: any) => Promise<TxnInfo>;
-export declare const connectAccount: (networkAccount: NetworkAccount, _label: string) => Promise<{
+export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -329,9 +331,10 @@ export declare const connectAccount: (networkAccount: NetworkAccount, _label: st
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
-export declare const createAccount: (label: string) => Promise<{
+export declare const createAccount: () => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -409,9 +412,10 @@ export declare const createAccount: (label: string) => Promise<{
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>;
 export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
-export declare const newTestAccount: (startingBalance: any, label: string) => Promise<{
+export declare const newTestAccount: (startingBalance: any) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -489,6 +493,7 @@ export declare const newTestAccount: (startingBalance: any, label: string) => Pr
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>;
 /** @description the display name of the standard unit of currency for the network */
 export declare const standardUnit = "ALGO";
@@ -512,16 +517,16 @@ export declare const minimumBalance: BigNumber;
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
  */
 export declare function formatCurrency(amt: any, decimals?: number): string;
-export declare function getDefaultAccount(label: string): Promise<Account>;
+export declare function getDefaultAccount(): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated
  */
-export declare const newAccountFromMnemonic: (mnemonic: string, label: string) => Promise<Account>;
+export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Account>;
 /**
  * @param secret a Uint8Array, or its hex string representation
  */
-export declare const newAccountFromSecret: (secret: string | Uint8Array, label: string) => Promise<Account>;
-export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string, label: string) => Promise<{
+export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
+export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<{
     deploy: (bin: Backend) => ContractAttached;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => ContractAttached;
     networkAccount: Wallet;
@@ -599,6 +604,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
             i: number | ethers.ethers.BigNumber;
         }) => number;
     };
+    setDebugLabel: (newLabel: string) => Account;
 }>;
 export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
