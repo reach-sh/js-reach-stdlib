@@ -120,7 +120,7 @@ declare const getFaucet: () => Promise<{
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -199,7 +199,7 @@ declare const getFaucet: () => Promise<{
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -281,7 +281,7 @@ export declare const connectAccount: (networkAccount: NetworkAccount) => Promise
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -362,7 +362,7 @@ export declare const createAccount: () => Promise<{
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -443,7 +443,7 @@ export declare const newTestAccount: (startingBalance: any) => Promise<{
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -554,7 +554,7 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
         Array_set<T>(arr: T[], idx: number, elem: T): T[];
         setDEBUG: (b: boolean) => void;
         getDEBUG: () => boolean;
-        debug: (msg: any) => void;
+        debug: (...msgs: any) => void;
         assert: (d: any, ai?: any) => void;
         isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
         bigNumberify: (x: any) => ethers.ethers.BigNumber;
@@ -633,7 +633,7 @@ export declare const reachStdlib: {
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
-    debug: (msg: any) => void;
+    debug: (...msgs: any) => void;
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
     bigNumberify: (x: any) => ethers.ethers.BigNumber;

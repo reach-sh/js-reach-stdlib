@@ -94,7 +94,7 @@ const doHealthcheck = async () => {
       },
     };
     const req = http.request(opts, (res) => {
-      debug(`statusCode: ${res.statusCode}`);
+      debug(`statusCode:`, res.statusCode);
       res.on('data', (d) => {
         debug('rpc health check succeeded');
         if (getDEBUG()) {
@@ -252,7 +252,7 @@ export const transfer = async (from, to, value) => {
   const txn = { to: receiver, value: bigNumberify(value) };
   if (!sender || !sender.sendTransaction)
     throw Error(`Expected from.networkAccount.sendTransaction: ${from}`);
-  debug(`sender.sendTransaction(${JSON.stringify(txn)})`);
+  debug('sender.sendTransaction(', txn, ')');
   const r = await (await sender.sendTransaction(txn)).wait();
   assert(r !== null);
   return fetchAndRejectInvalidReceiptFor(r.transactionHash);
@@ -297,18 +297,18 @@ export const connectAccount = async (networkAccount) => {
       return { infoP, resolveInfo };
     })();
     const performDeploy = (init) => {
-      debug(`${shad}: performDeploy with ${JSON.stringify(init)}`);
+      debug(shad, ': performDeploy with', init);
       const { argsMay, value } = initOrDefaultArgs(init);
       const { ABI, Bytecode } = bin._Connectors.ETH;
-      debug(`${shad}: making contract factory`);
+      debug(shad, ': making contract factory');
       const factory = new ethers.ContractFactory(ABI, Bytecode, networkAccount);
       (async () => {
-        debug(`${shad}: deploying factory`);
+        debug(shad, `: deploying factory`);
         const contract = await factory.deploy(...argsMay, { value, gasLimit });
-        debug(`${shad}: deploying factory; done: ${contract.address}`);
-        debug(`${shad}: waiting for receipt: ${contract.deployTransaction.hash}`);
+        debug(shad, `: deploying factory; done:`, contract.address);
+        debug(shad, `: waiting for receipt:`, contract.deployTransaction.hash);
         const deploy_r = await contract.deployTransaction.wait();
-        debug(`${shad}: got receipt; ${deploy_r.blockNumber}`);
+        debug(shad, `: got receipt;`, deploy_r.blockNumber);
         const info = {
           address: contract.address,
           creation_block: deploy_r.blockNumber,
@@ -335,7 +335,7 @@ export const connectAccount = async (networkAccount) => {
           throw Error(`Cannot wait yet; contract is not actually deployed`);
         },
         sendrecv: async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
-          debug(`${shad}: ${label} sendrecv m${funcNum} (deferred deploy)`);
+          debug(shad, ':', label, 'sendrecv m', funcNum, '(deferred deploy)');
           void(evt_cnt);
           void(sim_p);
           // TODO: munge/unmunge roundtrip?
@@ -408,7 +408,7 @@ export const connectAccount = async (networkAccount) => {
     const { getLastBlock, setLastBlock } = (() => {
       let lastBlock = null;
       const setLastBlock = (n) => {
-        debug(`lastBlock from ${lastBlock} to ${n}`);
+        debug(`lastBlock from`, lastBlock, `to`, n);
         lastBlock = n;
       };
       const getLastBlock = async () => {
@@ -436,7 +436,7 @@ export const connectAccount = async (networkAccount) => {
         }
         const info = await infoP;
         await verifyContract(info, bin);
-        debug(`${shad}: contract verified`);
+        debug(shad, `: contract verified`);
         if (!ethers.Signer.isSigner(networkAccount)) {
           throw Error(`networkAccount must be a Signer (read: Wallet). ${networkAccount}`);
         }
@@ -476,28 +476,28 @@ export const connectAccount = async (networkAccount) => {
       if (tys.length !== args.length) {
         throw Error(`tys.length (${tys.length}) !== args.length (${args.length})`);
       }
-      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND --- ARGS ${JSON.stringify(args)}`);
+      debug(shad, ':', label, 'send', funcName, timeout_delay, '--- SEND --- ARGS', args);
       const [args_svs, args_msg] = argsSplit(args, evt_cnt);
       const [tys_svs, tys_msg] = argsSplit(tys, evt_cnt);
       // @ts-ignore XXX
       const arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
       const arg = arg_ty.munge([args_svs, args_msg]);
-      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- START --- ${JSON.stringify(arg)}`);
+      debug(shad, ':', label, 'send', funcName, timeout_delay, '--- START ---', arg);
       const lastBlock = await getLastBlock();
       let block_send_attempt = lastBlock;
       let block_repeat_count = 0;
       while (!timeout_delay || lt(block_send_attempt, add(lastBlock, timeout_delay))) {
         let r_maybe = null;
-        debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY`);
+        debug(shad, ':', label, 'send', funcName, timeout_delay, `--- TRY`);
         try {
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SEND ARG --- ${JSON.stringify(arg)} --- ${JSON.stringify(value)}`);
+          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- SEND ARG ---`, arg, `---`, value);
           const r_fn = await callC(funcName, arg, value);
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- POST CALL`);
+          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- POST CALL`);
           r_maybe = await r_fn.wait();
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- POST WAIT`);
+          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- POST WAIT`);
           assert(r_maybe !== null);
           const ok_r = await fetchAndRejectInvalidReceiptFor(r_maybe.transactionHash);
-          debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- OKAY`);
+          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- OKAY`);
           // XXX It might be a little dangerous to rely on the polling to just work
           // It may be the case that the next line could speed things up?
           // last_block = ok_r.blockNumber;
@@ -506,9 +506,9 @@ export const connectAccount = async (networkAccount) => {
           void(ok_r);
         } catch (e) {
           if (!soloSend) {
-            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- SKIPPING (${e})`);
+            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- SKIPPING (`, e, `)`);
           } else {
-            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- ERROR: ${e.stack}`);
+            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- ERROR:`, e.stack);
             // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
             await Timeout.set(1);
             const current_block = await getNetworkTimeNumber();
@@ -529,7 +529,7 @@ export const connectAccount = async (networkAccount) => {
               console.log(arg);
               throw Error(`${shad}: ${label} send ${funcName} ${timeout_delay} --- REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
             }
-            debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- TRY FAIL --- ${lastBlock} ${current_block} ${block_repeat_count} ${block_send_attempt}`);
+            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- TRY FAIL ---`, lastBlock, current_block, block_repeat_count, block_send_attempt);
             continue;
           }
         }
@@ -538,7 +538,7 @@ export const connectAccount = async (networkAccount) => {
       // XXX If we were trying to join, but we got sniped, then we'll
       // think that there is a timeout and then we'll wait forever for
       // the timeout message.
-      debug(`${shad}: ${label} send ${funcName} ${timeout_delay} --- FAIL/TIMEOUT`);
+      debug(shad, ':', label, 'send', funcName, timeout_delay, `--- FAIL/TIMEOUT`);
       return { didTimeout: true };
     };
     const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
@@ -550,16 +550,16 @@ export const connectAccount = async (networkAccount) => {
       const isFirstMsgDeploy = (okNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
       const lastBlock = await getLastBlock();
       const ok_evt = `e${okNum}`;
-      debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- START`);
+      debug(shad, ':', label, 'recv', ok_evt, timeout_delay, `--- START`);
       // look after the last block
       const block_poll_start_init = lastBlock + (isFirstMsgDeploy ? 0 : 1);
       let block_poll_start = block_poll_start_init;
       let block_poll_end = block_poll_start;
       while (!timeout_delay || lt(block_poll_start, add(lastBlock, timeout_delay))) {
-        debug(`${shad}: ${label} recv ${ok_evt} --- GET ${block_poll_start} ${block_poll_end}`);
+        debug(shad, ':', label, 'recv', ok_evt, `--- GET`, block_poll_start, block_poll_end);
         const es = await getLogs(block_poll_start, block_poll_end, ok_evt);
         if (es.length == 0) {
-          debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- RETRY`);
+          debug(shad, ':', label, 'recv', ok_evt, timeout_delay, `--- RETRY`);
           block_poll_start = block_poll_end;
           await Timeout.set(1);
           block_poll_end = await getNetworkTimeNumber();
@@ -571,7 +571,7 @@ export const connectAccount = async (networkAccount) => {
           }
           continue;
         } else {
-          debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY`);
+          debug(shad, ':', label, 'recv', ok_evt, timeout_delay, `--- OKAY`);
           const ok_e = es[0];
           const ok_r = await fetchAndRejectInvalidReceiptFor(ok_e.transactionHash);
           void(ok_r);
@@ -588,31 +588,31 @@ export const connectAccount = async (networkAccount) => {
             console.log(`WARNING: no blockNumber on transaction.`);
             console.log(ok_t);
           }
-          debug(`${shad}: ${label} recv ${ok_evt} --- AT ${ok_r.blockNumber}`);
+          debug(shad, ':', label, 'recv', ok_evt, `--- AT`, ok_r.blockNumber);
           updateLast(ok_r);
           const ok_ed = await getEventData(ok_evt, ok_e);
-          debug(`${shad}: ${label} recv ${ok_evt} --- DATA -- ${JSON.stringify(ok_ed)}`);
+          debug(shad, ':', label, 'recv', ok_evt, `--- DATA --`, ok_ed);
           const ok_vals = ok_ed[0][1];
-          debug(`${shad}: ${label} recv ${ok_evt} --- MSG -- ${JSON.stringify(ok_vals)}`);
+          debug(shad, ':', label, 'recv', ok_evt, `--- MSG --`, ok_vals);
           const data = T_Tuple(out_tys).unmunge(ok_vals);
           const getOutput = async (o_lab, o_ctc) => {
-            let dhead = `${shad}: ${label} recv ${ok_evt} --- getOutput: ${o_lab} ${JSON.stringify(o_ctc)}`;
-            debug(`${dhead}`);
+            let dhead = [shad, ':', label, 'recv', ok_evt, '--- getOutput:', o_lab, o_ctc];
+            debug(...dhead);
             const oe_evt = `oe_${o_lab}`;
             const theBlock = ok_r.blockNumber;
-            dhead = `${dhead} oe(${JSON.stringify(oe_evt)})`;
+            dhead = [...dhead, 'oe(', oe_evt, ')'];
             const oe_e = (await getLogs(theBlock, theBlock, oe_evt))[0];
-            dhead = `${dhead} log(${JSON.stringify(oe_e)})`;
-            debug(`${dhead}`);
+            dhead = [...dhead, 'log(', oe_e, ')'];
+            debug(...dhead);
             const oe_ed = (await getEventData(oe_evt, oe_e))[0];
-            dhead = `${dhead} data(${JSON.stringify(oe_ed)})`;
-            debug(`${dhead}`);
+            dhead = [...dhead, 'data(', oe_ed, ')'];
+            debug(...dhead);
             const oe_edu = o_ctc.unmunge(oe_ed);
-            dhead = `${dhead} unmunge(${JSON.stringify(oe_edu)})`;
-            debug(`${dhead}`);
+            dhead = [...dhead, 'unmunge(', oe_edu, ')'];
+            debug(...dhead);
             return oe_edu;
           };
-          debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY --- ${JSON.stringify(ok_vals)}`);
+          debug(shad, ':', label, 'recv', ok_evt, timeout_delay, '--- OKAY ---', ok_vals);
           return {
             didTimeout: false,
             time: bigNumberify(ok_r.blockNumber),
@@ -623,7 +623,7 @@ export const connectAccount = async (networkAccount) => {
           };
         }
       }
-      debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- TIMEOUT`);
+      debug(shad, ':', label, 'recv', ok_evt, timeout_delay, '--- TIMEOUT');
       return { didTimeout: true };
     };
     const recv = async (okNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) => {
@@ -633,9 +633,9 @@ export const connectAccount = async (networkAccount) => {
     const wait = async (delta) => {
       const lastBlock = await getLastBlock();
       // Don't wait from current time, wait from last_block
-      debug(`=====Waiting ${delta} from ${lastBlock}: ${address}`);
+      debug('=====Waiting', delta, 'from', lastBlock, ':', address);
       const p = await waitUntilTime(add(lastBlock, delta));
-      debug(`=====Done waiting ${delta} from ${lastBlock}: ${address}`);
+      debug('=====Done waiting', delta, 'from', lastBlock, ':', address);
       return p;
     };
     const creationTime = (async () => bigNumberify((await getInfo()).creation_block));
@@ -706,14 +706,14 @@ export const fundFromFaucet = async (account, value) => {
   await transfer(faucet, account, value);
 };
 export const newTestAccount = async (startingBalance) => {
-  debug(`newTestAccount(${startingBalance})`);
+  debug('newTestAccount(', startingBalance, ')');
   requireIsolatedNetwork('newTestAccount');
   const acc = await createAccount();
   const to = await getAddr(acc);
   try {
-    debug(`newTestAccount awaiting transfer: ${to}`);
+    debug('newTestAccount awaiting transfer:', to);
     await fundFromFaucet(acc, startingBalance);
-    debug(`newTestAccount got transfer: ${JSON.stringify(to)}`);
+    debug('newTestAccount got transfer:', to);
     return acc;
   } catch (e) {
     console.log(`newTestAccount: Trouble with account ${to}`);
@@ -749,8 +749,8 @@ export const verifyContract = async (ctcInfo, backend) => {
   const { address, creation_block, init, creator } = ctcInfo;
   const { argsMay, value } = initOrDefaultArgs(init);
   const factory = new ethers.ContractFactory(ABI, Bytecode);
-  debug(`verifyContract: ${address}`);
-  debug(JSON.stringify(ctcInfo));
+  debug('verifyContract:', address);
+  debug(ctcInfo);
   const provider = await getProvider();
   const now = await getNetworkTimeNumber();
   const { chainId } = await provider.getNetwork();
@@ -760,10 +760,10 @@ export const verifyContract = async (ctcInfo, backend) => {
     // XXX ^ this will probably change over time
   ].includes(chainId);
   if (lenient) {
-    debug(`verifyContract: using lenient contract verification for chainId=${chainId}`);
+    debug('verifyContract: using lenient contract verification for chainId=', chainId);
   }
   const deployEvent = isNone(argsMay) ? 'e0' : 'e1';
-  debug(`verifyContract: checking logs for ${deployEvent}...`);
+  debug('verifyContract: checking logs for', deployEvent, '...');
   // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
   // "Keep in mind that many backends will discard old events"
   // TODO: find another way to validate creation block if much time has passed?

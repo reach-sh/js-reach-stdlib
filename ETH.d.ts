@@ -342,7 +342,7 @@ export declare const reachStdlib: {
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
-    debug: (msg: any) => void;
+    debug: (...msgs: any) => void;
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
     bigNumberify: (x: any) => ethers.ethers.BigNumber;

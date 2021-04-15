@@ -69,7 +69,7 @@ export declare const stdlib: {
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
-    debug: (msg: any) => void;
+    debug: (...msgs: any) => void;
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
     bigNumberify: (x: any) => ethers.ethers.BigNumber;

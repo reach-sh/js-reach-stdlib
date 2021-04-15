@@ -62,7 +62,7 @@ export type { Connector } from './ConnectorMode';
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
-export declare const debug: (msg: any) => void;
+export declare const debug: (...msgs: any) => void;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
