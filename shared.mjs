@@ -31,8 +31,9 @@ export const debug = (...msgs) => {
     const betterMsgs = msgs.map((msg) => ['object', 'array'].includes(typeof msg) ?
       util.inspect(msg, false, null, true) :
       msg);
+    void(betterMsgs);
     // Print objects for indentation, colors, etc...
-    console.log(new Date(), `DEBUG:`, ...betterMsgs);
+    console.log(new Date(), `DEBUG:`, ...msgs);
   }
 };
 export const assert = (d, ai = null) => {

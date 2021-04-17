@@ -1,7 +1,7 @@
 import ethers from 'ethers';
 import * as shared from './shared';
 import * as CBR from './CBR';
-import { CBR_UInt, CBR_Bytes, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Struct, CBR_Val } from './CBR';
+import { CBR_UInt, CBR_Bytes, CBR_Address, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Struct, CBR_Val } from './CBR';
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.ethers.BigNumber;
 export declare const UInt_max: BigNumber;
@@ -17,6 +17,10 @@ declare type ETH_Ty<BV extends CBR_Val, NV> = {
 export declare type AnyETH_Ty = ETH_Ty<CBR_Val, any>;
 export declare const digest: (t: any, v: any) => string;
 export declare const T_UInt: ETH_Ty<CBR_UInt, BigNumber>;
+export declare const addressEq: (x: any, y: any) => boolean;
+export declare const tokenEq: (x: any, y: any) => boolean;
+export declare type Token = CBR_Address;
+export declare type PayAmt = shared.MkPayAmt<Token>;
 export declare const typeDefs: {
     T_Null: ETH_Ty<null, false>;
     T_Bool: ETH_Ty<boolean, boolean>;
@@ -24,6 +28,7 @@ export declare const typeDefs: {
     T_Bytes: (len: number) => ETH_Ty<CBR_Bytes, Array<number>>;
     T_Address: ETH_Ty<string, string>;
     T_Digest: ETH_Ty<string, ethers.ethers.BigNumber>;
+    T_Token: ETH_Ty<string, string>;
     T_Object: <T>(co: {
         [key: string]: ETH_Ty<CBR.CBR_Val, T>;
     }) => ETH_Ty<CBR.CBR_Object, {
@@ -36,9 +41,9 @@ export declare const typeDefs: {
     T_Tuple: <T_3>(ctcs: ETH_Ty<CBR.CBR_Val, T_3>[]) => ETH_Ty<CBR.CBR_Tuple, T_3[]>;
     T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
 };
-export declare const addressEq: (x: any, y: any) => boolean;
 export declare const stdlib: {
     addressEq: (x: any, y: any) => boolean;
+    tokenEq: (x: any, y: any) => boolean;
     digest: (t: any, v: any) => string;
     UInt_max: ethers.ethers.BigNumber;
     T_Null: ETH_Ty<null, false>;
@@ -47,6 +52,7 @@ export declare const stdlib: {
     T_Bytes: (len: number) => ETH_Ty<CBR_Bytes, Array<number>>;
     T_Address: ETH_Ty<string, string>;
     T_Digest: ETH_Ty<string, ethers.ethers.BigNumber>;
+    T_Token: ETH_Ty<string, string>;
     T_Object: <T>(co: {
         [key: string]: ETH_Ty<CBR.CBR_Val, T>;
     }) => ETH_Ty<CBR.CBR_Object, {

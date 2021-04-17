@@ -1,8 +1,4 @@
-// ****************************************************************************
-// standard library for Javascript users
-// ****************************************************************************
-// XXX: do not import any types from algosdk; instead copy/paste them below
-// XXX: can stop doing this workaround once @types/algosdk is shippable
+// XXX: use @types/algosdk when we can
 import algosdk from 'algosdk';
 import base32 from 'hi-base32';
 import ethers from 'ethers';
@@ -10,31 +6,17 @@ import url from 'url';
 import Timeout from 'await-timeout';
 import buffer from 'buffer';
 import msgpack from '@msgpack/msgpack';
-// XXX: uncomment this import as needed for debugging in browser
+// DEBUG: uncomment this for debugging in browser
 // @ts-ignore
 // import algosdk__src__transaction from 'algosdk/src/transaction';
 const { Buffer } = buffer;
-import { debug, getDEBUG, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
+import { debug, getDEBUG, assert, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
 import waitPort from 'wait-port';
 import { replaceableThunk } from './shared_impl.mjs';
-import { stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
+import { addressToHex, stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
 import { process, window } from './shim.mjs';
 export * from './shared.mjs';
-// ctc[ALGO] = {
-//   address: string
-//   appId: confirmedTxn.TransactionResults.CreatedAppIndex; // ?
-//   creationRound: int // bigint?
-//   logic_sig: LogicSig
-//
-//   // internal fields
-//   // * not required to call acc.attach(bin, ctc)
-//   // * required by backend
-//   sendrecv: function
-//   recv: function
-// }
-// ****************************************************************************
 // Helpers
-// ****************************************************************************
 function uint8ArrayToStr(a, enc = 'utf8') {
   if (!(a instanceof Uint8Array)) {
     console.log(a);
@@ -84,7 +66,7 @@ async function wait1port(theServer, thePort) {
   return await waitPort(args);
 }
 const getLastRound = async () => (await (await getAlgodClient()).status().do())['last-round'];
-const waitForConfirmation = async (txId, untilRound) => {
+export const waitForConfirmation = async (txId, untilRound) => {
   const algodClient = await getAlgodClient();
   let lastRound = null;
   do {
@@ -97,7 +79,7 @@ const waitForConfirmation = async (txId, untilRound) => {
     if (confirmedRound && confirmedRound > 0) {
       return pendingInfo;
     }
-  } while (lastRound < untilRound);
+  } while (!untilRound || lastRound < untilRound);
   throw { type: 'waitForConfirmation', txId, untilRound, lastRound };
 };
 const sendAndConfirm = async (stx_or_stxs) => {
@@ -117,7 +99,7 @@ const sendAndConfirm = async (stx_or_stxs) => {
   }
   const untilRound = lastRound;
   const req = (await getAlgodClient()).sendRawTransaction(sendme);
-  // @ts-ignore XXX
+  // @ts-ignore
   debug('sendAndConfirm:', base64ify(req.txnBytesToPost));
   try {
     await req.do();
@@ -147,7 +129,7 @@ const compileTEAL = async (label, code) => {
     throw Error(`compile ${label} failed: ${s}: ${JSON.stringify(r)}`);
   }
 };
-const getTxnParams = async () => {
+export const getTxnParams = async () => {
   debug(`fillTxn: getting params`);
   while (true) {
     const params = await (await getAlgodClient()).getTransactionParams().do();
@@ -339,7 +321,7 @@ async function compileFor(bin, info) {
       return null;
     }
     const mN = `m${mi}`;
-    const mc_subst = subst_ctc(subst_appid(mc));
+    const mc_subst = subst_creator(subst_ctc(subst_appid(mc)));
     const cr = await compileTEAL(mN, mc_subst);
     checkLen(`${mN} Contract`, cr.result.length, LogicSigMaxSize);
     // XXX check arg count
@@ -390,11 +372,6 @@ const doQuery = async (dhead, query) => {
   const txn = res.transactions[0];
   return txn;
 };
-const showBalance = async (note, networkAccount) => {
-  const bal = await balanceOf({ networkAccount });
-  const showBal = formatCurrency(bal, 2);
-  console.log('%s: balance: %s algos', note, showBal);
-};
 // ****************************************************************************
 // Common Interface Exports
 // ****************************************************************************
@@ -402,7 +379,7 @@ export const { addressEq, digest } = compiledStdlib;
 export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(8);
 // TODO: read token from scripts/algorand-devnet/algorand_data/algod.token
-const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
+export const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
   debug(`Setting algod client to default`);
   const token = process.env.ALGO_TOKEN || rawDefaultToken;
   const server = process.env.ALGO_SERVER || 'http://localhost';
@@ -410,8 +387,7 @@ const [getAlgodClient, setAlgodClient] = replaceableThunk(async () => {
   await wait1port(server, port);
   return new algosdk.Algodv2(token, server, port);
 });
-export { setAlgodClient };
-const [getIndexer, setIndexer] = replaceableThunk(async () => {
+export const [getIndexer, setIndexer] = replaceableThunk(async () => {
   debug(`setting indexer to default`);
   const itoken = process.env.ALGO_INDEXER_TOKEN || rawDefaultItoken;
   const iserver = process.env.ALGO_INDEXER_SERVER || 'http://localhost';
@@ -419,7 +395,6 @@ const [getIndexer, setIndexer] = replaceableThunk(async () => {
   await wait1port(iserver, iport);
   return new algosdk.Indexer(itoken, iserver, iport);
 });
-export { setIndexer };
 // eslint-disable-next-line max-len
 const rawFaucetDefaultMnemonic = 'husband sock drift razor piece february loop nose crew object salon come sketch frost grocery capital young strategy catalog dial seminar sword betray absent army';
 const [getFaucet, setFaucet] = replaceableThunk(async () => {
@@ -427,12 +402,21 @@ const [getFaucet, setFaucet] = replaceableThunk(async () => {
   return await connectAccount(FAUCET);
 });
 export { getFaucet, setFaucet };
-export const transfer = async (from, to, value) => {
+const makeTransferTxn = (from, to, value, token, ps, closeTo = undefined) => {
   const valuen = bigNumberToNumber(value);
+  const note = algosdk.encodeObj('Reach');
+  const txn = token ?
+    algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, ui8z, bigNumberToNumber(token), ps) :
+    algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note, ps);
+  return txn;
+};
+export const transfer = async (from, to, value, token = undefined) => {
   const sender = from.networkAccount;
   const receiver = to.networkAccount.addr;
-  const note = algosdk.encodeObj('@reach-sh/ALGO.mjs transfer');
-  return await sign_and_send_sync(`transfer ${JSON.stringify(from)} ${JSON.stringify(to)} ${valuen}`, sender, algosdk.makePaymentTxnWithSuggestedParams(sender.addr, receiver, valuen, undefined, note, await getTxnParams()));
+  const valuebn = bigNumberify(value);
+  const ps = await getTxnParams();
+  const txn = makeTransferTxn(sender.addr, receiver, valuebn, token, ps);
+  return await sign_and_send_sync(`transfer ${JSON.stringify(from)} ${JSON.stringify(to)} ${valuebn}`, sender, txn);
 };
 async function signTxn(networkAccount, txnOrig) {
   const { sk, AlgoSigner } = networkAccount;
@@ -471,7 +455,6 @@ async function signTxn(networkAccount, txnOrig) {
       txID: stx_obj.txID,
       lastRound: txnOrig.lastRound,
     };
-    // XXX switch debug to console.log for nicer browser output
     debug('signed AlgoSigner');
     debug({ txID: ret.txID });
     debug(msgpack.decode(ret.tx));
@@ -504,12 +487,15 @@ export const connectAccount = async (networkAccount) => {
     let lastRound = ctcInfo.creationRound;
     debug(shad, ': attach', ApplicationID, 'created at', lastRound);
     const bin_comp = await compileFor(bin, ctcInfo);
+    const escrowAddr = bin_comp.ctc.hash;
+    void(addressToHex);
+    // XXX const escrowAddrRaw = T_Address.canonicalize(addressToHex(escrowAddr));
     await verifyContract(ctcInfo, bin);
     const ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
-    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       if (hasLastTime !== false) {
         const ltidx = hasLastTime.toNumber();
         tys.splice(ltidx, 1);
@@ -519,6 +505,8 @@ export const connectAccount = async (networkAccount) => {
       if (!onlyIf) {
         return await doRecv(true);
       }
+      const [value, toks] = pay;
+      void(toks); // <-- rely on simulation because of ordering
       const funcName = `m${funcNum}`;
       const dhead = `${shad}: ${label} sendrecv ${funcName} ${timeout_delay}`;
       debug(dhead, '--- START');
@@ -535,7 +523,7 @@ export const connectAccount = async (networkAccount) => {
         getOutput: (async (o_lab, o_ctc) => {
           void(o_lab);
           void(o_ctc);
-          throw Error(`Algorand does not support remote calls`);
+          throw Error(`Algorand does not support remote calls, and Reach should not have generated a call to this function`);
         }),
       };
       const sim_r = await sim_p(fake_res);
@@ -554,15 +542,50 @@ export const connectAccount = async (networkAccount) => {
           }
         }
         debug(dhead, '--- ASSEMBLE w/', params);
-        const txnFromContracts = sim_txns.map((txn_nfo) => algosdk.makePaymentTxnWithSuggestedParams(bin_comp.ctc.hash,
-          // XXX use some other function
-          algosdk.encodeAddress(Buffer.from(txn_nfo.to.slice(2), 'hex')), txn_nfo.amt.toNumber(), undefined, ui8z, params));
-        if (isHalt) {
-          txnFromContracts.push(algosdk.makePaymentTxnWithSuggestedParams(bin_comp.ctc.hash, Deployer, 0, Deployer, ui8z, params));
-        }
-        const totalFromFee = txnFromContracts.reduce(((sum, txn) => sum + txn.fee), 0);
+        let txnToContract_value_idx = -1;
+        let totalFromFee = 0;
+        const txnExtraTxns = sim_txns.map((t, i) => {
+          const { tok } = t;
+          let amt = bigNumberify(0);
+          let from = escrowAddr;
+          let to = escrowAddr;
+          let closeTo = undefined;
+          if (t.kind === 'from') {
+            from = escrowAddr;
+            // @ts-ignore
+            const tto = t.to;
+            // XXX use some other function
+            to = algosdk.encodeAddress(Buffer.from(tto.slice(2), 'hex'));
+            amt = t.amt;
+          } else if (t.kind === 'init') {
+            from = escrowAddr;
+            to = escrowAddr;
+            totalFromFee += raw_minimumBalance;
+            amt = t.amt;
+          } else if (t.kind === 'halt') {
+            from = escrowAddr;
+            to = Deployer;
+            closeTo = Deployer;
+          } else if (t.kind === 'to') {
+            from = thisAcc.addr;
+            to = escrowAddr;
+            amt = t.amt;
+          } else {
+            assert(false, 'sim txn kind');
+          }
+          const txn = makeTransferTxn(from, to, amt, tok, params, closeTo);
+          if (from === escrowAddr) {
+            totalFromFee += txn.fee;
+          }
+          if (t.kind === 'to' && !tok) {
+            txnToContract_value_idx = i;
+          }
+          return txn;
+        });
         debug(dhead, '--- totalFromFee =', totalFromFee);
-        debug(dhead, '--- isHalt =', isHalt);
+        assert(txnToContract_value_idx !== -1, 'sim txn no value');
+        txnExtraTxns[txnToContract_value_idx] =
+          makeTransferTxn(thisAcc.addr, escrowAddr, value.add(totalFromFee), undefined, params);
         const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
         const actual_tys = [T_Digest, T_Digest, T_Bool, T_UInt, T_UInt, ...tys];
         debug(dhead, '--- ARGS =', actual_args);
@@ -582,19 +605,16 @@ export const connectAccount = async (networkAccount) => {
           // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
           algosdk.makeApplicationDeleteTxn :
           algosdk.makeApplicationNoOpTxn;
-        // XXX if it is a halt, generate closeremaindertos for all the handlers and the contract account
         const txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args);
         const txnFromHandler = algosdk.makePaymentTxnWithSuggestedParams(handler.hash, thisAcc.addr, 0, thisAcc.addr, ui8z, params);
         debug(dhead, '--- txnFromHandler =', txnFromHandler);
         const txnToHandler = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, handler.hash, txnFromHandler.fee + raw_minimumBalance, undefined, ui8z, params);
         debug(dhead, '--- txnToHandler =', txnToHandler);
-        const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, bin_comp.ctc.hash, value.toNumber() + totalFromFee, undefined, ui8z, params);
         const txns = [
           txnAppl,
           txnToHandler,
           txnFromHandler,
-          txnToContract,
-          ...txnFromContracts,
+          ...txnExtraTxns,
         ];
         algosdk.assignGroupID(txns);
         regroup(thisAcc, txns);
@@ -609,16 +629,20 @@ export const connectAccount = async (networkAccount) => {
         const sign_me = async (x) => await signTxn(thisAcc, x);
         const txnAppl_s = await sign_me(txnAppl);
         const txnFromHandler_s = signLSTO(txnFromHandler, handler_sig);
-        // debug('txnFromHandler_s:', base64ify(txnFromHandler_s));
         const txnToHandler_s = await sign_me(txnToHandler);
-        const txnToContract_s = await sign_me(txnToContract);
-        const txnFromContracts_s = txnFromContracts.map((txn) => signLSTO(txn, ctc_prog));
+        const txnExtraTxns_s = await Promise.all(txnExtraTxns.map(async (t, i) => {
+          const st = sim_txns[i];
+          debug('txnExtraTxns_s', { t, i, st });
+          const t_s = st.kind === 'to' ?
+            await sign_me(t) :
+            signLSTO(t, ctc_prog);
+          return t_s;
+        }));
         const txns_s = [
           txnAppl_s,
           txnToHandler_s,
           txnFromHandler_s,
-          txnToContract_s,
-          ...txnFromContracts_s,
+          ...txnExtraTxns_s,
         ];
         debug(dhead, '--- SEND:', txns_s.length);
         let res;
@@ -711,14 +735,6 @@ export const connectAccount = async (networkAccount) => {
         const oldLastRound = lastRound;
         lastRound = theRound;
         debug(dhead, '--- updating round from', oldLastRound, 'to', lastRound);
-        // XXX ideally we'd get the whole transaction group before and not need to do this.
-        const ptxn = await doQuery(dhead, indexer.searchForTransactions()
-          .address(bin_comp.ctc.hash)
-          .addressRole('receiver')
-          .round(theRound));
-        const value = bigNumberify(ptxn['payment-transaction'].amount)
-          .sub(totalFromFee);
-        debug(dhead, '--- value =', value);
         const getOutput = (o_lab, o_ctc) => {
           void(o_lab);
           void(o_ctc);
@@ -728,7 +744,6 @@ export const connectAccount = async (networkAccount) => {
           didTimeout: false,
           data: args_un,
           time: bigNumberify(lastRound),
-          value,
           from,
           getOutput,
         };
@@ -752,9 +767,10 @@ export const connectAccount = async (networkAccount) => {
       throw Error(`No application-index in ${JSON.stringify(createRes)}`);
     }
     const bin_comp = await compileFor(bin, { ApplicationID, Deployer, creationRound: 0 });
+    const escrowAddr = bin_comp.ctc.hash;
     const params = await getTxnParams();
     const txnUpdate = algosdk.makeApplicationUpdateTxn(thisAcc.addr, params, ApplicationID, bin_comp.appApproval.result, appClear_bin.result);
-    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, bin_comp.ctc.hash, raw_minimumBalance, undefined, ui8z, params);
+    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, escrowAddr, raw_minimumBalance, undefined, ui8z, params);
     const txns = [
       txnUpdate,
       txnToContract,
@@ -779,15 +795,18 @@ export const connectAccount = async (networkAccount) => {
     return await attachP(bin, getInfo());
   };
   /**
-   * @description Push await down into the functions of a ContractAttached
-   * @param implP A promise of an implementation of ContractAttached
+   * @description Push await down into the functions of a Contract
+   * @param implP A promise of an implementation of Contract
    */
   const deferP = (implP) => {
     return {
       getInfo: async () => (await implP).getInfo(),
       creationTime: async () => (await implP).creationTime(),
+      // @ts-ignore
       sendrecv: async (...args) => (await implP).sendrecv(...args),
+      // @ts-ignore
       recv: async (...args) => (await implP).recv(...args),
+      // @ts-ignore
       wait: async (...args) => (await implP).wait(...args),
       iam,
       selfAddress,
@@ -826,13 +845,7 @@ export const fundFromFaucet = async (account, value) => {
 };
 export const newTestAccount = async (startingBalance) => {
   const account = await createAccount();
-  if (getDEBUG()) {
-    await showBalance('before', account.networkAccount);
-  }
   await fundFromFaucet(account, startingBalance);
-  if (getDEBUG()) {
-    await showBalance('after', account.networkAccount);
-  }
   return account;
 };
 /** @description the display name of the standard unit of currency for the network */

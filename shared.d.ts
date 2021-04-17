@@ -16,10 +16,13 @@ export declare type WPArgs = {
     output: 'silent';
     timeout: number;
 };
+export declare type MkPayAmt<Token> = [
+    BigNumber,
+    Array<[BigNumber, Token]>
+];
 export declare type IRecvNoTimeout<RawAddress> = {
     didTimeout: false;
     data: Array<any>;
-    value: BigNumber;
     from: RawAddress;
     time: BigNumber;
     getOutput: (o_lab: string, o_ctc: any) => Promise<any>;
@@ -27,10 +30,10 @@ export declare type IRecvNoTimeout<RawAddress> = {
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
 };
-export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy extends AnyBackendTy> = {
+export declare type IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     creationTime: () => Promise<BigNumber>;
-    sendrecv: (funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: BigNumber, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, RawAddress>>) => Promise<IRecv<RawAddress>>;
+    sendrecv: (funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: MkPayAmt<Token>, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, RawAddress, Token>>) => Promise<IRecv<RawAddress>>;
     recv: (okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, waitIfNotPresent: boolean, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
@@ -40,22 +43,34 @@ export declare type IContract<ContractInfo, Digest, RawAddress, ConnectorTy exte
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
-    attach: (bin: Backend, ctc: ContractInfo | Promise<ContractInfo>) => Contract;
+    attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => Contract;
     stdlib: Object;
     getAddress: () => string;
+    setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
 };
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Digest, RawAddress> = {
+export declare type ISimRes<Digest, RawAddress, Token> = {
     prevSt: Digest;
-    txns: Array<ISimTxn<RawAddress>>;
+    prevSt_noPrevTime: Digest;
+    txns: Array<ISimTxn<RawAddress, Token>>;
     nextSt: Digest;
+    nextSt_noTime: Digest;
     isHalt: boolean;
 };
-export declare type ISimTxn<RawAddress> = {
+export declare type ISimTxn<RawAddress, Token> = {
+    kind: "to" | "init";
+    amt: BigNumber;
+    tok: Token | undefined;
+} | {
+    kind: "from";
     to: RawAddress;
     amt: BigNumber;
+    tok: Token | undefined;
+} | {
+    kind: "halt";
+    tok: Token | undefined;
 };
 export declare type CurrencyAmount = string | number | BigNumber;
 export type { Connector } from './ConnectorMode';

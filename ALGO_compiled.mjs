@@ -53,12 +53,13 @@ export const T_Digest = {
   ...bytestringyNet,
   netSize: 32,
 };
+export const addressToHex = (x) => '0x' + Buffer.from(algosdk.decodeAddress(x).publicKey).toString('hex');
 
 function addressUnwrapper(x) {
   const addr = x && x.networkAccount && x.networkAccount.addr ||
     x && x.addr;
   return (addr != undefined) ?
-    '0x' + Buffer.from(algosdk.decodeAddress(addr).publicKey).toString('hex') :
+    addressToHex(addr) :
     x;
 }
 export const T_Address = {
@@ -182,6 +183,8 @@ export const T_Data = (coMap) => {
   };
 };
 export const addressEq = shared.mkAddressEq(T_Address);
+const T_Token = T_UInt;
+export const tokenEq = (x, y) => x.eq(y);
 export const typeDefs = {
   T_Null,
   T_Bool,
@@ -189,6 +192,7 @@ export const typeDefs = {
   T_Bytes,
   T_Address,
   T_Digest,
+  T_Token,
   T_Object,
   T_Data,
   T_Array,
@@ -199,6 +203,7 @@ export const stdlib = {
   ...shared,
   ...typeDefs,
   addressEq,
+  tokenEq,
   digest,
   UInt_max,
 };

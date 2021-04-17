@@ -245,18 +245,79 @@ export const balanceOf = async (acc) => {
   }
   throw Error(`address missing. Got: ${networkAccount}`);
 };
+const doTxn = async (dhead, tp) => {
+  debug({ ...dhead, step: `pre call` });
+  const rt = await tp;
+  debug({ ...dhead, rt, step: `pre wait` });
+  const rm = await rt.wait();
+  debug({ ...dhead, rt, rm, step: `pre receipt` });
+  assert(rm !== null, `receipt wait null`);
+  const ro = await fetchAndRejectInvalidReceiptFor(rm.transactionHash);
+  debug({ ...dhead, rt, rm, ro, step: `post receipt` });
+  // ro's blockNumber might be interesting
+  void(ro);
+};
+const doCall = async (dhead, ctc, funcName, args, value, gasLimit) => {
+  const dpre = { ...dhead, ctc, funcName, args, value };
+  debug({ ...dpre, step: `pre call` });
+  return await doTxn(dpre, ctc[funcName](...args, { value, gasLimit }));
+};
 /** @description Arg order follows "src before dst" convention */
-export const transfer = async (from, to, value) => {
+export const transfer = async (from, to, value, token = false) => {
   const sender = from.networkAccount;
   const receiver = getAddr(to);
-  const txn = { to: receiver, value: bigNumberify(value) };
-  if (!sender || !sender.sendTransaction)
-    throw Error(`Expected from.networkAccount.sendTransaction: ${from}`);
-  debug('sender.sendTransaction(', txn, ')');
-  const r = await (await sender.sendTransaction(txn)).wait();
-  assert(r !== null);
-  return fetchAndRejectInvalidReceiptFor(r.transactionHash);
+  const valueb = bigNumberify(value);
+  const dhead = { kind: 'transfer' };
+  if (!token) {
+    const txn = { to: receiver, value: valueb };
+    debug('sender.sendTransaction(', txn, ')');
+    return await doTxn(dhead, sender.sendTransaction(txn));
+  } else {
+    const tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
+    return await doCall(dhead, tokCtc, 'transfer', [receiver, valueb], bigNumberify(0), undefined);
+  }
 };
+const ERC20_ABI = [{
+    'constant': false,
+    'inputs': [{
+        'name': '_spender',
+        'type': 'address',
+      },
+      {
+        'name': '_value',
+        'type': 'uint256',
+      },
+    ],
+    'name': 'approve',
+    'outputs': [{
+      'name': '',
+      'type': 'bool',
+    }],
+    'payable': false,
+    'stateMutability': 'nonpayable',
+    'type': 'function',
+  },
+  {
+    'constant': false,
+    'inputs': [{
+        'name': '_recipient',
+        'type': 'address',
+      },
+      {
+        'name': '_amount',
+        'type': 'uint256',
+      },
+    ],
+    'name': 'transfer',
+    'outputs': [{
+      'name': '',
+      'type': 'bool',
+    }],
+    'payable': false,
+    'stateMutability': 'nonpayable',
+    'type': 'function',
+  },
+];
 export const connectAccount = async (networkAccount) => {
   // @ts-ignore // TODO
   if (networkAccount.getAddress && !networkAccount.address) {
@@ -312,7 +373,6 @@ export const connectAccount = async (networkAccount) => {
         const info = {
           address: contract.address,
           creation_block: deploy_r.blockNumber,
-          creator: address,
           transactionHash: deploy_r.transactionHash,
           init,
         };
@@ -334,7 +394,7 @@ export const connectAccount = async (networkAccount) => {
           void(args);
           throw Error(`Cannot wait yet; contract is not actually deployed`);
         },
-        sendrecv: async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+        sendrecv: async (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
           debug(shad, ':', label, 'sendrecv m', funcNum, '(deferred deploy)');
           void(evt_cnt);
           void(sim_p);
@@ -342,12 +402,14 @@ export const connectAccount = async (networkAccount) => {
           void(hasLastTime);
           void(tys);
           void(out_tys);
+          const [value, toks] = pay;
           // The following must be true for the first sendrecv.
           try {
-            assert(onlyIf, true);
-            assert(soloSend, true);
-            assert(eq(funcNum, 1));
-            assert(!timeout_delay);
+            assert(onlyIf, `verifyContract: onlyIf must be true`);
+            assert(soloSend, `verifyContract: soloSend must be true`);
+            assert(eq(funcNum, 1), `verifyContract: funcNum must be 1`);
+            assert(!timeout_delay, `verifyContract: no timeout`);
+            assert(toks.length == 0, `verifyContract: no tokens`);
           } catch (e) {
             throw Error(`impossible: Deferred deploy sendrecv assumptions violated.\n${e}`);
           }
@@ -444,8 +506,31 @@ export const connectAccount = async (networkAccount) => {
         return _ethersC;
       };
     })();
-    const callC = async (funcName, arg, value) => {
-      return (await getC())[funcName](arg, { value, gasLimit });
+    const callC = async (dhead, funcName, arg, pay) => {
+      const [value, toks] = pay;
+      const ethersC = await getC();
+      const zero = bigNumberify(0);
+      const actualCall = async () => await doCall(dhead, ethersC, funcName, [arg], value, undefined);
+      const callTok = async (tok, amt) => {
+        // @ts-ignore
+        const tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
+        await doCall(dhead, tokCtc, 'approve', [ethersC.address, amt], zero, gasLimit);
+      };
+      const maybePayTok = async (i) => {
+        if (i < toks.length) {
+          const [amt, tok] = toks[i];
+          await callTok(tok, amt);
+          try {
+            await maybePayTok(i + 1);
+          } catch (e) {
+            await callTok(tok, zero);
+            throw e;
+          }
+        } else {
+          await actualCall();
+        }
+      };
+      await maybePayTok(0);
     };
     const getEventData = async (ok_evt, ok_e) => {
       const ethersC = await getC();
@@ -466,7 +551,7 @@ export const connectAccount = async (networkAccount) => {
       });
     };
     const getInfo = async () => await infoP;
-    const sendrecv_impl = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay) => {
+    const sendrecv_impl = async (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay) => {
       void(hasLastTime);
       const doRecv = async (waitIfNotPresent) => await recv_impl(funcNum, out_tys, waitIfNotPresent, timeout_delay);
       if (!onlyIf) {
@@ -476,39 +561,27 @@ export const connectAccount = async (networkAccount) => {
       if (tys.length !== args.length) {
         throw Error(`tys.length (${tys.length}) !== args.length (${args.length})`);
       }
-      debug(shad, ':', label, 'send', funcName, timeout_delay, '--- SEND --- ARGS', args);
+      const dhead = [shad, label, 'send', funcName, timeout_delay, 'SEND'];
+      debug([...dhead, 'ARGS', args]);
       const [args_svs, args_msg] = argsSplit(args, evt_cnt);
       const [tys_svs, tys_msg] = argsSplit(tys, evt_cnt);
       // @ts-ignore XXX
       const arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
       const arg = arg_ty.munge([args_svs, args_msg]);
-      debug(shad, ':', label, 'send', funcName, timeout_delay, '--- START ---', arg);
+      debug([...dhead, 'START', arg]);
       const lastBlock = await getLastBlock();
       let block_send_attempt = lastBlock;
       let block_repeat_count = 0;
       while (!timeout_delay || lt(block_send_attempt, add(lastBlock, timeout_delay))) {
-        let r_maybe = null;
-        debug(shad, ':', label, 'send', funcName, timeout_delay, `--- TRY`);
+        debug([...dhead, 'TRY']);
         try {
-          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- SEND ARG ---`, arg, `---`, value);
-          const r_fn = await callC(funcName, arg, value);
-          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- POST CALL`);
-          r_maybe = await r_fn.wait();
-          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- POST WAIT`);
-          assert(r_maybe !== null);
-          const ok_r = await fetchAndRejectInvalidReceiptFor(r_maybe.transactionHash);
-          debug(shad, ':', label, 'send', funcName, timeout_delay, `--- OKAY`);
-          // XXX It might be a little dangerous to rely on the polling to just work
-          // It may be the case that the next line could speed things up?
-          // last_block = ok_r.blockNumber;
-          // XXX ^ but do not globally mutate lastBlock.
-          // wait relies on lastBlock to refer to the last ctc event
-          void(ok_r);
+          debug([...dhead, 'ARG', arg, pay]);
+          await callC(dhead, funcName, arg, pay);
         } catch (e) {
           if (!soloSend) {
-            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- SKIPPING (`, e, `)`);
+            debug([...dhead, `SKIPPING`, e]);
           } else {
-            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- ERROR:`, e.stack);
+            debug([...dhead, `ERROR`, e.stack]);
             // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
             await Timeout.set(1);
             const current_block = await getNetworkTimeNumber();
@@ -527,9 +600,9 @@ export const connectAccount = async (networkAccount) => {
               }
               console.log(`args:`);
               console.log(arg);
-              throw Error(`${shad}: ${label} send ${funcName} ${timeout_delay} --- REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
+              throw Error(`${dhead} REPEAT @ ${block_send_attempt} x ${block_repeat_count}`);
             }
-            debug(shad, ':', label, 'send', funcName, timeout_delay, `--- TRY FAIL ---`, lastBlock, current_block, block_repeat_count, block_send_attempt);
+            debug([...dhead, `TRY FAIL`, lastBlock, current_block, block_repeat_count, block_send_attempt]);
             continue;
           }
         }
@@ -538,12 +611,12 @@ export const connectAccount = async (networkAccount) => {
       // XXX If we were trying to join, but we got sniped, then we'll
       // think that there is a timeout and then we'll wait forever for
       // the timeout message.
-      debug(shad, ':', label, 'send', funcName, timeout_delay, `--- FAIL/TIMEOUT`);
+      debug([...dhead, `FAIL/TIMEOUT`]);
       return { didTimeout: true };
     };
-    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
+    const sendrecv = async (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
       void(sim_p);
-      return await sendrecv_impl(funcNum, evt_cnt, hasLastTime, tys, args, value, out_tys, onlyIf, soloSend, timeout_delay);
+      return await sendrecv_impl(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay);
     };
     // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
     const recv_impl = async (okNum, out_tys, waitIfNotPresent, timeout_delay) => {
@@ -595,31 +668,30 @@ export const connectAccount = async (networkAccount) => {
           const ok_vals = ok_ed[0][1];
           debug(shad, ':', label, 'recv', ok_evt, `--- MSG --`, ok_vals);
           const data = T_Tuple(out_tys).unmunge(ok_vals);
-          const getOutput = async (o_lab, o_ctc) => {
-            let dhead = [shad, ':', label, 'recv', ok_evt, '--- getOutput:', o_lab, o_ctc];
-            debug(...dhead);
-            const oe_evt = `oe_${o_lab}`;
+          const getLog = async (l_evt, l_ctc) => {
+            let dhead = [shad, label, 'recv', ok_evt, '--- getLog', l_evt, l_ctc];
+            debug(dhead);
             const theBlock = ok_r.blockNumber;
-            dhead = [...dhead, 'oe(', oe_evt, ')'];
-            const oe_e = (await getLogs(theBlock, theBlock, oe_evt))[0];
-            dhead = [...dhead, 'log(', oe_e, ')'];
-            debug(...dhead);
-            const oe_ed = (await getEventData(oe_evt, oe_e))[0];
-            dhead = [...dhead, 'data(', oe_ed, ')'];
-            debug(...dhead);
-            const oe_edu = o_ctc.unmunge(oe_ed);
-            dhead = [...dhead, 'unmunge(', oe_edu, ')'];
-            debug(...dhead);
-            return oe_edu;
+            const l_e = (await getLogs(theBlock, theBlock, l_evt))[0];
+            dhead = [...dhead, 'log', l_e];
+            debug(dhead);
+            const l_ed = (await getEventData(l_evt, l_e))[0];
+            dhead = [...dhead, 'data', l_ed];
+            debug(dhead);
+            const l_edu = l_ctc.unmunge(l_ed);
+            dhead = [...dhead, 'unmunge', l_edu];
+            debug(dhead);
+            return l_edu;
           };
-          debug(shad, ':', label, 'recv', ok_evt, timeout_delay, '--- OKAY ---', ok_vals);
+          const getOutput = (o_lab, o_ctc) => getLog(`oe_${o_lab}`, o_ctc);
+          debug(`${shad}: ${label} recv ${ok_evt} ${timeout_delay} --- OKAY --- ${JSON.stringify(ok_vals)}`);
+          const { from } = ok_t;
           return {
-            didTimeout: false,
-            time: bigNumberify(ok_r.blockNumber),
             data,
             getOutput,
-            value: ok_t.value,
-            from: ok_t.from,
+            from,
+            didTimeout: false,
+            time: bigNumberify(ok_r.blockNumber),
           };
         }
       }
@@ -746,22 +818,13 @@ export const waitUntilTime = async (targetTime, onProgress) => {
 // Throws an Error if any verifications fail
 export const verifyContract = async (ctcInfo, backend) => {
   const { ABI, Bytecode } = backend._Connectors.ETH;
-  const { address, creation_block, init, creator } = ctcInfo;
-  const { argsMay, value } = initOrDefaultArgs(init);
+  const { address, creation_block, init } = ctcInfo;
+  const { argsMay } = initOrDefaultArgs(init);
   const factory = new ethers.ContractFactory(ABI, Bytecode);
   debug('verifyContract:', address);
   debug(ctcInfo);
   const provider = await getProvider();
   const now = await getNetworkTimeNumber();
-  const { chainId } = await provider.getNetwork();
-  // TODO: allow user to specify lenient verification? (for chains we don't know about)
-  const lenient = [
-    152709604825713, // https://kovan2.arbitrum.io/rpc
-    // XXX ^ this will probably change over time
-  ].includes(chainId);
-  if (lenient) {
-    debug('verifyContract: using lenient contract verification for chainId=', chainId);
-  }
   const deployEvent = isNone(argsMay) ? 'e0' : 'e1';
   debug('verifyContract: checking logs for', deployEvent, '...');
   // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
@@ -838,38 +901,9 @@ export const verifyContract = async (ctcInfo, backend) => {
       throw Error(`Contract bytecode does not match expected bytecode.`);
     }
   }
-  // It's tedious to write the next sections w/ lenience, so just skip them.
-  // Checking balance & storage at certain old block #s is not supported by some backends.
-  if (lenient)
-    return true;
-  debug(`verifyContract: checking balance...`);
-  const bal = await provider.getBalance(address, creation_block);
-  // bal is allowed to exceed expectations, for example,
-  // if someone spuriously transferred extra money to the contract
-  if (!ge(bal, value)) {
-    console.log('bal expected: ' + value);
-    console.log('bal actual  : ' + bal);
-    throw Error(`Contract initial balance does not match expected initial balance`);
-  }
-  debug(`verifyContract: checking contract storage...`);
-  if (isNone(argsMay)) {
-    const st = await provider.getStorageAt(address, 0, creation_block);
-    const expectedSt =
-      // @ts-ignore XXX
-      digest(T_Tuple([T_UInt, T_UInt]), [T_UInt.canonicalize(0),
-        T_UInt.canonicalize(creation_block),
-      ]);
-    if (st !== expectedSt) {
-      console.log('st expected: ' + expectedSt);
-      console.log('st actual  : ' + st);
-      throw Error(`Contract initial state does not match expected initial state.`);
-    }
-  } else {
-    // TODO: figure out freeVars using creator and args
-    void(creator);
-    // const expectedSt = keccak256(1, creation_block, ...freeVars)
-    // if st !== expectedSt throw Error
-  }
+  // We are not checking the balance or the contract storage, because we know
+  // that the code is correct and we know that the code mandates the way that
+  // those things are initialized
   return true;
 };
 /** @description the display name of the standard unit of currency for the network */

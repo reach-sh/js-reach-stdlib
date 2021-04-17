@@ -1,7 +1,7 @@
 import ethers, { Signer } from 'ethers';
 import { CurrencyAmount, IAccount, IContract, OnProgress } from './shared';
 export * from './shared';
-import { AnyETH_Ty } from './ETH_compiled';
+import { Token, AnyETH_Ty } from './ETH_compiled';
 declare type BigNumber = ethers.BigNumber;
 declare type Wallet = ethers.Wallet;
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
@@ -24,12 +24,11 @@ declare type NetworkAccount = {
 declare type ContractInfo = {
     address: Address;
     creation_block: number;
-    creator: Address;
     transactionHash?: Hash;
     init?: ContractInitInfo;
 };
 declare type Digest = string;
-declare type Contract = IContract<ContractInfo, Digest, Address, AnyETH_Ty>;
+declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyETH_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo> | any;
 declare type ContractInitInfo = {
     args: Array<any>;
@@ -168,7 +167,7 @@ export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
 export { setProvider };
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
 /** @description Arg order follows "src before dst" convention */
-export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: any) => Promise<any>;
+export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const newAccountFromSecret: (secret: string) => Promise<Account>;
 export declare const newAccountFromMnemonic: (phrase: string) => Promise<Account>;
@@ -205,6 +204,7 @@ export declare const minimumBalance: BigNumber;
 export declare function formatCurrency(amt: any, decimals?: number): string;
 export declare const reachStdlib: {
     addressEq: (x: any, y: any) => boolean;
+    tokenEq: (x: any, y: any) => boolean;
     digest: (t: any, v: any) => string;
     UInt_max: ethers.ethers.BigNumber;
     T_Null: {
@@ -253,6 +253,14 @@ export declare const reachStdlib: {
         canonicalize: (uv: unknown) => string;
         munge: (bv: string) => ethers.ethers.BigNumber;
         unmunge: (nv: ethers.ethers.BigNumber) => string;
+        paramType: string;
+    };
+    T_Token: {
+        name: string;
+        defaultValue: string;
+        canonicalize: (uv: unknown) => string;
+        munge: (bv: string) => string;
+        unmunge: (nv: string) => string;
         paramType: string;
     };
     T_Object: <T>(co: {

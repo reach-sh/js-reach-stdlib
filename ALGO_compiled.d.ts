@@ -18,6 +18,7 @@ export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;
 export declare const T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
 export declare const T_Digest: ALGO_Ty<CBR_Digest>;
+export declare const addressToHex: (x: any) => string;
 export declare const T_Address: ALGO_Ty<CBR_Address>;
 export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
 export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
@@ -29,6 +30,9 @@ export declare const T_Data: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<CBR_Data>;
 export declare const addressEq: (x: any, y: any) => boolean;
+export declare type Token = CBR_UInt;
+export declare const tokenEq: (x: Token, y: Token) => boolean;
+export declare type PayAmt = shared.MkPayAmt<Token>;
 export declare const typeDefs: {
     T_Null: ALGO_Ty<null>;
     T_Bool: ALGO_Ty<boolean>;
@@ -36,6 +40,7 @@ export declare const typeDefs: {
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
     T_Address: ALGO_Ty<string>;
     T_Digest: ALGO_Ty<string>;
+    T_Token: ALGO_Ty<ethers.ethers.BigNumber>;
     T_Object: (coMap: {
         [key: string]: ALGO_Ty<CBR_Val>;
     }) => ALGO_Ty<CBR_Object>;
@@ -48,6 +53,7 @@ export declare const typeDefs: {
 };
 export declare const stdlib: {
     addressEq: (x: any, y: any) => boolean;
+    tokenEq: (x: Token, y: Token) => boolean;
     digest: (t: any, v: any) => string;
     UInt_max: ethers.ethers.BigNumber;
     T_Null: ALGO_Ty<null>;
@@ -56,6 +62,7 @@ export declare const stdlib: {
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
     T_Address: ALGO_Ty<string>;
     T_Digest: ALGO_Ty<string>;
+    T_Token: ALGO_Ty<ethers.ethers.BigNumber>;
     T_Object: (coMap: {
         [key: string]: ALGO_Ty<CBR_Val>;
     }) => ALGO_Ty<CBR_Object>;
