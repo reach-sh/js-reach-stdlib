@@ -258,7 +258,7 @@ const doTxn = async (dhead, tp) => {
   void(ro);
 };
 const doCall = async (dhead, ctc, funcName, args, value, gasLimit) => {
-  const dpre = { ...dhead, ctc, funcName, args, value };
+  const dpre = { ...dhead, funcName, args, value };
   debug({ ...dpre, step: `pre call` });
   return await doTxn(dpre, ctc[funcName](...args, { value, gasLimit }));
 };
@@ -295,6 +295,21 @@ const ERC20_ABI = [{
     }],
     'payable': false,
     'stateMutability': 'nonpayable',
+    'type': 'function',
+  },
+  {
+    'constant': true,
+    'inputs': [{
+      'name': 'account',
+      'type': 'address',
+    }],
+    'name': 'balanceOf',
+    'outputs': [{
+      'name': '',
+      'type': 'uint256',
+    }],
+    'payable': false,
+    'stateMutability': 'view',
     'type': 'function',
   },
   {
@@ -510,11 +525,14 @@ export const connectAccount = async (networkAccount) => {
       const [value, toks] = pay;
       const ethersC = await getC();
       const zero = bigNumberify(0);
-      const actualCall = async () => await doCall(dhead, ethersC, funcName, [arg], value, undefined);
+      const actualCall = async () => await doCall({ ...dhead, kind: 'reach' }, ethersC, funcName, [arg], value, gasLimit);
       const callTok = async (tok, amt) => {
         // @ts-ignore
         const tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
-        await doCall(dhead, tokCtc, 'approve', [ethersC.address, amt], zero, gasLimit);
+        const tokBalance = await tokCtc['balanceOf'](address);
+        debug({ ...dhead, kind: 'token' }, 'balanceOf', tokBalance);
+        assert(tokBalance >= amt, `local account token balance insufficient: ${tokBalance} < ${amt}`);
+        await doCall({ ...dhead, kind: 'token' }, tokCtc, 'approve', [ethersC.address, amt], zero, gasLimit);
       };
       const maybePayTok = async (i) => {
         if (i < toks.length) {
