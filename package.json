@@ -3,6 +3,7 @@
   "version": "0.1.2-rc.40",
   "description": "Standard library for Reach Platform",
   "type": "module",
+  "types": "index.d.ts",
   "main": "index.mjs",
   "devDependencies": {
     "@types/await-timeout": "^0.3.1",
