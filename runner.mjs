@@ -1,5 +1,6 @@
 import { loadStdlib } from './loader.mjs';
-const mountDir = process.env.REACH_RUNNER_MOUNT_DIR || '.';
+import { envDefault } from './shared.mjs';
+const mountDir = envDefault(process.env.REACH_RUNNER_MOUNT_DIR, '.');
 export async function run(file, ...args) {
   if (!file) {
     throw Error('Run requires an argument.');

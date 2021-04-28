@@ -5,13 +5,13 @@ import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import http from 'http';
 import url from 'url';
-import waitPort from 'wait-port';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, eq, ge, getDEBUG, lt, makeRandom, argsSplit } from './shared.mjs';
+import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, makeRandom, argsSplit } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
+import waitPort from './waitPort.mjs';
 
 function isNone(m) {
   return m.length === 0;
@@ -33,38 +33,19 @@ const isIsolatedNetwork = connectorMode.startsWith('ETH-test-dockerized') ||
 const networkDesc = (connectorMode == 'ETH-test-dockerized-geth' ||
   connectorMode == 'ETH-live') ? {
   type: 'uri',
-  uri: process.env.ETH_NODE_URI || 'http://localhost:8545',
-  network: process.env.ETH_NODE_NETWORK || 'unspecified',
+  uri: envDefault(process.env.ETH_NODE_URI, 'http://localhost:8545'),
+  network: envDefault(process.env.ETH_NODE_NETWORK, 'unspecified'),
 } : connectorMode == 'ETH-browser' ? {
   type: 'window',
 } : {
   type: 'skip',
-};
-const protocolPort = {
-  'https:': 443,
-  'http:': 80,
 };
 const getPortConnection = memoizeThunk(async () => {
   debug('getPortConnection');
   if (networkDesc.type != 'uri') {
     return;
   }
-  const { hostname, port, protocol } = url.parse(networkDesc.uri);
-  if (!(protocol === 'http:' || protocol === 'https:')) {
-    throw Error(`Unsupported protocol ${protocol}`);
-  }
-  const args = {
-    host: hostname || undefined,
-    port: (port && parseInt(port, 10)) || protocolPort[protocol],
-    output: 'silent',
-    timeout: 1000 * 60 * 1,
-  };
-  debug('waitPort');
-  if (getDEBUG()) {
-    console.log(args);
-  }
-  await waitPort(args);
-  debug('waitPort complete');
+  await waitPort(networkDesc.uri);
 });
 // XXX: doesn't even retry, just returns the first attempt
 const doHealthcheck = async () => {
@@ -230,7 +211,22 @@ const stepTime = async () => {
 export const { addressEq, digest } = compiledStdlib;
 export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(32);
-export { setProvider };
+export { getProvider, setProvider };
+// TODO
+export function setProviderByEnv(env) {
+  void(env);
+  throw Error(`setProviderByEnv not yet supported on ETH`);
+}
+// TODO
+export function setProviderByName(providerName) {
+  void(providerName);
+  throw Error(`setProviderByName not yet supported on ETH`);
+}
+// TODO
+export function providerEnvByName(providerName) {
+  void(providerName);
+  throw Error(`providerEnvByName not yet supported on ETH`);
+}
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
   if (!networkAccount)

@@ -38,7 +38,7 @@ declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
 declare type Hash = string;
-declare const setProvider: (val: Promise<ethers.ethers.providers.Provider>) => void;
+declare const getProvider: () => Promise<ethers.ethers.providers.Provider>, setProvider: (val: Promise<ethers.ethers.providers.Provider>) => void;
 export declare const addressEq: (x: any, y: any) => boolean, digest: (t: any, v: any) => string;
 export declare const T_Null: {
     name: string;
@@ -164,7 +164,13 @@ export declare const T_Null: {
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
 };
-export { setProvider };
+export { getProvider, setProvider };
+export declare type ProviderName = 'LocalHost' | 'Window';
+export interface ProviderEnv {
+}
+export declare function setProviderByEnv(env: ProviderEnv): void;
+export declare function setProviderByName(providerName: ProviderName): void;
+export declare function providerEnvByName(providerName: ProviderName): void;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
 /** @description Arg order follows "src before dst" convention */
 export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
@@ -348,6 +354,7 @@ export declare const reachStdlib: {
     };
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
+    envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;

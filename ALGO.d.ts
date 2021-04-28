@@ -79,8 +79,30 @@ export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: AL
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
 };
+export declare const getLedger: () => string | undefined, setLedger: (val: string | undefined) => void;
 export declare const getAlgodClient: () => Promise<algosdk.Algodv2>, setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
 export declare const getIndexer: () => Promise<algosdk.Indexer>, setIndexer: (val: Promise<algosdk.Indexer>) => void;
+interface ALGO_Provider {
+    algodClient: algosdk.Algodv2;
+    indexer: algosdk.Indexer;
+    ledger?: string;
+}
+export declare function getProvider(): Promise<ALGO_Provider>;
+export declare function setProvider(provider: ALGO_Provider | Promise<ALGO_Provider>): Promise<void>;
+export interface ProviderEnv {
+    ALGO_LEDGER: string | undefined;
+    ALGO_SERVER: string;
+    ALGO_PORT: string;
+    ALGO_TOKEN: string;
+    ALGO_INDEXER_SERVER: string;
+    ALGO_INDEXER_PORT: string;
+    ALGO_INDEXER_TOKEN: string;
+}
+export declare function setProviderByEnv(env: Partial<ProviderEnv>): void;
+declare type WhichNetExternal = 'MainNet' | 'TestNet' | 'BetaNet';
+export declare type ProviderName = WhichNetExternal | 'LocalHost' | 'randlabs/MainNet' | 'randlabs/TestNet' | 'randlabs/BetaNet';
+export declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
+export declare function setProviderByName(providerName: ProviderName): void;
 declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
 export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined) => Promise<TxnInfo>;
@@ -148,6 +170,7 @@ export declare const reachStdlib: {
     T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
+    envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;

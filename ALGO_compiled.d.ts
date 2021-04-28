@@ -74,6 +74,7 @@ export declare const stdlib: {
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
+    envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;

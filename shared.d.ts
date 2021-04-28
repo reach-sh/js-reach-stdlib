@@ -75,6 +75,7 @@ export declare type ISimTxn<RawAddress, Token> = {
 export declare type CurrencyAmount = string | number | BigNumber;
 export type { Connector } from './ConnectorMode';
 declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare const envDefault: (v: string | undefined | null, d: any) => any;
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;

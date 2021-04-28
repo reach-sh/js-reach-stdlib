@@ -66,6 +66,7 @@ export declare const stdlib: {
     T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
+    envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;

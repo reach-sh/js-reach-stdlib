@@ -17,6 +17,7 @@ const forceHex = (x) => isHex(x) ? x : stringToHex(x);
 // ****************************************************************************
 // Utility exports
 // ****************************************************************************
+export const envDefault = (v, d) => (v === undefined || v === null) ? d : v;
 export const setDEBUG = (b) => {
   if (b === false || b === true) {
     DEBUG = b;

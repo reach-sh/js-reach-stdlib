@@ -1,4 +1,5 @@
 import { process } from './shim.mjs';
+import { envDefault } from './shared.mjs';
 // Order is significant, earlier = default for shared prefix
 // e.g. ETH defaults to ETH-test-dockerized-geth
 const knownConnectorModes = [
@@ -33,7 +34,7 @@ export function canonicalizeConnectorMode(connectorMode) {
   }
 }
 export function getConnectorMode() {
-  const connectorMode = process.env.REACH_CONNECTOR_MODE || 'ETH';
+  const connectorMode = envDefault(process.env.REACH_CONNECTOR_MODE, 'ETH');
   return canonicalizeConnectorMode(connectorMode);
 }
 // The connectorMode arg is optional;
