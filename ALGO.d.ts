@@ -1,6 +1,6 @@
 import algosdk from 'algosdk';
 import ethers from 'ethers';
-import { CurrencyAmount, OnProgress, IAccount, IContract } from './shared';
+import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
 export * from './shared';
@@ -38,7 +38,7 @@ declare type TxnInfo = {
 };
 declare type TxId = string;
 declare type NetworkAccount = Wallet;
-declare type Backend = {
+declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
             appApproval0: string;
@@ -208,6 +208,11 @@ export declare const reachStdlib: {
     argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
+    objectMap: <A, B>(object: {
+        [key: string]: A;
+    }, mapFn: (k: string, a: A) => B) => {
+        [key: string]: B;
+    };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;

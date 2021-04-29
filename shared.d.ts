@@ -6,6 +6,13 @@ export interface AnyBackendTy {
 }
 declare type BigNumber = ethers.BigNumber;
 declare type num = BigNumber | number;
+export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
+    _getViews: (stdlib: Object) => {
+        [key: string]: {
+            [key: string]: ConnectorTy;
+        };
+    };
+};
 export declare type OnProgress = (obj: {
     currentTime: BigNumber;
     targetTime: BigNumber;
@@ -38,6 +45,11 @@ export declare type IContract<ContractInfo, Digest, RawAddress, Token, Connector
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
     selfAddress: () => CBR_Address;
+    getViews: () => {
+        [key: string]: {
+            [key: string]: (() => Promise<any>);
+        };
+    };
     stdlib: Object;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
@@ -115,6 +127,11 @@ export declare const argsSplit: <T>(args: T[], cnt: number) => [T[], T[]];
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare const mapRef: (m: any, f: any) => any;
+export declare const objectMap: <A, B>(object: {
+    [key: string]: A;
+}, mapFn: (k: string, a: A) => B) => {
+    [key: string]: B;
+};
 export declare const mkAddressEq: (T_Address: {
     canonicalize: (addr: any) => any;
 }) => (x: any, y: any) => boolean;

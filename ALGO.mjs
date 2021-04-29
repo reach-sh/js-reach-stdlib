@@ -888,7 +888,10 @@ export const connectAccount = async (networkAccount) => {
       }
     };
     const creationTime = async () => bigNumberify((await getInfo()).creationRound);
-    return { getInfo, creationTime, sendrecv, recv, iam, selfAddress, wait, stdlib: compiledStdlib };
+    const getViews = () => {
+      throw Error(`Algorand does not support views`);
+    };
+    return { getInfo, creationTime, sendrecv, recv, wait, iam, selfAddress, getViews, stdlib: compiledStdlib };
   };
   const deployP = async (bin) => {
     must_be_supported(bin);
@@ -948,6 +951,8 @@ export const connectAccount = async (networkAccount) => {
       wait: async (...args) => (await implP).wait(...args),
       iam,
       selfAddress,
+      // @ts-ignore
+      getViews: async (...args) => (await implP).getViews(...args),
       stdlib: compiledStdlib,
     };
   };

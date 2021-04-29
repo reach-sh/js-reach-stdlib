@@ -1,16 +1,21 @@
 import ethers, { Signer } from 'ethers';
-import { CurrencyAmount, IAccount, IContract, OnProgress } from './shared';
+import { CurrencyAmount, IBackend, IAccount, IContract, OnProgress } from './shared';
 export * from './shared';
 import { Token, AnyETH_Ty } from './ETH_compiled';
 declare type BigNumber = ethers.BigNumber;
 declare type Wallet = ethers.Wallet;
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
-declare type Backend = {
+declare type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
         ETH: {
             ABI: string;
             Bytecode: string;
             deployMode: DeployMode;
+            views: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
         };
     };
 };
@@ -392,6 +397,11 @@ export declare const reachStdlib: {
     argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
+    objectMap: <A, B>(object: {
+        [key: string]: A;
+    }, mapFn: (k: string, a: A) => B) => {
+        [key: string]: B;
+    };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;

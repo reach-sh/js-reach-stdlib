@@ -112,6 +112,11 @@ export declare const stdlib: {
     argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
+    objectMap: <A, B>(object: {
+        [key: string]: A;
+    }, mapFn: (k: string, a: A) => B) => {
+        [key: string]: B;
+    };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;
     }) => (x: any, y: any) => boolean;

@@ -7,7 +7,7 @@ import http from 'http';
 import url from 'url';
 import { window, process } from './shim.mjs';
 import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, makeRandom, argsSplit } from './shared.mjs';
+import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, makeRandom, argsSplit, objectMap } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
@@ -392,21 +392,19 @@ export const connectAccount = async (networkAccount) => {
       return attach(bin, infoP);
     };
     const attachDeferDeploy = () => {
+      const not_yet = (which) => (...args) => {
+        void(args);
+        throw Error(`Cannot ${which} yet; contract is not actually deployed`);
+      };
       // impl starts with a shim that deploys on first sendrecv,
       // then replaces itself with the real impl once deployed.
       let impl = {
-        recv: async (...args) => {
-          void(args);
-          throw Error(`Cannot recv yet; contract is not actually deployed`);
-        },
-        wait: async (...args) => {
-          // Wait times are relative to contract events
-          // Wait without an initial contract event is nonsense
-          void(args);
-          throw Error(`Cannot wait yet; contract is not actually deployed`);
-        },
+        recv: not_yet(`recv`),
+        // Wait times are relative to contract events
+        // Wait without an initial contract event is nonsense
+        wait: not_yet(`wait`),
         sendrecv: async (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) => {
-          debug(shad, ':', label, 'sendrecv m', funcNum, '(deferred deploy)');
+          debug(shad, `:`, label, 'sendrecv m', funcNum, `(deferred deploy)`);
           void(evt_cnt);
           void(sim_p);
           // TODO: munge/unmunge roundtrip?
@@ -440,6 +438,7 @@ export const connectAccount = async (networkAccount) => {
         // iam/selfAddress don't make sense to check before ctc deploy, but are harmless.
         iam,
         selfAddress,
+        getViews: not_yet(`getViews`),
         stdlib: compiledStdlib,
       };
       // Return a wrapper around the impl. This obj and its fields do not mutate,
@@ -452,6 +451,7 @@ export const connectAccount = async (networkAccount) => {
         creationTime: (...args) => impl.creationTime(...args),
         iam: (...args) => impl.iam(...args),
         selfAddress: (...args) => impl.selfAddress(...args),
+        getViews: (...args) => impl.getViews(...args),
         stdlib: compiledStdlib,
       };
     };
@@ -724,9 +724,18 @@ export const connectAccount = async (networkAccount) => {
       debug('=====Done waiting', delta, 'from', lastBlock, ':', address);
       return p;
     };
-    const creationTime = (async () => bigNumberify((await getInfo()).creation_block));
+    const creationTime = async () => bigNumberify((await getInfo()).creation_block);
+    const views_ctcsm = bin._getViews({ reachStdlib: compiledStdlib });
+    const views_namesm = bin._Connectors.ETH.views;
+    const getView1 = (v, k, ctc) => async () => {
+      const ethersC = await getC();
+      const vkn = views_namesm[v][k];
+      const val = await ethersC[vkn]();
+      return ctc.unmunge(val);
+    };
+    const getViews = () => objectMap(views_ctcsm, ((v, vm) => objectMap(vm, ((k, ctc) => getView1(v, k, ctc)))));
     // Note: wait is the local one not the global one of the same name.
-    return { getInfo, creationTime, sendrecv, recv, wait, iam, selfAddress, stdlib: compiledStdlib };
+    return { getInfo, creationTime, sendrecv, recv, wait, iam, selfAddress, getViews, stdlib: compiledStdlib };
   };
 
   function setDebugLabel(newLabel) {

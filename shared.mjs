@@ -125,6 +125,10 @@ export const mapRef = (m, f) => {
     return ['Some', v];
   }
 };
+export const objectMap = (object, mapFn) => Object.keys(object).reduce(function(result, key) {
+  result[key] = mapFn(key, object[key]);
+  return result;
+}, {});
 // XXX this doesn't really belong here, but hard to relocate due to dep on bytesEq
 export const mkAddressEq = (T_Address) => (x, y) => bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
 export const parseFixedPoint = (x) => parseInt({ sign: x.sign, i: x.i.i }) / bigNumberify(x.i.scale).toNumber();
