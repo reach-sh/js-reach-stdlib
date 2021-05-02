@@ -1,5 +1,5 @@
 import ethers, { Signer } from 'ethers';
-import { CurrencyAmount, IBackend, IAccount, IContract, OnProgress } from './shared';
+import { CurrencyAmount, IBackend, IBackendViewInfo, IBackendViewsInfo, IAccount, IContract, OnProgress } from './shared';
 export * from './shared';
 import { Token, AnyETH_Ty } from './ETH_compiled';
 declare type BigNumber = ethers.BigNumber;
@@ -12,8 +12,8 @@ declare type Backend = IBackend<AnyETH_Ty> & {
             Bytecode: string;
             deployMode: DeployMode;
             views: {
-                [key: string]: {
-                    [key: string]: string;
+                [viewn: string]: {
+                    [keyn: string]: string;
                 };
             };
         };
@@ -359,6 +359,12 @@ export declare const reachStdlib: {
     };
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
+    getViewsHelper: <ConnectorTy extends import("./shared").AnyBackendTy, B>(views: import("./shared").IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
+        [key: string]: {
+            [key: string]: B;
+        };
+    };
+    deferContract: <ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1 extends import("./shared").AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>) => IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>;
     envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
@@ -397,10 +403,10 @@ export declare const reachStdlib: {
     argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
-    objectMap: <A, B>(object: {
+    objectMap: <A, B_1>(object: {
         [key: string]: A;
-    }, mapFn: (k: string, a: A) => B) => {
-        [key: string]: B;
+    }, mapFn: (k: string, a: A) => B_1) => {
+        [key: string]: B_1;
     };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;

@@ -1,6 +1,6 @@
 import algosdk from 'algosdk';
 import ethers from 'ethers';
-import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared';
+import { CurrencyAmount, OnProgress, IBackend, IBackendViewInfo, IBackendViewsInfo, IAccount, IContract } from './shared';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
 export * from './shared';
@@ -38,6 +38,10 @@ declare type TxnInfo = {
 };
 declare type TxId = string;
 declare type NetworkAccount = Wallet;
+declare type StepArgInfo = {
+    count: number;
+    size: number;
+};
 declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
@@ -46,7 +50,7 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
             appClear: string;
             ctc: string;
             steps: Array<string | null>;
-            stepargs: Array<number>;
+            stepargs: Array<StepArgInfo | null>;
             unsupported: boolean;
         };
     };
@@ -170,6 +174,12 @@ export declare const reachStdlib: {
     T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
+    getViewsHelper: <ConnectorTy extends import("./shared").AnyBackendTy, B>(views: import("./shared").IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
+        [key: string]: {
+            [key: string]: B;
+        };
+    };
+    deferContract: <ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1 extends import("./shared").AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>) => IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>;
     envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
@@ -208,10 +218,10 @@ export declare const reachStdlib: {
     argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
-    objectMap: <A, B>(object: {
+    objectMap: <A, B_1>(object: {
         [key: string]: A;
-    }, mapFn: (k: string, a: A) => B) => {
-        [key: string]: B;
+    }, mapFn: (k: string, a: A) => B_1) => {
+        [key: string]: B_1;
     };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;

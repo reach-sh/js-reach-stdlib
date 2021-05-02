@@ -6,11 +6,27 @@ export interface AnyBackendTy {
 }
 declare type BigNumber = ethers.BigNumber;
 declare type num = BigNumber | number;
-export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
-    _getViews: (stdlib: Object) => {
-        [key: string]: {
-            [key: string]: ConnectorTy;
+export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
+    ty: ConnectorTy;
+    decode: (i: number, svs: Array<any>) => any;
+};
+export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
+    [viewi: number]: Array<ConnectorTy>;
+};
+export declare type IBackendViews<ConnectorTy extends AnyBackendTy> = {
+    views: IBackendViewsInfo<ConnectorTy>;
+    infos: {
+        [viewn: string]: {
+            [keyn: string]: IBackendViewInfo<ConnectorTy>;
         };
+    };
+};
+export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
+    _getViews: (stdlib: Object) => IBackendViews<ConnectorTy>;
+};
+export declare const getViewsHelper: <ConnectorTy extends AnyBackendTy, B>(views: IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
+    [key: string]: {
+        [key: string]: B;
     };
 };
 export declare type OnProgress = (obj: {
@@ -40,7 +56,7 @@ export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
 export declare type IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     creationTime: () => Promise<BigNumber>;
-    sendrecv: (funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: MkPayAmt<Token>, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, RawAddress, Token>>) => Promise<IRecv<RawAddress>>;
+    sendrecv: (funcNum: number, evt_cnt: number, hasLastTime: (BigNumber | false), tys: Array<ConnectorTy>, args: Array<any>, value: MkPayAmt<Token>, out_tys: Array<ConnectorTy>, onlyIf: boolean, soloSend: boolean, timeout_delay: BigNumber | false, sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, RawAddress, Token, ConnectorTy>>) => Promise<IRecv<RawAddress>>;
     recv: (okNum: number, ok_cnt: number, out_tys: Array<ConnectorTy>, waitIfNotPresent: boolean, timeout_delay: BigNumber | false) => Promise<IRecv<RawAddress>>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
@@ -52,6 +68,7 @@ export declare type IContract<ContractInfo, Digest, RawAddress, Token, Connector
     };
     stdlib: Object;
 };
+export declare const deferContract: <ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>, implNow: Partial<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>) => IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>;
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
@@ -63,12 +80,13 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = 
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Digest, RawAddress, Token> = {
+export declare type ISimRes<Digest, RawAddress, Token, ConnectorTy> = {
     prevSt: Digest;
     prevSt_noPrevTime: Digest;
     txns: Array<ISimTxn<RawAddress, Token>>;
     nextSt: Digest;
     nextSt_noTime: Digest;
+    view: [ConnectorTy, any];
     isHalt: boolean;
 };
 export declare type ISimTxn<RawAddress, Token> = {

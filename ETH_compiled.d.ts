@@ -66,6 +66,12 @@ export declare const stdlib: {
     T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
+    getViewsHelper: <ConnectorTy extends shared.AnyBackendTy, B>(views: shared.IBackendViews<ConnectorTy>, getView1: (views: shared.IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: shared.IBackendViewInfo<ConnectorTy>) => B) => () => {
+        [key: string]: {
+            [key: string]: B;
+        };
+    };
+    deferContract: <ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1 extends shared.AnyBackendTy>(shouldError: boolean, implP: Promise<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>) => shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>;
     envDefault: (v: string | null | undefined, d: any) => any;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
@@ -104,10 +110,10 @@ export declare const stdlib: {
     argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
-    objectMap: <A, B>(object: {
+    objectMap: <A, B_1>(object: {
         [key: string]: A;
-    }, mapFn: (k: string, a: A) => B) => {
-        [key: string]: B;
+    }, mapFn: (k: string, a: A) => B_1) => {
+        [key: string]: B_1;
     };
     mkAddressEq: (T_Address: {
         canonicalize: (addr: any) => any;

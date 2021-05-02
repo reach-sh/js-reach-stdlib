@@ -1,6 +1,60 @@
 import crypto from 'crypto';
 import ethers from 'ethers';
 import util from 'util';
+export const getViewsHelper = (views, getView1) => () => objectMap(views.infos, ((v, vm) => objectMap(vm, ((k, vi) => getView1(views.views, v, k, vi)))));
+export const deferContract = (shouldError, implP, implNow) => {
+  const not_yet = (which) => (...args) => {
+    void(args);
+    throw Error(`Cannot ${which} yet; contract is not actually deployed`);
+  };
+  const delay = (which) => async (...args) =>
+    // @ts-ignore
+    (await implP)[which](...args);
+  const thenow = shouldError ? not_yet : delay;
+  const mnow = (which) => implNow[which] === undefined ? thenow(which) : implNow[which];
+  // impl starts with a shim that deploys on first sendrecv,
+  // then replaces itself with the real impl once deployed.
+  let impl = {
+    getInfo: delay('getInfo'),
+    // @ts-ignore
+    creationTime: delay('creationTime'),
+    // @ts-ignore
+    sendrecv: mnow('sendrecv'),
+    // @ts-ignore
+    recv: mnow('recv'),
+    // @ts-ignore
+    wait: mnow('wait'),
+    // @ts-ignore
+    iam: mnow('iam'),
+    // @ts-ignore
+    selfAddress: mnow('selfAddress'),
+    // @ts-ignore
+    getViews: mnow('getViews'),
+    stdlib: (() => {
+      if (implNow.stdlib === undefined) {
+        throw Error(`stdlib not defined`);
+      }
+      return implNow.stdlib;
+    })(),
+  };
+  implP.then((x) => { impl = x; });
+  const wrap = (which) => (...args) =>
+    // @ts-ignore
+    impl[which](...args);
+  // Return a wrapper around the impl. This obj and its fields do not mutate,
+  // but the fields are closures around a mutating ref to impl.
+  return {
+    sendrecv: wrap('sendrecv'),
+    recv: wrap('recv'),
+    wait: wrap('wait'),
+    getInfo: wrap('getInfo'),
+    creationTime: wrap('creationTime'),
+    iam: wrap('iam'),
+    selfAddress: wrap('selfAddress'),
+    getViews: wrap('getViews'),
+    stdlib: impl.stdlib,
+  };
+};
 // ****************************************************************************
 // Helpers
 // ****************************************************************************
