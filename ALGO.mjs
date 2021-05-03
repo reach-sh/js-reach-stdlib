@@ -548,7 +548,10 @@ const [getFaucet, setFaucet] = replaceableThunk(async () => {
 export { getFaucet, setFaucet };
 const makeTransferTxn = (from, to, value, token, ps, closeTo = undefined) => {
   const valuen = bigNumberToNumber(value);
-  const note = algosdk.encodeObj('Reach');
+  // XXX AlgoSigner doesn't correctly handle msgpacked notes
+  // When it does: update {,un}clean_for_AlgoSigner
+  // const note = algosdk.encodeObj('Reach');
+  const note = new Uint8Array(Buffer.from('Reach'));
   const txn = token ?
     algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, ui8z, bigNumberToNumber(token), ps) :
     algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note, ps);
@@ -571,6 +574,9 @@ async function signTxn(networkAccount, txnOrig) {
       txID: txnOrig.txID().toString(),
       lastRound: txnOrig.lastRound,
     };
+    debug('signed sk_ret');
+    debug({ txID: ret.txID });
+    debug(msgpack.decode(ret.tx));
     return ret;
   } else if (AlgoSigner) {
     // TODO: clean up txn before signing
@@ -1062,8 +1068,6 @@ export async function getDefaultAccount() {
     const ledger = getLedgerFromAlgoSigner(AlgoSigner);
     if (ledger === undefined)
       throw Error(`Ledger is undefined; this is required by AlgoSigner`);
-    if (ledger === 'MainNet')
-      throw Error(`Sorry. AlgoSigner support on MainNet coming soon!`);
     const addr = window.prompt(`Please paste your account's address. (This account must be listed in AlgoSigner.)`);
     if (!addr) {
       throw Error(`No address provided`);
