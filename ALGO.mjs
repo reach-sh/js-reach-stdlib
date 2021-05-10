@@ -13,7 +13,7 @@ import { VERSION } from './version.mjs';
 import { getViewsHelper, deferContract, debug, assert, envDefault, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
 import waitPort from './waitPort.mjs';
 import { replaceableThunk } from './shared_impl.mjs';
-import { addressToHex, stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
+import { addressToHex, addressFromHex, stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
 import { process, window } from './shim.mjs';
 export * from './shared.mjs';
 // Helpers
@@ -1177,4 +1177,12 @@ export const verifyContract = async (info, bin) => {
   // 2. verify contract storage matches expectations based on initial args
   return true;
 };
+/**
+ * Formats an account's address in the way users expect to see it.
+ * @param acc Account, NetworkAccount, base32-encoded address, or hex-encoded address
+ * @returns the address formatted as a base32-encoded string with checksum
+ */
+export function formatAddress(acc) {
+  return addressFromHex(T_Address.canonicalize(acc));
+}
 export const reachStdlib = compiledStdlib;

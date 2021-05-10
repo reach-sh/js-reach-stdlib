@@ -226,6 +226,12 @@ export declare const minimumBalance: BigNumber;
  * @example  formatCurrency(bigNumberify('100000000000000000000')); // => '100'
  */
 export declare function formatCurrency(amt: any, decimals?: number): string;
+/**
+ * Formats an account's address in the way users expect to see it.
+ * @param acc Account, NetworkAccount, or hex-encoded address
+ * @returns the address formatted as a hex-encoded string
+ */
+export declare function formatAddress(acc: string | NetworkAccount | Account): string;
 export declare const reachStdlib: {
     addressEq: (x: any, y: any) => boolean;
     tokenEq: (x: any, y: any) => boolean;

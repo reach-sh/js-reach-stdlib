@@ -151,6 +151,12 @@ export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<true>;
+/**
+ * Formats an account's address in the way users expect to see it.
+ * @param acc Account, NetworkAccount, base32-encoded address, or hex-encoded address
+ * @returns the address formatted as a base32-encoded string with checksum
+ */
+export declare function formatAddress(acc: string | NetworkAccount | Account): string;
 export declare const reachStdlib: {
     addressEq: (x: any, y: any) => boolean;
     tokenEq: (x: ethers.ethers.BigNumber, y: ethers.ethers.BigNumber) => boolean;

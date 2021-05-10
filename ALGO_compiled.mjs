@@ -54,13 +54,15 @@ export const T_Digest = {
   netSize: 32,
 };
 export const addressToHex = (x) => '0x' + Buffer.from(algosdk.decodeAddress(x).publicKey).toString('hex');
+export const addressFromHex = (hexAddr) => algosdk.encodeAddress(Buffer.from(hexAddr.slice(2), 'hex'));
 
 function addressUnwrapper(x) {
   const addr = x && x.networkAccount && x.networkAccount.addr ||
-    x && x.addr;
-  return (addr != undefined) ?
-    addressToHex(addr) :
-    x;
+    x && x.addr ||
+    typeof x === 'string' && x;
+  return !addr ? x :
+    addr.slice(0, 2) === '0x' ? addr :
+    addressToHex(addr);
 }
 export const T_Address = {
   ...CBR.BT_Address,
