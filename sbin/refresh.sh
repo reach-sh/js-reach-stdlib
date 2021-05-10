@@ -8,6 +8,7 @@ docker run --entrypoint /bin/sh --volume "$(pwd):/cwd" "$IMAGE" \
   -c 'cp /stdlib/*.mjs /stdlib/package.json /stdlib/*.d.ts /cwd/'
 
 # rm tester.mjs ETH-test.mjs
+rm version.mo{.d.ts,.mjs}
 
 git diff package.json
 git checkout -- package.json
