@@ -3,6 +3,7 @@ import { CurrencyAmount, IBackend, IBackendViewInfo, IBackendViewsInfo, IAccount
 export * from './shared';
 import { Token, AnyETH_Ty } from './ETH_compiled';
 declare type BigNumber = ethers.BigNumber;
+declare type Provider = ethers.providers.Provider;
 declare type Wallet = ethers.Wallet;
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = IBackend<AnyETH_Ty> & {
@@ -43,7 +44,9 @@ declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
 declare type Hash = string;
-declare const getProvider: () => Promise<ethers.ethers.providers.Provider>, setProvider: (val: Promise<ethers.ethers.providers.Provider>) => void;
+declare const getProvider: () => ethers.ethers.providers.Provider | Promise<ethers.ethers.providers.Provider>;
+export { getProvider };
+export declare function setProvider(provider: Provider | Promise<Provider>): void;
 export declare const addressEq: (x: any, y: any) => boolean, digest: (t: any, v: any) => string;
 export declare const T_Null: {
     name: string;
@@ -169,13 +172,23 @@ export declare const T_Null: {
 export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
     random: () => ethers.ethers.BigNumber;
 };
-export { getProvider, setProvider };
-export declare type ProviderName = 'LocalHost' | 'Window';
-export interface ProviderEnv {
+export declare type WhichNetExternal = 'homestead' | 'ropsten';
+export declare type ProviderName = WhichNetExternal | 'MainNet' | 'TestNet' | 'LocalHost' | 'window';
+export interface ProviderByURI {
+    ETH_NODE_URI: string;
+    REACH_CONNECTOR_MODE: string;
+    REACH_DO_WAIT_PORT: string;
+    REACH_ISOLATED_NETWORK: string;
 }
-export declare function setProviderByEnv(env: ProviderEnv): void;
+export interface ProviderByName {
+    ETH_NET: string;
+    REACH_CONNECTOR_MODE: string;
+    REACH_ISOLATED_NETWORK: string;
+}
+export declare type ProviderEnv = ProviderByURI | ProviderByName;
+export declare function setProviderByEnv(env: Partial<ProviderByName & ProviderByURI>): void;
 export declare function setProviderByName(providerName: ProviderName): void;
-export declare function providerEnvByName(providerName: ProviderName): void;
+export declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
 export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
 /** @description Arg order follows "src before dst" convention */
 export declare const transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
@@ -357,6 +370,7 @@ export declare const reachStdlib: {
         unmunge: (nv: T_4[]) => import("./CBR").CBR_Struct;
         paramType: string;
     };
+    truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
     getViewsHelper: <ConnectorTy extends import("./shared").AnyBackendTy, B>(views: import("./shared").IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
@@ -365,7 +379,7 @@ export declare const reachStdlib: {
         };
     };
     deferContract: <ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1 extends import("./shared").AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>) => IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>;
-    envDefault: (v: string | null | undefined, d: any) => any;
+    envDefault: <T_6>(v: string | null | undefined, d: T_6) => string | T_6;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;
@@ -399,8 +413,8 @@ export declare const reachStdlib: {
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    argsSlice: <T_6>(args: T_6[], cnt: number) => T_6[];
-    argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
+    argsSlice: <T_7>(args: T_7[], cnt: number) => T_7[];
+    argsSplit: <T_8>(args: T_8[], cnt: number) => [T_8[], T_8[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
     objectMap: <A, B_1>(object: {

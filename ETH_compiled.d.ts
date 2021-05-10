@@ -64,6 +64,7 @@ export declare const stdlib: {
     T_Array: <T_2>(ctc: ETH_Ty<CBR.CBR_Val, T_2>, size: number) => ETH_Ty<CBR.CBR_Array, T_2[]>;
     T_Tuple: <T_3>(ctcs: ETH_Ty<CBR.CBR_Val, T_3>[]) => ETH_Ty<CBR.CBR_Tuple, T_3[]>;
     T_Struct: <T_4>(ctcs: [string, ETH_Ty<CBR.CBR_Val, T_4>][]) => ETH_Ty<CBR.CBR_Struct, T_4[]>;
+    truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
     getViewsHelper: <ConnectorTy extends shared.AnyBackendTy, B>(views: shared.IBackendViews<ConnectorTy>, getView1: (views: shared.IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: shared.IBackendViewInfo<ConnectorTy>) => B) => () => {
@@ -72,7 +73,7 @@ export declare const stdlib: {
         };
     };
     deferContract: <ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1 extends shared.AnyBackendTy>(shouldError: boolean, implP: Promise<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>) => shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>;
-    envDefault: (v: string | null | undefined, d: any) => any;
+    envDefault: <T_6>(v: string | null | undefined, d: T_6) => string | T_6;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;
@@ -106,8 +107,8 @@ export declare const stdlib: {
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    argsSlice: <T_6>(args: T_6[], cnt: number) => T_6[];
-    argsSplit: <T_7>(args: T_7[], cnt: number) => [T_7[], T_7[]];
+    argsSlice: <T_7>(args: T_7[], cnt: number) => T_7[];
+    argsSplit: <T_8>(args: T_8[], cnt: number) => [T_8[], T_8[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
     objectMap: <A, B_1>(object: {

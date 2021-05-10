@@ -6,12 +6,12 @@ import ethers from 'ethers';
 import http from 'http';
 import url from 'url';
 import { window, process } from './shim.mjs';
-import { getConnectorMode } from './ConnectorMode.mjs';
-import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, getViewsHelper, deferContract, makeRandom, argsSplit } from './shared.mjs';
+import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, getViewsHelper, deferContract, makeRandom, argsSplit, truthyEnv } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
 import waitPort from './waitPort.mjs';
+import { canonicalizeConnectorMode } from './ConnectorMode.mjs';
 
 function isNone(m) {
   return m.length === 0;
@@ -23,39 +23,40 @@ function isSome(m) {
 const Some = (m) => [m];
 const None = [];
 void(isSome);
-const connectorMode = getConnectorMode();
-// Certain functions either behave differently,
-// or are only available on an "isolated" network.
-// Note: ETH-browser is NOT considered isolated.
-const isIsolatedNetwork = connectorMode.startsWith('ETH-test-dockerized') ||
-  // @ts-ignore
-  process.env['REACH_ISOLATED_NETWORK'];
-const networkDesc = (connectorMode == 'ETH-test-dockerized-geth' ||
-  connectorMode == 'ETH-live') ? {
-  type: 'uri',
-  uri: envDefault(process.env.ETH_NODE_URI, 'http://localhost:8545'),
-  network: envDefault(process.env.ETH_NODE_NETWORK, 'unspecified'),
-} : connectorMode == 'ETH-browser' ? {
-  type: 'window',
-} : {
-  type: 'skip',
-};
-const getPortConnection = memoizeThunk(async () => {
-  debug('getPortConnection');
-  if (networkDesc.type != 'uri') {
-    return;
+// Avoid using _providerEnv directly; use get/set
+// We don't use replaceableThunk because slightly more nuanced inspection needs to be possible.
+let _providerEnv;
+
+function getProviderEnv() {
+  if (!_providerEnv) {
+    // We only fall back on process.env if there no setProviderEnv occurrs
+    const env = envDefaultsETH(process.env);
+    _providerEnv = env;
   }
-  await waitPort(networkDesc.uri);
-});
+  return _providerEnv;
+}
+
+function setProviderEnv(env) {
+  if (_providerEnv) {
+    throw Error(`setProviderEnv called after it was already set`);
+  }
+  _providerEnv = env;
+}
+
+function isIsolatedNetwork() {
+  return truthyEnv(getProviderEnv().REACH_ISOLATED_NETWORK);
+}
+
+function isWindowProvider() {
+  const env = getProviderEnv();
+  return 'ETH_NET' in env && env.ETH_NET === 'window' && !!window.ethereum;
+}
 // XXX: doesn't even retry, just returns the first attempt
-const doHealthcheck = async () => {
+const doHealthcheck = async (theUrl) => {
   debug('doHealthcheck');
-  if (networkDesc.type != 'uri') {
-    return;
-  }
-  const uriObj = url.parse(networkDesc.uri);
+  const urlObj = url.parse(theUrl);
   // XXX the code below only supports http
-  if (uriObj.protocol !== 'http:') {
+  if (urlObj.protocol !== 'http:') {
     return;
   }
   await new Promise((resolve, reject) => {
@@ -67,7 +68,7 @@ const doHealthcheck = async () => {
     });
     debug('Sending health check request...');
     const opts = {
-      ...uriObj,
+      ...urlObj,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -95,10 +96,6 @@ const doHealthcheck = async () => {
     debug('req.end...');
   });
 };
-const getDevnet = memoizeThunk(async () => {
-  await getPortConnection();
-  return await doHealthcheck();
-});
 /** @description convenience function for drilling down to the actual address */
 const getAddr = async (acc) => {
   if (!acc.networkAccount)
@@ -123,27 +120,79 @@ const fetchAndRejectInvalidReceiptFor = async (txHash) => {
   const r = await provider.getTransactionReceipt(txHash);
   return await rejectInvalidReceiptFor(txHash, r);
 };
-const [getProvider, setProvider] = replaceableThunk(async () => {
-  if (networkDesc.type == 'uri') {
-    await getDevnet();
-    const provider = new ethers.providers.JsonRpcProvider(networkDesc.uri);
-    provider.pollingInterval = 500; // ms
-    return provider;
-  } else if (networkDesc.type == 'window') {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // The proper way to ask MetaMask to enable itself is eth_requestAccounts
-      // https://eips.ethereum.org/EIPS/eip-1102
-      await provider.send('eth_requestAccounts', []);
-      return provider;
-    } else {
-      throw Error(`window.ethereum is not defined`);
-    }
-  } else {
-    // This lib was imported, but not for its net connection.
-    throw Error(`Using stdlib/ETH is incompatible with REACH_CONNECTOR_MODE=${connectorMode}`);
+
+function windowLooksIsolated() {
+  if (!window.ethereum)
+    return false;
+  // XXX this is a hacky way of checking if we're on a devnet
+  // @ts-ignore // 0x539 = 1337
+  return (window.ethereum.chainId === '0xNaN' || window.ethereum.chainId == '0x539');
+}
+
+function connectorModeIsolatedNetwork(connectorMode) {
+  switch (connectorMode) {
+    case 'ETH-test-dockerized-geth':
+      return 'yes';
+    default:
+      return 'no';
   }
+}
+
+function guessConnectorMode(env) {
+  if ('ETH_NODE_URI' in env && env.ETH_NODE_URI) {
+    // take a guess if ETH_NODE_URI is set
+    return env.ETH_NODE_URI.toLowerCase().includes('localhost') ? 'ETH-test-dockerized-geth' : 'ETH-live';
+  } else {
+    // abstain from guessing
+    return undefined;
+  }
+}
+
+function envDefaultsETH(env) {
+  const { ETH_NET, ETH_NODE_URI } = env;
+  const cm = envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+  const REACH_CONNECTOR_MODE = envDefault(cm, canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'ETH'));
+  const isolatedDefault = ETH_NET && ETH_NET !== 'window' ? 'no' :
+    ETH_NET === 'window' || window.ethereum ? (windowLooksIsolated() ? 'yes' : 'no') :
+    connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
+  const REACH_ISOLATED_NETWORK = envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+  if (truthyEnv(ETH_NET)) {
+    return { ETH_NET, REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK };
+  } else if (truthyEnv(ETH_NODE_URI)) {
+    const REACH_DO_WAIT_PORT = envDefault(env.REACH_DO_WAIT_PORT, 'no');
+    return { ETH_NODE_URI, REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK };
+  } else {
+    if (window.ethereum) {
+      return windowProviderEnv(REACH_ISOLATED_NETWORK);
+    } else {
+      const { REACH_DO_WAIT_PORT } = env;
+      if (truthyEnv(REACH_DO_WAIT_PORT)) {
+        return { ...localhostProviderEnv, REACH_DO_WAIT_PORT };
+      } else {
+        return localhostProviderEnv;
+      }
+    }
+  }
+}
+const [getProvider, _setProvider] = replaceableThunk(async () => {
+  const fullEnv = getProviderEnv();
+  return await waitProviderFromEnv(fullEnv);
 });
+export { getProvider };
+export function setProvider(provider) {
+  // TODO: define ETHProvider to be {provider: Provider, isolated: boolean} ?
+  // Maybe also {window: boolean}
+  _setProvider(provider);
+  if (!_providerEnv) {
+    // this circumstance is weird and maybe we should handle it better
+    // process.env isn't available in browser so we try to avoid relying on it here.
+    setProviderEnv({
+      ETH_NET: '__custom_unspecified__',
+      REACH_CONNECTOR_MODE: 'ETH-unspecified',
+      REACH_ISOLATED_NETWORK: 'no',
+    });
+  }
+}
 const getNetworkTimeNumber = async () => {
   const provider = await getProvider();
   return await provider.getBlockNumber();
@@ -163,8 +212,8 @@ const fastForwardTo = async (targetTime, onProgress) => {
   return currentTime;
 };
 const requireIsolatedNetwork = (label) => {
-  if (!isIsolatedNetwork) {
-    throw Error(`Invalid operation ${label} in REACH_CONNECTOR_MODE=${connectorMode}`);
+  if (!isIsolatedNetwork()) {
+    throw Error(`Invalid operation ${label}; network is not isolated`);
   }
 };
 const initOrDefaultArgs = (init) => ({
@@ -211,21 +260,94 @@ const stepTime = async () => {
 export const { addressEq, digest } = compiledStdlib;
 export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(32);
-export { getProvider, setProvider };
-// TODO
+// Not an async fn because it throws some errors synchronously, rather than in the Promise thread
+function waitProviderFromEnv(env) {
+  if ('ETH_NODE_URI' in env && env.ETH_NODE_URI) {
+    const { ETH_NODE_URI, REACH_DO_WAIT_PORT } = env;
+    return (async () => {
+      if (truthyEnv(REACH_DO_WAIT_PORT))
+        await waitPort(ETH_NODE_URI);
+      await doHealthcheck(ETH_NODE_URI);
+      const provider = new ethers.providers.JsonRpcProvider(ETH_NODE_URI);
+      // TODO: make polling interval configurable?
+      provider.pollingInterval = 500; // ms
+      return provider;
+    })();
+  } else if ('ETH_NET' in env && env.ETH_NET) {
+    const { ETH_NET } = env;
+    // TODO: support more
+    if (ETH_NET === 'homestead' || ETH_NET === 'ropsten') {
+      // No waitPort for these, just go
+      return Promise.resolve(ethers.getDefaultProvider(ETH_NET));
+    } else if (ETH_NET === 'window') {
+      const { ethereum } = window;
+      if (ethereum) {
+        return (async () => {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          // The proper way to ask MetaMask to enable itself is eth_requestAccounts
+          // https://eips.ethereum.org/EIPS/eip-1102
+          await provider.send('eth_requestAccounts', []);
+          return provider;
+        })();
+      } else {
+        throw Error(`window.ethereum is not defined`);
+      }
+    } else {
+      throw Error(`ETH_NET not recognized: '${ETH_NET}'`);
+    }
+  } else {
+    // This branch should be impossible, but just in case...
+    throw Error(`non-empty ETH_NET or ETH_NODE_URI is required, got: ${Object.keys(env)}`);
+  }
+}
 export function setProviderByEnv(env) {
-  void(env);
-  throw Error(`setProviderByEnv not yet supported on ETH`);
+  const fullEnv = envDefaultsETH(env);
+  setProviderEnv(fullEnv);
+  setProvider(waitProviderFromEnv(fullEnv));
 }
-// TODO
 export function setProviderByName(providerName) {
-  void(providerName);
-  throw Error(`setProviderByName not yet supported on ETH`);
+  const env = providerEnvByName(providerName);
+  setProviderByEnv(env);
 }
-// TODO
+const localhostProviderEnv = {
+  ETH_NODE_URI: 'http://localhost:8545',
+  REACH_CONNECTOR_MODE: 'ETH-test-dockerized-geth',
+  REACH_DO_WAIT_PORT: 'yes',
+  REACH_ISOLATED_NETWORK: 'yes',
+};
+
+function windowProviderEnv(REACH_ISOLATED_NETWORK = 'no') {
+  return {
+    ETH_NET: 'window',
+    REACH_CONNECTOR_MODE: 'ETH-browser',
+    REACH_ISOLATED_NETWORK,
+  };
+}
+
+function ethersProviderEnv(network) {
+  return {
+    ETH_NET: network,
+    REACH_CONNECTOR_MODE: 'ETH-live',
+    REACH_ISOLATED_NETWORK: 'no',
+  };
+}
 export function providerEnvByName(providerName) {
-  void(providerName);
-  throw Error(`providerEnvByName not yet supported on ETH`);
+  switch (providerName) {
+    case 'LocalHost':
+      return localhostProviderEnv;
+    case 'window':
+      return windowProviderEnv();
+    case 'MainNet':
+      return providerEnvByName('homestead');
+    case 'TestNet':
+      return providerEnvByName('ropsten');
+    case 'homestead':
+      return ethersProviderEnv('homestead');
+    case 'ropsten':
+      return ethersProviderEnv('ropsten');
+    default:
+      throw Error(`Unrecognized provider name: ${providerName}`);
+  }
 }
 export const balanceOf = async (acc) => {
   const { networkAccount } = acc;
@@ -499,7 +621,7 @@ export const connectAccount = async (networkAccount) => {
         const tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
         const tokBalance = await tokCtc['balanceOf'](address);
         debug({ ...dhead, kind: 'token' }, 'balanceOf', tokBalance);
-        assert(tokBalance >= amt, `local account token balance insufficient: ${tokBalance} < ${amt}`);
+        assert(tokBalance.gte(amt), `local account token balance is insufficient: ${tokBalance} < ${amt}`);
         await doCall({ ...dhead, kind: 'token' }, tokCtc, 'approve', [ethersC.address, amt], zero, gasLimit);
       };
       const maybePayTok = async (i) => {
@@ -731,36 +853,36 @@ export const newAccountFromMnemonic = async (phrase) => {
   const acc = await connectAccount(networkAccount);
   return acc;
 };
+async function _getDefaultAccount() {
+  debug(`_getDefaultAccount`);
+  const provider = await getProvider();
+  // TODO: teach ts what the specialized type of provider is in this branch
+  // @ts-ignore
+  const signer = provider.getSigner();
+  return await connectAccount(signer);
+}
 export const getDefaultAccount = async () => {
   debug(`getDefaultAccount`);
-  if (isIsolatedNetwork || networkDesc.type == 'window') {
-    const provider = await getProvider();
-    // TODO: teach ts what the specialized type of provider is in this branch
-    // @ts-ignore
-    const signer = provider.getSigner();
-    return await connectAccount(signer);
-  }
-  throw Error(`Default account not available for REACH_CONNECTOR_MODE=${connectorMode}`);
+  if (!(isWindowProvider() || isIsolatedNetwork()))
+    throw Error(`Default account not available`);
+  return _getDefaultAccount();
 };
 // TODO: Should users be able to access this directly?
 // TODO: define a faucet on Ropsten & other testnets?
 export const [getFaucet, setFaucet] = replaceableThunk(async () => {
-  // XXX this may break if users call setProvider?
-  if (isIsolatedNetwork) {
+  if (isIsolatedNetwork()) {
+    if (isWindowProvider()) {
+      // XXX only localhost:8545 is supported
+      const p = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      return await connectAccount(p.getSigner());
+    }
+    // XXX this may break if users call setProvider?
     // On isolated networks, the default account is assumed to be the faucet.
     // Furthermore, it is assumed that the faucet Signer is "unlocked",
     // so no further secrets need be provided in order to access its funds.
     // This is true of reach-provided devnets.
     // TODO: allow the user to set the faucet via mnemnonic.
-    return await getDefaultAccount();
-  } else if (networkDesc.type === 'window') {
-    // @ts-ignore // 0x539 = 1337
-    if (window.ethereum.chainId === '0xNaN' || window.ethereum.chainId == '0x539') {
-      // XXX this is a hacky way of checking if we're on a devnet
-      // XXX only localhost:8545 is supported
-      const p = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-      return await connectAccount(p.getSigner());
-    }
+    return await _getDefaultAccount();
   }
   throw Error(`getFaucet not supported in this context.`);
 });
@@ -802,7 +924,7 @@ export const wait = async (delta, onProgress) => {
 // {currentTime, targetTime}
 export const waitUntilTime = async (targetTime, onProgress) => {
   targetTime = bigNumberify(targetTime);
-  if (isIsolatedNetwork) {
+  if (isIsolatedNetwork()) {
     return await fastForwardTo(targetTime, onProgress);
   } else {
     return await actuallyWaitUntilTime(targetTime, onProgress);

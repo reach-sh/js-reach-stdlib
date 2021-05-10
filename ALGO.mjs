@@ -9,6 +9,7 @@ import msgpack from '@msgpack/msgpack';
 // @ts-ignore
 // import algosdk__src__transaction from 'algosdk/src/transaction';
 const { Buffer } = buffer;
+import { VERSION } from './version.mjs';
 import { getViewsHelper, deferContract, debug, assert, envDefault, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
 import waitPort from './waitPort.mjs';
 import { replaceableThunk } from './shared_impl.mjs';
@@ -332,7 +333,7 @@ async function compileFor(bin, info) {
     steps: stepCode_bin,
   };
 }
-const ui8z = new Uint8Array();
+// const ui8z = new Uint8Array();
 const base64ToUI8A = (x) => Uint8Array.from(Buffer.from(x, 'base64'));
 const base64ify = (x) => Buffer.from(x).toString('base64');
 const format_failed_request = (e) => {
@@ -546,15 +547,15 @@ const [getFaucet, setFaucet] = replaceableThunk(async () => {
   return await connectAccount(FAUCET);
 });
 export { getFaucet, setFaucet };
+// XXX AlgoSigner doesn't correctly handle msgpacked notes
+// When it does: update {,un}clean_for_AlgoSigner
+// const note = algosdk.encodeObj('Reach');
+const NOTE_Reach = new Uint8Array(Buffer.from(`Reach ${VERSION}`));
 const makeTransferTxn = (from, to, value, token, ps, closeTo = undefined) => {
   const valuen = bigNumberToNumber(value);
-  // XXX AlgoSigner doesn't correctly handle msgpacked notes
-  // When it does: update {,un}clean_for_AlgoSigner
-  // const note = algosdk.encodeObj('Reach');
-  const note = new Uint8Array(Buffer.from('Reach'));
   const txn = token ?
-    algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, ui8z, bigNumberToNumber(token), ps) :
-    algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note, ps);
+    algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, NOTE_Reach, bigNumberToNumber(token), ps) :
+    algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, NOTE_Reach, ps);
   return txn;
 };
 export const transfer = async (from, to, value, token = undefined) => {
@@ -756,10 +757,10 @@ export const connectAccount = async (networkAccount) => {
           // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
           algosdk.makeApplicationDeleteTxn :
           algosdk.makeApplicationNoOpTxn;
-        const txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args);
-        const txnFromHandler = algosdk.makePaymentTxnWithSuggestedParams(handler.hash, thisAcc.addr, 0, thisAcc.addr, ui8z, params);
+        const txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args, undefined, undefined, undefined, NOTE_Reach);
+        const txnFromHandler = algosdk.makePaymentTxnWithSuggestedParams(handler.hash, thisAcc.addr, 0, thisAcc.addr, NOTE_Reach, params);
         debug(dhead, '--- txnFromHandler =', txnFromHandler);
-        const txnToHandler = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, handler.hash, txnFromHandler.fee + raw_minimumBalance, undefined, ui8z, params);
+        const txnToHandler = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, handler.hash, txnFromHandler.fee + raw_minimumBalance, undefined, NOTE_Reach, params);
         debug(dhead, '--- txnToHandler =', txnToHandler);
         const txns = [
           txnAppl,
@@ -938,7 +939,7 @@ export const connectAccount = async (networkAccount) => {
     const appApproval0_subst = replaceAddr('Deployer', Deployer, appApproval0);
     const appApproval0_bin = await compileTEAL('appApproval0', appApproval0_subst);
     const appClear_bin = await compileTEAL('appClear', appClear);
-    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 2));
+    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 2, undefined, undefined, undefined, undefined, NOTE_Reach));
     const ApplicationID = createRes['application-index'];
     if (!ApplicationID) {
       throw Error(`No application-index in ${JSON.stringify(createRes)}`);
@@ -946,8 +947,8 @@ export const connectAccount = async (networkAccount) => {
     const bin_comp = await compileFor(bin, { ApplicationID, Deployer, creationRound: 0 });
     const escrowAddr = bin_comp.ctc.hash;
     const params = await getTxnParams();
-    const txnUpdate = algosdk.makeApplicationUpdateTxn(thisAcc.addr, params, ApplicationID, bin_comp.appApproval.result, appClear_bin.result);
-    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, escrowAddr, raw_minimumBalance, undefined, ui8z, params);
+    const txnUpdate = algosdk.makeApplicationUpdateTxn(thisAcc.addr, params, ApplicationID, bin_comp.appApproval.result, appClear_bin.result, undefined, undefined, undefined, undefined, NOTE_Reach);
+    const txnToContract = algosdk.makePaymentTxnWithSuggestedParams(thisAcc.addr, escrowAddr, raw_minimumBalance, undefined, NOTE_Reach, params);
     const txns = [
       txnUpdate,
       txnToContract,

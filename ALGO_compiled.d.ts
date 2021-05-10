@@ -72,6 +72,7 @@ export declare const stdlib: {
     T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
+    truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
     getViewsHelper: <ConnectorTy extends shared.AnyBackendTy, B>(views: shared.IBackendViews<ConnectorTy>, getView1: (views: shared.IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: shared.IBackendViewInfo<ConnectorTy>) => B) => () => {
@@ -80,7 +81,7 @@ export declare const stdlib: {
         };
     };
     deferContract: <ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1 extends shared.AnyBackendTy>(shouldError: boolean, implP: Promise<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>>) => shared.IContract<ContractInfo, Digest, RawAddress, Token_1, ConnectorTy_1>;
-    envDefault: (v: string | null | undefined, d: any) => any;
+    envDefault: <T_1>(v: string | null | undefined, d: T_1) => string | T_1;
     setDEBUG: (b: boolean) => void;
     getDEBUG: () => boolean;
     debug: (...msgs: any) => void;
@@ -114,8 +115,8 @@ export declare const stdlib: {
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    argsSlice: <T_1>(args: T_1[], cnt: number) => T_1[];
-    argsSplit: <T_2>(args: T_2[], cnt: number) => [T_2[], T_2[]];
+    argsSlice: <T_2>(args: T_2[], cnt: number) => T_2[];
+    argsSplit: <T_3>(args: T_3[], cnt: number) => [T_3[], T_3[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
     mapRef: (m: any, f: any) => any;
     objectMap: <A, B_1>(object: {

@@ -71,6 +71,13 @@ const forceHex = (x) => isHex(x) ? x : stringToHex(x);
 // ****************************************************************************
 // Utility exports
 // ****************************************************************************
+export function truthyEnv(v) {
+  if (!v)
+    return false;
+  return ![
+    '0', 'false', 'f', '#f', 'no', 'off',
+  ].includes(v && v.toLowerCase && v.toLowerCase());
+}
 export const envDefault = (v, d) => (v === undefined || v === null) ? d : v;
 export const setDEBUG = (b) => {
   if (b === false || b === true) {
