@@ -458,7 +458,6 @@ export const connectAccount = async (networkAccount) => {
     networkAccount.address = await getAddr({ networkAccount });
   }
   // XXX networkAccount MUST be a Wallet or Signer to deploy/attach
-  const provider = await getProvider();
   const address = await getAddr({ networkAccount });
   if (!address) {
     throw Error(`Expected networkAccount.address: ${networkAccount}`);
@@ -651,7 +650,7 @@ export const connectAccount = async (networkAccount) => {
         return [];
       }
       const ethersC = await getC();
-      return await provider.getLogs({
+      return await (await getProvider()).getLogs({
         fromBlock,
         toBlock,
         address: ethersC.address,
@@ -756,7 +755,7 @@ export const connectAccount = async (networkAccount) => {
           const ok_e = es[0];
           const ok_r = await fetchAndRejectInvalidReceiptFor(ok_e.transactionHash);
           void(ok_r);
-          const ok_t = await provider.getTransaction(ok_e.transactionHash);
+          const ok_t = await (await getProvider()).getTransaction(ok_e.transactionHash);
           // The .gas field doesn't exist on this anymore, apparently?
           // debug(`${ok_evt} gas was ${ok_t.gas} ${ok_t.gasPrice}`);
           if (ok_t.blockNumber) {
