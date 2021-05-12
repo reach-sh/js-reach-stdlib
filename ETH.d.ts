@@ -30,7 +30,7 @@ declare type NetworkAccount = {
 declare type ContractInfo = {
     address: Address;
     creation_block: number;
-    transactionHash?: Hash;
+    transactionHash: Hash;
     init?: ContractInitInfo;
 };
 declare type Digest = string;

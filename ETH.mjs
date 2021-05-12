@@ -675,6 +675,9 @@ export const connectAccount = async (networkAccount) => {
       // @ts-ignore XXX
       const arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
       const arg = arg_ty.munge([args_svs, args_msg]);
+      // Make sure the ctc is available and verified (before we get into try/catch)
+      // https://github.com/reach-sh/reach-lang/issues/134
+      await getC();
       debug([...dhead, 'START', arg]);
       const lastBlock = await getLastBlock();
       let block_send_attempt = lastBlock;
@@ -936,24 +939,42 @@ export const waitUntilTime = async (targetTime, onProgress) => {
 // Throws an Error if any verifications fail
 export const verifyContract = async (ctcInfo, backend) => {
   const { ABI, Bytecode } = backend._Connectors.ETH;
-  const { address, creation_block, init } = ctcInfo;
+  const { address, creation_block, transactionHash, init } = ctcInfo;
   const { argsMay } = initOrDefaultArgs(init);
   const factory = new ethers.ContractFactory(ABI, Bytecode);
   debug('verifyContract:', address);
   debug(ctcInfo);
+  debug('verifyContract: checking for receipt by txn hash', transactionHash);
+  // This await is to make sure we've given time for the ctc to actually deploy
+  // https://github.com/reach-sh/reach-lang/issues/134
+  // TODO: check stuff on the receipt?
+  const r = await fetchAndRejectInvalidReceiptFor(transactionHash);
+  debug('verifyContract: got receipt', r);
   const provider = await getProvider();
-  const now = await getNetworkTimeNumber();
-  const deployEvent = isNone(argsMay) ? 'e0' : 'e1';
-  debug('verifyContract: checking logs for', deployEvent, '...');
-  // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
-  // "Keep in mind that many backends will discard old events"
-  // TODO: find another way to validate creation block if much time has passed?
-  const logs = await provider.getLogs({
-    fromBlock: creation_block,
-    toBlock: now,
-    address: address,
-    topics: [factory.interface.getEventTopic(deployEvent)],
-  });
+  const maxTries = isIsolatedNetwork() ? 1 : 2; // TODO: fine-tune the number of tries?
+  let logs = [];
+  let now = 0;
+  for (let tries = 0; logs.length < 1 && tries < maxTries; tries++) {
+    if (tries > 0) {
+      const waitTillBlock = Math.max(now, creation_block) + 1;
+      debug('Failed to fetch logs. Waiting some more before we try again', { tries, creation_block, now, waitTillBlock });
+      // Let logs show up by just waiting for another block
+      // https://github.com/reach-sh/reach-lang/issues/134
+      await waitUntilTime(bigNumberify(waitTillBlock));
+    }
+    now = await getNetworkTimeNumber();
+    const deployEvent = isNone(argsMay) ? 'e0' : 'e1';
+    debug('verifyContract: checking logs for', deployEvent, 'from', creation_block, 'to', now, '...');
+    // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
+    // "Keep in mind that many backends will discard old events"
+    // TODO: find another way to validate creation block if much time has passed?
+    logs = await provider.getLogs({
+      fromBlock: creation_block,
+      toBlock: now,
+      address: address,
+      topics: [factory.interface.getEventTopic(deployEvent)],
+    });
+  }
   if (logs.length < 1) {
     throw Error(`Contract was claimed to be deployed at ${creation_block},` +
       ` but the current block is ${now} and it hasn't been deployed yet.`);
