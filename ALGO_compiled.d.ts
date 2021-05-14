@@ -73,9 +73,16 @@ export declare const stdlib: {
     T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
+    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
     truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
+    bigNumberify: (x: any) => ethers.ethers.BigNumber;
+    bigNumberToNumber: (x: any) => number;
     getViewsHelper: <ConnectorTy extends shared.AnyBackendTy, B>(views: shared.IBackendViews<ConnectorTy>, getView1: (views: shared.IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: shared.IBackendViewInfo<ConnectorTy>) => B) => () => {
         [key: string]: {
             [key: string]: B;
@@ -88,8 +95,6 @@ export declare const stdlib: {
     debug: (...msgs: any) => void;
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
-    bigNumberify: (x: any) => ethers.ethers.BigNumber;
-    bigNumberToNumber: (x: any) => number;
     checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
     isHex: typeof ethers.ethers.utils.isHexString;
     hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -107,11 +112,13 @@ export declare const stdlib: {
         };
     };
     eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    makeArith: (m: ethers.ethers.BigNumber) => {
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    };
     ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;

@@ -1,4 +1,7 @@
 import ethers from 'ethers';
+const BigNumber = ethers.BigNumber;
+export const bigNumberify = (x) => BigNumber.from(x);
+export const bigNumberToNumber = (x) => bigNumberify(x).toNumber();
 export const BV_Null = null;
 export const BT_Null = {
   name: 'Null',
@@ -43,6 +46,7 @@ export const BV_UInt = (val) => {
 export const BT_Bytes = (len) => ({
   name: `Bytes(${len})`,
   canonicalize: (val) => {
+    const lenn = bigNumberToNumber(len);
     if (typeof(val) !== 'string') {
       throw Error(`Bytes expected string, but got ${JSON.stringify(val)}`);
     }
@@ -53,9 +57,9 @@ export const BT_Bytes = (len) => ({
       return val.padEnd(alen, fill);
     };
     if (val.slice(0, 2) === '0x') {
-      return checkLen('hex ', len * 2 + 2, '0');
+      return checkLen('hex ', lenn * 2 + 2, '0');
     } else {
-      return checkLen('', len, '\0');
+      return checkLen('', lenn, '\0');
     }
   },
 });

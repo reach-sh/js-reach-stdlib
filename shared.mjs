@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import ethers from 'ethers';
+import { bigNumberify, bigNumberToNumber } from './CBR.mjs';
 import util from 'util';
+export { bigNumberify, bigNumberToNumber };
 export const getViewsHelper = (views, getView1) => () => objectMap(views.infos, ((v, vm) => objectMap(vm, ((k, vi) => getView1(views.views, v, k, vi)))));
 export const deferContract = (shouldError, implP, implNow) => {
   const not_yet = (which) => (...args) => {
@@ -23,13 +25,13 @@ export const deferContract = (shouldError, implP, implNow) => {
     // @ts-ignore
     recv: mnow('recv'),
     // @ts-ignore
-    wait: mnow('wait'),
+    wait: not_yet('wait'),
     // @ts-ignore
     iam: mnow('iam'),
     // @ts-ignore
     selfAddress: mnow('selfAddress'),
     // @ts-ignore
-    getViews: mnow('getViews'),
+    getViews: not_yet('getViews'),
     stdlib: (() => {
       if (implNow.stdlib === undefined) {
         throw Error(`stdlib not defined`);
@@ -104,8 +106,6 @@ export const assert = (d, ai = null) => {
   }
 };
 export const { isBigNumber } = BigNumber;
-export const bigNumberify = (x) => BigNumber.from(x);
-export const bigNumberToNumber = (x) => bigNumberify(x).toNumber();
 export const checkedBigNumberify = (at, m, x) => {
   const xb = bigNumberify(x);
   if (xb.gte(0) && xb.lte(m)) {
@@ -159,11 +159,15 @@ export const makeRandom = (width) => {
   return { randomUInt, hasRandom };
 };
 export const eq = (a, b) => bigNumberify(a).eq(bigNumberify(b));
-export const add = (a, b) => bigNumberify(a).add(bigNumberify(b));
-export const sub = (a, b) => bigNumberify(a).sub(bigNumberify(b));
-export const mod = (a, b) => bigNumberify(a).mod(bigNumberify(b));
-export const mul = (a, b) => bigNumberify(a).mul(bigNumberify(b));
-export const div = (a, b) => bigNumberify(a).div(bigNumberify(b));
+export const makeArith = (m) => {
+  const check = (x) => checkedBigNumberify(`internal`, m, x);
+  const add = (a, b) => check(bigNumberify(a).add(bigNumberify(b)));
+  const sub = (a, b) => check(bigNumberify(a).sub(bigNumberify(b)));
+  const mod = (a, b) => check(bigNumberify(a).mod(bigNumberify(b)));
+  const mul = (a, b) => check(bigNumberify(a).mul(bigNumberify(b)));
+  const div = (a, b) => check(bigNumberify(a).div(bigNumberify(b)));
+  return { add, sub, mod, mul, div };
+};
 export const ge = (a, b) => bigNumberify(a).gte(bigNumberify(b));
 export const gt = (a, b) => bigNumberify(a).gt(bigNumberify(b));
 export const le = (a, b) => bigNumberify(a).lte(bigNumberify(b));

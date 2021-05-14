@@ -1,5 +1,6 @@
 import ethers from 'ethers';
-import { CBR_Address } from './CBR';
+import { CBR_Address, bigNumberify, bigNumberToNumber } from './CBR';
+export { bigNumberify, bigNumberToNumber };
 export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;
@@ -8,7 +9,7 @@ declare type BigNumber = ethers.BigNumber;
 declare type num = BigNumber | number;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
     ty: ConnectorTy;
-    decode: (i: number, svs: Array<any>) => any;
+    decode: (i: number, svs: Array<any>, args: Array<any>) => any;
 };
 export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
     [viewi: number]: Array<ConnectorTy>;
@@ -112,8 +113,6 @@ export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
-export declare const bigNumberify: (x: any) => BigNumber;
-export declare const bigNumberToNumber: (x: any) => number;
 export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare function protect(ctc: AnyBackendTy, v: unknown, ai?: unknown): any;
 export declare const isHex: typeof ethers.ethers.utils.isHexString;
@@ -132,11 +131,13 @@ export declare const makeRandom: (width: number) => {
     };
 };
 export declare const eq: (a: num, b: num) => boolean;
-export declare const add: (a: num, b: num) => BigNumber;
-export declare const sub: (a: num, b: num) => BigNumber;
-export declare const mod: (a: num, b: num) => BigNumber;
-export declare const mul: (a: num, b: num) => BigNumber;
-export declare const div: (a: num, b: num) => BigNumber;
+export declare const makeArith: (m: BigNumber) => {
+    add: (a: num, b: num) => BigNumber;
+    sub: (a: num, b: num) => BigNumber;
+    mod: (a: num, b: num) => BigNumber;
+    mul: (a: num, b: num) => BigNumber;
+    div: (a: num, b: num) => BigNumber;
+};
 export declare const ge: (a: num, b: num) => boolean;
 export declare const gt: (a: num, b: num) => boolean;
 export declare const le: (a: num, b: num) => boolean;

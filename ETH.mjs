@@ -6,12 +6,13 @@ import ethers from 'ethers';
 import http from 'http';
 import url from 'url';
 import { window, process } from './shim.mjs';
-import { add, assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, getViewsHelper, deferContract, makeRandom, argsSplit, truthyEnv } from './shared.mjs';
+import { assert, bigNumberify, debug, envDefault, eq, ge, getDEBUG, lt, getViewsHelper, deferContract, makeRandom, argsSplit, truthyEnv } from './shared.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 export * from './shared.mjs';
 import { stdlib as compiledStdlib, typeDefs } from './ETH_compiled.mjs';
 import waitPort from './waitPort.mjs';
 import { canonicalizeConnectorMode } from './ConnectorMode.mjs';
+export const { add, sub, mod, mul, div } = compiledStdlib;
 
 function isNone(m) {
   return m.length === 0;
@@ -823,13 +824,19 @@ export const connectAccount = async (networkAccount) => {
     const creationTime = async () => bigNumberify((await getInfo()).creation_block);
     const views_bin = bin._getViews({ reachStdlib: compiledStdlib });
     const views_namesm = bin._Connectors.ETH.views;
-    const getView1 = (vs, v, k, vim) => async () => {
+    const getView1 = (vs, v, k, vim) => async (...args) => {
       void(vs);
       const { ty } = vim;
       const ethersC = await getC();
       const vkn = views_namesm[v][k];
-      const val = await ethersC[vkn]();
-      return ty.unmunge(val);
+      debug('getView1', v, k, args, vkn);
+      try {
+        const val = await ethersC[vkn](...args);
+        return ['Some', ty.unmunge(val)];
+      } catch (e) {
+        debug('getView1', v, k, 'error', e);
+        return ['None', null];
+      }
     };
     const getViews = getViewsHelper(views_bin, getView1);
     // Note: wait is the local one not the global one of the same name.

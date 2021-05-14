@@ -46,7 +46,7 @@ const bytestringyNet = {
 export const T_Bytes = (len) => ({
   ...CBR.BT_Bytes(len),
   ...stringyNet,
-  netSize: len,
+  netSize: shared.bigNumberToNumber(len),
 });
 export const T_Digest = {
   ...CBR.BT_Digest,
@@ -92,7 +92,7 @@ export const T_Array = (co, size) => ({
 });
 export const T_Tuple = (cos) => ({
   ...CBR.BT_Tuple(cos),
-  netSize: (cos.reduce((acc, co) => acc + co.netSize, 0)),
+  netSize: (cos.reduce(((acc, co) => acc + co.netSize), 0)),
   toNet: (bv) => {
     const val = cos.map((co, i) => co.toNet(bv[i]));
     return ethers.utils.concat(val);
@@ -201,8 +201,10 @@ export const typeDefs = {
   T_Tuple,
   T_Struct,
 };
+const arith = shared.makeArith(UInt_max);
 export const stdlib = {
   ...shared,
+  ...arith,
   ...typeDefs,
   addressEq,
   tokenEq,

@@ -15,6 +15,7 @@ import waitPort from './waitPort.mjs';
 import { replaceableThunk } from './shared_impl.mjs';
 import { addressToHex, addressFromHex, stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
 import { process, window } from './shim.mjs';
+export const { add, sub, mod, mul, div } = compiledStdlib;
 export * from './shared.mjs';
 // Helpers
 function uint8ArrayToStr(a, enc = 'utf8') {
@@ -642,6 +643,7 @@ export const connectAccount = async (networkAccount) => {
     // XXX const escrowAddrRaw = T_Address.canonicalize(addressToHex(escrowAddr));
     await verifyContract(ctcInfo, bin);
     const ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
+    const { viewKeys, viewSize } = bin._Connectors.ALGO;
     const wait = async (delta) => {
       return await waitUntilTime(bigNumberify(lastRound).add(delta));
     };
@@ -682,6 +684,12 @@ export const connectAccount = async (networkAccount) => {
       const sim_txns = sim_r.txns;
       const [view_ty, view_v] = sim_r.view;
       debug(dhead, 'VIEW', { view_ty, view_v });
+      const view_tysz = view_ty.netSize;
+      const padding = Math.max(viewSize - view_tysz, 0);
+      const padding_ty = T_Bytes(padding);
+      const padding_v = padding_ty.canonicalize('');
+      const [view_typ, view_vp] = viewSize > 0 ? [T_Tuple([view_ty, padding_ty]), [view_v, padding_v]] : [padding_ty, padding_v];
+      debug(dhead, 'VIEWP', { view_typ, view_vp });
       while (true) {
         const params = await getTxnParams();
         if (timeout_delay) {
@@ -737,8 +745,8 @@ export const connectAccount = async (networkAccount) => {
         assert(txnToContract_value_idx !== -1, 'sim txn no value');
         txnExtraTxns[txnToContract_value_idx] =
           makeTransferTxn(thisAcc.addr, escrowAddr, value.add(totalFromFee), undefined, params);
-        const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, view_v, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
-        const actual_tys = [T_Digest, T_Digest, view_ty, T_Bool, T_UInt, T_UInt, ...tys];
+        const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, view_vp, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
+        const actual_tys = [T_Digest, T_Digest, view_typ, T_Bool, T_UInt, T_UInt, ...tys];
         debug(dhead, '--- ARGS =', actual_args);
         const safe_args = actual_args.map((m, i) => actual_tys[i].toNet(m));
         safe_args.forEach((x) => {
@@ -903,29 +911,54 @@ export const connectAccount = async (networkAccount) => {
     };
     const creationTime = async () => bigNumberify((await getInfo()).creationRound);
     const views_bin = bin._getViews({ reachStdlib: compiledStdlib });
-    const getView1 = (vs, v, k, vim) => async () => {
-      void(v);
-      void(k);
+    const getView1 = (vs, v, k, vim) => async (...args) => {
+      debug('getView1', v, k, args);
       const { decode } = vim;
       const client = await getAlgodClient();
-      const appInfo = await client.getApplicationByID(ApplicationID).do();
+      let appInfo;
+      try {
+        appInfo = await client.getApplicationByID(ApplicationID).do();
+      } catch (e) {
+        debug('getApplicationById', e);
+        return ['None', null];
+      }
       const appSt = appInfo['params']['global-state'];
-      const viewSt = (appSt.find((x) => x.key === 'dg==')).value;
-      debug({ viewSt });
-      const vvn = base64ToUI8A(viewSt.bytes);
-      debug({ vvn });
+      const vvn = new Uint8Array(viewSize);
+      let offset = 0;
+      for (let i = 0; i < viewKeys; i++) {
+        debug({ i });
+        const ik = base64ify(`v${i}`);
+        debug({ ik });
+        const viewSt = (appSt.find((x) => x.key === ik)).value;
+        debug({ viewSt });
+        const vvni = base64ToUI8A(viewSt.bytes);
+        debug({ vvni });
+        if (vvni.length == 0) {
+          return ['None', null];
+        }
+        vvn.set(vvni, offset);
+        offset += vvni.length;
+      }
       const vin = T_UInt.fromNet(vvn.slice(0, T_UInt.netSize));
       const vi = bigNumberToNumber(vin);
       debug({ vi });
       const vtys = vs[vi];
       debug({ vtys });
+      if (!vtys) {
+        return ['None', null];
+      }
       const vty = T_Tuple([T_UInt, ...vtys]);
       debug({ vty });
       const vvs = vty.fromNet(vvn);
       debug({ vvs });
-      const vres = decode(vi, vvs.slice(1));
-      debug({ vres });
-      return vres;
+      try {
+        const vres = decode(vi, vvs.slice(1), args);
+        debug({ vres });
+        return ['Some', vres];
+      } catch (e) {
+        debug(`getView1`, v, k, 'error', e);
+        return ['None', null];
+      }
     };
     const getViews = getViewsHelper(views_bin, getView1);
     return { getInfo, creationTime, sendrecv, recv, wait, iam, selfAddress, getViews, stdlib: compiledStdlib };
@@ -934,12 +967,12 @@ export const connectAccount = async (networkAccount) => {
     must_be_supported(bin);
     debug(shad, 'deploy');
     const algob = bin._Connectors.ALGO;
-    const { appApproval0, appClear } = algob;
+    const { appApproval0, appClear, viewKeys } = algob;
     const Deployer = thisAcc.addr;
     const appApproval0_subst = replaceAddr('Deployer', Deployer, appApproval0);
     const appApproval0_bin = await compileTEAL('appApproval0', appApproval0_subst);
     const appClear_bin = await compileTEAL('appClear', appClear);
-    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 2, undefined, undefined, undefined, undefined, NOTE_Reach));
+    const createRes = await sign_and_send_sync('ApplicationCreate', thisAcc, algosdk.makeApplicationCreateTxn(thisAcc.addr, await getTxnParams(), algosdk.OnApplicationComplete.NoOpOC, appApproval0_bin.result, appClear_bin.result, 0, 0, 2, 1 + viewKeys, undefined, undefined, undefined, undefined, NOTE_Reach));
     const ApplicationID = createRes['application-index'];
     if (!ApplicationID) {
       throw Error(`No application-index in ${JSON.stringify(createRes)}`);

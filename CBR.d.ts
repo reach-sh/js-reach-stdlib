@@ -1,4 +1,8 @@
-import { BigNumber } from 'ethers';
+import ethers from 'ethers';
+declare type BigNumber = ethers.BigNumber;
+declare const BigNumber: typeof ethers.ethers.BigNumber;
+export declare const bigNumberify: (x: any) => BigNumber;
+export declare const bigNumberToNumber: (x: any) => number;
 export declare type CBR_Null = null;
 export declare type CBR_Bool = boolean;
 export declare type CBR_UInt = BigNumber;
@@ -55,4 +59,5 @@ export declare const BT_Data: (co: {
 export declare const BV_Data: (co: {
     [key: string]: BackendTy<CBR_Val>;
 }) => (val: [string, unknown]) => CBR_Data;
+export {};
 //# sourceMappingURL=CBR.d.ts.map

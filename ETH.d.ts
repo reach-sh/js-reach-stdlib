@@ -2,6 +2,7 @@ import ethers, { Signer } from 'ethers';
 import { CurrencyAmount, IBackend, IBackendViewInfo, IBackendViewsInfo, IAccount, IContract, OnProgress } from './shared';
 export * from './shared';
 import { Token, AnyETH_Ty } from './ETH_compiled';
+export declare const add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber, sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber, mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber, mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber, div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
 declare type BigNumber = ethers.BigNumber;
 declare type Provider = ethers.providers.Provider;
 declare type Wallet = ethers.Wallet;
@@ -376,9 +377,16 @@ export declare const reachStdlib: {
         unmunge: (nv: T_4[]) => import("./CBR").CBR_Struct;
         paramType: string;
     };
+    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
     truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T_5>(arr: T_5[], idx: number, elem: T_5): T_5[];
+    bigNumberify: (x: any) => ethers.ethers.BigNumber;
+    bigNumberToNumber: (x: any) => number;
     getViewsHelper: <ConnectorTy extends import("./shared").AnyBackendTy, B>(views: import("./shared").IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
         [key: string]: {
             [key: string]: B;
@@ -391,8 +399,6 @@ export declare const reachStdlib: {
     debug: (...msgs: any) => void;
     assert: (d: any, ai?: any) => void;
     isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
-    bigNumberify: (x: any) => ethers.ethers.BigNumber;
-    bigNumberToNumber: (x: any) => number;
     checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
     isHex: typeof ethers.ethers.utils.isHexString;
     hexToString: typeof ethers.ethers.utils.toUtf8String;
@@ -410,11 +416,13 @@ export declare const reachStdlib: {
         };
     };
     eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    makeArith: (m: ethers.ethers.BigNumber) => {
+        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    };
     ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
     le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
