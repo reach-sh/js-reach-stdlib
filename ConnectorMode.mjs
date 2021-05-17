@@ -9,10 +9,11 @@ const knownConnectorModes = [
   'ALGO-test-dockerized-algod',
   'ALGO-live',
   'ALGO-browser',
+  'CFX-experimental',
 ];
 
 function isKnownConnector(s) {
-  return (s === 'ETH' || s === 'ALGO');
+  return (s === 'ETH' || s === 'ALGO' || s === 'CFX');
 }
 const connectorModeDefaults = {};
 // Populate connectorModeDefaults

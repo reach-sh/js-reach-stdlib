@@ -2,6 +2,7 @@
 // standard library needed at runtime by compiled Reach programs
 // ****************************************************************************
 import * as shared from './shared.mjs';
+const { debug } = shared;
 import algosdk from 'algosdk';
 import buffer from 'buffer';
 import ethers from 'ethers';
@@ -177,6 +178,7 @@ export const T_Data = (coMap) => {
       const i = nv[0];
       const label = ascLabels[i];
       const val_co = coMap[label];
+      debug({ nv, i, label, val_co });
       const rest = nv.slice(1);
       const sliceTo = val_co.netSize;
       const val = val_co.fromNet(rest.slice(0, sliceTo));
@@ -186,7 +188,7 @@ export const T_Data = (coMap) => {
 };
 export const addressEq = shared.mkAddressEq(T_Address);
 const T_Token = T_UInt;
-export const tokenEq = (x, y) => x.eq(y);
+export const tokenEq = (x, y) => T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
 export const typeDefs = {
   T_Null,
   T_Bool,

@@ -1,3 +1,4 @@
+export const connector = 'ALGO';
 // XXX: use @types/algosdk when we can
 import algosdk from 'algosdk';
 import base32 from 'hi-base32';
@@ -10,7 +11,7 @@ import msgpack from '@msgpack/msgpack';
 // import algosdk__src__transaction from 'algosdk/src/transaction';
 const { Buffer } = buffer;
 import { VERSION } from './version.mjs';
-import { getViewsHelper, deferContract, debug, assert, envDefault, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, makeRandom } from './shared.mjs';
+import { getViewsHelper, deferContract, debug, assert, envDefault, isBigNumber, bigNumberify, bigNumberToNumber, argsSlice, argsSplit, makeRandom } from './shared.mjs';
 import waitPort from './waitPort.mjs';
 import { replaceableThunk } from './shared_impl.mjs';
 import { addressToHex, addressFromHex, stdlib as compiledStdlib, typeDefs } from './ALGO_compiled.mjs';
@@ -369,8 +370,8 @@ const doQuery = async (dhead, query) => {
 // ****************************************************************************
 // Common Interface Exports
 // ****************************************************************************
-export const { addressEq, digest } = compiledStdlib;
-export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct } = typeDefs;
+export const { addressEq, tokenEq, digest } = compiledStdlib;
+export const { T_Null, T_Bool, T_UInt, T_Tuple, T_Array, T_Object, T_Data, T_Bytes, T_Address, T_Digest, T_Struct, T_Token } = typeDefs;
 export const { randomUInt, hasRandom } = makeRandom(8);
 export const [getLedger, setLedger] = replaceableThunk(() => DEFAULT_ALGO_LEDGER);
 
@@ -666,9 +667,11 @@ export const connectAccount = async (networkAccount) => {
       if (!handler) {
         throw Error(`${dhead} Internal error: reference to undefined handler: ${funcName}`);
       }
+      const [svs, msg] = argsSplit(args, evt_cnt);
+      const [svs_tys, msg_tys] = argsSplit(tys, evt_cnt);
       const fake_res = {
         didTimeout: false,
-        data: argsSlice(args, evt_cnt),
+        data: msg,
         time: bigNumberify(0),
         value: value,
         from: pks,
@@ -695,6 +698,7 @@ export const connectAccount = async (networkAccount) => {
         if (timeout_delay) {
           const tdn = Math.min(MaxTxnLife, timeout_delay.toNumber());
           params.lastRound = lastRound + tdn;
+          debug(dhead, '--- TIMECHECK', { params, timeout_delay, tdn });
           if (params.firstRound > params.lastRound) {
             debug(dhead, '--- FAIL/TIMEOUT');
             return { didTimeout: true };
@@ -745,10 +749,12 @@ export const connectAccount = async (networkAccount) => {
         assert(txnToContract_value_idx !== -1, 'sim txn no value');
         txnExtraTxns[txnToContract_value_idx] =
           makeTransferTxn(thisAcc.addr, escrowAddr, value.add(totalFromFee), undefined, params);
-        const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, view_vp, isHalt, bigNumberify(totalFromFee), lastRound, ...args];
-        const actual_tys = [T_Digest, T_Digest, view_typ, T_Bool, T_UInt, T_UInt, ...tys];
+        const actual_args = [sim_r.prevSt_noPrevTime, sim_r.nextSt_noTime, view_vp, isHalt, bigNumberify(totalFromFee), lastRound, svs, msg];
+        const actual_tys = [T_Digest, T_Digest, view_typ, T_Bool, T_UInt, T_UInt, T_Tuple(svs_tys), T_Tuple(msg_tys)];
         debug(dhead, '--- ARGS =', actual_args);
-        const safe_args = actual_args.map((m, i) => actual_tys[i].toNet(m));
+        const safe_args = actual_args.map(
+          // @ts-ignore
+          (m, i) => actual_tys[i].toNet(m));
         safe_args.forEach((x) => {
           if (!(x instanceof Uint8Array)) {
             // The types say this is impossible now,
@@ -811,17 +817,21 @@ export const connectAccount = async (networkAccount) => {
           debug(dhead, '--- SUCCESS:', res);
         } catch (e) {
           if (e.type == 'sendRawTransaction') {
-            if (!soloSend) {
-              debug(dhead, '--- FAIL:', format_failed_request(e.e));
-            } else {
-              throw Error(`${dhead} --- FAIL:\n${format_failed_request(e.e)}`);
-            }
+            debug(dhead, '--- FAIL:', format_failed_request(e.e));
           } else {
-            if (!soloSend) {
-              debug(dhead, '--- FAIL:', e);
-            } else {
-              throw Error(`${dhead} --- FAIL:\n${JSON.stringify(e)}`);
-            }
+            debug(dhead, '--- FAIL:', e);
+          }
+          if (!soloSend) {
+            // If there is no soloSend, then someone else "won", so let's
+            // listen for their message
+            return await doRecv(false);
+          }
+          if (timeout_delay) {
+            // If there can be a timeout, then keep waiting for it
+            continue;
+          } else {
+            // Otherwise, something bad is happening
+            throw Error(`${dhead} --- ABORT`);
           }
         }
         return await doRecv(false);
@@ -874,10 +884,10 @@ export const connectAccount = async (networkAccount) => {
           continue;
         }
         debug(dhead, '--- txn =', txn);
-        const ctc_args = txn['application-transaction']['application-args'];
-        debug(dhead, '--- ctc_args =', ctc_args);
-        const args = argsSlice(ctc_args, evt_cnt);
-        debug(dhead, '--- args =', args);
+        const ctc_args_all = txn['application-transaction']['application-args'];
+        debug(dhead, { ctc_args_all });
+        const argMsg = 7; // from ALGO.hs
+        const ctc_args_s = ctc_args_all[argMsg];
         /** @description base64->hex->arrayify */
         const reNetify = (x) => {
           const s = Buffer.from(x, 'base64').toString('hex');
@@ -885,9 +895,13 @@ export const connectAccount = async (networkAccount) => {
           return ethers.utils.arrayify('0x' + s);
         };
         debug(dhead, '--- tys =', tys);
-        const args_un = args.map((x, i) => tys[i].fromNet(reNetify(x)));
+        const msgTy = T_Tuple(tys);
+        const ctc_args = msgTy.fromNet(reNetify(ctc_args_s));
+        debug(dhead, { ctc_args });
+        const args_un = argsSlice(ctc_args, evt_cnt);
         debug(dhead, '--- args_un =', args_un);
-        const totalFromFee = T_UInt.fromNet(reNetify(ctc_args[3]));
+        const argFeeAmount = 3; // from ALGO.hs
+        const totalFromFee = T_UInt.fromNet(reNetify(ctc_args_all[argFeeAmount]));
         debug(dhead, '--- totalFromFee =', totalFromFee);
         const fromAddr = htxn['payment-transaction'].receiver;
         const from = T_Address.canonicalize({ addr: fromAddr });

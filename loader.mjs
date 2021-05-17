@@ -1,5 +1,6 @@
 import * as stdlib_ETH from './ETH.mjs';
 import * as stdlib_ALGO from './ALGO.mjs';
+import * as stdlib_CFX from './CFX.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
 import { process, window } from './shim.mjs';
 export { getConnectorMode, getConnector };
@@ -31,6 +32,9 @@ export async function loadStdlib(connectorModeOrEnv) {
       break;
     case 'ALGO':
       stdlib = stdlib_ALGO;
+      break;
+    case 'CFX':
+      stdlib = stdlib_CFX;
       break;
     default:
       throw Error(`impossible: unknown connector ${connector}`);

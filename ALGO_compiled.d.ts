@@ -32,7 +32,7 @@ export declare const T_Data: (coMap: {
 }) => ALGO_Ty<CBR_Data>;
 export declare const addressEq: (x: any, y: any) => boolean;
 export declare type Token = CBR_UInt;
-export declare const tokenEq: (x: Token, y: Token) => boolean;
+export declare const tokenEq: (x: unknown, y: unknown) => boolean;
 export declare type PayAmt = shared.MkPayAmt<Token>;
 export declare const typeDefs: {
     T_Null: ALGO_Ty<null>;
@@ -54,7 +54,7 @@ export declare const typeDefs: {
 };
 export declare const stdlib: {
     addressEq: (x: any, y: any) => boolean;
-    tokenEq: (x: Token, y: Token) => boolean;
+    tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: any, v: any) => string;
     UInt_max: ethers.ethers.BigNumber;
     T_Null: ALGO_Ty<null>;
@@ -73,11 +73,11 @@ export declare const stdlib: {
     T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
-    add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-    div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+    add: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+    sub: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+    mod: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+    mul: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+    div: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
     truthyEnv(v: string | null | undefined): v is string;
     protect(ctc: shared.AnyBackendTy, v: unknown, ai?: unknown): any;
     Array_set<T>(arr: T[], idx: number, elem: T): T[];
@@ -102,7 +102,7 @@ export declare const stdlib: {
     makeDigest: (prep: any) => (t: any, v: any) => string;
     hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
     uintToBytes: (i: ethers.ethers.BigNumber) => string;
-    bigNumberToHex: (u: number | ethers.ethers.BigNumber, size?: number) => string;
+    bigNumberToHex: (u: shared.num, size?: number) => string;
     bytesEq: (x: any, y: any) => boolean;
     digestEq: (x: any, y: any) => boolean;
     makeRandom: (width: number) => {
@@ -111,18 +111,18 @@ export declare const stdlib: {
             random: () => ethers.ethers.BigNumber;
         };
     };
-    eq: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    eq: (a: shared.num, b: shared.num) => boolean;
     makeArith: (m: ethers.ethers.BigNumber) => {
-        add: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-        sub: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-        mod: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-        mul: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
-        div: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => ethers.ethers.BigNumber;
+        add: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+        sub: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+        mod: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+        mul: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
+        div: (a: shared.num, b: shared.num) => ethers.ethers.BigNumber;
     };
-    ge: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    gt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    le: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
-    lt: (a: number | ethers.ethers.BigNumber, b: number | ethers.ethers.BigNumber) => boolean;
+    ge: (a: shared.num, b: shared.num) => boolean;
+    gt: (a: shared.num, b: shared.num) => boolean;
+    le: (a: shared.num, b: shared.num) => boolean;
+    lt: (a: shared.num, b: shared.num) => boolean;
     argsSlice: <T_2>(args: T_2[], cnt: number) => T_2[];
     argsSplit: <T_3>(args: T_3[], cnt: number) => [T_3[], T_3[]];
     Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
@@ -138,13 +138,13 @@ export declare const stdlib: {
     parseFixedPoint: (x: {
         sign: boolean;
         i: {
-            i: number | ethers.ethers.BigNumber;
-            scale: number | ethers.ethers.BigNumber;
+            i: shared.num;
+            scale: shared.num;
         };
     }) => number;
     parseInt: (x: {
         sign: boolean;
-        i: number | ethers.ethers.BigNumber;
+        i: shared.num;
     }) => number;
 };
 export {};

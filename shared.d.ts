@@ -6,7 +6,7 @@ export interface AnyBackendTy {
     canonicalize: (x: any) => any;
 }
 declare type BigNumber = ethers.BigNumber;
-declare type num = BigNumber | number;
+export declare type num = BigNumber | number;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
     ty: ConnectorTy;
     decode: (i: number, svs: Array<any>, args: Array<any>) => any;
@@ -46,7 +46,7 @@ export declare type MkPayAmt<Token> = [
 ];
 export declare type IRecvNoTimeout<RawAddress> = {
     didTimeout: false;
-    data: Array<any>;
+    data: Array<unknown>;
     from: RawAddress;
     time: BigNumber;
     getOutput: (o_lab: string, o_ctc: any) => Promise<any>;
