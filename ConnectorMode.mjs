@@ -9,7 +9,8 @@ const knownConnectorModes = [
   'ALGO-test-dockerized-algod',
   'ALGO-live',
   'ALGO-browser',
-  'CFX-experimental',
+  'CFX-devnet',
+  'CFX-live',
 ];
 
 function isKnownConnector(s) {
