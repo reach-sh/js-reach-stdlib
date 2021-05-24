@@ -3,6 +3,7 @@ import * as ethLikeCompiled from './CFX_compiled.mjs';
 import { memoizeThunk, replaceableThunk } from './shared_impl.mjs';
 import { envDefault } from './shared.mjs';
 import { process } from './shim.mjs';
+import waitPort from './waitPort.mjs';
 import cfxsdk from 'js-conflux-sdk';
 const { Conflux } = cfxsdk;
 
@@ -29,13 +30,15 @@ export const _getDefaultFaucetNetworkAccount = memoizeThunk(async () => {
   const mining_key = '0x7072d050980eb10516abd40688113e578ffb2fd26c645a186ef478c2b4344dce';
   return (new cfxers.Wallet(mining_key)).connect(await getProvider());
 });
-const [getProvider, setProvider] = replaceableThunk(() => {
+const [getProvider, setProvider] = replaceableThunk(async () => {
+  await waitPort(CFX_NODE_URI);
   // XXX parameterize impl on conflux
   const conflux = new Conflux({
     url: CFX_NODE_URI,
     // logger: console,
     networkId,
   });
+  // XXX We need to find a way to wait until catch-up mode is done
   return new cfxers.providers.Provider(conflux);
 });
 
