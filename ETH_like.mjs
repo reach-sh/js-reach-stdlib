@@ -22,7 +22,7 @@ export function makeEthLike(ethLikeArgs) {
   // ...............................................
   const { ethLikeCompiled, ethers, standardDigits = 18, providerLib, isIsolatedNetwork, isWindowProvider, _getDefaultNetworkAccount, _getDefaultFaucetNetworkAccount, _verifyContractCode = true, _warnTxNoBlockNumber = true, standardUnit, atomicUnit } = ethLikeArgs;
   const { getProvider } = providerLib;
-  const { T_Address, T_Tuple, add, stdlib } = ethLikeCompiled;
+  const { T_Address, T_Tuple, add, addressEq, stdlib } = ethLikeCompiled;
   const reachStdlib = stdlib;
   /** @description convenience function for drilling down to the actual address */
   const getAddr = async (acc) => {
@@ -229,7 +229,7 @@ export function makeEthLike(ethLikeArgs) {
     const shad = address.substring(2, 6);
     let label = shad;
     const iam = (some_addr) => {
-      if (some_addr == address) {
+      if (addressEq(some_addr, address)) {
         return address;
       } else {
         throw Error(`I should be ${some_addr}, but am ${address}`);
