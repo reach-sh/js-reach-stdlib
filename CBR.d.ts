@@ -1,6 +1,6 @@
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 declare type BigNumber = ethers.BigNumber;
-declare const BigNumber: typeof ethers.ethers.BigNumber;
+declare const BigNumber: typeof ethers.BigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
 export declare const bigNumberToNumber: (x: any) => number;
 export declare type CBR_Null = null;

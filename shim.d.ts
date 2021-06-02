@@ -1,10 +1,11 @@
-import ethers from 'ethers';
+import type { ethers } from 'ethers';
 declare type Process = {
     env: Env;
     stdout: Stdout;
 };
 declare type Env = {
     REACH_CONNECTOR_MODE?: string;
+    REACH_DEBUG?: string;
     ETH_NODE_URI?: string;
     ETH_NET?: string;
     ALGO_FAUCET_PASSPHRASE?: string;

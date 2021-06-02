@@ -1,9 +1,13 @@
-import real_ethers from 'ethers';
-import * as shared from './shared';
-import type { BigNumber } from 'ethers';
-import type { CurrencyAmount, IAccount, IBackend, IContract } from './shared';
-import type { AnyETH_Ty, Token } from './ETH_like_compiled';
-import type { EthersLikeSigner, EthersLikeWallet, EthLikeArgs, BackendStdlib } from './ETH_like_interfaces';
+import { ethers as real_ethers } from 'ethers';
+import type { // =>
+BigNumber } from 'ethers';
+import type { // =>
+CurrencyAmount, IAccount, IBackend, IContract, OnProgress } from './shared_impl';
+import type { // =>
+AnyETH_Ty, Token } from './ETH_like_compiled';
+import type { EthersLikeSigner, EthersLikeWallet, EthLikeArgs } from './ETH_like_interfaces';
+import type { // =>
+Stdlib_Backend } from './interfaces';
 declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
@@ -46,9 +50,9 @@ declare type AccountTransferable = Account | {
 export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     getFaucet: () => Promise<any>;
     setFaucet: (val: Promise<any>) => void;
-    randomUInt: () => real_ethers.ethers.BigNumber;
+    randomUInt: () => real_ethers.BigNumber;
     hasRandom: {
-        random: () => real_ethers.ethers.BigNumber;
+        random: () => real_ethers.BigNumber;
     };
     balanceOf: (acc: Account) => Promise<BigNumber>;
     transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
@@ -60,82 +64,23 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
     newTestAccount: (startingBalance: any) => Promise<Account>;
     getNetworkTime: () => Promise<BigNumber>;
-    wait: (delta: BigNumber, onProgress?: shared.OnProgress | undefined) => Promise<BigNumber>;
-    waitUntilTime: (targetTime: BigNumber, onProgress?: shared.OnProgress | undefined) => Promise<BigNumber>;
+    wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+    waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
     verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
     standardUnit: string;
     atomicUnit: string;
     parseCurrency: (amt: CurrencyAmount) => BigNumber;
-    minimumBalance: real_ethers.ethers.BigNumber;
+    minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
-    reachStdlib: BackendStdlib;
+    reachStdlib: Stdlib_Backend<AnyETH_Ty>;
     getProvider: any;
     setProvider: any;
     setProviderByEnv: any;
     setProviderByName: any;
     providerEnvByName: any;
-    stdlib: BackendStdlib;
-    typeDefs: import("./ETH_like_interfaces").TypeDefs;
-    UInt_max: real_ethers.ethers.BigNumber;
-    addressEq: (addr1: unknown, addr2: unknown) => boolean;
-    tokenEq: (x: unknown, y: unknown) => boolean;
-    digest: (t: AnyETH_Ty, a: unknown) => string;
-    bigNumberify: any;
-    bigNumberToNumber: any;
-    getViewsHelper: any;
-    deferContract: any;
-    truthyEnv: any;
-    envDefault: any;
-    setDEBUG: any;
-    getDEBUG: any;
-    debug: any;
-    assert: any;
-    isBigNumber: any;
-    checkedBigNumberify: any;
-    protect: any;
-    isHex: any;
-    hexToString: any;
-    stringToHex: any;
-    makeDigest: any;
-    hexToBigNumber: any;
-    uintToBytes: any;
-    bigNumberToHex: any;
-    bytesEq: any;
-    digestEq: any;
-    makeRandom: any;
-    eq: any;
-    makeArith: any;
-    ge: any;
-    gt: any;
-    le: any;
-    lt: any;
-    argsSlice: any;
-    argsSplit: any;
-    Array_set: any;
-    Array_zip: any;
-    mapRef: any;
-    objectMap: any;
-    mkAddressEq: any;
-    parseFixedPoint: any;
-    parseInt: any;
-    add: (x: shared.num, y: shared.num) => real_ethers.ethers.BigNumber;
-    sub: (x: shared.num, y: shared.num) => real_ethers.ethers.BigNumber;
-    mod: (x: shared.num, y: shared.num) => real_ethers.ethers.BigNumber;
-    mul: (x: shared.num, y: shared.num) => real_ethers.ethers.BigNumber;
-    div: (x: shared.num, y: shared.num) => real_ethers.ethers.BigNumber;
-    T_Null: any;
-    T_Bool: any;
-    T_UInt: any;
-    T_Bytes: any;
-    T_Address: any;
-    T_Digest: any;
-    T_Token: any;
-    T_Object: any;
-    T_Data: any;
-    T_Array: any;
-    T_Tuple: any;
-    T_Struct: any;
+    stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
+    typeDefs: import("./interfaces").TypeDefs;
 };
 export {};
 //# sourceMappingURL=ETH_like.d.ts.map

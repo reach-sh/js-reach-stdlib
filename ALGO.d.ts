@@ -1,11 +1,11 @@
 export declare const connector = "ALGO";
 import algosdk from 'algosdk';
-import ethers from 'ethers';
-import { CurrencyAmount, OnProgress, IBackend, IBackendViewInfo, IBackendViewsInfo, IAccount, IContract } from './shared';
+import { ethers } from 'ethers';
+import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
-export declare const add: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber, sub: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber, mod: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber, mul: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber, div: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-export * from './shared';
+export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: any, assert: any, Array_set: any, eq: any, ge: any, gt: any, le: any, lt: any, bytesEq: any, digestEq: any;
+export * from './shared_user';
 declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 declare type Address = string;
@@ -47,15 +47,20 @@ declare type StepArgInfo = {
 declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
+            version: number;
             appApproval0: string;
             appApproval: string;
             appClear: string;
             ctc: string;
             viewSize: number;
             viewKeys: number;
+            mapDataSize: number;
+            mapDataKeys: number;
+            mapRecordSize: number;
+            mapArgSize: number;
             steps: Array<string | null>;
             stepargs: Array<StepArgInfo | null>;
-            unsupported: boolean;
+            unsupported: Array<string>;
         };
     };
 };
@@ -78,14 +83,14 @@ export { setAlgoSigner };
 export declare const waitForConfirmation: (txId: TxId, untilRound: number | undefined) => Promise<TxnInfo>;
 export declare const getTxnParams: () => Promise<TxnParams>;
 declare type TXN = any;
-export declare const addressEq: (x: any, y: any) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: any, v: any) => string;
-export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
+export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
+export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<import("./CBR").CBR_Object>, T_Data: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
-}) => ALGO_Ty<import("./CBR").CBR_Data>, T_Bytes: (len: number) => ALGO_Ty<string>, T_Address: ALGO_Ty<string>, T_Digest: ALGO_Ty<string>, T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>, T_Token: ALGO_Ty<ethers.ethers.BigNumber>;
-export declare const randomUInt: () => ethers.ethers.BigNumber, hasRandom: {
-    random: () => ethers.ethers.BigNumber;
+}) => ALGO_Ty<import("./CBR").CBR_Data>, T_Bytes: (len: number) => ALGO_Ty<string>, T_Address: ALGO_Ty<string>, T_Digest: ALGO_Ty<string>, T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>, T_Token: ALGO_Ty<ethers.BigNumber>;
+export declare const randomUInt: () => ethers.BigNumber, hasRandom: {
+    random: () => ethers.BigNumber;
 };
 export declare const getLedger: () => string | undefined, setLedger: (val: string | undefined) => void;
 export declare const getAlgodClient: () => Promise<algosdk.Algodv2>, setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
@@ -151,7 +156,7 @@ export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Accou
  */
 export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
 export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<Account>;
-export declare const getNetworkTime: () => Promise<ethers.ethers.BigNumber>;
+export declare const getNetworkTime: () => Promise<ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<true>;
@@ -161,99 +166,5 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  * @returns the address formatted as a base32-encoded string with checksum
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
-export declare const reachStdlib: {
-    addressEq: (x: any, y: any) => boolean;
-    tokenEq: (x: unknown, y: unknown) => boolean;
-    digest: (t: any, v: any) => string;
-    UInt_max: ethers.ethers.BigNumber;
-    T_Null: ALGO_Ty<null>;
-    T_Bool: ALGO_Ty<boolean>;
-    T_UInt: ALGO_Ty<ethers.ethers.BigNumber>;
-    T_Bytes: (len: number) => ALGO_Ty<string>;
-    T_Address: ALGO_Ty<string>;
-    T_Digest: ALGO_Ty<string>;
-    T_Token: ALGO_Ty<ethers.ethers.BigNumber>;
-    T_Object: (coMap: {
-        [key: string]: ALGO_Ty<CBR_Val>;
-    }) => ALGO_Ty<import("./CBR").CBR_Object>;
-    T_Data: (coMap: {
-        [key: string]: ALGO_Ty<CBR_Val>;
-    }) => ALGO_Ty<import("./CBR").CBR_Data>;
-    T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>;
-    T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>;
-    T_Struct: (cos: [string, ALGO_Ty<CBR_Val>][]) => ALGO_Ty<import("./CBR").CBR_Struct>;
-    add: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    sub: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    mod: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    mul: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    div: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    truthyEnv(v: string | null | undefined): v is string;
-    protect(ctc: import("./shared").AnyBackendTy, v: unknown, ai?: unknown): any;
-    Array_set<T>(arr: T[], idx: number, elem: T): T[];
-    bigNumberify: (x: any) => ethers.ethers.BigNumber;
-    bigNumberToNumber: (x: any) => number;
-    getViewsHelper: <ConnectorTy extends import("./shared").AnyBackendTy, B>(views: import("./shared").IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
-        [key: string]: {
-            [key: string]: B;
-        };
-    };
-    deferContract: <ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1 extends import("./shared").AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>, implNow: Partial<IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>>) => IContract<ContractInfo_1, Digest_1, RawAddress, Token_1, ConnectorTy_1>;
-    envDefault: <T_1>(v: string | null | undefined, d: T_1) => string | T_1;
-    setDEBUG: (b: boolean) => void;
-    getDEBUG: () => boolean;
-    debug: (...msgs: any) => void;
-    assert: (d: any, ai?: any) => void;
-    isBigNumber: typeof ethers.ethers.BigNumber.isBigNumber;
-    checkedBigNumberify: (at: string, m: ethers.ethers.BigNumber, x: any) => ethers.ethers.BigNumber;
-    isHex: typeof ethers.ethers.utils.isHexString;
-    hexToString: typeof ethers.ethers.utils.toUtf8String;
-    stringToHex: (x: string) => string;
-    makeDigest: (prep: any) => (t: any, v: any) => string;
-    hexToBigNumber: (h: string) => ethers.ethers.BigNumber;
-    uintToBytes: (i: ethers.ethers.BigNumber) => string;
-    bigNumberToHex: (u: import("./shared").num, size?: number) => string;
-    bytesEq: (x: any, y: any) => boolean;
-    digestEq: (x: any, y: any) => boolean;
-    makeRandom: (width: number) => {
-        randomUInt: () => ethers.ethers.BigNumber;
-        hasRandom: {
-            random: () => ethers.ethers.BigNumber;
-        };
-    };
-    eq: (a: import("./shared").num, b: import("./shared").num) => boolean;
-    makeArith: (m: ethers.ethers.BigNumber) => {
-        add: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-        sub: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-        mod: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-        mul: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-        div: (a: import("./shared").num, b: import("./shared").num) => ethers.ethers.BigNumber;
-    };
-    ge: (a: import("./shared").num, b: import("./shared").num) => boolean;
-    gt: (a: import("./shared").num, b: import("./shared").num) => boolean;
-    le: (a: import("./shared").num, b: import("./shared").num) => boolean;
-    lt: (a: import("./shared").num, b: import("./shared").num) => boolean;
-    argsSlice: <T_2>(args: T_2[], cnt: number) => T_2[];
-    argsSplit: <T_3>(args: T_3[], cnt: number) => [T_3[], T_3[]];
-    Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
-    mapRef: (m: any, f: any) => any;
-    objectMap: <A, B_1>(object: {
-        [key: string]: A;
-    }, mapFn: (k: string, a: A) => B_1) => {
-        [key: string]: B_1;
-    };
-    mkAddressEq: (T_Address: {
-        canonicalize: (addr: any) => any;
-    }) => (x: any, y: any) => boolean;
-    parseFixedPoint: (x: {
-        sign: boolean;
-        i: {
-            i: import("./shared").num;
-            scale: import("./shared").num;
-        };
-    }) => number;
-    parseInt: (x: {
-        sign: boolean;
-        i: import("./shared").num;
-    }) => number;
-};
+export declare const reachStdlib: import("./interfaces").Stdlib_Backend_Base<ALGO_Ty<any>>;
 //# sourceMappingURL=ALGO.d.ts.map

@@ -1,0 +1,7 @@
+import { getConnectorMode, getConnector } from './ConnectorMode';
+import type { Stdlib_User } from './interfaces';
+export { getConnectorMode, getConnector };
+export declare function loadStdlib(connectorModeOrEnv?: string | {
+    [key: string]: string;
+}): Stdlib_User<any>;
+//# sourceMappingURL=loader.d.ts.map

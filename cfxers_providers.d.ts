@@ -1,5 +1,5 @@
 import cfxsdk from 'js-conflux-sdk';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 declare type BigNumber = ethers.BigNumber;
 declare type EpochNumber = cfxsdk.EpochNumber;
 declare type Conflux = cfxsdk.Conflux;

@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import * as ethLikeCompiled from './ETH_compiled';
 declare type Provider = ethers.providers.Provider;
 declare type NetworkAccount = any;
@@ -24,12 +24,12 @@ export declare function setProviderByName(providerName: ProviderName): void;
 declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
-declare const getProvider: () => ethers.ethers.providers.Provider | Promise<ethers.ethers.providers.Provider>;
+declare const getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
 export { getProvider };
 export declare function setProvider(provider: Provider | Promise<Provider>): void;
 export { ethers };
 export declare const providerLib: {
-    getProvider: () => ethers.ethers.providers.Provider | Promise<ethers.ethers.providers.Provider>;
+    getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
     setProvider: typeof setProvider;
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;

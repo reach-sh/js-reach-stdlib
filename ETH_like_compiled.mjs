@@ -1,186 +1,208 @@
 // ****************************************************************************
 // standard library needed at runtime by compiled Reach programs
 // ****************************************************************************
+var __assign = (this && this.__assign) || function() {
+  __assign = Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s)
+        if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 import ethers from 'ethers';
-import * as shared from './shared.mjs';
+import * as shared_backend from './shared_backend.mjs';
 import * as CBR from './CBR.mjs';
-import { labelMaps } from './shared_impl.mjs';
+import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, } from './shared_impl.mjs';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   // ...............................................
-  const { T_Address } = ethLikeCompiledArgs;
-  const UInt_max = ethers.BigNumber.from(2).pow(256).sub(1);
-  const digest = shared.makeDigest((t, v) => {
+  var T_Address = ethLikeCompiledArgs.T_Address;
+  var UInt_max = ethers.BigNumber.from(2).pow(256).sub(1);
+  var digest = makeDigest(function(t, v) {
     // Note: abiCoder.encode doesn't correctly handle an empty tuple type
     if (t.paramType === 'tuple()') {
       if (Array.isArray(v) && v.length === 0) {
         return v;
       } else {
-        throw Error(`impossible: digest tuple() with non-empty array: ${JSON.stringify(v)}`);
+        throw Error("impossible: digest tuple() with non-empty array: " + JSON.stringify(v));
       }
     }
     return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
   });
-  const V_Null = null;
-  const T_Null = {
-    ...CBR.BT_Null,
+  var V_Null = null;
+  var T_Null = __assign(__assign({}, CBR.BT_Null), {
     defaultValue: V_Null,
     // null is represented in solidity as false
-    munge: (bv) => (void(bv), false),
-    unmunge: (nv) => (void(nv), V_Null),
-    paramType: 'bool',
-  };
-  const T_Bool = {
-    ...CBR.BT_Bool,
-    defaultValue: false,
-    munge: (bv) => bv,
-    unmunge: (nv) => V_Bool(nv),
-    paramType: 'bool',
-  };
-  const V_Bool = (b) => {
+    munge: function(bv) { return (void(bv), false); },
+    unmunge: function(nv) { return (void(nv), V_Null); },
+    paramType: 'bool'
+  });
+  var T_Bool = __assign(__assign({}, CBR.BT_Bool), { defaultValue: false, munge: function(bv) { return bv; }, unmunge: function(nv) { return V_Bool(nv); }, paramType: 'bool' });
+  var V_Bool = function(b) {
     return T_Bool.canonicalize(b);
   };
-  const T_UInt = {
-    ...CBR.BT_UInt,
-    defaultValue: ethers.BigNumber.from(0),
-    munge: (bv) => bv,
-    unmunge: (nv) => V_UInt(nv),
-    paramType: 'uint256',
-  };
-  const V_UInt = (n) => {
+  var T_UInt = __assign(__assign({}, CBR.BT_UInt), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bv; }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
+  var V_UInt = function(n) {
     return T_UInt.canonicalize(n);
   };
-  const T_Bytes = (len) => {
-    const me = {
-      ...CBR.BT_Bytes(len),
-      defaultValue: ''.padEnd(len, '\0'),
-      munge: (bv) => Array.from(ethers.utils.toUtf8Bytes(bv)),
-      unmunge: (nv) => me.canonicalize(shared.hexToString(ethers.utils.hexlify(nv))),
-      paramType: `uint8[${len}]`,
-    };
+  var T_Bytes = function(len) {
+    var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function(bv) { return Array.from(ethers.utils.toUtf8Bytes(bv)); }, unmunge: function(nv) { return me.canonicalize(hexToString(ethers.utils.hexlify(nv))); }, paramType: "uint8[" + len + "]" });
     return me;
   };
-  const T_Digest = {
-    ...CBR.BT_Digest,
+  var T_Digest = __assign(__assign({}, CBR.BT_Digest), {
     defaultValue: ethers.utils.keccak256([]),
-    munge: (bv) => ethers.BigNumber.from(bv),
+    munge: function(bv) { return ethers.BigNumber.from(bv); },
     // XXX likely not the correct unmunge type?
-    unmunge: (nv) => V_Digest(nv.toHexString()),
-    paramType: 'uint256',
-  };
-  const V_Digest = (s) => {
+    unmunge: function(nv) { return V_Digest(nv.toHexString()); },
+    paramType: 'uint256'
+  });
+  var V_Digest = function(s) {
     return T_Digest.canonicalize(s);
   };
-  const T_Array = (ctc, size) => ({
-    ...CBR.BT_Array(ctc, size),
-    defaultValue: Array(size).fill(ctc.defaultValue),
-    munge: (bv) => {
-      if (size == 0) {
-        return false;
-      } else {
-        return bv.map((arg) => ctc.munge(arg));
-      }
-    },
-    unmunge: (nv) => {
-      if (size == 0) {
-        return [];
-      } else {
-        return V_Array(ctc, size)(nv.map((arg) => ctc.unmunge(arg)));
-      }
-    },
-    paramType: `${ctc.paramType}[${size}]`,
-  });
-  const V_Array = (ctc, size) => (val) => {
-    return T_Array(ctc, size).canonicalize(val);
+  var T_Array = function(ctc, size) {
+    return (__assign(__assign({}, CBR.BT_Array(ctc, size)), {
+      defaultValue: Array(size).fill(ctc.defaultValue),
+      munge: function(bv) {
+        if (size == 0) {
+          return false;
+        } else {
+          return bv.map(function(arg) { return ctc.munge(arg); });
+        }
+      },
+      unmunge: function(nv) {
+        if (size == 0) {
+          return [];
+        } else {
+          return V_Array(ctc, size)(nv.map(function(arg) { return ctc.unmunge(arg); }));
+        }
+      },
+      paramType: ctc.paramType + "[" + size + "]"
+    }));
+  };
+  var V_Array = function(ctc, size) {
+    return function(val) {
+      return T_Array(ctc, size).canonicalize(val);
+    };
   };
   // XXX fix me Dan, I'm type checking wrong!
-  const T_Tuple = (ctcs) => ({
-    ...CBR.BT_Tuple(ctcs),
-    defaultValue: ctcs.map(ctc => ctc.defaultValue),
-    munge: (bv) => {
-      if (ctcs.length == 0) {
-        return false;
-      } else {
-        return bv.map((arg, i) => ctcs[i].munge(arg));
-      }
-    },
-    unmunge: (args) => {
-      return V_Tuple(ctcs)(ctcs.map((ctc, i) => ctc.unmunge(args[i])));
-    },
-    paramType: `tuple(${ctcs.map((ctc) => ctc.paramType).join(',')})`,
-  });
-  const V_Tuple = (ctcs) => (val) => {
-    return T_Tuple(ctcs).canonicalize(val);
+  var T_Tuple = function(ctcs) {
+    return (__assign(__assign({}, CBR.BT_Tuple(ctcs)), {
+      defaultValue: ctcs.map(function(ctc) { return ctc.defaultValue; }),
+      munge: function(bv) {
+        if (ctcs.length == 0) {
+          return false;
+        } else {
+          return bv.map(function(arg, i) { return ctcs[i].munge(arg); });
+        }
+      },
+      unmunge: function(args) {
+        return V_Tuple(ctcs)(ctcs.map(function(ctc, i) { return ctc.unmunge(args[i]); }));
+      },
+      paramType: "tuple(" + ctcs.map(function(ctc) { return ctc.paramType; }).join(',') + ")"
+    }));
   };
-  const T_Struct = (ctcs) => ({
-    ...CBR.BT_Struct(ctcs),
-    defaultValue: (() => {
-      const obj = {};
-      ctcs.forEach(([prop, co]) => {
-        obj[prop] = co.defaultValue;
-      });
-      return obj;
-    })(),
-    munge: (bv) => {
-      if (ctcs.length == 0) {
-        return false;
-      } else {
-        return ctcs.map(([k, ctc]) => ctc.munge(bv[k]));
-      }
-    },
-    unmunge: (args) => {
-      return V_Struct(ctcs)(ctcs.map(([k, ctc], i) => { void(k); return ctc.unmunge(args[i]); }));
-    },
-    paramType: `tuple(${ctcs.map(([k, ctc]) => { void (k); return ctc.paramType; }).join(',')})`,
-  });
-  const V_Struct = (ctcs) => (val) => {
-    return T_Struct(ctcs).canonicalize(val);
+  var V_Tuple = function(ctcs) {
+    return function(val) {
+      return T_Tuple(ctcs).canonicalize(val);
+    };
   };
-  const T_Object = (co) => ({
-    ...CBR.BT_Object(co),
-    defaultValue: (() => {
-      const obj = {};
-      for (const prop in co) {
-        obj[prop] = co[prop].defaultValue;
-      }
-      return obj;
-    })(),
-    munge: (bv) => {
-      const obj = {};
-      let none = true;
-      for (const prop in co) {
-        none = false;
-        obj[prop] = co[prop].munge(bv[prop]);
-      }
-      if (none) {
-        return false;
-      } else {
+  var T_Struct = function(ctcs) {
+    return (__assign(__assign({}, CBR.BT_Struct(ctcs)), {
+      defaultValue: (function() {
+        var obj = {};
+        ctcs.forEach(function(_a) {
+          var prop = _a[0],
+            co = _a[1];
+          obj[prop] = co.defaultValue;
+        });
         return obj;
-      }
-    },
-    unmunge: (bv) => {
-      const obj = {};
-      for (const prop in co) {
-        obj[prop] = co[prop].unmunge(bv[prop]);
-      }
-      return V_Object(co)(obj);
-    },
-    paramType: (() => {
-      const { ascLabels } = labelMaps(co);
-      const tupFields = ascLabels.map((label) => `${co[label].paramType} ${label}`).join(',');
-      return `tuple(${tupFields})`;
-    })(),
-  });
-  const V_Object = (co) => (val) => {
-    return T_Object(co).canonicalize(val);
+      })(),
+      munge: function(bv) {
+        if (ctcs.length == 0) {
+          return false;
+        } else {
+          return ctcs.map(function(_a) {
+            var k = _a[0],
+              ctc = _a[1];
+            return ctc.munge(bv[k]);
+          });
+        }
+      },
+      unmunge: function(args) {
+        return V_Struct(ctcs)(ctcs.map(function(_a, i) {
+          var k = _a[0],
+            ctc = _a[1];
+          void(k);
+          return ctc.unmunge(args[i]);
+        }));
+      },
+      paramType: "tuple(" + ctcs.map(function(_a) {
+        var k = _a[0],
+          ctc = _a[1];
+        void(k);
+        return ctc.paramType;
+      }).join(',') + ")"
+    }));
   };
-  const T_Data = (co) => {
+  var V_Struct = function(ctcs) {
+    return function(val) {
+      return T_Struct(ctcs).canonicalize(val);
+    };
+  };
+  var T_Object = function(co) {
+    return (__assign(__assign({}, CBR.BT_Object(co)), {
+      defaultValue: (function() {
+        var obj = {};
+        for (var prop in co) {
+          obj[prop] = co[prop].defaultValue;
+        }
+        return obj;
+      })(),
+      // CBR -> Net . ETH object fields are prefaced with "_"
+      munge: function(bv) {
+        var obj = {};
+        var none = true;
+        for (var prop in co) {
+          none = false;
+          obj["_" + prop] = co[prop].munge(bv[prop]);
+        }
+        if (none) {
+          return false;
+        } else {
+          return obj;
+        }
+      },
+      unmunge: function(bv) {
+        var obj = {};
+        for (var prop in co) {
+          obj[prop] = co[prop].unmunge(bv["_" + prop]);
+        }
+        return V_Object(co)(obj);
+      },
+      paramType: (function() {
+        var ascLabels = labelMaps(co).ascLabels;
+        var tupFields = ascLabels.map(function(label) { return co[label].paramType + " _" + label; }).join(',');
+        return "tuple(" + tupFields + ")";
+      })()
+    }));
+  };
+  var V_Object = function(co) {
+    return function(val) {
+      return T_Object(co).canonicalize(val);
+    };
+  };
+  var T_Data = function(co) {
     // TODO: not duplicate between this and CBR.ts
-    const { ascLabels, labelMap } = labelMaps(co);
-    return {
-      ...CBR.BT_Data(co),
-      defaultValue: (() => {
-        const label = ascLabels[0];
+    var _a = labelMaps(co),
+      ascLabels = _a.ascLabels,
+      labelMap = _a.labelMap;
+    return __assign(__assign({}, CBR.BT_Data(co)), {
+      defaultValue: (function() {
+        var label = ascLabels[0];
         return [label, co[label].defaultValue];
         // return {ty, val: [label, co[label].defaultValue]};
       })(),
@@ -194,14 +216,16 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       // where labelInt : number, 0 <= labelInt < N
       // vN : co[ascLabels[i]]
       //
-      munge: ([label, v]) => {
-        const i = labelMap[label];
-        const vals = ascLabels.map((label) => {
-          const vco = co[label];
+      munge: function(_a) {
+        var label = _a[0],
+          v = _a[1];
+        var i = labelMap[label];
+        var vals = ascLabels.map(function(label) {
+          var vco = co[label];
           return vco.munge(vco.defaultValue);
         });
         vals[i] = co[label].munge(v);
-        const ret = [i];
+        var ret = [i];
         return ret.concat(vals);
       },
       // Note: when it comes back from solidity, vs behaves like an N+1-tuple,
@@ -210,60 +234,59 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       // e.g. Maybe has keys vs["which"], vs["_None"], and vs["_Some"],
       // corresponding to    vs[0],       vs[1],       and vs[2] respectively.
       // We don't currently use these, but we could.
-      unmunge: (vs) => {
-        const i = vs[0];
-        const label = ascLabels[i];
-        const val = vs[i + 1];
+      unmunge: function(vs) {
+        var i = vs[0];
+        var label = ascLabels[i];
+        var val = vs[i + 1];
         return V_Data(co)([label, co[label].unmunge(val)]);
       },
-      paramType: (() => {
-        const { ascLabels } = labelMaps(co);
+      paramType: (function() {
+        var ascLabels = labelMaps(co).ascLabels;
         // See comment on unmunge about field names that we could use but currently don't
-        const optionTys = ascLabels.map((label) => `${co[label].paramType} _${label}`);
-        const tupFields = [`${T_UInt.paramType} which`].concat(optionTys).join(',');
-        return `tuple(${tupFields})`;
-      })(),
+        var optionTys = ascLabels.map(function(label) { return co[label].paramType + " _" + label; });
+        var tupFields = [T_UInt.paramType + " which"].concat(optionTys).join(',');
+        return "tuple(" + tupFields + ")";
+      })()
+    });
+  };
+  var V_Data = function(co) {
+    return function(val) {
+      return T_Data(co).canonicalize(val);
     };
   };
-  const V_Data = (co) => (val) => {
-    return T_Data(co).canonicalize(val);
+  var addressEq = mkAddressEq(T_Address);
+  var T_Token = T_Address;
+  var tokenEq = addressEq;
+  var typeDefs = {
+    T_Null: T_Null,
+    T_Bool: T_Bool,
+    T_UInt: T_UInt,
+    T_Bytes: T_Bytes,
+    T_Address: T_Address,
+    T_Digest: T_Digest,
+    T_Token: T_Token,
+    T_Object: T_Object,
+    T_Data: T_Data,
+    T_Array: T_Array,
+    T_Tuple: T_Tuple,
+    T_Struct: T_Struct
   };
-  const addressEq = shared.mkAddressEq(T_Address);
-  const T_Token = T_Address;
-  const tokenEq = addressEq;
-  const typeDefs = {
-    T_Null,
-    T_Bool,
-    T_UInt,
-    T_Bytes,
-    T_Address,
-    T_Digest,
-    T_Token,
-    T_Object,
-    T_Data,
-    T_Array,
-    T_Tuple,
-    T_Struct,
-  };
-  const arith = shared.makeArith(UInt_max);
-  const stdlib = {
-    ...shared,
-    ...arith,
-    ...typeDefs,
-    addressEq,
-    tokenEq,
-    digest,
-    UInt_max,
-  };
+  var arith = makeArith(UInt_max);
+  var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), {
+    addressEq: addressEq,
+    tokenEq: tokenEq,
+    digest: digest,
+    UInt_max: UInt_max
+  });
   // ...............................................
   // It's the same as stdlib, but with convenient access to
   // stdlib and typeDefs as bundles of bindings
   // TODO: restore type annotation once types are in place
   // const ethLikeCompiled: EthLikeCompiled = {
-  const ethLikeCompiled = {
-    ...stdlib,
-    typeDefs,
-    stdlib,
-  };
+  var ethLikeCompiled = __assign(__assign({}, stdlib), {
+    typeDefs: typeDefs,
+    stdlib: stdlib
+  });
   return ethLikeCompiled;
 }
+//# sourceMappingURL=ETH_like_compiled.js.map

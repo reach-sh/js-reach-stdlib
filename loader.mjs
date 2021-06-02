@@ -3,16 +3,16 @@ import * as stdlib_ALGO from './ALGO.mjs';
 import * as stdlib_CFX from './CFX.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
 import { process, window } from './shim.mjs';
+import { setDEBUG, } from './shared_impl.mjs';
 export { getConnectorMode, getConnector };
-// XXX make an interface for Stdlib, return Promise<Stdlib>
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
-export async function loadStdlib(connectorModeOrEnv) {
+export function loadStdlib(connectorModeOrEnv) {
   if (!connectorModeOrEnv) {
     // @ts-ignore // XXX why doesn't TS understand that Env satisfies {[key: string}: string} ?
-    return await loadStdlib(process.env);
+    return loadStdlib(process.env);
   }
-  let connectorModeStr;
+  var connectorModeStr;
   if (typeof connectorModeOrEnv === 'string') {
     connectorModeStr = connectorModeOrEnv;
   } else if (connectorModeOrEnv['REACH_CONNECTOR_MODE']) {
@@ -23,9 +23,9 @@ export async function loadStdlib(connectorModeOrEnv) {
     // TODO: also check {REACT_APP_,}REACH_DEFAULT_NETWORK
     connectorModeStr = 'ETH'; // If absolutely none specified/found, just default to 'ETH'
   }
-  const connectorMode = canonicalizeConnectorMode(connectorModeStr);
-  const connector = getConnector(connectorMode);
-  let stdlib;
+  var connectorMode = canonicalizeConnectorMode(connectorModeStr);
+  var connector = getConnector(connectorMode);
+  var stdlib;
   switch (connector) {
     case 'ETH':
       stdlib = stdlib_ETH;
@@ -37,13 +37,14 @@ export async function loadStdlib(connectorModeOrEnv) {
       stdlib = stdlib_CFX;
       break;
     default:
-      throw Error(`impossible: unknown connector ${connector}`);
+      throw Error("impossible: unknown connector " + connector);
   }
   if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
-    let debug = (connectorModeOrEnv['REACH_DEBUG'] || connectorModeOrEnv['REACT_APP_REACH_DEBUG']) ? true : false;
-    stdlib.setDEBUG(debug);
+    var debug = (connectorModeOrEnv['REACH_DEBUG'] || connectorModeOrEnv['REACT_APP_REACH_DEBUG']) ? true : false;
+    setDEBUG(debug);
   }
   // also just inject ourselves into the window for ease of use
   window.reach = stdlib;
   return stdlib;
 }
+//# sourceMappingURL=loader.js.map

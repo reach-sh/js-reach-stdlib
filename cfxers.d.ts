@@ -1,7 +1,7 @@
 import cfxsdk from 'js-conflux-sdk';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import * as providers from './cfxers_providers';
-declare const BigNumber: typeof ethers.ethers.BigNumber, utils: typeof ethers.ethers.utils;
+declare const BigNumber: typeof ethers.BigNumber, utils: typeof ethers.utils;
 export { BigNumber, utils, providers };
 export { cfxsdk };
 export declare class Signer {

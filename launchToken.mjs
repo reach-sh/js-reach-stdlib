@@ -4,9 +4,9 @@ import ETHcompiled from './token.sol.mjs';
 import algosdk from 'algosdk';
 import real_ethers from 'ethers';
 import * as cfxers from './cfxers.mjs';
-// import type { EthersLike } from './ETH_like_interfaces';
+// import type { EthersLike } from './ETH_like_interfaces.mjs';
 
-export default async function (name, sym) {
+export default async function(name, sym) {
   // XXX update this to work in browser (process.env not directly available to libs)
   const stdlib = await stdlib_loader.loadStdlib();
 
@@ -14,7 +14,7 @@ export default async function (name, sym) {
   console.log(`Launching token, ${name} (${sym})`);
   const accCreator = await stdlib.newTestAccount(startingBalance);
 
-  const ETH_like_launchToken = async (ethers /*: EthersLike */) => {
+  const ETH_like_launchToken = async (ethers /*: EthersLike */ ) => {
     const remoteCtc = ETHcompiled["contracts"]["contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol:ERC20PresetMinterPauser"];
     const remoteABI = remoteCtc["abi"];
     const remoteBytecode = remoteCtc["bin"];
@@ -66,37 +66,37 @@ export default async function (name, sym) {
     const ctxn_p = await dotxn(
       (params) =>
       algosdk.makeAssetCreateTxnWithSuggestedParams(
-        caddr, undefined, Math.pow(2,48), 6,
+        caddr, undefined, Math.pow(2, 48), 6,
         false, zaddr, zaddr, zaddr, zaddr,
         sym, name, '', '', params,
       ));
-      const id = ctxn_p["asset-index"];
-      console.log(`${sym}: asset is ${id}`);
+    const id = ctxn_p["asset-index"];
+    console.log(`${sym}: asset is ${id}`);
 
-      const mint = async (accTo, amt) => {
-        console.log(`${sym}: minting ${amt} ${sym} for ${addr(accTo)}`);
-        await stdlib.transfer(accCreator, accTo, amt, id);
-      };
-      const optOut = async (accFrom, accTo = accCreator) => {
-        await dotxn(
-          (params) =>
-          algosdk.makeAssetTransferTxnWithSuggestedParams(
-            addr(accFrom), addr(accTo), addr(accTo), undefined,
-            0, undefined, id, params
-          ), accFrom);
-      };
-      const balanceOf = async (accFrom) => {
-        const taddr = addr(accFrom);
-        console.log(`${sym}: balanceOf of ${taddr}`);
-        const {assets} = await algod.accountInformation(taddr).do();
-        for ( const ai of assets ) {
-          if ( ai['asset-id'] === id ) {
-            return ai['amount'];
-          }
+    const mint = async (accTo, amt) => {
+      console.log(`${sym}: minting ${amt} ${sym} for ${addr(accTo)}`);
+      await stdlib.transfer(accCreator, accTo, amt, id);
+    };
+    const optOut = async (accFrom, accTo = accCreator) => {
+      await dotxn(
+        (params) =>
+        algosdk.makeAssetTransferTxnWithSuggestedParams(
+          addr(accFrom), addr(accTo), addr(accTo), undefined,
+          0, undefined, id, params
+        ), accFrom);
+    };
+    const balanceOf = async (accFrom) => {
+      const taddr = addr(accFrom);
+      console.log(`${sym}: balanceOf of ${taddr}`);
+      const { assets } = await algod.accountInformation(taddr).do();
+      for (const ai of assets) {
+        if (ai['asset-id'] === id) {
+          return ai['amount'];
         }
-        return false;
-      };
-      return { name, sym, id, mint, balanceOf, optOut };
+      }
+      return false;
+    };
+    return { name, sym, id, mint, balanceOf, optOut };
   };
   const launchTokens = {
     'ETH': ETH_launchToken,

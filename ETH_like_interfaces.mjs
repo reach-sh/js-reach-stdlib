@@ -1,4 +1,2 @@
-// ****************************************************************************
-// Interfaces for the various modules of ETH_like
-// ****************************************************************************
 export {};
+//# sourceMappingURL=ETH_like_interfaces.js.map
