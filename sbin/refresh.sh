@@ -19,4 +19,4 @@ git checkout -- package.json
 
 HASH="$(docker run --entrypoint /bin/sh "$IMAGE" -c 'echo $REACH_GIT_HASH')"
 # git add .
-echo git commit -m "refresh -> reach-sh/reach-lang@$HASH"
+echo git commit -m "'refresh -> reach-sh/reach-lang@$HASH'"
