@@ -968,7 +968,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
             }
         };
         attachP = function (bin, ctcInfoP) { return __awaiter(void 0, void 0, void 0, function () {
-            var ctcInfo, getInfo, Deployer, ApplicationID, lastRound, bin_comp, escrowAddr, ctc_prog, _a, viewSize, viewKeys, mapDataTy, mapRecordTy, mapArgTy, emptyMapDataTy, emptyMapData, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, wait, sendrecv, recv, creationTime, views_bin, getView1, getViews;
+            var ctcInfo, getInfo, Deployer, ApplicationID, lastRound, bin_comp, escrowAddr, ctc_prog, _a, viewSize, viewKeys, mapDataKeys, hasMaps, mapDataTy, mapRecordTy, mapArgTy, emptyMapDataTy, emptyMapData, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, wait, sendrecv, recv, creationTime, views_bin, getView1, getViews;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, ctcInfoP];
@@ -991,7 +991,8 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         // XXX const escrowAddrRaw = T_Address.canonicalize(addressToHex(escrowAddr));
                         _b.sent();
                         ctc_prog = algosdk_1["default"].makeLogicSig(bin_comp.ctc.result, []);
-                        _a = bin._Connectors.ALGO, viewSize = _a.viewSize, viewKeys = _a.viewKeys;
+                        _a = bin._Connectors.ALGO, viewSize = _a.viewSize, viewKeys = _a.viewKeys, mapDataKeys = _a.mapDataKeys;
+                        hasMaps = mapDataKeys > 0;
                         mapDataTy = bin._getMaps({ reachStdlib: ALGO_compiled_1.stdlib }).mapDataTy;
                         mapRecordTy = exports.T_Tuple([exports.T_Bool, mapDataTy, mapDataTy, exports.T_Address]);
                         mapArgTy = exports.T_Array(mapRecordTy, HowManyAccounts);
@@ -1178,7 +1179,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                         }
                                         shared_impl_1.debug(dhead, 'MAP', { mapArg: mapArg, mapArgTy: mapArgTy, mapAccts: mapAccts });
                                         shared_impl_1.debug(dhead, 'MAPARG', mapArg);
-                                        if (!mapArg[0][0]) return [3 /*break*/, 5];
+                                        if (!hasMaps) return [3 /*break*/, 5];
                                         return [4 /*yield*/, ensureOptIn()];
                                     case 4:
                                         _e.sent();

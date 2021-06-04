@@ -86,7 +86,7 @@ export var debug = function() {
   if (getDEBUG()) {
     // Print arrays/objects in full instead of the default depth of 2
     var betterMsgs = msgs.map(function(msg) {
-      return ["object", "array"].includes(typeof msg) && util ?
+      return ["object", "array"].includes(typeof msg) && util && util.inspect instanceof Function ?
         util.inspect(msg, false, null, true) :
         msg;
     });

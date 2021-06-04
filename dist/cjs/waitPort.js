@@ -53,6 +53,11 @@ function waitPort(uri, givenPort) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
+                    // These libs may not be available in the browser
+                    if (!(wait_port_1["default"] instanceof Function))
+                        return [2 /*return*/];
+                    if (!url_1["default"] || !(url_1["default"].parse instanceof Function))
+                        return [2 /*return*/];
                     _a = url_1["default"].parse(uri), hostname = _a.hostname, port = _a.port, protocol = _a.protocol;
                     if (!(protocol === 'http:' || protocol === 'https:')) {
                         throw Error("Unsupported protocol " + protocol);
