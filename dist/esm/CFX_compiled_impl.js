@@ -12,21 +12,10 @@ var __assign = (this && this.__assign) || function () {
 import * as eci from './ETH_compiled_impl';
 import cfxsdk from 'js-conflux-sdk';
 import buffer from 'buffer';
+import { address_cfxStandardize } from './CFX_util';
 var Buffer = buffer.Buffer;
 // XXX find a better way to support multiple netIds
 var netId = 999;
-function address_cfxStandardize(addrC) {
-    var pieces = addrC.split(':');
-    // XXX Missing type chunk means assume it's a user (?)
-    // XXX would it be better for our purposes to strip the type out instead?
-    if (pieces.length === 2) {
-        return (pieces[0] + ":TYPE.USER:" + pieces[1]).toUpperCase();
-    }
-    // XXX throw error if pieces.length isn't 2 or 3?
-    if (pieces.length !== 3)
-        throw Error("impossible: bad CFX addr: '" + addrC + "'");
-    return addrC.toUpperCase();
-}
 function address_ethToCfx(addrE) {
     addrE = addrE.toLowerCase();
     var addrB = Buffer.from(addrE.slice(2), 'hex');

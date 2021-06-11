@@ -34,6 +34,7 @@ export interface Stdlib_Backend_Shared extends Stdlib_Backend_Shared_User {
     simMapRef: any;
     simMapSet: any;
     simMapDupe: any;
+    bytesConcat: any;
 }
 export interface Arith {
     add: (x: num, y: num) => BigNumber;

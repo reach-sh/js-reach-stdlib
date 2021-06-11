@@ -11,10 +11,12 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.digestEq = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
+exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.digestEq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
+var shared_impl_1 = require("./shared_impl");
+void (shared_impl_1.debug);
 ;
 var assert = function (d, ai) {
     if (ai === void 0) { ai = null; }
@@ -58,6 +60,11 @@ var bytesEq = function (x, y) {
     return forceHex(x) === forceHex(y);
 };
 exports.bytesEq = bytesEq;
+var bytesConcat = function (x, y) {
+    // forceHex(x).concat(forceHex(y).slice(2));
+    return x.concat(y);
+};
+exports.bytesConcat = bytesConcat;
 exports.digestEq = exports.bytesEq;
 var eq = function (a, b) { return CBR_1.bigNumberify(a).eq(CBR_1.bigNumberify(b)); };
 exports.eq = eq;

@@ -74,6 +74,7 @@ import * as providers from './cfxers_providers.mjs';
 var BigNumber = ethers.BigNumber,
   utils = ethers.utils;
 export { BigNumber, utils, providers };
+import { address_cfxStandardize } from './CFX_util.mjs';
 // XXX Convenience export, may want to rethink
 export { cfxsdk };
 // This file immitates the ethers.js API
@@ -246,7 +247,8 @@ var ContractFactory = /** @class */ (function() {
     }
     return __awaiter(this, void 0, void 0, function() {
       var _a, abi, bytecode, iface, wallet, conflux, txnOverrides, expectedLen, contract, from, value, txn, argsConformed, receiptP;
-      return __generator(this, function(_b) {
+      var _b;
+      return __generator(this, function(_c) {
         _a = this, abi = _a.abi, bytecode = _a.bytecode, iface = _a.interface, wallet = _a.wallet;
         wallet._requireConnected();
         if (!wallet.provider)
@@ -265,7 +267,7 @@ var ContractFactory = /** @class */ (function() {
         value = BigNumber.from(0).toString();
         txn = __assign({ from: from, value: value }, txnOverrides);
         argsConformed = conform(args, iface.deploy.inputs);
-        receiptP = contract.constructor.apply(contract, argsConformed).sendTransaction(txn)
+        receiptP = (_b = contract.constructor).call.apply(_b, argsConformed).sendTransaction(txn)
           .executed();
         return [2 /*return*/ , new Contract(undefined, abi, wallet, receiptP)];
       });
@@ -309,7 +311,7 @@ var Wallet = /** @class */ (function() {
     this._requireConnected();
     if (!this.account)
       throw Error("Impossible: account is undefined");
-    return this.account.toString();
+    return address_cfxStandardize(this.account.toString());
   };
   Wallet.prototype.sendTransaction = function(txn) {
     return __awaiter(this, void 0, void 0, function() {

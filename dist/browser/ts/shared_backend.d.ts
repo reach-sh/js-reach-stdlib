@@ -12,6 +12,7 @@ export declare const hexlify: typeof ethers.utils.hexlify;
 export declare const isHex: typeof ethers.utils.isHexString;
 export declare const stringToHex: (x: string) => string;
 export declare const bytesEq: (x: any, y: any) => boolean;
+export declare const bytesConcat: (x: string, y: string) => string;
 export declare const digestEq: (x: any, y: any) => boolean;
 export declare const eq: (a: num, b: num) => boolean;
 export declare const ge: (a: num, b: num) => boolean;

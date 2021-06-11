@@ -133,78 +133,146 @@ var getLastRound = function () { return __awaiter(void 0, void 0, void 0, functi
     }
 }); }); };
 export var waitForConfirmation = function (txId, untilRound) { return __awaiter(void 0, void 0, void 0, function () {
-    var algodClient, lastRound, lastRoundAfterCall, pendingInfo, confirmedRound;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, getAlgodClient()];
-            case 1:
-                algodClient = _a.sent();
-                lastRound = null;
-                _a.label = 2;
-            case 2:
-                lastRoundAfterCall = lastRound ?
-                    algodClient.statusAfterBlock(lastRound) :
-                    algodClient.status();
-                return [4 /*yield*/, lastRoundAfterCall["do"]()];
-            case 3:
-                lastRound = (_a.sent())['last-round'];
-                return [4 /*yield*/, algodClient.pendingTransactionInformation(txId)["do"]()];
-            case 4:
-                pendingInfo = _a.sent();
-                confirmedRound = pendingInfo['confirmed-round'];
-                if (confirmedRound && confirmedRound > 0) {
-                    return [2 /*return*/, pendingInfo];
-                }
-                _a.label = 5;
-            case 5:
-                if (!untilRound || lastRound < untilRound) return [3 /*break*/, 2];
-                _a.label = 6;
-            case 6: throw { type: 'waitForConfirmation', txId: txId, untilRound: untilRound, lastRound: lastRound };
-        }
-    });
-}); };
-var sendAndConfirm = function (stx_or_stxs) { return __awaiter(void 0, void 0, void 0, function () {
-    var lastRound, txID, tx, sendme, untilRound, req, e_1;
+    var doOrDie, checkTooLate, dhead, client, checkAlgod, checkIndexer;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                lastRound = stx_or_stxs.lastRound, txID = stx_or_stxs.txID, tx = stx_or_stxs.tx;
-                sendme = tx;
-                if (Array.isArray(stx_or_stxs)) {
-                    if (stx_or_stxs.length === 0) {
-                        // debug(`Sending nothing... why...?`);
-                        // @ts-ignore
-                        return [2 /*return*/, null];
-                    }
-                    // debug(`Sending multiple...`);
-                    lastRound = stx_or_stxs[0].lastRound;
-                    txID = stx_or_stxs[0].txID;
-                    sendme = stx_or_stxs.map(function (stx) { return stx.tx; });
-                }
-                untilRound = lastRound;
+                doOrDie = function (p) { return __awaiter(void 0, void 0, void 0, function () {
+                    var e_1;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 2, , 3]);
+                                return [4 /*yield*/, p];
+                            case 1: return [2 /*return*/, _a.sent()];
+                            case 2:
+                                e_1 = _a.sent();
+                                return [2 /*return*/, { 'exn': e_1 }];
+                            case 3: return [2 /*return*/];
+                        }
+                    });
+                }); };
+                checkTooLate = function (lastLastRound) { return __awaiter(void 0, void 0, void 0, function () {
+                    var _a, c, msg, lastRound;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                _a = lastLastRound > 0 ?
+                                    [client.statusAfterBlock(lastLastRound),
+                                        "waiting until after " + lastLastRound] :
+                                    [client.status(),
+                                        "looking up current round"], c = _a[0], msg = _a[1];
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), [msg]));
+                                return [4 /*yield*/, c["do"]()];
+                            case 1:
+                                lastRound = (_b.sent())['last-round'];
+                                if (untilRound && untilRound < lastRound) {
+                                    throw Error("waitForConfirmation: Too late: " + lastRound + " > " + untilRound);
+                                }
+                                else {
+                                    return [2 /*return*/, lastRound];
+                                }
+                                return [2 /*return*/];
+                        }
+                    });
+                }); };
+                dhead = ['waitForConfirmation', txId];
                 return [4 /*yield*/, getAlgodClient()];
             case 1:
-                req = (_a.sent()).sendRawTransaction(sendme);
+                client = _a.sent();
+                checkAlgod = function (lastLastRound) { return __awaiter(void 0, void 0, void 0, function () {
+                    var lastRound, info;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, checkTooLate(lastLastRound)];
+                            case 1:
+                                lastRound = _a.sent();
+                                return [4 /*yield*/, doOrDie(client.pendingTransactionInformation(txId)["do"]())];
+                            case 2:
+                                info = _a.sent();
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['info', info]));
+                                if (!info['exn']) return [3 /*break*/, 4];
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['switching to indexer on error']));
+                                return [4 /*yield*/, checkIndexer(lastRound)];
+                            case 3: return [2 /*return*/, _a.sent()];
+                            case 4:
+                                if (!(info['confirmed-round'] > 0)) return [3 /*break*/, 5];
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['confirmed']));
+                                return [2 /*return*/, info];
+                            case 5:
+                                if (!(info['pool-error'] === '')) return [3 /*break*/, 7];
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['still in pool, trying again']));
+                                return [4 /*yield*/, checkAlgod(lastRound)];
+                            case 6: return [2 /*return*/, _a.sent()];
+                            case 7: throw Error("waitForConfirmation: error confirming: " + JSON.stringify(info));
+                        }
+                    });
+                }); };
+                checkIndexer = function (lastLastRound) { return __awaiter(void 0, void 0, void 0, function () {
+                    var lastRound, indexer, q, res;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, checkTooLate(lastLastRound)];
+                            case 1:
+                                lastRound = _a.sent();
+                                return [4 /*yield*/, getIndexer()];
+                            case 2:
+                                indexer = _a.sent();
+                                q = indexer.lookupTransactionByID(txId);
+                                return [4 /*yield*/, doOrDie(doQuery_(JSON.stringify(dhead), q))];
+                            case 3:
+                                res = _a.sent();
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['indexer', res]));
+                                if (!res['exn']) return [3 /*break*/, 5];
+                                debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['indexer failed, trying again']));
+                                return [4 /*yield*/, checkIndexer(lastRound)];
+                            case 4: return [2 /*return*/, _a.sent()];
+                            case 5: return [2 /*return*/, res['transaction']];
+                        }
+                    });
+                }); };
+                return [4 /*yield*/, checkAlgod(0)];
+            case 2: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+var sendAndConfirm = function (stxs) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, lastRound, txID, sendme, client, req, e_2, e_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = stxs[0], lastRound = _a.lastRound, txID = _a.txID;
+                sendme = stxs.map(function (stx) { return stx.tx; });
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, getAlgodClient()];
+            case 2:
+                client = _b.sent();
+                req = client.sendRawTransaction(sendme);
                 // @ts-ignore
                 debug('sendAndConfirm:', base64ify(req.txnBytesToPost));
-                _a.label = 2;
-            case 2:
-                _a.trys.push([2, 4, , 5]);
                 return [4 /*yield*/, req["do"]()];
             case 3:
-                _a.sent();
+                _b.sent();
                 return [3 /*break*/, 5];
             case 4:
-                e_1 = _a.sent();
-                throw { type: 'sendRawTransaction', e: e_1 };
-            case 5: return [4 /*yield*/, waitForConfirmation(txID, untilRound)];
-            case 6: return [2 /*return*/, _a.sent()];
+                e_2 = _b.sent();
+                throw { type: 'sendRawTransaction', e: e_2 };
+            case 5:
+                _b.trys.push([5, 7, , 8]);
+                return [4 /*yield*/, waitForConfirmation(txID, lastRound)];
+            case 6: return [2 /*return*/, _b.sent()];
+            case 7:
+                e_3 = _b.sent();
+                throw { type: 'waitForConfirmation', e: e_3 };
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 // Backend
 var compileTEAL = function (label, code) { return __awaiter(void 0, void 0, void 0, function () {
-    var s, r, e_2;
+    var s, r, e_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -219,9 +287,9 @@ var compileTEAL = function (label, code) { return __awaiter(void 0, void 0, void
                 s = 200;
                 return [3 /*break*/, 5];
             case 4:
-                e_2 = _a.sent();
-                s = typeof e_2 === 'object' ? e_2.statusCode : 'not object';
-                r = e_2;
+                e_4 = _a.sent();
+                s = typeof e_4 === 'object' ? e_4.statusCode : 'not object';
+                r = e_4;
                 return [3 /*break*/, 5];
             case 5:
                 if (s == 200) {
@@ -400,7 +468,7 @@ var clean_for_AlgoSigner = function (txnOrig) {
     return txn;
 };
 var sign_and_send_sync = function (label, networkAccount, txn) { return __awaiter(void 0, void 0, void 0, function () {
-    var txn_s, e_3;
+    var txn_s, e_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, signTxn(networkAccount, txn)];
@@ -409,12 +477,12 @@ var sign_and_send_sync = function (label, networkAccount, txn) { return __awaite
                 _a.label = 2;
             case 2:
                 _a.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, sendAndConfirm(txn_s)];
+                return [4 /*yield*/, sendAndConfirm([txn_s])];
             case 3: return [2 /*return*/, _a.sent()];
             case 4:
-                e_3 = _a.sent();
-                console.log(e_3);
-                throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + JSON.stringify(e_3));
+                e_5 = _a.sent();
+                console.log(e_5);
+                throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + JSON.stringify(e_5));
             case 5: return [2 /*return*/];
         }
     });
@@ -542,22 +610,34 @@ var format_failed_request = function (e) {
     return "\n" + db64 + "\n" + JSON.stringify(msg);
 };
 var doQuery_ = function (dhead, query) { return __awaiter(void 0, void 0, void 0, function () {
-    var res, e_4;
+    var retries, res, e_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 debug(dhead, '--- QUERY =', query);
+                retries = 10;
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, query["do"]()];
+                if (!(retries > 0)) return [3 /*break*/, 9];
+                _a.label = 2;
             case 2:
-                res = _a.sent();
-                return [3 /*break*/, 4];
+                _a.trys.push([2, 4, , 8]);
+                return [4 /*yield*/, query["do"]()];
             case 3:
-                e_4 = _a.sent();
-                throw Error(dhead + " --- QUERY FAIL: " + JSON.stringify(e_4));
+                res = _a.sent();
+                return [3 /*break*/, 9];
             case 4:
+                e_6 = _a.sent();
+                if (!(e_6.errno === -111)) return [3 /*break*/, 6];
+                debug(dhead, '--- NO CONNECTION, RETRYING', retries--);
+                return [4 /*yield*/, Timeout.set(500)];
+            case 5:
+                _a.sent();
+                return [3 /*break*/, 7];
+            case 6: throw Error(dhead + " --- QUERY FAIL: " + JSON.stringify(e_6));
+            case 7: return [3 /*break*/, 8];
+            case 8: return [3 /*break*/, 1];
+            case 9:
                 debug(dhead, '--- RESULT =', res);
                 return [2 /*return*/, res];
         }
@@ -1148,7 +1228,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     case 5:
                                         mapAcctsReal = (mapAccts.length === 0) ? undefined : mapAccts;
                                         _loop_1 = function () {
-                                            var params, tdn, txnToContract_value_idx, totalFromFee, txnExtraTxns, actual_args, actual_tys, safe_args, ui8h, handler_sig, whichAppl, txnAppl, txnFromHandler, txnToHandler, txns, signLSTO, sign_me, txnAppl_s, txnFromHandler_s, txnToHandler_s, txnExtraTxns_s, txns_s, res, e_5, _f, _g;
+                                            var params, tdn, txnToContract_value_idx, totalFromFee, txnExtraTxns, actual_args, actual_tys, safe_args, ui8h, handler_sig, whichAppl, txnAppl, txnFromHandler, txnToHandler, txns, signLSTO, sign_me, txnAppl_s, txnFromHandler_s, txnToHandler_s, txnExtraTxns_s, txns_s, res, e_7, _f, _g;
                                             return __generator(this, function (_h) {
                                                 switch (_h.label) {
                                                     case 0: return [4 /*yield*/, getTxnParams()];
@@ -1304,12 +1384,12 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                         debug(dhead, '--- SUCCESS:', res);
                                                         return [3 /*break*/, 10];
                                                     case 7:
-                                                        e_5 = _h.sent();
-                                                        if (e_5.type == 'sendRawTransaction') {
-                                                            debug(dhead, '--- FAIL:', format_failed_request(e_5.e));
+                                                        e_7 = _h.sent();
+                                                        if (e_7.type == 'sendRawTransaction') {
+                                                            debug(dhead, '--- FAIL:', format_failed_request(e_7.e));
                                                         }
                                                         else {
-                                                            debug(dhead, '--- FAIL:', e_5);
+                                                            debug(dhead, '--- FAIL:', e_7);
                                                         }
                                                         if (!!soloSend) return [3 /*break*/, 9];
                                                         _f = {};
@@ -1480,7 +1560,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     args[_i] = arguments[_i];
                                 }
                                 return __awaiter(void 0, void 0, void 0, function () {
-                                    var decode, client, appInfo, e_6, appSt, vvn, offset, _loop_3, i, state_3, vin, vi, vtys, vty, vvs, vres;
+                                    var decode, client, appInfo, e_8, appSt, vvn, offset, _loop_3, i, state_3, vin, vi, vtys, vty, vvs, vres;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -1497,8 +1577,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 appInfo = _a.sent();
                                                 return [3 /*break*/, 5];
                                             case 4:
-                                                e_6 = _a.sent();
-                                                debug('getApplicationById', e_6);
+                                                e_8 = _a.sent();
+                                                debug('getApplicationById', e_8);
                                                 return [2 /*return*/, ['None', null]];
                                             case 5:
                                                 appSt = appInfo['params']['global-state'];
@@ -1556,7 +1636,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
             });
         }); };
         deployP = function (bin) { return __awaiter(void 0, void 0, void 0, function () {
-            var algob, appApproval0, appClear, viewKeys, mapDataKeys, Deployer, appApproval0_subst, appApproval0_bin, appClear_bin, createRes, _a, _b, _c, _d, _e, ApplicationID, bin_comp, escrowAddr, params, txnUpdate, txnToContract, txns, txnUpdate_s, txnToContract_s, txns_s, updateRes, e_7, creationRound, getInfo;
+            var algob, appApproval0, appClear, viewKeys, mapDataKeys, Deployer, appApproval0_subst, appApproval0_bin, appClear_bin, createRes, _a, _b, _c, _d, _e, ApplicationID, bin_comp, escrowAddr, params, txnUpdate, txnToContract, txns, txnUpdate_s, txnToContract_s, txns_s, updateRes, e_9, creationRound, getInfo;
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
@@ -1624,8 +1704,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                         updateRes = _f.sent();
                         return [3 /*break*/, 12];
                     case 11:
-                        e_7 = _f.sent();
-                        throw Error("deploy: " + JSON.stringify(e_7));
+                        e_9 = _f.sent();
+                        throw Error("deploy: " + JSON.stringify(e_9));
                     case 12:
                         creationRound = updateRes['confirmed-round'];
                         getInfo = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {

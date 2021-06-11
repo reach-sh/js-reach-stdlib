@@ -37,21 +37,10 @@ exports.T_Address = void 0;
 var eci = __importStar(require("./ETH_compiled_impl"));
 var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
 var buffer_1 = __importDefault(require("buffer"));
+var CFX_util_1 = require("./CFX_util");
 var Buffer = buffer_1["default"].Buffer;
 // XXX find a better way to support multiple netIds
 var netId = 999;
-function address_cfxStandardize(addrC) {
-    var pieces = addrC.split(':');
-    // XXX Missing type chunk means assume it's a user (?)
-    // XXX would it be better for our purposes to strip the type out instead?
-    if (pieces.length === 2) {
-        return (pieces[0] + ":TYPE.USER:" + pieces[1]).toUpperCase();
-    }
-    // XXX throw error if pieces.length isn't 2 or 3?
-    if (pieces.length !== 3)
-        throw Error("impossible: bad CFX addr: '" + addrC + "'");
-    return addrC.toUpperCase();
-}
 function address_ethToCfx(addrE) {
     addrE = addrE.toLowerCase();
     var addrB = Buffer.from(addrE.slice(2), 'hex');
@@ -72,9 +61,9 @@ exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: functi
         if (typeof uv === 'string') {
             if (uv.slice(0, 2) === '0x') {
                 var addrC = address_ethToCfx(uv);
-                return address_cfxStandardize(addrC);
+                return CFX_util_1.address_cfxStandardize(addrC);
             }
-            return address_cfxStandardize(uv);
+            return CFX_util_1.address_cfxStandardize(uv);
         }
         if (!uv)
             throw Error("Expected address, got " + JSON.stringify(uv));

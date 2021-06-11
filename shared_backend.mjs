@@ -12,7 +12,9 @@ var __assign = (this && this.__assign) || function() {
 };
 // This has no dependencies on other shared things
 import ethers from 'ethers';
-import { bigNumberify } from './CBR.mjs';;
+import { bigNumberify } from './CBR.mjs';
+import { debug } from './shared_impl.mjs';
+void(debug);;
 export var assert = function(d, ai) {
   if (ai === void 0) { ai = null; }
   if (!d) {
@@ -49,6 +51,10 @@ var forceHex = function(x) {
 };
 export var bytesEq = function(x, y) {
   return forceHex(x) === forceHex(y);
+};
+export var bytesConcat = function(x, y) {
+  // forceHex(x).concat(forceHex(y).slice(2));
+  return x.concat(y);
 };
 export var digestEq = bytesEq;
 export var eq = function(a, b) { return bigNumberify(a).eq(bigNumberify(b)); };

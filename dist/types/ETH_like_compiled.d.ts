@@ -24,6 +24,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     simMapRef: any;
     simMapSet: any;
     simMapDupe: any;
+    bytesConcat: any;
     assert: any;
     Array_set: any;
     eq: any;
