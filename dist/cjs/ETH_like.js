@@ -714,7 +714,7 @@ function makeEthLike(ethLikeArgs) {
                                             throw Error("tys.length (" + tys.length + ") !== args.length (" + args.length + ")");
                                         }
                                         dhead = [shad, label, 'send', funcName, timeout_delay, 'SEND'];
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ['ARGS', args]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['ARGS', args]));
                                         _a = shared_impl_1.argsSplit(args, evt_cnt), args_svs = _a[0], args_msg = _a[1];
                                         _b = shared_impl_1.argsSplit(tys, evt_cnt), tys_svs = _b[0], tys_msg = _b[1];
                                         arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
@@ -726,7 +726,7 @@ function makeEthLike(ethLikeArgs) {
                                         // Make sure the ctc is available and verified (before we get into try/catch)
                                         // https://github.com/reach-sh/reach-lang/issues/134
                                         _c.sent();
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ['START', arg]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['START', arg]));
                                         return [4 /*yield*/, getLastBlock()];
                                     case 4:
                                         lastBlock = _c.sent();
@@ -735,11 +735,11 @@ function makeEthLike(ethLikeArgs) {
                                         _c.label = 5;
                                     case 5:
                                         if (!(!timeout_delay || shared_backend_1.lt(block_send_attempt, add(lastBlock, timeout_delay)))) return [3 /*break*/, 15];
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ['TRY']));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['TRY']));
                                         _c.label = 6;
                                     case 6:
                                         _c.trys.push([6, 8, , 13]);
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ['ARG', arg, pay]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['ARG', arg, pay]));
                                         return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
                                     case 7:
                                         _c.sent();
@@ -747,10 +747,10 @@ function makeEthLike(ethLikeArgs) {
                                     case 8:
                                         e_2 = _c.sent();
                                         if (!!soloSend) return [3 /*break*/, 9];
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ["SKIPPING", e_2]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["SKIPPING", e_2]));
                                         return [3 /*break*/, 12];
                                     case 9:
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ["ERROR", e_2.stack]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["ERROR", e_2.stack]));
                                         // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
                                         return [4 /*yield*/, await_timeout_1["default"].set(1)];
                                     case 10:
@@ -776,7 +776,7 @@ function makeEthLike(ethLikeArgs) {
                                             console.log(arg);
                                             throw Error(dhead + " REPEAT @ " + block_send_attempt + " x " + block_repeat_count);
                                         }
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ["TRY FAIL", lastBlock, current_block, block_repeat_count, block_send_attempt]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["TRY FAIL", lastBlock, current_block, block_repeat_count, block_send_attempt]));
                                         return [3 /*break*/, 5];
                                     case 12: return [3 /*break*/, 13];
                                     case 13: return [4 /*yield*/, doRecv(false)];
@@ -785,7 +785,7 @@ function makeEthLike(ethLikeArgs) {
                                         // XXX If we were trying to join, but we got sniped, then we'll
                                         // think that there is a timeout and then we'll wait forever for
                                         // the timeout message.
-                                        shared_impl_1.debug(__spreadArray(__spreadArray([], dhead), ["FAIL/TIMEOUT"]));
+                                        shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["FAIL/TIMEOUT"]));
                                         return [2 /*return*/, { didTimeout: true }];
                                 }
                             });

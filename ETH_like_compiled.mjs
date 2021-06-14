@@ -34,13 +34,8 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
   });
   var V_Null = null;
-  var T_Null = __assign(__assign({}, CBR.BT_Null), {
-    defaultValue: V_Null,
-    // null is represented in solidity as false
-    munge: function(bv) { return (void(bv), false); },
-    unmunge: function(nv) { return (void(nv), V_Null); },
-    paramType: 'bool'
-  });
+  // null is represented in solidity as true
+  var T_Null = __assign(__assign({}, CBR.BT_Null), { defaultValue: V_Null, munge: function(bv) { return (void(bv), true); }, unmunge: function(nv) { return (void(nv), V_Null); }, paramType: 'bool' });
   var T_Bool = __assign(__assign({}, CBR.BT_Bool), { defaultValue: false, munge: function(bv) { return bv; }, unmunge: function(nv) { return V_Bool(nv); }, paramType: 'bool' });
   var V_Bool = function(b) {
     return T_Bool.canonicalize(b);
