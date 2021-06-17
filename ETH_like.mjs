@@ -823,6 +823,8 @@ export function makeEthLike(ethLikeArgs) {
                           topics: [ethersC.interface.getEventTopic(ok_evt)]
                         })];
                       case 3:
+                        // XXX Are we sure that this returns the logs in order? Algo didn't maybe
+                        // sort to be safe?
                         return [2 /*return*/ , _a.sent()];
                     }
                   });

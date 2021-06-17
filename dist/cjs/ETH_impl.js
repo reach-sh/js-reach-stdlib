@@ -348,9 +348,9 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
         switch (_a.label) {
             case 0:
                 shared_impl_1.debug('doHealthcheck');
-                urlObj = url_1["default"].parse(theUrl);
+                urlObj = url_1["default"] && url_1["default"].parse && url_1["default"].parse(theUrl);
                 // XXX the code below only supports http
-                if (urlObj.protocol !== 'http:') {
+                if (!urlObj || urlObj.protocol !== 'http:') {
                     return [2 /*return*/];
                 }
                 return [4 /*yield*/, new Promise(function (resolve, reject) {

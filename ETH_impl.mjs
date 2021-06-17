@@ -361,9 +361,9 @@ var doHealthcheck = function(theUrl) {
       switch (_a.label) {
         case 0:
           debug('doHealthcheck');
-          urlObj = url.parse(theUrl);
+          urlObj = url && url.parse && url.parse(theUrl);
           // XXX the code below only supports http
-          if (urlObj.protocol !== 'http:') {
+          if (!urlObj || urlObj.protocol !== 'http:') {
             return [2 /*return*/ ];
           }
           return [4 /*yield*/ , new Promise(function(resolve, reject) {

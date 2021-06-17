@@ -752,6 +752,7 @@ var doQuery = function(dhead, query, pred) {
           if (ptxns.length == 0) {
             return [2 /*return*/ , { succ: false, round: res['current-round'] }];
           }
+          ptxns.sort(function(x, y) { return x['confirmed-round'] - y['confirmed-round']; });
           txn = ptxns[0];
           return [2 /*return*/ , { succ: true, txn: txn }];
       }

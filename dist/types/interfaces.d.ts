@@ -86,6 +86,7 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     newAccountFromMnemonic: any;
     getDefaultAccount: any;
     createAccount: any;
+    getFaucet: any;
     fundFromFaucet: any;
     newTestAccount: any;
     getNetworkTime: any;
