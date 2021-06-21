@@ -65,7 +65,7 @@ function loadStdlib(connectorModeOrEnv) {
         default: throw Error("impossible: unknown connector " + connector);
     }
     if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
-        var debug = (connectorModeOrEnv['REACH_DEBUG'] || connectorModeOrEnv['REACT_APP_REACH_DEBUG']) ? true : false;
+        var debug = shared_impl_1.truthyEnv(shared_impl_1.rEnv(connectorModeOrEnv, 'REACH_DEBUG'));
         shared_impl_1.setDEBUG(debug);
     }
     // also just inject ourselves into the window for ease of use

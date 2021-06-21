@@ -111,6 +111,11 @@ export var add = compiledStdlib.add,
 export * from './shared_user.mjs';
 var reachAlgoBackendVersion = 1;
 // Helpers
+// Parse CBR into Public Key
+var cbr2algo_addr = function(x) {
+  return algosdk.encodeAddress(Buffer.from(x.slice(2), 'hex'));
+};
+
 function uint8ArrayToStr(a, enc) {
   if (enc === void 0) { enc = 'utf8'; }
   if (!(a instanceof Uint8Array)) {
@@ -1162,7 +1167,7 @@ export var connectAccount = function(networkAccount) {
       };
       attachP = function(bin, ctcInfoP) {
         return __awaiter(void 0, void 0, void 0, function() {
-          var ctcInfo, getInfo, Deployer, ApplicationID, lastRound, bin_comp, escrowAddr, ctc_prog, _a, viewSize, viewKeys, mapDataKeys, hasMaps, mapDataTy, mapRecordTy, mapArgTy, emptyMapDataTy, emptyMapData, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, wait, sendrecv, recv, creationTime, views_bin, getView1, getViews;
+          var ctcInfo, getInfo, Deployer, ApplicationID, lastRound, bin_comp, escrowAddr, ctc_prog, _a, viewSize, viewKeys, mapDataKeys, mapDataSize, hasMaps, mapDataTy, mapRecordTy, mapArgTy, emptyMapDataTy, emptyMapData, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, wait, sendrecv, recv, creationTime, recoverSplitBytes, viewlib, views_bin, getView1, getViews;
           return __generator(this, function(_b) {
             switch (_b.label) {
               case 0:
@@ -1190,7 +1195,7 @@ export var connectAccount = function(networkAccount) {
                 // XXX const escrowAddrRaw = T_Address.canonicalize(addressToHex(escrowAddr));
                 _b.sent();
                 ctc_prog = algosdk.makeLogicSig(bin_comp.ctc.result, []);
-                _a = bin._Connectors.ALGO, viewSize = _a.viewSize, viewKeys = _a.viewKeys, mapDataKeys = _a.mapDataKeys;
+                _a = bin._Connectors.ALGO, viewSize = _a.viewSize, viewKeys = _a.viewKeys, mapDataKeys = _a.mapDataKeys, mapDataSize = _a.mapDataSize;
                 hasMaps = mapDataKeys > 0;
                 mapDataTy = bin._getMaps({ reachStdlib: compiledStdlib }).mapDataTy;
                 mapRecordTy = T_Tuple([T_Bool, mapDataTy, mapDataTy, T_Address]);
@@ -1200,25 +1205,34 @@ export var connectAccount = function(networkAccount) {
                   // This is a bunch of Nones
                   mapDataTy.fromNet(emptyMapDataTy.toNet(emptyMapDataTy.canonicalize('')));
                 debug({ emptyMapData: emptyMapData });
-                didOptIn = function() {
+                getLocalState = function(a) {
                   return __awaiter(void 0, void 0, void 0, function() {
-                    var client, ai;
+                    var client, ai, als;
                     return __generator(this, function(_a) {
                       switch (_a.label) {
                         case 0:
                           return [4 /*yield*/ , getAlgodClient()];
                         case 1:
                           client = _a.sent();
-                          return [4 /*yield*/ , client.accountInformation(thisAcc.addr)["do"]()];
+                          return [4 /*yield*/ , client.accountInformation(a)["do"]()];
                         case 2:
                           ai = _a.sent();
-                          debug("didOptIn", ai);
-                          if (ai['apps-local-state'].find(function(x) { return (x.id === ApplicationID); })) {
-                            return [2 /*return*/ , true];
-                          } else {
-                            return [2 /*return*/ , false];
-                          }
-                          return [2 /*return*/ ];
+                          debug("getLocalState", ai);
+                          als = ai['apps-local-state'].find(function(x) { return (x.id === ApplicationID); });
+                          debug("getLocalState", als);
+                          return [2 /*return*/ , als ? als['key-value'] : undefined];
+                      }
+                    });
+                  });
+                };
+                didOptIn = function() {
+                  return __awaiter(void 0, void 0, void 0, function() {
+                    return __generator(this, function(_a) {
+                      switch (_a.label) {
+                        case 0:
+                          return [4 /*yield*/ , getLocalState(thisAcc.addr)];
+                        case 1:
+                          return [2 /*return*/ , ((_a.sent()) !== undefined)];
                       }
                     });
                   });
@@ -1290,7 +1304,7 @@ export var connectAccount = function(networkAccount) {
                 };
                 sendrecv = function(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) {
                   return __awaiter(void 0, void 0, void 0, function() {
-                    var ltidx, doRecv, value, toks, funcName, dhead, handler, _a, svs, msg, _b, svs_tys, msg_tys, fake_res, sim_r, isHalt, sim_txns, _c, view_ty, view_v, view_tysz, padding, padding_ty, padding_v, _d, view_typ, view_vp, cbr2algo_addr, mapRefs, mapsPrev, mapsNext, mapAccts, mapArg, emptyRec, getMapData, mkMapRecord, missingAccts, zero_caddr, i, mapAcctsReal, _loop_1, state_1;
+                    var ltidx, doRecv, value, toks, funcName, dhead, handler, _a, svs, msg, _b, svs_tys, msg_tys, fake_res, sim_r, isHalt, sim_txns, _c, view_ty, view_v, view_tysz, padding, padding_ty, padding_v, _d, view_typ, view_vp, mapRefs, mapsPrev, mapsNext, mapAccts, mapArg, emptyRec, getMapData, mkMapRecord, missingAccts, zero_caddr, i, mapAcctsReal, _loop_1, state_1;
                     return __generator(this, function(_e) {
                       switch (_e.label) {
                         case 0:
@@ -1357,9 +1371,6 @@ export var connectAccount = function(networkAccount) {
                           padding_v = padding_ty.canonicalize('');
                           _d = viewSize > 0 ? [T_Tuple([view_ty, padding_ty]), [view_v, padding_v]] : [padding_ty, padding_v], view_typ = _d[0], view_vp = _d[1];
                           debug(dhead, 'VIEWP', { view_typ: view_typ, view_vp: view_vp });
-                          cbr2algo_addr = function(x) {
-                            return algosdk.encodeAddress(Buffer.from(x.slice(2), 'hex'));
-                          };
                           mapRefs = sim_r.mapRefs, mapsPrev = sim_r.mapsPrev, mapsNext = sim_r.mapsNext;
                           mapAccts = [];
                           mapArg = [];
@@ -1752,7 +1763,55 @@ export var connectAccount = function(networkAccount) {
                     });
                   });
                 };
-                views_bin = bin._getViews({ reachStdlib: compiledStdlib });
+                recoverSplitBytes = function(prefix, size, howMany, src) {
+                  var bs = new Uint8Array(size);
+                  var offset = 0;
+                  var _loop_3 = function(i) {
+                    debug({ i: i });
+                    var ik = base64ify("" + prefix + i);
+                    debug({ ik: ik });
+                    var st = (src.find(function(x) { return x.key === ik; })).value;
+                    debug({ st: st });
+                    var bsi = base64ToUI8A(st.bytes);
+                    debug({ bsi: bsi });
+                    if (bsi.length == 0) {
+                      return { value: undefined };
+                    }
+                    bs.set(bsi, offset);
+                    offset += bsi.length;
+                  };
+                  for (var i = 0; i < howMany; i++) {
+                    var state_3 = _loop_3(i);
+                    if (typeof state_3 === "object")
+                      return state_3.value;
+                  }
+                  return bs;
+                };
+                viewlib = {
+                  viewMapRef: function(mapi, a) {
+                    return __awaiter(void 0, void 0, void 0, function() {
+                      var ls, mbs, md, mr;
+                      return __generator(this, function(_a) {
+                        switch (_a.label) {
+                          case 0:
+                            debug('viewMapRef', { mapi: mapi, a: a });
+                            return [4 /*yield*/ , getLocalState(cbr2algo_addr(a))];
+                          case 1:
+                            ls = _a.sent();
+                            assert(ls !== undefined, 'viewMapRef ls undefined');
+                            mbs = recoverSplitBytes('m', mapDataSize, mapDataKeys, ls);
+                            debug('viewMapRef', { mbs: mbs });
+                            md = mapDataTy.fromNet(mbs);
+                            debug('viewMapRef', { md: md });
+                            mr = md[mapi];
+                            assert(mr !== undefined, 'viewMapRef mr undefined');
+                            return [2 /*return*/ , mr];
+                        }
+                      });
+                    });
+                  }
+                };
+                views_bin = bin._getViews({ reachStdlib: compiledStdlib }, viewlib);
                 getView1 = function(vs, v, k, vim) {
                   return function() {
                     var args = [];
@@ -1760,7 +1819,7 @@ export var connectAccount = function(networkAccount) {
                       args[_i] = arguments[_i];
                     }
                     return __awaiter(void 0, void 0, void 0, function() {
-                      var decode, client, appInfo, e_8, appSt, vvn, offset, _loop_3, i, state_3, vin, vi, vtys, vty, vvs, vres;
+                      var decode, client, appInfo, e_8, appSt, vvn, vin, vi, vtys, vty, vvs, vres, e_9;
                       return __generator(this, function(_a) {
                         switch (_a.label) {
                           case 0:
@@ -1782,26 +1841,9 @@ export var connectAccount = function(networkAccount) {
                             return [2 /*return*/ , ['None', null]];
                           case 5:
                             appSt = appInfo['params']['global-state'];
-                            vvn = new Uint8Array(viewSize);
-                            offset = 0;
-                            _loop_3 = function(i) {
-                              debug({ i: i });
-                              var ik = base64ify("v" + i);
-                              debug({ ik: ik });
-                              var viewSt = (appSt.find(function(x) { return x.key === ik; })).value;
-                              debug({ viewSt: viewSt });
-                              var vvni = base64ToUI8A(viewSt.bytes);
-                              debug({ vvni: vvni });
-                              if (vvni.length == 0) {
-                                return { value: ['None', null] };
-                              }
-                              vvn.set(vvni, offset);
-                              offset += vvni.length;
-                            };
-                            for (i = 0; i < viewKeys; i++) {
-                              state_3 = _loop_3(i);
-                              if (typeof state_3 === "object")
-                                return [2 /*return*/ , state_3.value];
+                            vvn = recoverSplitBytes('v', viewSize, viewKeys, appSt);
+                            if (vvn === undefined) {
+                              return [2 /*return*/ , ['None', null]];
                             }
                             vin = T_UInt.fromNet(vvn.slice(0, T_UInt.netSize));
                             vi = bigNumberToNumber(vin);
@@ -1815,14 +1857,19 @@ export var connectAccount = function(networkAccount) {
                             debug({ vty: vty });
                             vvs = vty.fromNet(vvn);
                             debug({ vvs: vvs });
-                            try {
-                              vres = decode(vi, vvs.slice(1), args);
-                              debug({ vres: vres });
-                              return [2 /*return*/ , ['Some', vres]];
-                            } catch (e) {
-                              debug("getView1", v, k, 'error', e);
-                              return [2 /*return*/ , ['None', null]];
-                            }
+                            _a.label = 6;
+                          case 6:
+                            _a.trys.push([6, 8, , 9]);
+                            return [4 /*yield*/ , decode(vi, vvs.slice(1), args)];
+                          case 7:
+                            vres = _a.sent();
+                            debug({ vres: vres });
+                            return [2 /*return*/ , ['Some', vres]];
+                          case 8:
+                            e_9 = _a.sent();
+                            debug("getView1", v, k, 'error', e_9);
+                            return [2 /*return*/ , ['None', null]];
+                          case 9:
                             return [2 /*return*/ ];
                         }
                       });
@@ -1837,7 +1884,7 @@ export var connectAccount = function(networkAccount) {
       };
       deployP = function(bin) {
         return __awaiter(void 0, void 0, void 0, function() {
-          var algob, appApproval0, appClear, viewKeys, mapDataKeys, Deployer, appApproval0_subst, appApproval0_bin, appClear_bin, createRes, _a, _b, _c, _d, _e, ApplicationID, bin_comp, escrowAddr, params, txnUpdate, txnToContract, txns, txnUpdate_s, txnToContract_s, txns_s, updateRes, e_9, creationRound, getInfo;
+          var algob, appApproval0, appClear, viewKeys, mapDataKeys, Deployer, appApproval0_subst, appApproval0_bin, appClear_bin, createRes, _a, _b, _c, _d, _e, ApplicationID, bin_comp, escrowAddr, params, txnUpdate, txnToContract, txns, txnUpdate_s, txnToContract_s, txns_s, updateRes, e_10, creationRound, getInfo;
           return __generator(this, function(_f) {
             switch (_f.label) {
               case 0:
@@ -1908,8 +1955,8 @@ export var connectAccount = function(networkAccount) {
                 updateRes = _f.sent();
                 return [3 /*break*/ , 12];
               case 11:
-                e_9 = _f.sent();
-                throw Error("deploy: " + JSON.stringify(e_9));
+                e_10 = _f.sent();
+                throw Error("deploy: " + JSON.stringify(e_10));
               case 12:
                 creationRound = updateRes['confirmed-round'];
                 getInfo = function() {

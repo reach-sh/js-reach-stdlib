@@ -25,7 +25,7 @@ export declare class Contract implements IContract {
         }>;
     };
     interface: ethers.utils.Interface;
-    constructor(address: string | undefined, abi: string | any[], wallet: Wallet, receiptP?: Promise<any>);
+    constructor(address: string | null | undefined, abi: string | any[], wallet: Wallet, receiptP?: Promise<any>, hash?: string);
     _makeHandler(abiFn: any): any;
 }
 export declare class ContractFactory {

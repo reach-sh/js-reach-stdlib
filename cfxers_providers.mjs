@@ -70,6 +70,7 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
 };
 import ethers from 'ethers';
 import Timeout from 'await-timeout';
+import { defaultEpochTag } from './CFX_util.mjs';
 
 function epochToBlockNumber(x) {
   return __assign({ blockNumber: x.epochNumber }, x);
@@ -126,9 +127,8 @@ var Provider = /** @class */ (function() {
             // This is just because we tend to spam this a lot.
             // It can help to increase this to 1000 or more if you need to debug.
             _a.sent();
-            return [4 /*yield*/ , this.conflux.getEpochNumber('latest_state')];
+            return [4 /*yield*/ , this.conflux.getEpochNumber(defaultEpochTag)];
           case 2:
-            // TODO: 'latest_state' seems to work well; is there a better choice?
             return [2 /*return*/ , _a.sent()];
         }
       });
@@ -168,7 +168,7 @@ var Provider = /** @class */ (function() {
   };
   Provider.prototype.getLogs = function(opts) {
     return __awaiter(this, void 0, void 0, function() {
-      var cfxOpts;
+      var cfxOpts, max_tries, e, tries, err_1;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -178,9 +178,34 @@ var Provider = /** @class */ (function() {
               address: opts.address,
               topics: opts.topics
             };
-            return [4 /*yield*/ , this.conflux.getLogs(cfxOpts)];
+            max_tries = 20;
+            e = null;
+            tries = 1;
+            _a.label = 1;
           case 1:
+            if (!(tries <= max_tries)) return [3 /*break*/ , 7];
+            _a.label = 2;
+          case 2:
+            _a.trys.push([2, 4, , 6]);
+            return [4 /*yield*/ , this.conflux.getLogs(cfxOpts)];
+          case 3:
             return [2 /*return*/ , (_a.sent()).map(epochToBlockNumber)];
+          case 4:
+            err_1 = _a.sent();
+            e = err_1;
+            // XXX be pickier about which errs we are willing to catch
+            // XXX find some way to be sure more that `toEpoch` has been executed before trying again
+            return [4 /*yield*/ , Timeout.set(50)];
+          case 5:
+            // XXX be pickier about which errs we are willing to catch
+            // XXX find some way to be sure more that `toEpoch` has been executed before trying again
+            _a.sent();
+            return [3 /*break*/ , 6];
+          case 6:
+            tries++;
+            return [3 /*break*/ , 1];
+          case 7:
+            throw e;
         }
       });
     });

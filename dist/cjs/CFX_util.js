@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.address_cfxStandardize = void 0;
+exports.defaultEpochTag = exports.address_cfxStandardize = void 0;
 // XXX check if networkId is "correct"?
 function address_cfxStandardize(addrC) {
     var pieces = addrC.split(':');
@@ -15,4 +15,6 @@ function address_cfxStandardize(addrC) {
     return addrC.toUpperCase();
 }
 exports.address_cfxStandardize = address_cfxStandardize;
+// TODO: 'latest_state' seems to work well; is there a better choice?
+exports.defaultEpochTag = 'latest_state';
 //# sourceMappingURL=CFX_util.js.map

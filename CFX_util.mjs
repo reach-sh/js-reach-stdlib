@@ -11,4 +11,6 @@ export function address_cfxStandardize(addrC) {
     throw Error("impossible: bad CFX addr: '" + addrC + "'");
   return addrC.toUpperCase();
 }
+// TODO: 'latest_state' seems to work well; is there a better choice?
+export var defaultEpochTag = 'latest_state';
 //# sourceMappingURL=CFX_util.js.map

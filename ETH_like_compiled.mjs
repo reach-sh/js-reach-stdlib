@@ -44,8 +44,25 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var V_UInt = function(n) {
     return T_UInt.canonicalize(n);
   };
+  // XXX figure out how to move this into cfxers instead of here?
+  // Conflux seems to sometimes turn uint8array into an array of bigint.
+  // This is silly and needs to be undone or else hexlify will die.
+  function unBigInt(x) {
+    if (Array.isArray(x)) {
+      return x.map(function(n) {
+        if (typeof n === 'bigint') {
+          if (n >= 256)
+            throw Error("unBigInt expected n < 256");
+          return Number(n);
+        }
+        return n;
+      });
+    } else {
+      return x;
+    }
+  }
   var T_Bytes = function(len) {
-    var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function(bv) { return Array.from(ethers.utils.toUtf8Bytes(bv)); }, unmunge: function(nv) { return me.canonicalize(hexToString(ethers.utils.hexlify(nv))); }, paramType: "uint8[" + len + "]" });
+    var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function(bv) { return Array.from(ethers.utils.toUtf8Bytes(bv)); }, unmunge: function(nv) { return me.canonicalize(hexToString(ethers.utils.hexlify(unBigInt(nv)))); }, paramType: "uint8[" + len + "]" });
     return me;
   };
   var T_Digest = __assign(__assign({}, CBR.BT_Digest), {

@@ -970,7 +970,21 @@ function makeEthLike(ethLikeArgs) {
                                 case 1: return [2 /*return*/, _a.apply(void 0, [(_b.sent()).creation_block])];
                             }
                         }); }); };
-                        var views_bin = bin._getViews({ reachStdlib: reachStdlib });
+                        var viewlib = {
+                            viewMapRef: function () {
+                                var args = [];
+                                for (var _i = 0; _i < arguments.length; _i++) {
+                                    args[_i] = arguments[_i];
+                                }
+                                return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        void (args);
+                                        throw Error('viewMapRef not used by ETH backend');
+                                    });
+                                });
+                            }
+                        };
+                        var views_bin = bin._getViews({ reachStdlib: reachStdlib }, viewlib);
                         var views_namesm = bin._Connectors.ETH.views;
                         var getView1 = function (vs, v, k, vim) {
                             return function () {
@@ -996,6 +1010,7 @@ function makeEthLike(ethLikeArgs) {
                                                 return [4 /*yield*/, ethersC[vkn].apply(ethersC, args)];
                                             case 3:
                                                 val = _a.sent();
+                                                shared_impl_1.debug('getView1', v, k, 'val', val);
                                                 return [2 /*return*/, ['Some', ty.unmunge(val)]];
                                             case 4:
                                                 e_3 = _a.sent();

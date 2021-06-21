@@ -10,7 +10,7 @@ export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
     ty: ConnectorTy;
-    decode: (i: number, svs: Array<any>, args: Array<any>) => any;
+    decode: (i: number, svs: Array<any>, args: Array<any>) => Promise<any>;
 };
 export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
     [viewi: number]: Array<ConnectorTy>;
@@ -26,8 +26,11 @@ export declare type IBackendViews<ConnectorTy extends AnyBackendTy> = {
 export declare type IBackendMaps<ConnectorTy extends AnyBackendTy> = {
     mapDataTy: ConnectorTy;
 };
+export declare type IViewLib = {
+    viewMapRef: any;
+};
 export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
-    _getViews: (stdlib: Object) => IBackendViews<ConnectorTy>;
+    _getViews: (stdlib: Object, viewlib: IViewLib) => IBackendViews<ConnectorTy>;
     _getMaps: (stdlib: Object) => IBackendMaps<ConnectorTy>;
 };
 export declare const getViewsHelper: <ConnectorTy extends AnyBackendTy, B>(views: IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
@@ -130,6 +133,11 @@ export declare const labelMaps: (co: {
         [key: string]: number;
     };
 };
+/** @description Access an environment variable, or its react-prefixed equivalent */
+export declare function rEnv(env: {
+    [k: string]: string;
+}, k: string): string | undefined;
+/** @description Check that a stringy env value doesn't look falsy. */
 export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;
 export declare const makeDigest: (prep: any) => (t: any, v: any) => string;

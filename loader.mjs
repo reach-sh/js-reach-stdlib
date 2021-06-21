@@ -3,7 +3,7 @@ import * as stdlib_ALGO from './ALGO.mjs';
 import * as stdlib_CFX from './CFX.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
 import { process, window } from './shim.mjs';
-import { setDEBUG, } from './shared_impl.mjs';
+import { rEnv, setDEBUG, truthyEnv, } from './shared_impl.mjs';
 export { getConnectorMode, getConnector };
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
@@ -40,7 +40,7 @@ export function loadStdlib(connectorModeOrEnv) {
       throw Error("impossible: unknown connector " + connector);
   }
   if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
-    var debug = (connectorModeOrEnv['REACH_DEBUG'] || connectorModeOrEnv['REACT_APP_REACH_DEBUG']) ? true : false;
+    var debug = truthyEnv(rEnv(connectorModeOrEnv, 'REACH_DEBUG'));
     setDEBUG(debug);
   }
   // also just inject ourselves into the window for ease of use
