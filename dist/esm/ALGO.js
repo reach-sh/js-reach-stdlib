@@ -64,7 +64,7 @@ import * as msgpack from '@msgpack/msgpack';
 // import algosdk__src__transaction from 'algosdk/src/transaction';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { getViewsHelper, deferContract, debug, envDefault, argsSlice, argsSplit, makeRandom, replaceableThunk, } from './shared_impl';
+import { getViewsHelper, deferContract, debug, envDefault, argsSlice, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, } from './shared_impl';
 import { mapRef, } from './shared_backend';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user';
 import waitPort from './waitPort';
@@ -661,8 +661,9 @@ var doQuery = function (dhead, query, pred) {
                     if (ptxns.length == 0) {
                         return [2 /*return*/, { succ: false, round: res['current-round'] }];
                     }
-                    ptxns.sort(function (x, y) { return x['confirmed-round'] - y['confirmed-round']; });
-                    txn = ptxns[0];
+                    txn = ptxns.reduce(function (accum, x) {
+                        return (x['confirmed-round'] < accum['confirmed-round']) ? x : accum;
+                    }, ptxns[0]);
                     return [2 /*return*/, { succ: true, txn: txn }];
             }
         });
@@ -1698,7 +1699,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 algosdk.OnApplicationComplete.NoOpOC,
                                 appApproval0_bin.result,
                                 appClear_bin.result,
-                                0, mapDataKeys, 2, 1 + viewKeys,
+                                appLocalStateNumUInt, mapDataKeys, appGlobalStateNumUInt, 1 + viewKeys,
                                 undefined, undefined, undefined, undefined,
                                 NOTE_Reach]))]))];
                     case 4:
@@ -1755,9 +1756,11 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
         }); };
         implNow = { stdlib: compiledStdlib };
         attach = function (bin, ctcInfoP) {
+            ensureConnectorAvailable(bin._Connectors, connector);
             return deferContract(false, attachP(bin, ctcInfoP), implNow);
         };
         deploy = function (bin) {
+            ensureConnectorAvailable(bin._Connectors, connector);
             return deferContract(false, deployP(bin), implNow);
         };
         return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, getAddress: selfAddress, stdlib: compiledStdlib, setDebugLabel: setDebugLabel }];
@@ -2007,16 +2010,19 @@ export var wait = function (delta, onProgress) { return __awaiter(void 0, void 0
         }
     });
 }); };
+var appLocalStateNumUInt = 0;
+var appGlobalStateNumUInt = 2;
 export var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, void 0, function () {
-    var ApplicationID, Deployer, creationRound, compiled, appApproval, appClear, dhead, chk, chkeq, client, appInfo, appInfo_p, indexer, cquery, ctxn, cres, fmtp, catxn;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var ApplicationID, Deployer, creationRound, compiled, appApproval, appClear, _a, mapDataKeys, viewKeys, dhead, chk, chkeq, client, appInfo, appInfo_p, indexer, cquery, ctxn, cres, fmtp, appInfo_LocalState, appInfo_GlobalState, catxn;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 ApplicationID = info.ApplicationID, Deployer = info.Deployer, creationRound = info.creationRound;
                 return [4 /*yield*/, compileFor(bin, info)];
             case 1:
-                compiled = _a.sent();
+                compiled = _b.sent();
                 appApproval = compiled.appApproval, appClear = compiled.appClear;
+                _a = bin._Connectors.ALGO, mapDataKeys = _a.mapDataKeys, viewKeys = _a.viewKeys;
                 dhead = "verifyContract";
                 chk = function (p, msg) {
                     if (!p) {
@@ -2030,32 +2036,32 @@ export var verifyContract = function (info, bin) { return __awaiter(void 0, void
                 };
                 return [4 /*yield*/, getAlgodClient()];
             case 2:
-                client = _a.sent();
+                client = _b.sent();
                 return [4 /*yield*/, client.getApplicationByID(ApplicationID)["do"]()];
             case 3:
-                appInfo = _a.sent();
+                appInfo = _b.sent();
                 appInfo_p = appInfo['params'];
                 debug(dhead, '-- appInfo_p =', appInfo_p);
                 return [4 /*yield*/, getIndexer()];
             case 4:
-                indexer = _a.sent();
+                indexer = _b.sent();
                 cquery = indexer.searchForTransactions()
                     .applicationID(ApplicationID)
                     .txType('appl')
                     .round(creationRound);
                 ctxn = null;
-                _a.label = 5;
+                _b.label = 5;
             case 5:
                 if (!!ctxn) return [3 /*break*/, 12];
                 return [4 /*yield*/, doQuery(dhead, cquery)];
             case 6:
-                cres = _a.sent();
+                cres = _b.sent();
                 if (!!cres.succ) return [3 /*break*/, 10];
                 if (!(cres.round < creationRound)) return [3 /*break*/, 8];
                 debug(dhead, '-- waiting for creationRound');
                 return [4 /*yield*/, Timeout.set(1000)];
             case 7:
-                _a.sent();
+                _b.sent();
                 return [3 /*break*/, 5];
             case 8:
                 chk(false, "Not created in stated round");
@@ -2073,6 +2079,12 @@ export var verifyContract = function (info, bin) { return __awaiter(void 0, void
                 chkeq(appInfo_p['approval-program'], fmtp(appApproval), "Approval program does not match Reach backend");
                 chkeq(appInfo_p['clear-state-program'], fmtp(appClear), "ClearState program does not match Reach backend");
                 chkeq(appInfo_p['creator'], Deployer, "Deployer does not match contract information");
+                appInfo_LocalState = appInfo_p['local-state-schema'];
+                chkeq(appInfo_LocalState['num-byte-slice'], mapDataKeys, "Num of byte-slices in local state schema does not match Reach backend");
+                chkeq(appInfo_LocalState['num-uint'], appLocalStateNumUInt, "Num of uints in local state schema does not match Reach backend");
+                appInfo_GlobalState = appInfo_p['global-state-schema'];
+                chkeq(appInfo_GlobalState['num-byte-slice'], 1 + viewKeys, "Num of byte-slices in global state schema does not match Reach backend");
+                chkeq(appInfo_GlobalState['num-uint'], appGlobalStateNumUInt, "Num of uints in global state schema does not match Reach backend");
                 catxn = ctxn['application-transaction'];
                 chkeq(catxn['approval-program'], appInfo_p['approval-program'], "creationRound Approval program");
                 chkeq(catxn['clear-state-program'], appInfo_p['clear-state-program'], "creationRound ClearState program");

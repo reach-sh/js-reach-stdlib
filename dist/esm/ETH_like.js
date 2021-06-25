@@ -53,7 +53,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
 import { assert, eq, ge, lt, } from './shared_backend';
-import { memoizeThunk, replaceableThunk, debug, getViewsHelper, deferContract, makeRandom, argsSplit, } from './shared_impl';
+import { memoizeThunk, replaceableThunk, debug, getViewsHelper, deferContract, makeRandom, argsSplit, ensureConnectorAvailable, } from './shared_impl';
 import { bigNumberify, } from './shared_user';
 function isNone(m) {
     return m.length === 0;
@@ -400,6 +400,7 @@ export function makeEthLike(ethLikeArgs) {
                         gasLimit = bigNumberify(ngl);
                     };
                     deploy = function (bin) {
+                        ensureConnectorAvailable(bin._Connectors, 'ETH');
                         if (!ethers.Signer.isSigner(networkAccount)) {
                             throw Error("Signer required to deploy, " + networkAccount);
                         }
@@ -511,6 +512,7 @@ export function makeEthLike(ethLikeArgs) {
                             // @ts-ignore
                             infoP = infoP.getInfo();
                         }
+                        ensureConnectorAvailable(bin._Connectors, 'ETH');
                         var ABI = JSON.parse(bin._Connectors.ETH.ABI);
                         // Attached state
                         var _a = (function () {

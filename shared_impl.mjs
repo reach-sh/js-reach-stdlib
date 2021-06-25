@@ -299,4 +299,9 @@ export var mkAddressEq = function(T_Address) {
     return bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
   };
 };
+export var ensureConnectorAvailable = function(connectors, connector) {
+  if (!(connector in connectors)) {
+    throw (new Error("The application was not compiled for the " + connector + " connector, only: " + Object.keys(connectors)));
+  }
+};
 //# sourceMappingURL=shared_impl.js.map

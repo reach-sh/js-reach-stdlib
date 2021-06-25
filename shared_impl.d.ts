@@ -166,4 +166,7 @@ export declare const objectMap: <A, B>(object: {
 export declare const mkAddressEq: (T_Address: {
     canonicalize: (addr: any) => any;
 }) => (x: any, y: any) => boolean;
+export declare const ensureConnectorAvailable: (connectors: {
+    [key: string]: any;
+}, connector: string) => void;
 //# sourceMappingURL=shared_impl.d.ts.map

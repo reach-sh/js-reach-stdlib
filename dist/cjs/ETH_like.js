@@ -406,6 +406,7 @@ function makeEthLike(ethLikeArgs) {
                         gasLimit = shared_user_1.bigNumberify(ngl);
                     };
                     deploy = function (bin) {
+                        shared_impl_1.ensureConnectorAvailable(bin._Connectors, 'ETH');
                         if (!ethers.Signer.isSigner(networkAccount)) {
                             throw Error("Signer required to deploy, " + networkAccount);
                         }
@@ -517,6 +518,7 @@ function makeEthLike(ethLikeArgs) {
                             // @ts-ignore
                             infoP = infoP.getInfo();
                         }
+                        shared_impl_1.ensureConnectorAvailable(bin._Connectors, 'ETH');
                         var ABI = JSON.parse(bin._Connectors.ETH.ABI);
                         // Attached state
                         var _a = (function () {

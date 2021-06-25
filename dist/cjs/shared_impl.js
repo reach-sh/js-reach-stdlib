@@ -51,7 +51,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.hexlify = void 0;
+exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -298,4 +298,10 @@ var mkAddressEq = function (T_Address) { return function (x, y) {
     return shared_backend_1.bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
 }; };
 exports.mkAddressEq = mkAddressEq;
+var ensureConnectorAvailable = function (connectors, connector) {
+    if (!(connector in connectors)) {
+        throw (new Error("The application was not compiled for the " + connector + " connector, only: " + Object.keys(connectors)));
+    }
+};
+exports.ensureConnectorAvailable = ensureConnectorAvailable;
 //# sourceMappingURL=shared_impl.js.map
