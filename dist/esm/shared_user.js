@@ -23,4 +23,7 @@ export var parseFixedPoint = function (x) {
 export var parseInt = function (x) {
     return bigNumberify(x.i).toNumber() * (x.sign ? 1 : (-1));
 };
+export var hasConsoleLogger = {
+    log: console.log
+};
 //# sourceMappingURL=shared_user.js.map

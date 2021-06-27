@@ -79,6 +79,7 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     connector: string;
     randomUInt: any;
     hasRandom: any;
+    hasConsoleLogger: any;
     balanceOf: any;
     transfer: any;
     connectAccount: any;

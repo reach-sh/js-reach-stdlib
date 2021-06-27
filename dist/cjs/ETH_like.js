@@ -666,13 +666,13 @@ function makeEthLike(ethLikeArgs) {
                                 }
                             });
                         }); };
-                        var getLogs = function (fromBlock, toBlock, ok_evt) { return __awaiter(_this, void 0, void 0, function () {
-                            var ethersC;
+                        var getLog = function (fromBlock, toBlock, ok_evt) { return __awaiter(_this, void 0, void 0, function () {
+                            var ethersC, logs;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
                                         if (fromBlock > toBlock) {
-                                            return [2 /*return*/, []];
+                                            return [2 /*return*/, undefined];
                                         }
                                         return [4 /*yield*/, getC()];
                                     case 1:
@@ -684,10 +684,16 @@ function makeEthLike(ethLikeArgs) {
                                             address: ethersC.address,
                                             topics: [ethersC.interface.getEventTopic(ok_evt)]
                                         })];
-                                    case 3: 
-                                    // XXX Are we sure that this returns the logs in order? Algo didn't maybe
-                                    // sort to be safe?
-                                    return [2 /*return*/, _a.sent()];
+                                    case 3:
+                                        logs = _a.sent();
+                                        if (logs.length < 1) {
+                                            return [2 /*return*/, undefined];
+                                        }
+                                        return [2 /*return*/, logs.reduce(function (acc, x) {
+                                                return (x.blockNumber == acc.blockNumber)
+                                                    ? (x.logIndex < acc.logIndex ? x : acc)
+                                                    : (x.blockNumber.toString() < acc.blockNumber.toString() ? x : acc);
+                                            }, logs[0])];
                                 }
                             });
                         }); };
@@ -822,15 +828,15 @@ function makeEthLike(ethLikeArgs) {
                                         block_poll_start = block_poll_start_init;
                                         block_poll_end = block_poll_start;
                                         _loop_1 = function () {
-                                            var es, ok_e, ok_r_1, ok_t, ok_ed, ok_vals, data, getLog_1, getOutput, from;
+                                            var ok_e, ok_r_1, ok_t, ok_ed, ok_vals, data, _getLog_1, getOutput, from;
                                             return __generator(this, function (_b) {
                                                 switch (_b.label) {
                                                     case 0:
                                                         shared_impl_1.debug(shad, ':', label, 'recv', ok_evt, "--- GET", block_poll_start, block_poll_end);
-                                                        return [4 /*yield*/, getLogs(block_poll_start, block_poll_end, ok_evt)];
+                                                        return [4 /*yield*/, getLog(block_poll_start, block_poll_end, ok_evt)];
                                                     case 1:
-                                                        es = _b.sent();
-                                                        if (!(es.length == 0)) return [3 /*break*/, 6];
+                                                        ok_e = _b.sent();
+                                                        if (!(ok_e == undefined)) return [3 /*break*/, 6];
                                                         shared_impl_1.debug(shad, ':', label, 'recv', ok_evt, timeout_delay, "--- RETRY");
                                                         block_poll_start = block_poll_end;
                                                         return [4 /*yield*/, await_timeout_1["default"].set(1)];
@@ -851,7 +857,6 @@ function makeEthLike(ethLikeArgs) {
                                                         return [2 /*return*/, "continue"];
                                                     case 6:
                                                         shared_impl_1.debug(shad, ':', label, 'recv', ok_evt, timeout_delay, "--- OKAY");
-                                                        ok_e = es[0];
                                                         return [4 /*yield*/, fetchAndRejectInvalidReceiptFor(ok_e.transactionHash)];
                                                     case 7:
                                                         ok_r_1 = _b.sent();
@@ -884,7 +889,7 @@ function makeEthLike(ethLikeArgs) {
                                                         ok_vals = ok_ed[0][1];
                                                         shared_impl_1.debug(shad, ':', label, 'recv', ok_evt, "--- MSG --", ok_vals);
                                                         data = T_Tuple(out_tys).unmunge(ok_vals);
-                                                        getLog_1 = function (l_evt, l_ctc) { return __awaiter(_this, void 0, void 0, function () {
+                                                        _getLog_1 = function (l_evt, l_ctc) { return __awaiter(_this, void 0, void 0, function () {
                                                             var dhead, theBlock, l_e, l_ed, l_edu;
                                                             return __generator(this, function (_a) {
                                                                 switch (_a.label) {
@@ -892,9 +897,9 @@ function makeEthLike(ethLikeArgs) {
                                                                         dhead = [shad, label, 'recv', ok_evt, '--- getLog', l_evt, l_ctc];
                                                                         shared_impl_1.debug(dhead);
                                                                         theBlock = ok_r_1.blockNumber;
-                                                                        return [4 /*yield*/, getLogs(theBlock, theBlock, l_evt)];
+                                                                        return [4 /*yield*/, getLog(theBlock, theBlock, l_evt)];
                                                                     case 1:
-                                                                        l_e = (_a.sent())[0];
+                                                                        l_e = (_a.sent());
                                                                         dhead = __spreadArray(__spreadArray([], dhead), ['log', l_e]);
                                                                         shared_impl_1.debug(dhead);
                                                                         return [4 /*yield*/, getEventData(l_evt, l_e)];
@@ -910,7 +915,7 @@ function makeEthLike(ethLikeArgs) {
                                                             });
                                                         }); };
                                                         getOutput = function (o_lab, o_ctc) {
-                                                            return getLog_1("oe_" + o_lab, o_ctc);
+                                                            return _getLog_1("oe_" + o_lab, o_ctc);
                                                         };
                                                         shared_impl_1.debug(shad + ": " + label + " recv " + ok_evt + " " + timeout_delay + " --- OKAY --- " + JSON.stringify(ok_vals));
                                                         from = ok_t.from;

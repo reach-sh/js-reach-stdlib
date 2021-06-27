@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
-exports.defaultEpochTag = exports.address_cfxStandardize = void 0;
+exports.defaultEpochTag = exports.decodeCfxAddress = exports.encodeCfxAddress = exports.address_cfxStandardize = void 0;
+var cfxaddr_index_1 = require("./cfxaddr_index");
 // XXX check if networkId is "correct"?
 function address_cfxStandardize(addrC) {
     var pieces = addrC.split(':');
@@ -15,6 +16,16 @@ function address_cfxStandardize(addrC) {
     return addrC.toUpperCase();
 }
 exports.address_cfxStandardize = address_cfxStandardize;
+// mimicking cfxsdk.address.encodeCfxAddress
+function encodeCfxAddress(hexAddress, netId) {
+    return cfxaddr_index_1.encode(hexAddress, netId);
+}
+exports.encodeCfxAddress = encodeCfxAddress;
+// mimicking cfxsdk.address.decodeCfxAddress
+function decodeCfxAddress(addr) {
+    return cfxaddr_index_1.decode(addr);
+}
+exports.decodeCfxAddress = decodeCfxAddress;
 // TODO: 'latest_state' seems to work well; is there a better choice?
 exports.defaultEpochTag = 'latest_state';
 //# sourceMappingURL=CFX_util.js.map

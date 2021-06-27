@@ -19,4 +19,7 @@ export declare const parseInt: (x: {
     sign: boolean;
     i: num;
 }) => number;
+export declare const hasConsoleLogger: {
+    log: (message?: any, ...optionalParams: any[]) => void;
+};
 //# sourceMappingURL=shared_user.d.ts.map

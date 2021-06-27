@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 exports.__esModule = true;
-exports.loadStdlib = exports.getConnector = exports.getConnectorMode = void 0;
+exports.loadStdlib = exports.getConnector = exports.getConnectorMode = exports.unsafeAllowMultipleStdlibs = void 0;
 var stdlib_ETH = __importStar(require("./ETH"));
 var stdlib_ALGO = __importStar(require("./ALGO"));
 var stdlib_CFX = __importStar(require("./CFX"));
@@ -28,6 +28,9 @@ exports.getConnectorMode = ConnectorMode_1.getConnectorMode;
 exports.getConnector = ConnectorMode_1.getConnector;
 var shim_1 = require("./shim");
 var shared_impl_1 = require("./shared_impl");
+var registry_1 = require("./registry");
+var registry_2 = require("./registry");
+__createBinding(exports, registry_2, "unsafeAllowMultipleStdlibs");
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
 function loadStdlib(connectorModeOrEnv) {
@@ -51,6 +54,8 @@ function loadStdlib(connectorModeOrEnv) {
     }
     var connectorMode = ConnectorMode_1.canonicalizeConnectorMode(connectorModeStr);
     var connector = ConnectorMode_1.getConnector(connectorMode);
+    // Remember the connector to prevent users from accidentally using multiple stdlibs
+    registry_1.doStdlibLoad(connector);
     var stdlib;
     switch (connector) {
         case 'ETH':

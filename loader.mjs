@@ -4,6 +4,8 @@ import * as stdlib_CFX from './CFX.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
 import { process, window } from './shim.mjs';
 import { rEnv, setDEBUG, truthyEnv, } from './shared_impl.mjs';
+import { doStdlibLoad } from './registry.mjs';
+export { unsafeAllowMultipleStdlibs } from './registry.mjs';
 export { getConnectorMode, getConnector };
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
@@ -25,6 +27,8 @@ export function loadStdlib(connectorModeOrEnv) {
   }
   var connectorMode = canonicalizeConnectorMode(connectorModeStr);
   var connector = getConnector(connectorMode);
+  // Remember the connector to prevent users from accidentally using multiple stdlibs
+  doStdlibLoad(connector);
   var stdlib;
   switch (connector) {
     case 'ETH':

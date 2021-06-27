@@ -43,7 +43,7 @@ import cfxsdk from 'js-conflux-sdk';
 import Timeout from 'await-timeout';
 var Conflux = cfxsdk.Conflux;
 function notYetSupported(label) {
-    throw Error(label + " not yet supported on experimental connector CFX");
+    throw Error(label + " not yet supported on CFX");
 }
 // XXX incorporate these into setProviderByEnv
 var DEFAULT_CFX_NODE_URI = 'http://localhost:12537';
@@ -65,7 +65,7 @@ export function _getDefaultNetworkAccount() {
     });
 }
 // from /scripts/devnet-cfx/default.toml
-var mining_key = "0xaa911f5b5b567af4db867a9d9072f4415fe722b114306baae28b721b6fbb2d99";
+var mining_key = '0xc72b8b13c6256b54ce428f6f67725d47194bc4ef97552867d037acd4fe6e86f3';
 var defaultFaucetWallet = new cfxers.Wallet(mining_key);
 export var _getDefaultFaucetNetworkAccount = memoizeThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
     var _a, _b;
@@ -83,14 +83,15 @@ export var _getDefaultFaucetNetworkAccount = memoizeThunk(function () { return _
     });
 }); });
 function waitCaughtUp(provider) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var maxTries, waitMs, err, tries, w, txn, t, e_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var maxTries, waitMs, err, tries, faddr, fbal, failMsg, w, txn, t, e_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, waitPort(CFX_NODE_URI)];
                 case 1:
-                    _a.sent();
-                    if (!isIsolatedNetwork()) return [3 /*break*/, 10];
+                    _b.sent();
+                    if (!isIsolatedNetwork()) return [3 /*break*/, 11];
                     // XXX this doesn't work with setFaucet; requires the default faucet to be used
                     // But we can't call getFaucet() or _getDefaultFaucetNetworkAccount() here because
                     // those (if left to defaults) call getProvider which calls this fn (waitCaughtUp).
@@ -101,42 +102,53 @@ function waitCaughtUp(provider) {
                     waitMs = 1000;
                     err = null;
                     tries = 0;
-                    _a.label = 2;
+                    _b.label = 2;
                 case 2:
-                    if (!(tries < maxTries)) return [3 /*break*/, 9];
+                    if (!(tries < maxTries)) return [3 /*break*/, 10];
                     if (!err) return [3 /*break*/, 4];
                     debug("waitCaughtUp: waiting some more", { waitMs: waitMs, tries: tries, maxTries: maxTries, err: err });
                     return [4 /*yield*/, Timeout.set(waitMs)];
                 case 3:
-                    _a.sent(); // wait 1s between tries
-                    _a.label = 4;
+                    _b.sent(); // wait 1s between tries
+                    _b.label = 4;
                 case 4:
-                    _a.trys.push([4, 7, , 8]);
+                    _b.trys.push([4, 8, , 9]);
+                    faddr = defaultFaucetWallet.getAddress();
+                    return [4 /*yield*/, ((_a = defaultFaucetWallet.provider) === null || _a === void 0 ? void 0 : _a.conflux.getBalance(faddr))];
+                case 5:
+                    fbal = _b.sent();
+                    debug("Faucet bal", fbal);
+                    // @ts-ignore
+                    if (fbal == 0) {
+                        failMsg = "Faucet balance is 0 (" + faddr + ")";
+                        debug(failMsg);
+                        throw Error(failMsg);
+                    }
                     w = cfxers.Wallet.createRandom().connect(provider);
                     txn = { to: w.getAddress(), value: '1' };
                     debug("sending dummy txn", txn);
                     return [4 /*yield*/, defaultFaucetWallet.sendTransaction(txn)];
-                case 5:
-                    t = _a.sent();
-                    return [4 /*yield*/, t.wait()];
                 case 6:
-                    _a.sent();
-                    return [2 /*return*/];
+                    t = _b.sent();
+                    return [4 /*yield*/, t.wait()];
                 case 7:
-                    e_1 = _a.sent();
+                    _b.sent();
+                    return [2 /*return*/];
+                case 8:
+                    e_1 = _b.sent();
                     // TODO: only loop again if we detect that it's the "not caught up yet" error
                     //   err: RPCError: Request rejected due to still in the catch up mode.
                     //   { code: -32077 }
                     err = e_1;
-                    return [3 /*break*/, 8];
-                case 8:
+                    return [3 /*break*/, 9];
+                case 9:
                     tries++;
                     return [3 /*break*/, 2];
-                case 9:
+                case 10:
                     if (err)
                         throw err;
-                    _a.label = 10;
-                case 10: return [2 /*return*/];
+                    _b.label = 11;
+                case 11: return [2 /*return*/];
             }
         });
     });

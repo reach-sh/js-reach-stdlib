@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
+exports.hasConsoleLogger = exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
 // This can depend on the shared backend and impl
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -34,4 +34,7 @@ var parseInt = function (x) {
     return CBR_1.bigNumberify(x.i).toNumber() * (x.sign ? 1 : (-1));
 };
 exports.parseInt = parseInt;
+exports.hasConsoleLogger = {
+    log: console.log
+};
 //# sourceMappingURL=shared_user.js.map

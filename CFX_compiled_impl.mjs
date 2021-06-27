@@ -11,26 +11,25 @@ var __assign = (this && this.__assign) || function() {
   return __assign.apply(this, arguments);
 };
 import * as eci from './ETH_compiled_impl.mjs';
-import cfxsdk from 'js-conflux-sdk';
 import buffer from 'buffer';
-import { address_cfxStandardize } from './CFX_util.mjs';
+import { address_cfxStandardize, decodeCfxAddress, encodeCfxAddress } from './CFX_util.mjs';
 import { debug } from './shared_impl.mjs';
 var Buffer = buffer.Buffer;
 // XXX find a better way to support multiple netIds
 var netId = 999;
 
 function address_ethToCfx(addrE) {
+  debug("address_ethToCfx", "call", addrE);
   addrE = addrE.toLowerCase();
   var addrB = Buffer.from(addrE.slice(2), 'hex');
-  // XXX why doesn't ts know about this fn?
-  var addrC = cfxsdk.address.encodeCfxAddress(addrB, netId);
+  var addrC = encodeCfxAddress(addrB, netId);
   return addrC;
 }
 // Note: does not add the mixed-case checksum info to the ETH-like address
 function address_cfxToEth(addrC) {
   // XXX why doesn't ts know about this fn?
   debug("address_cfxToEth", "call", addrC);
-  var addrObj = cfxsdk.address.decodeCfxAddress(addrC);
+  var addrObj = decodeCfxAddress(addrC);
   var addrE = '0x' + addrObj.hexAddress.toString('hex');
   if (netId !== addrObj.netId)
     throw Error("Expected netId=" + netId + ", got netId=" + addrObj.netId);

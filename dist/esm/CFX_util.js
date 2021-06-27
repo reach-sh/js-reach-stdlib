@@ -1,3 +1,4 @@
+import { encode, decode } from './cfxaddr_index';
 // XXX check if networkId is "correct"?
 export function address_cfxStandardize(addrC) {
     var pieces = addrC.split(':');
@@ -10,6 +11,14 @@ export function address_cfxStandardize(addrC) {
     if (pieces.length !== 3)
         throw Error("impossible: bad CFX addr: '" + addrC + "'");
     return addrC.toUpperCase();
+}
+// mimicking cfxsdk.address.encodeCfxAddress
+export function encodeCfxAddress(hexAddress, netId) {
+    return encode(hexAddress, netId);
+}
+// mimicking cfxsdk.address.decodeCfxAddress
+export function decodeCfxAddress(addr) {
+    return decode(addr);
 }
 // TODO: 'latest_state' seems to work well; is there a better choice?
 export var defaultEpochTag = 'latest_state';
