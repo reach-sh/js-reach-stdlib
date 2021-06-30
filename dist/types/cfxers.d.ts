@@ -52,6 +52,6 @@ export declare class Wallet {
         }>;
     }>;
     static createRandom(): Wallet;
-    static fromMnemonic(mnemonic: string): Wallet;
+    static fromMnemonic(mnemonic: string, provider?: providers.Provider): Wallet;
 }
 //# sourceMappingURL=cfxers.d.ts.map

@@ -2,6 +2,7 @@
 exports.__esModule = true;
 exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
+var shared_backend_1 = require("./shared_backend");
 var BigNumber = ethers_1.ethers.BigNumber;
 var bigNumberify = function (x) { return BigNumber.from(x); };
 exports.bigNumberify = bigNumberify;
@@ -33,25 +34,23 @@ var BV_Bool = function (val) {
     return exports.BT_Bool.canonicalize(val);
 };
 exports.BV_Bool = BV_Bool;
-exports.BT_UInt = {
+var BT_UInt = function (max) { return ({
     name: 'UInt',
     canonicalize: function (uv) {
         try {
-            var val = ethers_1.ethers.BigNumber.from(uv);
-            return val;
+            return shared_backend_1.checkedBigNumberify('stdlib:CBR:BT_UInt', max, uv);
         }
         catch (e) {
             if (typeof (uv) === 'string') {
                 throw Error("String does not represent a BigNumber. " + JSON.stringify(uv));
             }
-            else {
-                throw Error("Expected BigNumber, number, or string, but got " + JSON.stringify(uv));
-            }
+            throw e;
         }
     }
-};
-var BV_UInt = function (val) {
-    return exports.BT_UInt.canonicalize(val);
+}); };
+exports.BT_UInt = BT_UInt;
+var BV_UInt = function (val, max) {
+    return exports.BT_UInt(max).canonicalize(val);
 };
 exports.BV_UInt = BV_UInt;
 var BT_Bytes = function (len) { return ({

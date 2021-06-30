@@ -58,7 +58,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports._verifyContractCode = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
+exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports._verifyContractCode = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports._getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
 var cfxers = __importStar(require("./cfxers"));
 exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
@@ -83,13 +83,76 @@ function isIsolatedNetwork() {
 }
 exports.isIsolatedNetwork = isIsolatedNetwork;
 function isWindowProvider() {
-    return false; // XXX
+    return true; // XXX
 }
 exports.isWindowProvider = isWindowProvider;
+function _getSignStrategy() {
+    // XXX expose setSignStrategy for CFX
+    // For now we only support 'secret' by default
+    if (shim_1.window.prompt) {
+        return 'secret';
+    }
+    else {
+        return 'faucet';
+    }
+}
+exports._getSignStrategy = _getSignStrategy;
 function _getDefaultNetworkAccount() {
     return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            return [2 /*return*/, notYetSupported("_getDefaultNetworkAccount")];
+        var provider, promptFor, ss, w, _a, skMay, sk, mnemonic;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, getProvider()];
+                case 1:
+                    provider = _b.sent();
+                    promptFor = function (s) {
+                        if (!shim_1.window.prompt) {
+                            throw Error("Can't prompt user with window.prompt");
+                        }
+                        return shim_1.window.prompt("Please paste your account's " + s + ", or click cancel to generate a new one.");
+                    };
+                    ss = _getSignStrategy();
+                    w = null;
+                    _a = ss;
+                    switch (_a) {
+                        case 'secret': return [3 /*break*/, 2];
+                        case 'mnemonic': return [3 /*break*/, 3];
+                        case 'window': return [3 /*break*/, 4];
+                        case 'faucet': return [3 /*break*/, 5];
+                    }
+                    return [3 /*break*/, 7];
+                case 2:
+                    skMay = promptFor('secret key');
+                    if (skMay) {
+                        sk = skMay.slice(0, 2) == '0x' ? skMay : '0x' + skMay;
+                        w = new cfxers.Wallet(sk);
+                    }
+                    else {
+                        w = cfxers.Wallet.createRandom();
+                    }
+                    return [3 /*break*/, 8];
+                case 3:
+                    mnemonic = promptFor('mnemonic');
+                    w = mnemonic
+                        ? cfxers.Wallet.fromMnemonic(mnemonic)
+                        : cfxers.Wallet.createRandom();
+                    return [3 /*break*/, 8];
+                case 4:
+                    // XXX ConfluxPortal support
+                    w = notYetSupported("sign strategy 'window'");
+                    return [3 /*break*/, 8];
+                case 5: return [4 /*yield*/, exports._getDefaultFaucetNetworkAccount()];
+                case 6:
+                    w = _b.sent();
+                    return [3 /*break*/, 8];
+                case 7: throw Error("Sign strategy not recognized: '" + ss + "'");
+                case 8:
+                    if (!w)
+                        throw Error("impossible: no account found for sign strategy '" + ss + "'");
+                    if (!w.provider)
+                        w = w.connect(provider);
+                    return [2 /*return*/, w];
+            }
         });
     });
 }
@@ -194,8 +257,12 @@ var _a = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, v
                     networkId: networkId
                 });
                 provider = new cfxers.providers.Provider(conflux);
+                // XXX is there a better place to wait for this
+                // such that toying with things at the repl doesn't hang if no connection is available?
                 return [4 /*yield*/, waitCaughtUp(provider)];
             case 1:
+                // XXX is there a better place to wait for this
+                // such that toying with things at the repl doesn't hang if no connection is available?
                 _a.sent();
                 return [2 /*return*/, provider];
         }

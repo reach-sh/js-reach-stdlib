@@ -11,6 +11,7 @@ var knownConnectorModes = [
   'ALGO-browser',
   'CFX-devnet',
   'CFX-live',
+  'CFX-browser',
 ];
 
 function isKnownConnector(s) {

@@ -27,8 +27,8 @@ export declare const BV_Null: CBR_Null;
 export declare const BT_Null: BackendTy<CBR_Null>;
 export declare const BT_Bool: BackendTy<CBR_Bool>;
 export declare const BV_Bool: (val: boolean) => CBR_Bool;
-export declare const BT_UInt: BackendTy<CBR_UInt>;
-export declare const BV_UInt: (val: BigNumber) => CBR_UInt;
+export declare const BT_UInt: (max: BigNumber) => BackendTy<CBR_UInt>;
+export declare const BV_UInt: (val: BigNumber, max: BigNumber) => CBR_UInt;
 export declare const BT_Bytes: (len: number) => BackendTy<CBR_Bytes>;
 export declare const BT_Digest: BackendTy<CBR_Digest>;
 /** @description You probably don't want to create a BV_Digest manually. */

@@ -72,7 +72,7 @@ declare type ContractInfo = {
 };
 declare type Digest = BigNumber;
 declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyALGO_Ty>;
-declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
+declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
 declare type SignStrategy = 'mnemonic' | 'AlgoSigner' | 'MyAlgo';
@@ -120,7 +120,7 @@ declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Accoun
 export { getFaucet, setFaucet };
 export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
-export declare const balanceOf: (acc: Account) => Promise<BigNumber>;
+export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
 export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
 export declare const newTestAccount: (startingBalance: any) => Promise<Account>;

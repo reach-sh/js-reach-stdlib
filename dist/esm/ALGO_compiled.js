@@ -22,7 +22,14 @@ export var UInt_max = BigNumber.from(2).pow(64).sub(1);
 export var digest = makeDigest(function (t, v) { return t.toNet(v); });
 export var T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); } });
 export var T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; } });
-export var T_UInt = __assign(__assign({}, CBR.BT_UInt), { netSize: 8, toNet: function (bv) { return (ethers.utils.zeroPad(ethers.utils.arrayify(bv), 8)); }, fromNet: function (nv) {
+export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { netSize: 8, toNet: function (bv) {
+        try {
+            return ethers.utils.zeroPad(ethers.utils.arrayify(bv), 8);
+        }
+        catch (e) {
+            throw new Error("toNet: " + bv + " is out of range [0, " + UInt_max + "]");
+        }
+    }, fromNet: function (nv) {
         // debug(`fromNet: UInt`);
         // if (getDEBUG()) console.log(nv);
         return ethers.BigNumber.from(nv);

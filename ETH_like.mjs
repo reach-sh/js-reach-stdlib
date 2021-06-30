@@ -78,6 +78,7 @@ import real_ethers from 'ethers';
 import { assert, eq, ge, lt, } from './shared_backend.mjs';
 import { memoizeThunk, replaceableThunk, debug, getViewsHelper, deferContract, makeRandom, argsSplit, ensureConnectorAvailable, } from './shared_impl.mjs';
 import { bigNumberify, } from './shared_user.mjs';
+import ETHstdlib from './stdlib_sol.mjs';
 
 function isNone(m) {
   return m.length === 0;
@@ -310,16 +311,18 @@ export function makeEthLike(ethLikeArgs) {
   var _d = makeRandom(32),
     randomUInt = _d.randomUInt,
     hasRandom = _d.hasRandom;
-  var balanceOf = function(acc) {
+  var balanceOf = function(acc, token) {
+    if (token === void 0) { token = false; }
     return __awaiter(_this, void 0, void 0, function() {
       var networkAccount, _a, addr, provider, _b;
       return __generator(this, function(_c) {
         switch (_c.label) {
           case 0:
             networkAccount = acc.networkAccount;
-            if (!networkAccount)
+            if (!networkAccount) {
               throw Error("acc.networkAccount missing. Got: " + acc);
-            if (!networkAccount.getBalance) return [3 /*break*/ , 2];
+            }
+            if (!(!token && networkAccount.getBalance)) return [3 /*break*/ , 2];
             _a = bigNumberify;
             return [4 /*yield*/ , networkAccount.getBalance()];
           case 1:
@@ -328,7 +331,10 @@ export function makeEthLike(ethLikeArgs) {
             return [4 /*yield*/ , getAddr(acc)];
           case 3:
             addr = _c.sent();
-            if (!addr) return [3 /*break*/ , 6];
+            if (!addr) {
+              throw Error("address missing. Got: " + networkAccount);
+            }
+            if (!!token) return [3 /*break*/ , 6];
             return [4 /*yield*/ , getProvider()];
           case 4:
             provider = _c.sent();
@@ -337,7 +343,25 @@ export function makeEthLike(ethLikeArgs) {
           case 5:
             return [2 /*return*/ , _b.apply(void 0, [_c.sent()])];
           case 6:
-            throw Error("address missing. Got: " + networkAccount);
+            return [4 /*yield*/ , balanceOf_token(networkAccount, addr, token)];
+          case 7:
+            return [2 /*return*/ , _c.sent()];
+        }
+      });
+    });
+  };
+  var ReachToken_ABI = ETHstdlib["contracts"]["stdlib.sol:ReachToken"]["abi"];
+  var ERC20_ABI = ETHstdlib["contracts"]["stdlib.sol:IERC20"]["abi"];
+  var balanceOf_token = function(networkAccount, address, tok) {
+    return __awaiter(_this, void 0, void 0, function() {
+      var tokCtc;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
+            return [4 /*yield*/ , tokCtc["balanceOf"](address)];
+          case 1:
+            return [2 /*return*/ , _a.sent()];
         }
       });
     });
@@ -388,7 +412,7 @@ export function makeEthLike(ethLikeArgs) {
   var transfer = function(from, to, value, token) {
     if (token === void 0) { token = false; }
     return __awaiter(_this, void 0, void 0, function() {
-      var sender, receiver, valueb, dhead, txn, tokCtc;
+      var sender, receiver, valueb, dhead, txn, tokCtc, gl;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -404,69 +428,14 @@ export function makeEthLike(ethLikeArgs) {
             return [2 /*return*/ , _a.sent()];
           case 2:
             tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
-            return [4 /*yield*/ , doCall(dhead, tokCtc, "transfer", [receiver, valueb], bigNumberify(0), undefined)];
+            gl = from.getGasLimit ? from.getGasLimit() : undefined;
+            return [4 /*yield*/ , doCall(dhead, tokCtc, "transfer", [receiver, valueb], bigNumberify(0), gl)];
           case 3:
             return [2 /*return*/ , _a.sent()];
         }
       });
     });
   };
-  var ERC20_ABI = [{
-      "constant": false,
-      "inputs": [{
-          "name": "_spender",
-          "type": "address"
-        },
-        {
-          "name": "_value",
-          "type": "uint256"
-        }
-      ],
-      "name": "approve",
-      "outputs": [{
-        "name": "",
-        "type": "bool"
-      }],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [{
-        "name": "account",
-        "type": "address"
-      }],
-      "name": "balanceOf",
-      "outputs": [{
-        "name": "",
-        "type": "uint256"
-      }],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [{
-          "name": "_recipient",
-          "type": "address"
-        },
-        {
-          "name": "_amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "transfer",
-      "outputs": [{
-        "name": "",
-        "type": "bool"
-      }],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
-  ];
   var connectAccount = function(networkAccount) {
     return __awaiter(_this, void 0, void 0, function() {
       function setDebugLabel(newLabel) {
@@ -474,7 +443,16 @@ export function makeEthLike(ethLikeArgs) {
         // @ts-ignore
         return this;
       }
-      var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, deploy, attach;
+
+      function tokenAccept(token) {
+        return __awaiter(this, void 0, void 0, function() {
+          return __generator(this, function(_a) {
+            debug("tokenAccept: Unnecessary on ETH", token);
+            return [2 /*return*/ ];
+          });
+        });
+      }
+      var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, deploy, attach, tokenMetadata;
       var _this = this;
       return __generator(this, function(_b) {
         switch (_b.label) {
@@ -509,6 +487,7 @@ export function makeEthLike(ethLikeArgs) {
             setGasLimit = function(ngl) {
               gasLimit = bigNumberify(ngl);
             };
+            getGasLimit = function() { return gasLimit; };
             deploy = function(bin) {
               ensureConnectorAvailable(bin._Connectors, 'ETH');
               if (!ethers.Signer.isSigner(networkAccount)) {
@@ -725,16 +704,16 @@ export function makeEthLike(ethLikeArgs) {
                         };
                         callTok = function(tok, amt) {
                           return __awaiter(_this, void 0, void 0, function() {
-                            var tokCtc, tokBalance;
+                            var tokBalance, tokCtc;
                             return __generator(this, function(_a) {
                               switch (_a.label) {
                                 case 0:
-                                  tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
-                                  return [4 /*yield*/ , tokCtc["balanceOf"](address)];
+                                  return [4 /*yield*/ , balanceOf_token(networkAccount, address, tok)];
                                 case 1:
                                   tokBalance = _a.sent();
                                   debug(__assign(__assign({}, dhead), { kind: 'token' }), 'balanceOf', tokBalance);
                                   assert(tokBalance.gte(amt), "local account token balance is insufficient: " + tokBalance + " < " + amt);
+                                  tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
                                   return [4 /*yield*/ , doCall(__assign(__assign({}, dhead), { kind: 'token' }), tokCtc, "approve", [ethersC.address, amt], zero, gasLimit)];
                                 case 2:
                                   _a.sent();
@@ -1215,8 +1194,66 @@ export function makeEthLike(ethLikeArgs) {
               var getViews = getViewsHelper(views_bin, getView1);
               // Note: wait is the local one not the global one of the same name.
               return { getInfo: getInfo, creationTime: creationTime, sendrecv: sendrecv, recv: recv, wait: wait, iam: iam, selfAddress: selfAddress, getViews: getViews, stdlib: stdlib };
+            };;;
+            tokenMetadata = function(token) {
+              return __awaiter(_this, void 0, void 0, function() {
+                var tokCtc, md, go;
+                var _this = this;
+                return __generator(this, function(_a) {
+                  switch (_a.label) {
+                    case 0:
+                      debug("tokenMetadata", token);
+                      tokCtc = new ethers.Contract(token, ReachToken_ABI, networkAccount);
+                      md = {};
+                      go = function(f, m) {
+                        if (m === void 0) { m = f; }
+                        return __awaiter(_this, void 0, void 0, function() {
+                          var v, e_4;
+                          return __generator(this, function(_a) {
+                            switch (_a.label) {
+                              case 0:
+                                debug('tokenMetadata', { f: f, m: m });
+                                _a.label = 1;
+                              case 1:
+                                _a.trys.push([1, 3, , 4]);
+                                return [4 /*yield*/ , tokCtc[m]()];
+                              case 2:
+                                v = _a.sent();
+                                debug('tokenMetadata', { f: f, m: m, v: v });
+                                md[f] = v;
+                                return [3 /*break*/ , 4];
+                              case 3:
+                                e_4 = _a.sent();
+                                debug('tokenMetadata', { f: f, m: m, e: e_4 });
+                                return [3 /*break*/ , 4];
+                              case 4:
+                                return [2 /*return*/ ];
+                            }
+                          });
+                        });
+                      };
+                      return [4 /*yield*/ , go('name')];
+                    case 1:
+                      _a.sent();
+                      return [4 /*yield*/ , go('symbol')];
+                    case 2:
+                      _a.sent();
+                      return [4 /*yield*/ , go('url')];
+                    case 3:
+                      _a.sent();
+                      return [4 /*yield*/ , go('metadata')];
+                    case 4:
+                      _a.sent();
+                      return [4 /*yield*/ , go('supply', 'totalSupply')];
+                    case 5:
+                      _a.sent();
+                      debug("tokenMetadata", token, md);
+                      return [2 /*return*/ , md];
+                  }
+                });
+              });
             };
-            return [2 /*return*/ , { deploy: deploy, attach: attach, networkAccount: networkAccount, setGasLimit: setGasLimit, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel }];
+            return [2 /*return*/ , { deploy: deploy, attach: attach, networkAccount: networkAccount, setGasLimit: setGasLimit, getGasLimit: getGasLimit, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata }];
         }
       });
     });
@@ -1331,7 +1368,7 @@ export function makeEthLike(ethLikeArgs) {
   };
   var newTestAccount = function(startingBalance) {
     return __awaiter(_this, void 0, void 0, function() {
-      var acc, to, e_4;
+      var acc, to, e_5;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -1353,9 +1390,9 @@ export function makeEthLike(ethLikeArgs) {
             debug('newTestAccount got transfer:', to);
             return [2 /*return*/ , acc];
           case 5:
-            e_4 = _a.sent();
+            e_5 = _a.sent();
             console.log("newTestAccount: Trouble with account " + to);
-            throw e_4;
+            throw e_5;
           case 6:
             return [2 /*return*/ ];
         }

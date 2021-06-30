@@ -2,7 +2,7 @@ export * from './CFX_compiled';
 export declare const connector = "CFX";
 export declare const getProvider: any, setProvider: any, randomUInt: () => import("ethers").BigNumber, hasRandom: {
     random: () => import("ethers").BigNumber;
-}, setProviderByEnv: any, setProviderByName: any, providerEnvByName: any, balanceOf: (acc: any) => Promise<import("ethers").BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: {
+}, setProviderByEnv: any, setProviderByName: any, providerEnvByName: any, balanceOf: (acc: any, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: {
     address?: string | undefined;
     getAddress?: (() => Promise<string>) | undefined;
     sendTransaction?: ((...xs: any) => any) | undefined;

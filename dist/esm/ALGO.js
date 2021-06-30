@@ -901,9 +901,6 @@ var _h = replaceableThunk(function () { return __awaiter(void 0, void 0, void 0,
     });
 }); }), getFaucet = _h[0], setFaucet = _h[1];
 export { getFaucet, setFaucet };
-// XXX AlgoSigner doesn't correctly handle msgpacked notes
-// When it does: update {,un}clean_for_AlgoSigner
-// const note = algosdk.encodeObj('Reach');
 var NOTE_Reach = new Uint8Array(Buffer.from("Reach " + VERSION));
 var makeTransferTxn = function (from, to, value, token, ps, closeTo) {
     if (closeTo === void 0) { closeTo = undefined; }
@@ -996,7 +993,23 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
         // @ts-ignore
         return this;
     }
-    var thisAcc, shad, label, pks, selfAddress, iam, attachP, deployP, implNow, attach, deploy;
+    function tokenAccept(token) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        debug("tokenAccept", token);
+                        // @ts-ignore
+                        return [4 /*yield*/, transfer(this, this, 0, token)];
+                    case 1:
+                        // @ts-ignore
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
+    var thisAcc, shad, label, pks, selfAddress, iam, attachP, deployP, implNow, attach, deploy, tokenMetadata;
     return __generator(this, function (_a) {
         thisAcc = networkAccount;
         shad = thisAcc.addr.substring(2, 6);
@@ -1763,27 +1776,50 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
             ensureConnectorAvailable(bin._Connectors, connector);
             return deferContract(false, deployP(bin), implNow);
         };
-        return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, getAddress: selfAddress, stdlib: compiledStdlib, setDebugLabel: setDebugLabel }];
+        ;
+        tokenMetadata = function (token) { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                debug("XXX tokenMetadata", token);
+                return [2 /*return*/, {}];
+            });
+        }); };
+        return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, getAddress: selfAddress, stdlib: compiledStdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata }];
     });
 }); };
-export var balanceOf = function (acc) { return __awaiter(void 0, void 0, void 0, function () {
-    var networkAccount, client, amount;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                networkAccount = acc.networkAccount;
-                if (!networkAccount)
-                    throw Error("acc.networkAccount missing. Got: " + acc);
-                return [4 /*yield*/, getAlgodClient()];
-            case 1:
-                client = _a.sent();
-                return [4 /*yield*/, client.accountInformation(networkAccount.addr)["do"]()];
-            case 2:
-                amount = (_a.sent()).amount;
-                return [2 /*return*/, bigNumberify(amount)];
-        }
+export var balanceOf = function (acc, token) {
+    if (token === void 0) { token = false; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var networkAccount, client, info, _i, _a, ai;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    networkAccount = acc.networkAccount;
+                    if (!networkAccount) {
+                        throw Error("acc.networkAccount missing. Got: " + acc);
+                    }
+                    return [4 /*yield*/, getAlgodClient()];
+                case 1:
+                    client = _b.sent();
+                    return [4 /*yield*/, client.accountInformation(networkAccount.addr)["do"]()];
+                case 2:
+                    info = _b.sent();
+                    if (!token) {
+                        return [2 /*return*/, bigNumberify(info.amount)];
+                    }
+                    else {
+                        for (_i = 0, _a = info.assets; _i < _a.length; _i++) {
+                            ai = _a[_i];
+                            if (ai['asset-id'] === token) {
+                                return [2 /*return*/, ai['amount']];
+                            }
+                        }
+                        return [2 /*return*/, bigNumberify(0)];
+                    }
+                    return [2 /*return*/];
+            }
+        });
     });
-}); };
+};
 export var createAccount = function () { return __awaiter(void 0, void 0, void 0, function () {
     var networkAccount;
     return __generator(this, function (_a) {

@@ -47,7 +47,14 @@ exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
 exports.digest = shared_impl_1.makeDigest(function (t, v) { return t.toNet(v); });
 exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); } });
 exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; } });
-exports.T_UInt = __assign(__assign({}, CBR.BT_UInt), { netSize: 8, toNet: function (bv) { return (ethers_1.ethers.utils.zeroPad(ethers_1.ethers.utils.arrayify(bv), 8)); }, fromNet: function (nv) {
+exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize: 8, toNet: function (bv) {
+        try {
+            return ethers_1.ethers.utils.zeroPad(ethers_1.ethers.utils.arrayify(bv), 8);
+        }
+        catch (e) {
+            throw new Error("toNet: " + bv + " is out of range [0, " + exports.UInt_max + "]");
+        }
+    }, fromNet: function (nv) {
         // debug(`fromNet: UInt`);
         // if (getDEBUG()) console.log(nv);
         return ethers_1.ethers.BigNumber.from(nv);

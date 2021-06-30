@@ -3,7 +3,7 @@ export * from './ETH_compiled';
 export declare const connector = "ETH";
 export declare const getProvider: any, setProvider: any, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
     random: () => ethImpl.ethers.BigNumber;
-}, setProviderByEnv: any, setProviderByName: any, providerEnvByName: any, balanceOf: (acc: any) => Promise<ethImpl.ethers.BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
+}, setProviderByEnv: any, setProviderByName: any, providerEnvByName: any, balanceOf: (acc: any, token?: string | false) => Promise<ethImpl.ethers.BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
     address?: string | undefined;
     getAddress?: (() => Promise<string>) | undefined;
     sendTransaction?: ((...xs: any) => any) | undefined;

@@ -366,10 +366,9 @@ var Wallet = /** @class */ (function () {
     Wallet.createRandom = function () {
         return new Wallet();
     };
-    Wallet.fromMnemonic = function (mnemonic) {
-        // TODO
-        void (mnemonic);
-        throw Error("Account 'from mnemonic' not supported on Conflux, please use secret key");
+    Wallet.fromMnemonic = function (mnemonic, provider) {
+        var sk = ethers.Wallet.fromMnemonic(mnemonic)._signingKey().privateKey;
+        return new Wallet(sk, provider);
     };
     return Wallet;
 }());

@@ -3,6 +3,7 @@ import * as ethLikeCompiled from './CFX_compiled';
 declare type NetworkAccount = cfxers.Wallet;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
+export declare function _getSignStrategy(): string;
 export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
 export declare const _getDefaultFaucetNetworkAccount: () => Promise<cfxers.Wallet>;
 declare function setProviderByEnv(env: any): void;

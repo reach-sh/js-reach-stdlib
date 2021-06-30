@@ -39,7 +39,7 @@ declare type ContractInfo = {
 };
 declare type Digest = string;
 declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyETH_Ty>;
-export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo> | any;
+export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> | any;
 declare type ContractInitInfo = {
     args: Array<any>;
     value: BigNumber;
@@ -54,7 +54,7 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     hasRandom: {
         random: () => real_ethers.BigNumber;
     };
-    balanceOf: (acc: Account) => Promise<BigNumber>;
+    balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
     transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: string) => Promise<Account>;

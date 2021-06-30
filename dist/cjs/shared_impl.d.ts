@@ -78,15 +78,17 @@ export declare type IContract<ContractInfo, Digest, RawAddress, Token, Connector
     stdlib: Object;
 };
 export declare const deferContract: <ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>, implNow: Partial<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>) => IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>;
-export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo> = {
+export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => Contract;
     stdlib: Object;
     getAddress: () => string;
-    setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo>;
+    setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+    tokenAccept: (token: Token) => Promise<void>;
+    tokenMetadata: (token: Token) => Promise<any>;
 };
-export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any> | {
+export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
 export declare type ISimRes<Digest, Token, ConnectorTy> = {

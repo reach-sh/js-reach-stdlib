@@ -40,7 +40,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var V_Bool = function(b) {
     return T_Bool.canonicalize(b);
   };
-  var T_UInt = __assign(__assign({}, CBR.BT_UInt), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bv; }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
+  var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bv; }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
   var V_UInt = function(n) {
     return T_UInt.canonicalize(n);
   };

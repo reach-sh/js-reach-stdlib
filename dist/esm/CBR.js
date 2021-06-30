@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { checkedBigNumberify } from './shared_backend';
 var BigNumber = ethers.BigNumber;
 export var bigNumberify = function (x) { return BigNumber.from(x); };
 export var bigNumberToNumber = function (x) {
@@ -27,25 +28,22 @@ export var BT_Bool = {
 export var BV_Bool = function (val) {
     return BT_Bool.canonicalize(val);
 };
-export var BT_UInt = {
+export var BT_UInt = function (max) { return ({
     name: 'UInt',
     canonicalize: function (uv) {
         try {
-            var val = ethers.BigNumber.from(uv);
-            return val;
+            return checkedBigNumberify('stdlib:CBR:BT_UInt', max, uv);
         }
         catch (e) {
             if (typeof (uv) === 'string') {
                 throw Error("String does not represent a BigNumber. " + JSON.stringify(uv));
             }
-            else {
-                throw Error("Expected BigNumber, number, or string, but got " + JSON.stringify(uv));
-            }
+            throw e;
         }
     }
-};
-export var BV_UInt = function (val) {
-    return BT_UInt.canonicalize(val);
+}); };
+export var BV_UInt = function (val, max) {
+    return BT_UInt(max).canonicalize(val);
 };
 export var BT_Bytes = function (len) { return ({
     name: "Bytes(" + len + ")",
