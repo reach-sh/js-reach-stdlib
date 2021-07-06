@@ -18,5 +18,13 @@ git diff package.json
 git checkout -- package.json
 
 HASH="$(docker run --entrypoint /bin/sh "$IMAGE" -c 'echo $REACH_GIT_HASH')"
-# git add .
+
+set +x
+echo
+echo 
+echo '!!!!!!!!!!!!!!!!'
+echo "You're not done yet! If everything is in order:"
+echo
+echo git add .
 echo git commit -m "'refresh -> reach-sh/reach-lang@$HASH'"
+echo '!!!!!!!!!!!!!!!!'
