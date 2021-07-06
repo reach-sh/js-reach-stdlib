@@ -15,3 +15,7 @@ bump-version-and-publish:
 .PHONY: refresh
 refresh:
 	sbin/refresh.sh
+
+.PHONY: ann
+ann:
+	@sbin/ann.sh
