@@ -1,8 +1,13 @@
 #! /bin/sh
+set -e
 
 IMAGE=reachsh/stdlib:latest
-export git_hash="$(docker run --entrypoint /bin/sh "$IMAGE" -c 'echo $REACH_GIT_HASH')"
-export js_version="$(npm info . version)"
-export version="$(echo $js_version | cut -f 1 -d '-')"
+git_hash="$(docker run --entrypoint /bin/sh "$IMAGE" -c 'echo $REACH_GIT_HASH')"
+js_version="$(npm info . version)"
+version="$(echo "$js_version" | cut -f 1 -d '-')"
+
+export git_hash
+export js_version
+export version
 
 mo sbin/ann.txt
