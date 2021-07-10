@@ -61,7 +61,7 @@ var shared_backend_1 = require("./shared_backend");
 var shim_1 = require("./shim");
 var shared_backend_2 = require("./shared_backend");
 __createBinding(exports, shared_backend_2, "hexlify");
-var DEBUG = shim_1.process.env.REACH_DEBUG ? true : false;
+var DEBUG = truthyEnv(shim_1.process.env.REACH_DEBUG);
 var setDEBUG = function (b) {
     if (b === false || b === true) {
         DEBUG = b;

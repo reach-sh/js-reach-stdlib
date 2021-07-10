@@ -69,7 +69,7 @@ import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, } from './shared_backend.mjs';
 import { process } from './shim.mjs';
 export { hexlify } from './shared_backend.mjs';
-var DEBUG = process.env.REACH_DEBUG ? true : false;
+var DEBUG = truthyEnv(process.env.REACH_DEBUG);
 export var setDEBUG = function(b) {
   if (b === false || b === true) {
     DEBUG = b;

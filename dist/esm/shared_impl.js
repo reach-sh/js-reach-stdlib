@@ -47,7 +47,7 @@ import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, } from './shared_backend';
 import { process } from './shim';
 export { hexlify } from './shared_backend';
-var DEBUG = process.env.REACH_DEBUG ? true : false;
+var DEBUG = truthyEnv(process.env.REACH_DEBUG);
 export var setDEBUG = function (b) {
     if (b === false || b === true) {
         DEBUG = b;
