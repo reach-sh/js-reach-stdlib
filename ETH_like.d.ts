@@ -74,11 +74,13 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
-    getProvider: any;
-    setProvider: any;
-    setProviderByEnv: any;
-    setProviderByName: any;
-    providerEnvByName: any;
+    getProvider: () => any;
+    setProvider: (p: any) => void;
+    setProviderByEnv: (env: any) => void;
+    setProviderByName: (providerName: any) => void;
+    providerEnvByName: (providerName: any) => any;
+    getSignStrategy: () => string;
+    setSignStrategy: (ss: string) => void;
     stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
     typeDefs: import("./interfaces").TypeDefs;
 };

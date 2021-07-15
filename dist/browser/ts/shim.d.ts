@@ -25,6 +25,7 @@ declare const processShim: Process;
 declare type Window = {
     ethereum?: ethers.providers.ExternalProvider;
     AlgoSigner?: any;
+    conflux?: any;
     prompt?: (s: string) => string | null;
     reach?: any;
 };

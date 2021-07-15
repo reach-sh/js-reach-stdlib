@@ -27,12 +27,16 @@ export declare function isWindowProvider(): boolean;
 declare const getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
 export { getProvider };
 export declare function setProvider(provider: Provider | Promise<Provider>): void;
+declare function getSignStrategy(): string;
+declare function setSignStrategy(ss: string): void;
 export { ethers };
 export declare const providerLib: {
     getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
     setProvider: typeof setProvider;
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;
+    setSignStrategy: typeof setSignStrategy;
+    getSignStrategy: typeof getSignStrategy;
     providerEnvByName: typeof providerEnvByName;
 };
 export declare const standardUnit = "ETH";

@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
-export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: any, assert: any, Array_set: any, eq: any, ge: any, gt: any, le: any, lt: any, bytesEq: any, digestEq: any;
+export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (d1: string, d2: string) => boolean;
 export * from './shared_user';
 declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
@@ -75,8 +75,7 @@ declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyALGO_
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
-declare type SignStrategy = 'mnemonic' | 'AlgoSigner' | 'MyAlgo';
-declare const getSignStrategy: () => SignStrategy, setSignStrategy: (val: SignStrategy) => void;
+declare const getSignStrategy: () => string, setSignStrategy: (val: string) => void;
 export { getSignStrategy, setSignStrategy };
 declare const setAlgoSigner: (val: Promise<AlgoSigner>) => void;
 export { setAlgoSigner };

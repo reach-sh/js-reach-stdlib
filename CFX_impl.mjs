@@ -56,6 +56,7 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
+var _a;
 import * as cfxers from './cfxers.mjs';
 import * as ethLikeCompiled from './CFX_compiled.mjs';
 import { debug, envDefault, memoizeThunk, replaceableThunk, } from './shared_impl.mjs';
@@ -80,18 +81,32 @@ export function isIsolatedNetwork() {
 export function isWindowProvider() {
   return true; // XXX
 }
-export function _getSignStrategy() {
-  // XXX expose setSignStrategy for CFX
-  // For now we only support 'secret' by default
-  if (window.prompt) {
-    return 'secret';
-  } else {
-    return 'faucet';
-  }
-}
+// /**
+//  * Strategies for deciding what getDefaultAccount returns.
+//  */
+// type SignStrategy
+//   = 'secret'   // window.prompt for secret
+//   | 'mnemonic' // window.prompt for mnemonic
+//   | 'faucet'   // use the faucet account
+//   | 'window'   // use window.conflux
+//   | 'ConfluxPortal' // same as 'window'
+export var getSignStrategy = (_a = replaceableThunk(function() {
+    // XXX make window.conflux the default at some point
+    // if (window.conflux) {
+    //   // XXX this should be more lenient about letting cp load later
+    //   return 'window';
+    // }
+    if (window.prompt) {
+      return 'secret';
+    } else {
+      // XXX this should only work on the devnet
+      return 'faucet';
+    }
+  }), _a[0]),
+  setSignStrategy = _a[1];
 export function _getDefaultNetworkAccount() {
   return __awaiter(this, void 0, void 0, function() {
-    var provider, promptFor, ss, w, _a, skMay, sk, mnemonic;
+    var provider, promptFor, ss, w, _a, skMay, sk, mnemonic, cp, addr;
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
@@ -104,9 +119,9 @@ export function _getDefaultNetworkAccount() {
             }
             return window.prompt("Please paste your account's " + s + ", or click cancel to generate a new one.");
           };
-          ss = _getSignStrategy();
+          ss = getSignStrategy();
           w = null;
-          _a = ss;
+          _a = ss.toLowerCase();
           switch (_a) {
             case 'secret':
               return [3 /*break*/ , 2];
@@ -114,10 +129,12 @@ export function _getDefaultNetworkAccount() {
               return [3 /*break*/ , 3];
             case 'window':
               return [3 /*break*/ , 4];
+            case 'confluxportal':
+              return [3 /*break*/ , 4];
             case 'faucet':
-              return [3 /*break*/ , 5];
+              return [3 /*break*/ , 7];
           }
-          return [3 /*break*/ , 7];
+          return [3 /*break*/ , 9];
         case 2:
           skMay = promptFor('secret key');
           if (skMay) {
@@ -126,25 +143,30 @@ export function _getDefaultNetworkAccount() {
           } else {
             w = cfxers.Wallet.createRandom();
           }
-          return [3 /*break*/ , 8];
+          return [3 /*break*/ , 10];
         case 3:
           mnemonic = promptFor('mnemonic');
           w = mnemonic ?
             cfxers.Wallet.fromMnemonic(mnemonic) :
             cfxers.Wallet.createRandom();
-          return [3 /*break*/ , 8];
+          return [3 /*break*/ , 10];
         case 4:
-          // XXX ConfluxPortal support
-          w = notYetSupported("sign strategy 'window'");
-          return [3 /*break*/ , 8];
+          return [4 /*yield*/ , getConfluxPortal()];
         case 5:
-          return [4 /*yield*/ , _getDefaultFaucetNetworkAccount()];
+          cp = _b.sent();
+          return [4 /*yield*/ , cp.enable()];
         case 6:
-          w = _b.sent();
-          return [3 /*break*/ , 8];
+          addr = (_b.sent())[0];
+          w = new cfxers.BrowserWallet(cp, addr);
+          return [3 /*break*/ , 10];
         case 7:
-          throw Error("Sign strategy not recognized: '" + ss + "'");
+          return [4 /*yield*/ , _getDefaultFaucetNetworkAccount()];
         case 8:
+          w = _b.sent();
+          return [3 /*break*/ , 10];
+        case 9:
+          throw Error("Sign strategy not recognized: '" + ss + "'");
+        case 10:
           if (!w)
             throw Error("impossible: no account found for sign strategy '" + ss + "'");
           if (!w.provider)
@@ -249,7 +271,7 @@ function waitCaughtUp(provider) {
     });
   });
 }
-var _a = replaceableThunk(function() {
+var _b = replaceableThunk(function() {
     return __awaiter(void 0, void 0, void 0, function() {
       var conflux, provider;
       return __generator(this, function(_a) {
@@ -273,8 +295,8 @@ var _a = replaceableThunk(function() {
       });
     });
   }),
-  getProvider = _a[0],
-  setProvider = _a[1];
+  getProvider = _b[0],
+  setProvider = _b[1];
 
 function setProviderByEnv(env) {
   void(env);
@@ -290,6 +312,33 @@ function providerEnvByName(providerName) {
   void(providerName);
   return notYetSupported("providerEnvByName");
 }
+
+function getConfluxPortal() {
+  return __awaiter(this, void 0, void 0, function() {
+    var maxTries, tries;
+    return __generator(this, function(_a) {
+      switch (_a.label) {
+        case 0:
+          maxTries = 10;
+          tries = 1;
+          _a.label = 1;
+        case 1:
+          if (!(tries <= maxTries)) return [3 /*break*/ , 4];
+          if (window.conflux)
+            return [2 /*return*/ , window.conflux];
+          return [4 /*yield*/ , Timeout.set(100)];
+        case 2:
+          _a.sent();
+          _a.label = 3;
+        case 3:
+          tries++;
+          return [3 /*break*/ , 1];
+        case 4:
+          throw Error("Couldn't find window.conflux");
+      }
+    });
+  });
+}
 export { ethLikeCompiled };
 export { cfxers as ethers };
 export var providerLib = {
@@ -297,7 +346,9 @@ export var providerLib = {
   setProvider: setProvider,
   setProviderByName: setProviderByName,
   setProviderByEnv: setProviderByEnv,
-  providerEnvByName: providerEnvByName
+  providerEnvByName: providerEnvByName,
+  getSignStrategy: getSignStrategy,
+  setSignStrategy: setSignStrategy
 };
 export var _verifyContractCode = false; // XXX
 export var _warnTxNoBlockNumber = false; // XXX ?

@@ -359,12 +359,21 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
+function getSignStrategy() {
+    throw Error("getSignStrategy not yet implemented on ETH");
+}
+function setSignStrategy(ss) {
+    void (ss);
+    throw Error("setSignStrategy not yet implemented on ETH");
+}
 export { ethers };
 export var providerLib = {
     getProvider: getProvider,
     setProvider: setProvider,
     setProviderByName: setProviderByName,
     setProviderByEnv: setProviderByEnv,
+    setSignStrategy: setSignStrategy,
+    getSignStrategy: getSignStrategy,
     providerEnvByName: providerEnvByName
 };
 export var standardUnit = 'ETH';

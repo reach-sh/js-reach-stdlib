@@ -1,11 +1,11 @@
 import * as cfxers from './cfxers';
 import * as ethLikeCompiled from './CFX_compiled';
-declare type NetworkAccount = cfxers.Wallet;
+declare type NetworkAccount = cfxers.IWallet;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
-export declare function _getSignStrategy(): string;
+export declare const getSignStrategy: () => string, setSignStrategy: (val: string) => void;
 export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
-export declare const _getDefaultFaucetNetworkAccount: () => Promise<cfxers.Wallet>;
+export declare const _getDefaultFaucetNetworkAccount: () => Promise<cfxers.IWallet>;
 declare function setProviderByEnv(env: any): void;
 declare function setProviderByName(providerName: any): void;
 declare function providerEnvByName(providerName: any): void;
@@ -17,6 +17,8 @@ export declare const providerLib: {
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;
     providerEnvByName: typeof providerEnvByName;
+    getSignStrategy: () => string;
+    setSignStrategy: (val: string) => void;
 };
 export declare const _verifyContractCode = false;
 export declare const _warnTxNoBlockNumber = false;

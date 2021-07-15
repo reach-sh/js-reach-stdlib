@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 declare type BigNumber = ethers.BigNumber;
 export declare type num = BigNumber | number;
+export declare type MaybeRep<A> = ['Some', A] | ['None', null];
 export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;
@@ -20,7 +21,9 @@ export declare const gt: (a: num, b: num) => boolean;
 export declare const le: (a: num, b: num) => boolean;
 export declare const lt: (a: num, b: num) => boolean;
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
-export declare const mapRef: (m: any, f: any) => any;
+export declare const mapRef: <A>(m: {
+    [key: string]: A;
+}, f: string) => MaybeRep<A>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare const simMapDupe: (sim_r: any, mapi: number, mapo: any) => void;
 export declare const simMapRef: (sim_r: any, mapi: number, f: any) => any;

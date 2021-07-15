@@ -131,6 +131,7 @@ function wait1port(server, port) {
     });
 }
 ;
+// type SignStrategy = 'mnemonic' | 'AlgoSigner' | 'MyAlgo';
 var _f = shared_impl_1.replaceableThunk(function () { return 'mnemonic'; }), getSignStrategy = _f[0], setSignStrategy = _f[1];
 exports.getSignStrategy = getSignStrategy;
 exports.setSignStrategy = setSignStrategy;
