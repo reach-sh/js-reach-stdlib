@@ -51,7 +51,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.hexlify = void 0;
+exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -61,6 +61,8 @@ var shared_backend_1 = require("./shared_backend");
 var shim_1 = require("./shim");
 var shared_backend_2 = require("./shared_backend");
 __createBinding(exports, shared_backend_2, "hexlify");
+var bigNumberToBigInt = function (x) { return BigInt(x.toHexString()); };
+exports.bigNumberToBigInt = bigNumberToBigInt;
 var DEBUG = truthyEnv(shim_1.process.env.REACH_DEBUG);
 var setDEBUG = function (b) {
     if (b === false || b === true) {
@@ -240,13 +242,14 @@ var envDefault = function (v, d) {
     return (v === undefined || v === null) ? d : v;
 };
 exports.envDefault = envDefault;
-var makeDigest = function (prep) { return function (t, v) {
+var makeDigest = function (mode, prep) { return function (t, v) {
     void (shared_backend_1.hexlify);
     // const args = [t, v];
     // debug('digest(', args, ') =>');
     var kekCat = prep(t, v);
     // debug('digest(', args, ') => internal(', hexlify(kekCat), ')');
-    var r = ethers_1.ethers.utils.keccak256(kekCat);
+    var f = mode === 'keccak256' ? ethers_1.ethers.utils.keccak256 : ethers_1.ethers.utils.sha256;
+    var r = f(kekCat);
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
 }; };

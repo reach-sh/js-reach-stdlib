@@ -21,7 +21,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
     var T_Address = ethLikeCompiledArgs.T_Address;
     var UInt_max = ethers.BigNumber.from(2).pow(256).sub(1);
-    var digest = makeDigest(function (t, v) {
+    var digest = makeDigest('keccak256', function (t, v) {
         // Note: abiCoder.encode doesn't correctly handle an empty tuple type
         if (t.paramType === 'tuple()') {
             if (Array.isArray(v) && v.length === 0) {

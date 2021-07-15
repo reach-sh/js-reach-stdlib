@@ -44,7 +44,7 @@ var CBR = __importStar(require("./CBR"));
 var BigNumber = ethers_1.ethers.BigNumber;
 var Buffer = buffer_1["default"].Buffer;
 exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
-exports.digest = shared_impl_1.makeDigest(function (t, v) { return t.toNet(v); });
+exports.digest = shared_impl_1.makeDigest('sha256', function (t, v) { return t.toNet(v); });
 exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); } });
 exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; } });
 exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize: 8, toNet: function (bv) {

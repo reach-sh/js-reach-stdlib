@@ -1,7 +1,10 @@
 import ethers from 'ethers';
 import { checkedBigNumberify } from './shared_backend.mjs';
 var BigNumber = ethers.BigNumber;
-export var bigNumberify = function(x) { return BigNumber.from(x); };
+export var bigNumberify = function(x) {
+  var xp = typeof x === 'number' ? BigInt(x) : x;
+  return BigNumber.from(xp);
+};
 export var bigNumberToNumber = function(x) {
   return bigNumberify(x).toNumber();
 };

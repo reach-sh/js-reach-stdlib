@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.digestEq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.digestEq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -115,4 +115,21 @@ var simMapSet = function (sim_r, mapi, f, nv) {
     sim_r.mapsNext[mapi][f] = nv;
 };
 exports.simMapSet = simMapSet;
+var simTokenNew = function (sim_r, n, s, u, m, p) {
+    sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p });
+    // XXX This 0 is a hack... on Algorand we can't know at simulation time what
+    // this is going to be... so this will cause a runtime exception from
+    // something if it gets looked at (i.e. if you try to create an immediately
+    // use it)
+    return 0;
+};
+exports.simTokenNew = simTokenNew;
+var simTokenBurn = function (sim_r, tok, amt) {
+    sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });
+};
+exports.simTokenBurn = simTokenBurn;
+var simTokenDestroy = function (sim_r, tok) {
+    sim_r.txns.push({ kind: 'tokenDestroy', tok: tok });
+};
+exports.simTokenDestroy = simTokenDestroy;
 //# sourceMappingURL=shared_backend.js.map

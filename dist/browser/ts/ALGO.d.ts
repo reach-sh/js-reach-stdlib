@@ -39,37 +39,34 @@ declare type TxnInfo = {
     'application-index'?: number;
 };
 declare type TxId = string;
-declare type NetworkAccount = Wallet;
-declare type StepArgInfo = {
-    count: number;
-    size: number;
+declare type CompileResultBytes = {
+    src: String;
+    result: Uint8Array;
+    hash: Address;
 };
+declare type NetworkAccount = Wallet;
 declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
             version: number;
-            appApproval0: string;
             appApproval: string;
             appClear: string;
-            ctc: string;
+            escrow: string;
             viewSize: number;
             viewKeys: number;
             mapDataSize: number;
             mapDataKeys: number;
-            mapRecordSize: number;
-            mapArgSize: number;
-            steps: Array<string | null>;
-            stepargs: Array<StepArgInfo | null>;
             unsupported: Array<string>;
         };
     };
 };
-declare type ContractInfo = {
-    getInfo?: () => Promise<ContractInfo>;
-    creationRound: number;
+declare type CompiledBackend = {
     ApplicationID: number;
-    Deployer: Address;
+    appApproval: CompileResultBytes;
+    appClear: CompileResultBytes;
+    escrow: CompileResultBytes;
 };
+declare type ContractInfo = number;
 declare type Digest = BigNumber;
 declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyALGO_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
@@ -115,9 +112,10 @@ declare type WhichNetExternal = 'MainNet' | 'TestNet' | 'BetaNet';
 export declare type ProviderName = WhichNetExternal | 'LocalHost' | 'randlabs/MainNet' | 'randlabs/TestNet' | 'randlabs/BetaNet';
 export declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
 export declare function setProviderByName(providerName: ProviderName): void;
-declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
+declare const getFaucet: () => Promise<Account>;
+declare const setFaucet: (x: Promise<Account>) => void;
 export { getFaucet, setFaucet };
-export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined) => Promise<TxnInfo>;
+export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined, tag?: number | undefined) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
@@ -158,7 +156,14 @@ export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSi
 export declare const getNetworkTime: () => Promise<ethers.BigNumber>;
 export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<true>;
+declare type VerifyResult = {
+    compiled: CompiledBackend;
+    ApplicationID: number;
+    allocRound: number;
+    ctorRound: number;
+    Deployer: Address;
+};
+export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<VerifyResult>;
 /**
  * Formats an account's address in the way users expect to see it.
  * @param acc Account, NetworkAccount, base32-encoded address, or hex-encoded address

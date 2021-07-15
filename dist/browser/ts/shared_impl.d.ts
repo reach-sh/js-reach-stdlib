@@ -2,8 +2,9 @@ import { ethers } from 'ethers';
 import { CBR_Address } from './CBR';
 import { num, AnyBackendTy } from './shared_backend';
 export { hexlify } from './shared_backend';
+export declare const bigNumberToBigInt: (x: BigNumber) => bigint;
 declare type BigNumber = ethers.BigNumber;
-export declare type CurrencyAmount = string | number | BigNumber;
+export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
@@ -57,7 +58,7 @@ export declare type IRecvNoTimeout<RawAddress> = {
     data: Array<unknown>;
     from: RawAddress;
     time: BigNumber;
-    getOutput: (o_lab: string, o_ctc: any) => Promise<any>;
+    getOutput: (o_mode: string, o_lab: string, o_ctc: any) => Promise<any>;
 };
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
@@ -104,17 +105,31 @@ export declare type ISimRes<Digest, Token, ConnectorTy> = {
     isHalt: boolean;
 };
 export declare type ISimTxn<Token> = {
-    kind: "to" | "init";
+    kind: 'to' | 'init';
     amt: BigNumber;
     tok: Token | undefined;
 } | {
-    kind: "from";
+    kind: 'from';
     to: string;
     amt: BigNumber;
     tok: Token | undefined;
 } | {
-    kind: "halt";
+    kind: 'halt';
     tok: Token | undefined;
+} | {
+    kind: 'tokenNew';
+    n: any;
+    s: any;
+    u: any;
+    m: any;
+    p: BigNumber;
+} | {
+    kind: 'tokenBurn';
+    tok: Token;
+    amt: BigNumber;
+} | {
+    kind: 'tokenDestroy';
+    tok: Token;
 };
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk
@@ -142,7 +157,8 @@ export declare function rEnv(env: {
 /** @description Check that a stringy env value doesn't look falsy. */
 export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;
-export declare const makeDigest: (prep: any) => (t: any, v: any) => string;
+declare type DigestMode = 'keccak256' | 'sha256';
+export declare const makeDigest: (mode: DigestMode, prep: any) => (t: any, v: any) => string;
 export declare const hexToString: typeof ethers.utils.toUtf8String;
 export declare const hexToBigNumber: (h: string) => BigNumber;
 export declare const makeRandom: (width: number) => {

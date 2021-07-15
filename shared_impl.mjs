@@ -69,6 +69,7 @@ import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, } from './shared_backend.mjs';
 import { process } from './shim.mjs';
 export { hexlify } from './shared_backend.mjs';
+export var bigNumberToBigInt = function(x) { return BigInt(x.toHexString()); };
 var DEBUG = truthyEnv(process.env.REACH_DEBUG);
 export var setDEBUG = function(b) {
   if (b === false || b === true) {
@@ -245,14 +246,15 @@ export function truthyEnv(v) {
 export var envDefault = function(v, d) {
   return (v === undefined || v === null) ? d : v;
 };
-export var makeDigest = function(prep) {
+export var makeDigest = function(mode, prep) {
   return function(t, v) {
     void(hexlify);
     // const args = [t, v];
     // debug('digest(', args, ') =>');
     var kekCat = prep(t, v);
     // debug('digest(', args, ') => internal(', hexlify(kekCat), ')');
-    var r = ethers.utils.keccak256(kekCat);
+    var f = mode === 'keccak256' ? ethers.utils.keccak256 : ethers.utils.sha256;
+    var r = f(kekCat);
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
   };

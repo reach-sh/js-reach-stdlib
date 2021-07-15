@@ -4,7 +4,10 @@ exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = expo
 var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
 var BigNumber = ethers_1.ethers.BigNumber;
-var bigNumberify = function (x) { return BigNumber.from(x); };
+var bigNumberify = function (x) {
+    var xp = typeof x === 'number' ? BigInt(x) : x;
+    return BigNumber.from(xp);
+};
 exports.bigNumberify = bigNumberify;
 var bigNumberToNumber = function (x) {
     return exports.bigNumberify(x).toNumber();

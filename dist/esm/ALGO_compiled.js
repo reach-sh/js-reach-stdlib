@@ -19,7 +19,7 @@ import * as CBR from './CBR';
 var BigNumber = ethers.BigNumber;
 var Buffer = buffer.Buffer;
 export var UInt_max = BigNumber.from(2).pow(64).sub(1);
-export var digest = makeDigest(function (t, v) { return t.toNet(v); });
+export var digest = makeDigest('sha256', function (t, v) { return t.toNet(v); });
 export var T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); } });
 export var T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; } });
 export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { netSize: 8, toNet: function (bv) {

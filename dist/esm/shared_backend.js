@@ -95,4 +95,18 @@ export var simMapSet = function (sim_r, mapi, f, nv) {
     simMapLog(sim_r, f);
     sim_r.mapsNext[mapi][f] = nv;
 };
+export var simTokenNew = function (sim_r, n, s, u, m, p) {
+    sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p });
+    // XXX This 0 is a hack... on Algorand we can't know at simulation time what
+    // this is going to be... so this will cause a runtime exception from
+    // something if it gets looked at (i.e. if you try to create an immediately
+    // use it)
+    return 0;
+};
+export var simTokenBurn = function (sim_r, tok, amt) {
+    sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });
+};
+export var simTokenDestroy = function (sim_r, tok) {
+    sim_r.txns.push({ kind: 'tokenDestroy', tok: tok });
+};
 //# sourceMappingURL=shared_backend.js.map

@@ -26,6 +26,9 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     simMapRef: (sim_r: unknown, mapi: number, f: string) => shared_backend.MaybeRep<unknown>;
     simMapSet: (sim_r: unknown, mapi: number, f: string, v: unknown) => unknown;
     simMapDupe: (sim_r: unknown, mapi: number, mapo: unknown) => void;
+    simTokenNew: any;
+    simTokenBurn: any;
+    simTokenDestroy: any;
     bytesConcat: (b1: string, b2: string) => string;
     assert: (b: boolean, message: string) => void;
     Array_set: <A_2>(arr: A_2[], idx: number, val: A_2) => A_2[];

@@ -41,6 +41,9 @@ export interface Stdlib_Backend_Shared extends Stdlib_Backend_Shared_User {
     simMapRef: (sim_r: unknown, mapi: number, f: string) => MaybeRep<unknown>;
     simMapSet: (sim_r: unknown, mapi: number, f: string, v: unknown) => unknown;
     simMapDupe: (sim_r: unknown, mapi: number, mapo: unknown) => void;
+    simTokenNew: any;
+    simTokenBurn: any;
+    simTokenDestroy: any;
     bytesConcat: (b1: string, b2: string) => string;
 }
 export interface Arith {
@@ -124,7 +127,7 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     getNetworkTime: () => Promise<BigNumber>;
     wait: (timeDelta: BigNumber) => Promise<BigNumber>;
     waitUntilTime: (time: BigNumber) => Promise<BigNumber>;
-    verifyContract: (ctcInfo: CtcInfo, backend: Backend) => Promise<true>;
+    verifyContract: (ctcInfo: CtcInfo, backend: Backend) => Promise<any>;
     /** @description the display name of the standard unit of currency for the network */
     standardUnit: string;
     /** @description the display name of the atomic (smallest) unit of currency for the network */

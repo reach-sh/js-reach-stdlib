@@ -1058,7 +1058,8 @@ export function makeEthLike(ethLikeArgs) {
                                     });
                                   });
                                 };
-                                getOutput = function(o_lab, o_ctc) {
+                                getOutput = function(o_mode, o_lab, o_ctc) {
+                                  void(o_mode);
                                   return _getLog_1("oe_" + o_lab, o_ctc);
                                 };
                                 debug(shad + ": " + label + " recv " + ok_evt + " " + timeout_delay + " --- OKAY --- " + JSON.stringify(ok_vals));
