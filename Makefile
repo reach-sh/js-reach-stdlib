@@ -12,6 +12,15 @@ bump-version-and-publish:
 	git push
 	git push --tags
 
+.PHONY: finalize-patch
+finalize-patch:
+	sbin/check-recent-commits.sh
+	npm version patch
+	npm publish --access=public --tag=stable
+	npm dist-tag add $(PACKAGE)"@$$(npm view $(PACKAGE)@stable version)" latest
+	git push
+	git push --tags
+
 .PHONY: refresh
 refresh:
 	sbin/refresh.sh
