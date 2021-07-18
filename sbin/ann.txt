@@ -11,7 +11,7 @@ To check which versions you have:
 :squid: New node.js package version:
 `{{js_version}}`
 To update a node.js project to the newest JavaScript package:
-`npm update @reach-sh/stdlib`
+`npm install @reach-sh/stdlib@latest`
 To check which version you have:
 `npm list @reach-sh/stdlib`
 
