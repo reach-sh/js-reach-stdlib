@@ -298,52 +298,71 @@ var ContractFactory = /** @class */ (function() {
       args[_i] = arguments[_i];
     }
     return __awaiter(this, void 0, void 0, function() {
-      var _a, abi, bcode, iface, wallet, bytecode, conflux, txnOverrides, expectedLen, contract, from, value, txn, argsConformed, ccc, data, txnDat, resultP, hash, receiptP, txnRes;
-      var _b;
-      return __generator(this, function(_c) {
-        switch (_c.label) {
+      var _a, abi, wallet, conflux, deployTxn, resultP, hash, receiptP, txnRes;
+      return __generator(this, function(_b) {
+        switch (_b.label) {
           case 0:
-            _a = this, abi = _a.abi, bcode = _a.bytecode, iface = _a.interface, wallet = _a.wallet;
-            bytecode = bcode.slice(0, 2) === '0x' || bcode === '' ? bcode : '0x' + bcode;
+            _a = this, abi = _a.abi, wallet = _a.wallet;
+            debug("deploy", { wallet: wallet });
             wallet._requireConnected();
             if (!wallet.provider)
               throw Error("Impossible: provider is undefined");
             conflux = wallet.provider.conflux;
-            txnOverrides = {};
-            if (args.length === iface.deploy.inputs.length + 1) {
-              txnOverrides = unbn(args.pop());
-            }
-            expectedLen = iface.deploy.inputs.length;
-            if (args.length !== expectedLen) {
-              throw Error("cfxers: contract deployment expected " + expectedLen + " args but got " + args.length);
-            }
-            contract = conflux.Contract({ abi: abi, bytecode: bytecode });
-            from = wallet.getAddress();
-            value = BigNumber.from(0).toString();
-            txn = __assign({ from: from, value: value }, txnOverrides);
-            argsConformed = conform(args, iface.deploy.inputs);
-            debug("cfxers:Contract.deploy", { argsConformed: argsConformed, txn: txn });
-            ccc = (_b = contract.constructor).call.apply(_b, argsConformed);
-            data = ccc.data;
-            txnDat = __assign(__assign({}, txn), { data: data });
-            resultP = wallet.sendTransaction(__assign({}, txnDat));
+            deployTxn = this.getDeployTransaction.apply(this, args);
+            resultP = wallet.sendTransaction(deployTxn);
             return [4 /*yield*/ , resultP];
           case 1:
-            hash = (_c.sent()).transactionHash;
+            hash = (_b.sent()).transactionHash;
             receiptP = waitReceipt(wallet.provider, hash);
             return [4 /*yield*/ , conflux.getTransactionByHash(hash)];
           case 2:
-            txnRes = _c.sent();
+            txnRes = _b.sent();
             debug("deploy result", { hash: hash, txnRes: txnRes });
             return [2 /*return*/ , new Contract(undefined, abi, wallet, receiptP, hash)];
         }
       });
     });
-  };
+  };;
+  // XXX Unlike ethers, this requires having a wallet
   ContractFactory.prototype.getDeployTransaction = function() {
-    // XXX
-    debug("cfxers:getDeployTransaction", "error");
-    throw Error("XXX getDeployTransaction on CFX");
+    var _a;
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+      args[_i] = arguments[_i];
+    }
+    // Note: can't bind keyword "interface"
+    var _b = this,
+      abi = _b.abi,
+      bcode = _b.bytecode,
+      iface = _b.interface,
+      wallet = _b.wallet;
+    debug("getDeployTransaction", { wallet: wallet });
+    var bytecode = bcode.slice(0, 2) === '0x' || bcode === '' ? bcode : '0x' + bcode;
+    if (!wallet.provider)
+      throw Error("Impossible: provider is undefined");
+    var conflux = wallet.provider.conflux;
+    // XXX reduce duplication with _makeHandler
+    var txnOverrides = {};
+    if (args.length === iface.deploy.inputs.length + 1) {
+      txnOverrides = unbn(args.pop());
+    }
+    var expectedLen = iface.deploy.inputs.length;
+    if (args.length !== expectedLen) {
+      throw Error("cfxers: contract deployment expected " + expectedLen + " args but got " + args.length);
+    }
+    var contract = conflux.Contract({ abi: abi, bytecode: bytecode });
+    var from = wallet.getAddress();
+    var value = BigNumber.from(0).toString();
+    var txn = __assign({ from: from, value: value }, txnOverrides);
+    var argsConformed = conform(args, iface.deploy.inputs);
+    debug("cfxers:Contract.deploy", { argsConformed: argsConformed, txn: txn });
+    // Note: this usage of `.call` here is because javascript is insane.
+    // XXX 2021-06-07 Dan: This works for the cjs compilation target, but does it work for the other targets?
+    // @ts-ignore
+    var ccc = (_a = contract.constructor).call.apply(_a, argsConformed);
+    // debug(`cfxers:Contract.deploy`, `cfx ctc constructed`, ccc);
+    var data = ccc.data;
+    return __assign(__assign({}, txn), { data: data });
   };
   return ContractFactory;
 }());

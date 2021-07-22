@@ -20,7 +20,6 @@ export declare const providerLib: {
     getSignStrategy: () => string;
     setSignStrategy: (val: string) => void;
 };
-export declare const _verifyContractCode = false;
 export declare const _warnTxNoBlockNumber = false;
 export declare const standardUnit = "CFX";
 export declare const atomicUnit = "Drip";

@@ -12,6 +12,7 @@ declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
         ETH: {
+            version: number;
             ABI: string;
             Bytecode: string;
             deployMode: DeployMode;
@@ -30,20 +31,10 @@ declare type NetworkAccount = {
     sendTransaction?: (...xs: any) => any;
     getBalance?: (...xs: any) => any;
 } | EthersLikeWallet | EthersLikeSigner;
-declare type Hash = string;
-declare type ContractInfo = {
-    address: Address;
-    creation_block: number;
-    transactionHash: Hash;
-    init?: ContractInitInfo;
-};
+declare type ContractInfo = Address;
 declare type Digest = string;
 declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyETH_Ty>;
 export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> | any;
-declare type ContractInitInfo = {
-    args: Array<any>;
-    value: BigNumber;
-};
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
@@ -66,7 +57,9 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     getNetworkTime: () => Promise<BigNumber>;
     wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
     waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-    verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<true>;
+    verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<{
+        creation_block: number;
+    }>;
     standardUnit: string;
     atomicUnit: string;
     parseCurrency: (amt: CurrencyAmount) => BigNumber;

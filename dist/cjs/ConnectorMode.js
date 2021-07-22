@@ -4,12 +4,12 @@ exports.getConnector = exports.getConnectorMode = exports.canonicalizeConnectorM
 var shim_1 = require("./shim");
 var shared_impl_1 = require("./shared_impl");
 // Order is significant, earlier = default for shared prefix
-// e.g. ETH defaults to ETH-test-dockerized-geth
+// e.g. ETH defaults to ETH-devnet
 var knownConnectorModes = [
-    'ETH-test-dockerized-geth',
+    'ETH-devnet',
     'ETH-live',
     'ETH-browser',
-    'ALGO-test-dockerized-algod',
+    'ALGO-devnet',
     'ALGO-live',
     'ALGO-browser',
     'CFX-devnet',

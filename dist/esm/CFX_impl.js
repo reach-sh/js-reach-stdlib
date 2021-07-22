@@ -149,16 +149,18 @@ export function _getDefaultNetworkAccount() {
 var mining_key = '0xc72b8b13c6256b54ce428f6f67725d47194bc4ef97552867d037acd4fe6e86f3';
 var defaultFaucetWallet = new cfxers.Wallet(mining_key);
 export var _getDefaultFaucetNetworkAccount = memoizeThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var provider;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
                 if (!!defaultFaucetWallet.provider) return [3 /*break*/, 2];
-                _b = (_a = defaultFaucetWallet).connect;
                 return [4 /*yield*/, getProvider()];
             case 1:
-                _b.apply(_a, [_c.sent()]);
-                _c.label = 2;
+                provider = _a.sent();
+                // Async things can cause this state to change...
+                if (!defaultFaucetWallet.provider)
+                    defaultFaucetWallet.connect(provider);
+                _a.label = 2;
             case 2: return [2 /*return*/, defaultFaucetWallet];
         }
     });
@@ -304,7 +306,6 @@ export var providerLib = {
     getSignStrategy: getSignStrategy,
     setSignStrategy: setSignStrategy
 };
-export var _verifyContractCode = false; // XXX
 export var _warnTxNoBlockNumber = false; // XXX ?
 export var standardUnit = 'CFX';
 export var atomicUnit = 'Drip';

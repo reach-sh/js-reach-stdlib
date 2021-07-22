@@ -301,9 +301,20 @@ export var mkAddressEq = function(T_Address) {
     return bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
   };
 };
-export var ensureConnectorAvailable = function(connectors, connector) {
-  if (!(connector in connectors)) {
-    throw (new Error("The application was not compiled for the " + connector + " connector, only: " + Object.keys(connectors)));
+export var ensureConnectorAvailable = function(bin, conn, jsVer, connVer) {
+  checkVersion(bin._backendVersion, jsVer, "JavaScript backend");
+  var connectors = bin._Connectors;
+  var conn_bin = connectors[conn];
+  if (!conn_bin) {
+    throw (new Error("The application was not compiled for the " + conn + " connector, only: " + Object.keys(connectors)));
+  }
+  checkVersion(conn_bin.version, connVer, conn + " backend");
+};
+export var checkVersion = function(actual, expected, label) {
+  if (actual !== expected) {
+    var older = (actual === undefined) || (actual < expected);
+    var more = older ? "update your compiler and recompile!" : "updated your standard library and rerun!";
+    throw Error("This Reach compiled " + label + " does not match the expectations of this Reach standard library: expected " + expected + ", but got " + actual + "; " + more);
   }
 };
 //# sourceMappingURL=shared_impl.js.map

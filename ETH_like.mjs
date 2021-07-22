@@ -79,6 +79,8 @@ import { assert, eq, ge, lt, } from './shared_backend.mjs';
 import { memoizeThunk, replaceableThunk, debug, getViewsHelper, deferContract, makeRandom, argsSplit, ensureConnectorAvailable, } from './shared_impl.mjs';
 import { bigNumberify, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
+var reachBackendVersion = 1;
+var reachEthBackendVersion = 1;
 
 function isNone(m) {
   return m.length === 0;
@@ -103,10 +105,8 @@ export function makeEthLike(ethLikeArgs) {
     isWindowProvider = ethLikeArgs.isWindowProvider,
     _getDefaultNetworkAccount = ethLikeArgs._getDefaultNetworkAccount,
     _getDefaultFaucetNetworkAccount = ethLikeArgs._getDefaultFaucetNetworkAccount,
-    _b = ethLikeArgs._verifyContractCode,
-    _verifyContractCode = _b === void 0 ? true : _b,
-    _c = ethLikeArgs._warnTxNoBlockNumber,
-    _warnTxNoBlockNumber = _c === void 0 ? true : _c,
+    _b = ethLikeArgs._warnTxNoBlockNumber,
+    _warnTxNoBlockNumber = _b === void 0 ? true : _b,
     standardUnit = ethLikeArgs.standardUnit,
     atomicUnit = ethLikeArgs.atomicUnit;
   var getProvider = providerLib.getProvider;
@@ -308,9 +308,9 @@ export function makeEthLike(ethLikeArgs) {
   // ****************************************************************************
   // Common Interface Exports
   // ****************************************************************************
-  var _d = makeRandom(32),
-    randomUInt = _d.randomUInt,
-    hasRandom = _d.hasRandom;
+  var _c = makeRandom(32),
+    randomUInt = _c.randomUInt,
+    hasRandom = _c.hasRandom;
   var balanceOf = function(acc, token) {
     if (token === void 0) { token = false; }
     return __awaiter(_this, void 0, void 0, function() {
@@ -489,7 +489,7 @@ export function makeEthLike(ethLikeArgs) {
             };
             getGasLimit = function() { return gasLimit; };
             deploy = function(bin) {
-              ensureConnectorAvailable(bin._Connectors, 'ETH');
+              ensureConnectorAvailable(bin, 'ETH', reachBackendVersion, reachEthBackendVersion);
               if (!ethers.Signer.isSigner(networkAccount)) {
                 throw Error("Signer required to deploy, " + networkAccount);
               }
@@ -528,12 +528,9 @@ export function makeEthLike(ethLikeArgs) {
                         case 2:
                           deploy_r = _a.sent();
                           debug(shad, ": got receipt;", deploy_r.blockNumber);
-                          info = {
-                            address: contract.address,
-                            creation_block: deploy_r.blockNumber,
-                            transactionHash: deploy_r.transactionHash,
-                            init: init
-                          };
+                          info = contract.address;
+                          // XXX creation_block: deploy_r.blockNumber,
+                          // XXX transactionHash: deploy_r.transactionHash,
                           resolveInfo(info);
                           return [2 /*return*/ ];
                       }
@@ -547,19 +544,14 @@ export function makeEthLike(ethLikeArgs) {
                 var implP = new Promise(function(resolve) { setImpl = resolve; });
                 var implNow = {
                   stdlib: stdlib,
-                  sendrecv: function(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) {
+                  sendrecv: function(srargs) {
                     return __awaiter(_this, void 0, void 0, function() {
-                      var value, toks;
+                      var funcNum, evt_cnt, out_tys, args, pay, onlyIf, soloSend, timeout_delay, value, toks;
                       return __generator(this, function(_a) {
                         switch (_a.label) {
                           case 0:
+                            funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, out_tys = srargs.out_tys, args = srargs.args, pay = srargs.pay, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeout_delay = srargs.timeout_delay;
                             debug(shad, ":", label, 'sendrecv m', funcNum, "(deferred deploy)");
-                            void(evt_cnt);
-                            void(sim_p);
-                            // TODO: munge/unmunge roundtrip?
-                            void(hasLastTime);
-                            void(tys);
-                            void(out_tys);
                             value = pay[0], toks = pay[1];
                             // The following must be true for the first sendrecv.
                             try {
@@ -578,7 +570,7 @@ export function makeEthLike(ethLikeArgs) {
                             return [4 /*yield*/ , infoP];
                           case 1:
                             _a.sent(); // Wait for the deploy to actually happen.
-                            return [4 /*yield*/ , impl.recv(funcNum, evt_cnt, out_tys, false, timeout_delay)];
+                            return [4 /*yield*/ , impl.recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, waitIfNotPresent: false, timeout_delay: timeout_delay })];
                           case 2: // Wait for the deploy to actually happen.
                             // simulated recv
                             return [2 /*return*/ , _a.sent()];
@@ -590,28 +582,18 @@ export function makeEthLike(ethLikeArgs) {
                 var impl = deferContract(true, implP, implNow);
                 return impl;
               };
-              switch (bin._Connectors.ETH.deployMode) {
+              var deployMode = bin._Connectors.ETH.deployMode;
+              switch (deployMode) {
                 case 'DM_firstMsg':
                   return attachDeferDeploy();
                 case 'DM_constructor':
                   return performDeploy();
                 default:
-                  throw Error("Unrecognized deployMode: " + bin._Connectors.ETH.deployMode);
+                  throw Error("Unrecognized deployMode: " + deployMode);
               };
             };
             attach = function(bin, infoP) {
-              // unofficially: infoP can also be Contract
-              // This should be considered deprecated
-              // TODO: remove at next Reach version bump?
-              // @ts-ignore
-              if (infoP.getInfo) {
-                console.log("Calling attach with another Contract is deprecated." +
-                  " Please replace accBob.attach(backend, ctcAlice)" +
-                  " with accBob.attach(bin, ctcAlice.getInfo())");
-                // @ts-ignore
-                infoP = infoP.getInfo();
-              }
-              ensureConnectorAvailable(bin._Connectors, 'ETH');
+              ensureConnectorAvailable(bin, 'ETH', reachBackendVersion, reachEthBackendVersion);
               var ABI = JSON.parse(bin._Connectors.ETH.ABI);
               // Attached state
               var _a = (function() {
@@ -622,18 +604,20 @@ export function makeEthLike(ethLikeArgs) {
                   };
                   var getLastBlock = function() {
                     return __awaiter(_this, void 0, void 0, function() {
-                      var info;
                       return __generator(this, function(_a) {
                         switch (_a.label) {
                           case 0:
                             if (typeof lastBlock === 'number') {
                               return [2 /*return*/ , lastBlock];
                             }
-                            return [4 /*yield*/ , infoP];
+                            // This causes lastBlock to be set
+                            return [4 /*yield*/ , getC()];
                           case 1:
-                            info = _a.sent();
-                            setLastBlock(info.creation_block);
-                            return [2 /*return*/ , info.creation_block];
+                            // This causes lastBlock to be set
+                            _a.sent();
+                            return [4 /*yield*/ , getLastBlock()];
+                          case 2:
+                            return [2 /*return*/ , _a.sent()];
                         }
                       });
                     });
@@ -649,11 +633,12 @@ export function makeEthLike(ethLikeArgs) {
                 }
                 setLastBlock(o.blockNumber);
               };
+              var theCreationTime = undefined;
               var getC = (function() {
                 var _ethersC = null;
                 return function() {
                   return __awaiter(_this, void 0, void 0, function() {
-                    var info;
+                    var info, creation_block, address;
                     return __generator(this, function(_a) {
                       switch (_a.label) {
                         case 0:
@@ -665,13 +650,16 @@ export function makeEthLike(ethLikeArgs) {
                           info = _a.sent();
                           return [4 /*yield*/ , verifyContract(info, bin)];
                         case 2:
-                          _a.sent();
+                          creation_block = (_a.sent()).creation_block;
+                          theCreationTime = creation_block;
+                          setLastBlock(creation_block);
+                          address = info;
                           debug(shad, ": contract verified");
                           if (!ethers.Signer.isSigner(networkAccount)) {
                             throw Error("networkAccount must be a Signer (read: Wallet). " + networkAccount);
                           }
                           // TODO: remove "as" when we figure out how to type the interface for ctors
-                          _ethersC = new ethers.Contract(info.address, ABI, networkAccount);
+                          _ethersC = new ethers.Contract(address, ABI, networkAccount);
                           return [2 /*return*/ , _ethersC];
                       }
                     });
@@ -829,20 +817,20 @@ export function makeEthLike(ethLikeArgs) {
                   });
                 });
               };
-              var sendrecv_impl = function(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay) {
+              var sendrecv = function(srargs) {
                 return __awaiter(_this, void 0, void 0, function() {
-                  var doRecv, funcName, dhead, _a, args_svs, args_msg, _b, tys_svs, tys_msg, arg_ty, arg, lastBlock, block_send_attempt, block_repeat_count, e_2, current_block, error;
+                  var funcNum, evt_cnt, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, doRecv, funcName, dhead, _a, args_svs, args_msg, _b, tys_svs, tys_msg, arg_ty, arg, lastBlock, block_send_attempt, block_repeat_count, e_2, current_block, error;
                   var _this = this;
                   return __generator(this, function(_c) {
                     switch (_c.label) {
                       case 0:
-                        void(hasLastTime);
+                        funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeout_delay = srargs.timeout_delay;
                         doRecv = function(waitIfNotPresent) {
                           return __awaiter(_this, void 0, void 0, function() {
                             return __generator(this, function(_a) {
                               switch (_a.label) {
                                 case 0:
-                                  return [4 /*yield*/ , recv_impl(funcNum, out_tys, waitIfNotPresent, timeout_delay)];
+                                  return [4 /*yield*/ , recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, waitIfNotPresent: waitIfNotPresent, timeout_delay: timeout_delay })];
                                 case 1:
                                   return [2 /*return*/ , _a.sent()];
                               }
@@ -939,32 +927,20 @@ export function makeEthLike(ethLikeArgs) {
                   });
                 });
               };
-              var sendrecv = function(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) {
-                return __awaiter(_this, void 0, void 0, function() {
-                  return __generator(this, function(_a) {
-                    switch (_a.label) {
-                      case 0:
-                        void(sim_p);
-                        return [4 /*yield*/ , sendrecv_impl(funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay)];
-                      case 1:
-                        return [2 /*return*/ , _a.sent()];
-                    }
-                  });
-                });
-              };
               // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
-              var recv_impl = function(okNum, out_tys, waitIfNotPresent, timeout_delay) {
+              var recv = function(rargs) {
                 return __awaiter(_this, void 0, void 0, function() {
-                  var isFirstMsgDeploy, lastBlock, ok_evt, block_poll_start_init, block_poll_start, block_poll_end, _loop_1, state_1;
+                  var funcNum, out_tys, waitIfNotPresent, timeout_delay, isFirstMsgDeploy, lastBlock, ok_evt, block_poll_start_init, block_poll_start, block_poll_end, _loop_1, state_1;
                   var _this = this;
                   return __generator(this, function(_a) {
                     switch (_a.label) {
                       case 0:
-                        isFirstMsgDeploy = (okNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
+                        funcNum = rargs.funcNum, out_tys = rargs.out_tys, waitIfNotPresent = rargs.waitIfNotPresent, timeout_delay = rargs.timeout_delay;
+                        isFirstMsgDeploy = (funcNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
                         return [4 /*yield*/ , getLastBlock()];
                       case 1:
                         lastBlock = _a.sent();
-                        ok_evt = "e" + okNum;
+                        ok_evt = "e" + funcNum;
                         debug(shad, ':', label, 'recv', ok_evt, timeout_delay, "--- START");
                         block_poll_start_init = lastBlock + (isFirstMsgDeploy ? 0 : 1);
                         block_poll_start = block_poll_start_init;
@@ -1092,19 +1068,6 @@ export function makeEthLike(ethLikeArgs) {
                   });
                 });
               };
-              var recv = function(okNum, ok_cnt, out_tys, waitIfNotPresent, timeout_delay) {
-                return __awaiter(_this, void 0, void 0, function() {
-                  return __generator(this, function(_a) {
-                    switch (_a.label) {
-                      case 0:
-                        void(ok_cnt);
-                        return [4 /*yield*/ , recv_impl(okNum, out_tys, waitIfNotPresent, timeout_delay)];
-                      case 1:
-                        return [2 /*return*/ , _a.sent()];
-                    }
-                  });
-                });
-              };
               var wait = function(delta) {
                 return __awaiter(_this, void 0, void 0, function() {
                   var lastBlock, p;
@@ -1127,14 +1090,14 @@ export function makeEthLike(ethLikeArgs) {
               };
               var creationTime = function() {
                 return __awaiter(_this, void 0, void 0, function() {
-                  var _a;
-                  return __generator(this, function(_b) {
-                    switch (_b.label) {
+                  return __generator(this, function(_a) {
+                    switch (_a.label) {
                       case 0:
-                        _a = bigNumberify;
-                        return [4 /*yield*/ , getInfo()];
+                        return [4 /*yield*/ , getC()];
                       case 1:
-                        return [2 /*return*/ , _a.apply(void 0, [(_b.sent()).creation_block])];
+                        _a.sent();
+                        // @ts-ignore
+                        return [2 /*return*/ , bigNumberify(theCreationTime)];
                     }
                   });
                 });
@@ -1314,7 +1277,7 @@ export function makeEthLike(ethLikeArgs) {
   };
   // TODO: Should users be able to access this directly?
   // TODO: define a faucet on Ropsten & other testnets?
-  var _e = replaceableThunk(function() {
+  var _d = replaceableThunk(function() {
       return __awaiter(_this, void 0, void 0, function() {
         var _a;
         return __generator(this, function(_b) {
@@ -1330,8 +1293,8 @@ export function makeEthLike(ethLikeArgs) {
         });
       });
     }),
-    getFaucet = _e[0],
-    setFaucet = _e[1];
+    getFaucet = _d[0],
+    setFaucet = _d[1];
   var createAccount = function() {
     return __awaiter(_this, void 0, void 0, function() {
       var provider, networkAccount;
@@ -1452,122 +1415,102 @@ export function makeEthLike(ethLikeArgs) {
       });
     });
   };
-  // Check the contract info and the associated deployed bytecode;
-  // Verify that:
-  // * it matches the bytecode you are expecting.
-  // * it was deployed at exactly creation_block.
-  // Throws an Error if any verifications fail
   var verifyContract = function(ctcInfo, backend) {
     return __awaiter(_this, void 0, void 0, function() {
-      var _a, ABI, Bytecode, address, creation_block, transactionHash, init, argsMay, factory, r, provider, maxTries, logs, now, tries, waitTillBlock, deployEvent, log, actual, deployData, initLen, setupLen, expected, deployNoInit, actualNoInit, displayLen;
+      var _a, ABI, Bytecode, deployMode, address, iface, chk, chkeq, provider, now, getLogs, e0log, creation_block, dt, ctorArgs, actual, expected;
+      var _this = this;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
-            _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
-            address = ctcInfo.address, creation_block = ctcInfo.creation_block, transactionHash = ctcInfo.transactionHash, init = ctcInfo.init;
-            argsMay = initOrDefaultArgs(init).argsMay;
-            factory = new ethers.ContractFactory(ABI, Bytecode);
-            debug('verifyContract:', address);
-            debug(ctcInfo);
-            debug('verifyContract: checking for receipt by txn hash', transactionHash);
-            return [4 /*yield*/ , fetchAndRejectInvalidReceiptFor(transactionHash)];
-          case 1:
-            r = _b.sent();
-            debug('verifyContract: got receipt', r);
-            return [4 /*yield*/ , getProvider()];
-          case 2:
-            provider = _b.sent();
-            maxTries = isIsolatedNetwork() ? 1 : 2;
-            logs = [];
-            now = 0;
-            tries = 0;
-            _b.label = 3;
-          case 3:
-            if (!(logs.length < 1 && tries < maxTries)) return [3 /*break*/ , 9];
-            if (!(tries > 0)) return [3 /*break*/ , 5];
-            waitTillBlock = Math.max(now, creation_block) + 1;
-            debug('Failed to fetch logs. Waiting some more before we try again', { tries: tries, creation_block: creation_block, now: now, waitTillBlock: waitTillBlock });
-            // Let logs show up by just waiting for another block
-            // https://github.com/reach-sh/reach-lang/issues/134
-            return [4 /*yield*/ , waitUntilTime(bigNumberify(waitTillBlock))];
-          case 4:
-            // Let logs show up by just waiting for another block
-            // https://github.com/reach-sh/reach-lang/issues/134
-            _b.sent();
-            _b.label = 5;
-          case 5:
-            return [4 /*yield*/ , getNetworkTimeNumber()];
-          case 6:
-            now = _b.sent();
-            deployEvent = isNone(argsMay) ? 'e0' : 'e1';
-            debug('verifyContract: checking logs for', deployEvent, 'from', creation_block, 'to', now, '...');
-            return [4 /*yield*/ , provider.getLogs({
-              fromBlock: creation_block,
-              toBlock: now,
-              address: address,
-              topics: [factory.interface.getEventTopic(deployEvent)]
-            })];
-          case 7:
-            // https://docs.ethers.io/v5/api/providers/provider/#Provider-getLogs
-            // "Keep in mind that many backends will discard old events"
-            // TODO: find another way to validate creation block if much time has passed?
-            logs = _b.sent();
-            _b.label = 8;
-          case 8:
-            tries++;
-            return [3 /*break*/ , 3];
-          case 9:
-            if (logs.length < 1) {
-              throw Error("Contract was claimed to be deployed at " + creation_block + "," +
-                (" but the current block is " + now + " and it hasn't been deployed yet."));
-            }
-            log = logs[0];
-            if (log.blockNumber !== creation_block) {
-              throw Error("Contract was deployed at blockNumber " + log.blockNumber + "," +
-                (" but was claimed to be deployed at " + creation_block + "."));
-            }
-            if (!_verifyContractCode)
-              return [2 /*return*/ , true];
-            debug("verifyContract: checking code...");
-            return [4 /*yield*/ , provider.getCode(address)];
-          case 10:
-            actual = _b.sent();
-            deployData = factory.getDeployTransaction.apply(factory, argsMay).data;
-            if (typeof deployData !== 'string') {
-              // TODO: could also be Ethers.utils.bytes, apparently? Or undefined... why?
-              throw Error("Impossible: deployData is not string " + deployData);
-            }
-            if (!deployData.startsWith(backend._Connectors.ETH.Bytecode)) {
-              throw Error("Impossible: contract with args is not prefixed by backend Bytecode");
-            }
-            initLen = 13;
-            setupLen = 156;
-            expected = deployData.slice(0, initLen) + deployData.slice(initLen + setupLen);
-            if (expected.length <= 0) {
-              throw Error("Impossible: contract expectation is empty");
-            }
-            if (actual !== expected) {
-              deployNoInit = deployData.slice(initLen);
-              actualNoInit = actual.slice(initLen);
-              if (actualNoInit.length === 0 || !deployNoInit.includes(actualNoInit)) {
-                displayLen = 60;
-                console.log('--------------------------------------------');
-                console.log('expected start: ' + expected.slice(0, displayLen));
-                console.log('actual   start: ' + actual.slice(0, displayLen));
-                console.log('--------------------------------------------');
-                console.log('expected   end: ' + expected.slice(expected.length - displayLen));
-                console.log('actual     end: ' + actual.slice(actual.length - displayLen));
-                console.log('--------------------------------------------');
-                console.log('expected   len: ' + expected.length);
-                console.log('actual     len: ' + actual.length);
-                console.log('--------------------------------------------');
-                throw Error("Contract bytecode does not match expected bytecode.");
+            _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode, deployMode = _a.deployMode;
+            address = ctcInfo;
+            iface = new real_ethers.utils.Interface(ABI);
+            debug('verifyContract', { address: address });
+            chk = function(p, msg) {
+              if (!p) {
+                throw Error("verifyContract failed: " + msg);
               }
-            }
+            };
+            chkeq = function(a, e, msg) {
+              var as = JSON.stringify(a);
+              var es = JSON.stringify(e);
+              chk(as === es, msg + ": expected " + es + ", got " + as);
+            };
+            return [4 /*yield*/ , getProvider()];
+          case 1:
+            provider = _b.sent();
+            return [4 /*yield*/ , getNetworkTimeNumber()];
+          case 2:
+            now = _b.sent();
+            getLogs = function(event) {
+              return __awaiter(_this, void 0, void 0, function() {
+                var logs;
+                return __generator(this, function(_a) {
+                  switch (_a.label) {
+                    case 0:
+                      debug('verifyContract: getLogs', { event: event, now: now });
+                      return [4 /*yield*/ , provider.getLogs({
+                        fromBlock: 0,
+                        toBlock: now,
+                        address: address,
+                        topics: [iface.getEventTopic(event)]
+                      })];
+                    case 1:
+                      logs = _a.sent();
+                      debug('verifyContract', logs);
+                      chk(logs.length > 0, "Contract was claimed to be deployed, but the current block is " + now + " and it hasn't been deployed yet.");
+                      return [2 /*return*/ , logs[0]];
+                  }
+                });
+              });
+            };
+            return [4 /*yield*/ , getLogs('e0')];
+          case 3:
+            e0log = _b.sent();
+            creation_block = e0log.blockNumber;
+            debug("verifyContract: checking code...");
+            return [4 /*yield*/ , provider.getTransaction(e0log.transactionHash)];
+          case 4:
+            dt = _b.sent();
+            debug('dt', dt);
+            return [4 /*yield*/ , (function() {
+              return __awaiter(_this, void 0, void 0, function() {
+                var _a, e1log, e1p;
+                return __generator(this, function(_b) {
+                  switch (_b.label) {
+                    case 0:
+                      _a = deployMode;
+                      switch (_a) {
+                        case 'DM_firstMsg':
+                          return [3 /*break*/ , 1];
+                        case 'DM_constructor':
+                          return [3 /*break*/ , 3];
+                      }
+                      return [3 /*break*/ , 4];
+                    case 1:
+                      return [4 /*yield*/ , getLogs('e1')];
+                    case 2:
+                      e1log = _b.sent();
+                      e1p = iface.parseLog(e1log);
+                      debug("e1p", e1p);
+                      return [2 /*return*/ , e1p.args];
+                    case 3:
+                      return [2 /*return*/ , []];
+                    case 4:
+                      throw Error("Unrecognized deployMode: " + deployMode);
+                  }
+                });
+              });
+            })()];
+          case 5:
+            ctorArgs = _b.sent();
+            actual = dt.data;
+            expected = Bytecode + iface.encodeDeploy(ctorArgs).slice(2);
+            chkeq(actual, expected, "Contract bytecode does not match expected bytecode.");
             // We are not checking the balance or the contract storage, because we know
             // that the code is correct and we know that the code mandates the way that
             // those things are initialized
-            return [2 /*return*/ , true];
+            return [2 /*return*/ , { creation_block: creation_block }];
         }
       });
     });

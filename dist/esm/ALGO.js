@@ -70,6 +70,7 @@ import { addressFromHex, stdlib as compiledStdlib, typeDefs, } from './ALGO_comp
 import { process, window } from './shim';
 export var add = compiledStdlib.add, sub = compiledStdlib.sub, mod = compiledStdlib.mod, mul = compiledStdlib.mul, div = compiledStdlib.div, protect = compiledStdlib.protect, assert = compiledStdlib.assert, Array_set = compiledStdlib.Array_set, eq = compiledStdlib.eq, ge = compiledStdlib.ge, gt = compiledStdlib.gt, le = compiledStdlib.le, lt = compiledStdlib.lt, bytesEq = compiledStdlib.bytesEq, digestEq = compiledStdlib.digestEq;
 export * from './shared_user';
+var reachBackendVersion = 1;
 var reachAlgoBackendVersion = 2;
 // Helpers
 // Parse CBR into Public Key
@@ -329,7 +330,7 @@ export var getTxnParams = function () { return __awaiter(void 0, void 0, void 0,
                     return [2 /*return*/, params];
                 }
                 debug("...but firstRound is 0, so let's wait and try again.");
-                return [4 /*yield*/, client.statusAfterBlock(1)];
+                return [4 /*yield*/, client.statusAfterBlock(1)["do"]()];
             case 4:
                 _a.sent();
                 return [3 /*break*/, 2];
@@ -502,12 +503,7 @@ var replaceAll = function (orig, what, whatp) {
 };
 function must_be_supported(bin) {
     var algob = bin._Connectors.ALGO;
-    var unsupported = algob.unsupported, version = algob.version;
-    if (version !== reachAlgoBackendVersion) {
-        var older = (version === undefined) || (version < reachAlgoBackendVersion);
-        var more = older ? "update your compiler and recompile!" : "updated your standard library and rerun!";
-        throw Error("This Reach compiled backend does not match the expectations of this Reach standard library: expected " + reachAlgoBackendVersion + ", but got " + version + "; " + more);
-    }
+    var unsupported = algob.unsupported;
     if (unsupported.length > 0) {
         var reasons = unsupported.map(function (s) { return " * " + s; }).join('\n');
         throw Error("This Reach application is not supported on Algorand for the following reasons:\n" + reasons);
@@ -574,30 +570,41 @@ var format_failed_request = function (e) {
     var msg = e.text ? JSON.parse(e.text) : e;
     return "\n" + db64 + "\n" + JSON.stringify(msg);
 };
+function looksLikeAccountingNotInitialized(e) {
+    var _a;
+    var responseText = ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.text) || null;
+    // TODO: trust the response to be json and parse it?
+    // const json = JSON.parse(responseText) || {};
+    // const msg: string = (json.message || '').toLowerCase();
+    var msg = (responseText || '').toLowerCase();
+    return msg.includes("accounting not initialized");
+}
 var doQuery_ = function (dhead, query, alwaysRetry) {
     if (alwaysRetry === void 0) { alwaysRetry = false; }
     return __awaiter(void 0, void 0, void 0, function () {
         var retries, res, e_6;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     debug(dhead, '--- QUERY =', query);
                     retries = 10;
-                    _b.label = 1;
+                    _a.label = 1;
                 case 1:
                     if (!(retries > 0)) return [3 /*break*/, 7];
-                    _b.label = 2;
+                    _a.label = 2;
                 case 2:
-                    _b.trys.push([2, 4, , 6]);
+                    _a.trys.push([2, 4, , 6]);
                     return [4 /*yield*/, query["do"]()];
                 case 3:
-                    res = _b.sent();
+                    res = _a.sent();
                     return [3 /*break*/, 7];
                 case 4:
-                    e_6 = _b.sent();
-                    if ((e_6 === null || e_6 === void 0 ? void 0 : e_6.errno) === -111 || (e_6 === null || e_6 === void 0 ? void 0 : e_6.code) === "ECONNRESET" || ((_a = e_6 === null || e_6 === void 0 ? void 0 : e_6.response) === null || _a === void 0 ? void 0 : _a.text) === "{\"message\":\"accounting not initialized\"}\n") {
+                    e_6 = _a.sent();
+                    if ((e_6 === null || e_6 === void 0 ? void 0 : e_6.errno) === -111 || (e_6 === null || e_6 === void 0 ? void 0 : e_6.code) === "ECONNRESET") {
                         debug(dhead, 'NO CONNECTION');
+                    }
+                    else if (looksLikeAccountingNotInitialized(e_6)) {
+                        debug(dhead, 'ACCOUNTING NOT INITIALIZED');
                     }
                     else if (!alwaysRetry || retries <= 0) {
                         throw Error(dhead + " --- QUERY FAIL: " + JSON.stringify(e_6));
@@ -605,10 +612,13 @@ var doQuery_ = function (dhead, query, alwaysRetry) {
                     debug(dhead, 'RETRYING', retries--, { e: e_6 });
                     return [4 /*yield*/, Timeout.set(500)];
                 case 5:
-                    _b.sent();
+                    _a.sent();
                     return [3 /*break*/, 6];
                 case 6: return [3 /*break*/, 1];
                 case 7:
+                    if (!res) {
+                        throw Error("impossible: query res is empty");
+                    }
                     debug(dhead, '--- RESULT =', res);
                     return [2 /*return*/, res];
             }
@@ -1144,15 +1154,15 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 }
                             });
                         }); };
-                        sendrecv = function (funcNum, evt_cnt, hasLastTime, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p) { return __awaiter(void 0, void 0, void 0, function () {
-                            var doRecv, value, toks, funcName, dhead, _a, svs, msg, _b, svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, sign_escrow, sign_me, _loop_1, state_1;
+                        sendrecv = function (srargs) { return __awaiter(void 0, void 0, void 0, function () {
+                            var funcNum, evt_cnt, tys, args, pay, out_tys, onlyIf, soloSend, timeout_delay, sim_p, doRecv, value, toks, funcName, dhead, _a, svs, msg, _b, svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, sign_escrow, sign_me, _loop_1, state_1;
                             return __generator(this, function (_c) {
                                 switch (_c.label) {
                                     case 0:
-                                        void (hasLastTime);
+                                        funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeout_delay = srargs.timeout_delay, sim_p = srargs.sim_p;
                                         doRecv = function (waitIfNotPresent) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                                             switch (_a.label) {
-                                                case 0: return [4 /*yield*/, recv(funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay)];
+                                                case 0: return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, waitIfNotPresent: waitIfNotPresent, timeout_delay: timeout_delay })];
                                                 case 1: return [2 /*return*/, _a.sent()];
                                             }
                                         }); }); };
@@ -1415,11 +1425,13 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 }
                             });
                         }); };
-                        recv = function (funcNum, evt_cnt, tys, waitIfNotPresent, timeout_delay) { return __awaiter(void 0, void 0, void 0, function () {
-                            var indexer, funcName, dhead, timeoutRound, _loop_2, state_2;
+                        recv = function (rargs) { return __awaiter(void 0, void 0, void 0, function () {
+                            var funcNum, evt_cnt, out_tys, waitIfNotPresent, timeout_delay, indexer, funcName, dhead, timeoutRound, _loop_2, state_2;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
-                                    case 0: return [4 /*yield*/, getIndexer()];
+                                    case 0:
+                                        funcNum = rargs.funcNum, evt_cnt = rargs.evt_cnt, out_tys = rargs.out_tys, waitIfNotPresent = rargs.waitIfNotPresent, timeout_delay = rargs.timeout_delay;
+                                        return [4 /*yield*/, getIndexer()];
                                     case 1:
                                         indexer = _a.sent();
                                         funcName = "m" + funcNum;
@@ -1496,8 +1508,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                         debug(dhead, { ctc_args_all: ctc_args_all });
                                                         argMsg = 2;
                                                         ctc_args_s = ctc_args_all[argMsg];
-                                                        debug(dhead, '--- tys =', tys);
-                                                        msgTy = T_Tuple(tys);
+                                                        debug(dhead, '--- out_tys =', out_tys);
+                                                        msgTy = T_Tuple(out_tys);
                                                         ctc_args = msgTy.fromNet(reNetify(ctc_args_s));
                                                         debug(dhead, { ctc_args: ctc_args });
                                                         args_un = argsSlice(ctc_args, evt_cnt);
@@ -1741,19 +1753,22 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                         getInfo = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                             return [2 /*return*/, ctcInfo];
                         }); }); };
+                        return [4 /*yield*/, waitCtorTxn(shad, ctcInfo)];
+                    case 12:
+                        _g.sent();
                         debug(shad, 'application created');
                         return [4 /*yield*/, attachP(bin, getInfo())];
-                    case 12: return [2 /*return*/, _g.sent()];
+                    case 13: return [2 /*return*/, _g.sent()];
                 }
             });
         }); };
         implNow = { stdlib: compiledStdlib };
         attach = function (bin, ctcInfoP) {
-            ensureConnectorAvailable(bin._Connectors, connector);
+            ensureConnectorAvailable(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
             return deferContract(false, attachP(bin, ctcInfoP), implNow);
         };
         deploy = function (bin) {
-            ensureConnectorAvailable(bin._Connectors, connector);
+            ensureConnectorAvailable(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
             return deferContract(false, deployP(bin), implNow);
         };
         ;
@@ -1881,6 +1896,26 @@ export function parseCurrency(amt) {
 // XXX get from SDK
 var raw_minimumBalance = 100000;
 export var minimumBalance = bigNumberify(raw_minimumBalance);
+// lol I am not importing leftpad for this
+/** @example lpad('asdf', '0', 6); // => '00asdf' */
+function lpad(str, padChar, nChars) {
+    var padding = padChar.repeat(Math.max(nChars - str.length, 0));
+    return padding + str;
+}
+/** @example rdrop('asfdfff', 'f'); // => 'asfd' */
+function rdrop(str, char) {
+    while (str[str.length - 1] === char) {
+        str = str.slice(0, str.length - 1);
+    }
+    return str;
+}
+/** @example ldrop('007', '0'); // => '7' */
+function ldrop(str, char) {
+    while (str[0] === char) {
+        str = str.slice(1);
+    }
+    return str;
+}
 /**
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.
@@ -1889,19 +1924,24 @@ export var minimumBalance = bigNumberify(raw_minimumBalance);
  *   This argument defaults to maximum precision.
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
+ * @example  formatCurrency(bigNumberify('9999998799987000')); // => '9999998799.987'
  */
 export function formatCurrency(amt, decimals) {
     if (decimals === void 0) { decimals = 6; }
-    // Recall that 1 algo = 10^6 microalgos
     if (!(Number.isInteger(decimals) && 0 <= decimals)) {
         throw Error("Expected decimals to be a nonnegative integer, but got " + decimals + ".");
     }
-    // Use decimals+1 and then slice it off to truncate instead of round
-    var algosStr = algosdk
-        .microalgosToAlgos(bigNumberify(amt).toNumber())
-        .toFixed(decimals + 1);
-    // Have to roundtrip thru Number to drop trailing zeroes
-    return Number(algosStr.slice(0, algosStr.length - 1)).toString();
+    var amtStr = amt.toString();
+    var splitAt = Math.max(amtStr.length - 6, 0);
+    var lPredropped = amtStr.slice(0, splitAt);
+    var l = ldrop(lPredropped, '0') || '0';
+    if (decimals === 0) {
+        return l;
+    }
+    var rPre = lpad(amtStr.slice(splitAt), '0', 6);
+    var rSliced = rPre.slice(0, decimals);
+    var r = rdrop(rSliced, '0');
+    return r ? l + "." + r : l;
 }
 // XXX The getDefaultAccount pattern doesn't really work w/ AlgoSigner
 // AlgoSigner does not expose a "currently-selected account"
@@ -2062,8 +2102,61 @@ var appLocalStateNumUInt = 0;
 var appLocalStateNumBytes = 0;
 var appGlobalStateNumUInt = 0;
 var appGlobalStateNumBytes = 1;
+function queryCtorTxn(dhead, ApplicationID) {
+    return __awaiter(this, void 0, void 0, function () {
+        var indexer, icq, isCtor, icr;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getIndexer()];
+                case 1:
+                    indexer = _a.sent();
+                    icq = indexer.searchForTransactions()
+                        .applicationID(ApplicationID)
+                        .txType('appl');
+                    isCtor = makeIsMethod(0);
+                    return [4 /*yield*/, doQuery(dhead + " ctor", icq, isCtor)];
+                case 2:
+                    icr = _a.sent();
+                    debug({ icr: icr });
+                    return [2 /*return*/, icr];
+            }
+        });
+    });
+}
+function waitCtorTxn(shad, ApplicationID) {
+    return __awaiter(this, void 0, void 0, function () {
+        var maxTries, icr, tries, waitMs;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    maxTries = 14;
+                    icr = null;
+                    tries = 1;
+                    _a.label = 1;
+                case 1:
+                    if (!(tries <= maxTries)) return [3 /*break*/, 5];
+                    waitMs = Math.pow(2, tries);
+                    debug(shad, 'waitCtorTxn waiting (ms)', waitMs);
+                    return [4 /*yield*/, Timeout.set(waitMs)];
+                case 2:
+                    _a.sent();
+                    debug(shad, 'waitCtorTxn trying attempt #', tries, 'of', maxTries);
+                    return [4 /*yield*/, queryCtorTxn(shad + " deploy", ApplicationID)];
+                case 3:
+                    icr = _a.sent();
+                    if (icr && icr.txn)
+                        return [2 /*return*/];
+                    _a.label = 4;
+                case 4:
+                    tries++;
+                    return [3 /*break*/, 1];
+                case 5: throw Error("Indexer could not find application " + ApplicationID + ".");
+            }
+        });
+    });
+}
 export var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, void 0, function () {
-    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, viewKeys, dhead, chk, chkeq, fmtp, client, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iaq, iar, iat, iatat, icq, isCtor, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
+    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, viewKeys, dhead, chk, chkeq, fmtp, client, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iaq, iar, iat, iatat, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, compileFor(bin, info)];
@@ -2127,11 +2220,7 @@ export var verifyContract = function (info, bin) { return __awaiter(void 0, void
                 debug({ iatat: iatat });
                 chkeq(iatat['approval-program'], appInfo_p['approval-program'], "ApprovalProgram unchanged since creation");
                 chkeq(iatat['clear-state-program'], appInfo_p['clear-state-program'], "ClearStateProgram unchanged since creation");
-                icq = indexer.searchForTransactions()
-                    .applicationID(ApplicationID)
-                    .txType('appl');
-                isCtor = makeIsMethod(0);
-                return [4 /*yield*/, doQuery(dhead + " ctor", icq, isCtor)];
+                return [4 /*yield*/, queryCtorTxn(dhead, ApplicationID)];
             case 7:
                 icr = _b.sent();
                 ict = icr.txn;

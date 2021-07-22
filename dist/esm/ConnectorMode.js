@@ -1,12 +1,12 @@
 import { process } from './shim';
 import { envDefault } from './shared_impl';
 // Order is significant, earlier = default for shared prefix
-// e.g. ETH defaults to ETH-test-dockerized-geth
+// e.g. ETH defaults to ETH-devnet
 var knownConnectorModes = [
-    'ETH-test-dockerized-geth',
+    'ETH-devnet',
     'ETH-live',
     'ETH-browser',
-    'ALGO-test-dockerized-algod',
+    'ALGO-devnet',
     'ALGO-live',
     'ALGO-browser',
     'CFX-devnet',

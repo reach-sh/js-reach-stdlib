@@ -64,7 +64,6 @@ export interface EthLikeArgs {
     isWindowProvider(): boolean;
     _getDefaultNetworkAccount(): any;
     _getDefaultFaucetNetworkAccount(): any;
-    _verifyContractCode?: boolean;
     _warnTxNoBlockNumber?: boolean;
     standardUnit: string;
     atomicUnit: string;

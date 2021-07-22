@@ -1,6 +1,7 @@
 export declare const connector = "ALGO";
 import algosdk from 'algosdk';
 import { ethers } from 'ethers';
+import type { Transaction } from 'algosdk';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
@@ -11,7 +12,7 @@ declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 declare type Address = string;
 declare type SecretKey = Uint8Array;
 declare type AlgoSigner = {
-    sign: (txn: TXN) => Promise<{
+    sign: (txn: Transaction) => Promise<{
         blob: string;
         txID: string;
     }>;
@@ -23,15 +24,19 @@ declare type AlgoSigner = {
 };
 declare type Wallet = {
     addr: Address;
-    sk?: SecretKey;
+    sk: SecretKey;
     AlgoSigner?: AlgoSigner;
+} | {
+    addr: Address;
+    sk?: SecretKey;
+    AlgoSigner: AlgoSigner;
 };
 declare type TxnParams = {
-    flatFee: boolean;
+    flatFee?: boolean;
     fee: number;
     firstRound: number;
     lastRound: number;
-    genesisID: number;
+    genesisID: string;
     genesisHash: string;
 };
 declare type TxnInfo = {
@@ -78,7 +83,6 @@ declare const setAlgoSigner: (val: Promise<AlgoSigner>) => void;
 export { setAlgoSigner };
 export declare const waitForConfirmation: (txId: TxId, untilRound: number | undefined) => Promise<TxnInfo>;
 export declare const getTxnParams: () => Promise<TxnParams>;
-declare type TXN = any;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
 export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
@@ -141,6 +145,7 @@ export declare const minimumBalance: BigNumber;
  *   This argument defaults to maximum precision.
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
+ * @example  formatCurrency(bigNumberify('9999998799987000')); // => '9999998799.987'
  */
 export declare function formatCurrency(amt: any, decimals?: number): string;
 export declare function getDefaultAccount(): Promise<Account>;

@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 exports.__esModule = true;
-exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports._verifyContractCode = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
+exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
 var cfxers = __importStar(require("./cfxers"));
 exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
@@ -179,16 +179,18 @@ exports._getDefaultNetworkAccount = _getDefaultNetworkAccount;
 var mining_key = '0xc72b8b13c6256b54ce428f6f67725d47194bc4ef97552867d037acd4fe6e86f3';
 var defaultFaucetWallet = new cfxers.Wallet(mining_key);
 exports._getDefaultFaucetNetworkAccount = shared_impl_1.memoizeThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var provider;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
                 if (!!defaultFaucetWallet.provider) return [3 /*break*/, 2];
-                _b = (_a = defaultFaucetWallet).connect;
                 return [4 /*yield*/, getProvider()];
             case 1:
-                _b.apply(_a, [_c.sent()]);
-                _c.label = 2;
+                provider = _a.sent();
+                // Async things can cause this state to change...
+                if (!defaultFaucetWallet.provider)
+                    defaultFaucetWallet.connect(provider);
+                _a.label = 2;
             case 2: return [2 /*return*/, defaultFaucetWallet];
         }
     });
@@ -332,7 +334,6 @@ exports.providerLib = {
     getSignStrategy: exports.getSignStrategy,
     setSignStrategy: exports.setSignStrategy
 };
-exports._verifyContractCode = false; // XXX
 exports._warnTxNoBlockNumber = false; // XXX ?
 exports.standardUnit = 'CFX';
 exports.atomicUnit = 'Drip';

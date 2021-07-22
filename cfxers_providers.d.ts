@@ -11,6 +11,7 @@ export declare class Provider {
     getBalance(address: string, epochNumber?: EpochNumber): Promise<BigNumber>;
     getBlockNumber(): Promise<number>;
     getTransactionReceipt(transactionHash: string): Promise<any>;
+    getCode(address: string, defaultEpoch?: EpochNumber | undefined): Promise<string>;
     on(...argz: any): void;
     off(...argz: any): void;
     getLogs(opts: {

@@ -35,7 +35,7 @@ export declare class ContractFactory {
     interface: ethers.utils.Interface;
     constructor(abi: string | any[], bytecode: string, wallet: Wallet);
     deploy(...args: any): Promise<Contract>;
-    getDeployTransaction(): void;
+    getDeployTransaction(...args: any): any;
 }
 export interface IWallet {
     provider?: providers.Provider;
