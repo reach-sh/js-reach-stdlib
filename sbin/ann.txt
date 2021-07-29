@@ -1,4 +1,4 @@
-:reach~1: New Reach Docker images & JavaScript library published :reach~1: 
+:reach: New Reach Docker images & JavaScript library published :reach:
 The release candidate for Reach version `{{version}}` has received an update.
 
 :squid: New Docker images based on git hash:
