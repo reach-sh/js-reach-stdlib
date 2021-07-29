@@ -22,4 +22,15 @@ export declare const parseInt: (x: {
 export declare const hasConsoleLogger: {
     log: (message?: any, ...optionalParams: any[]) => void;
 };
+export declare const numberToFixedPoint: (n: number) => {
+    sign: boolean;
+    i: {
+        scale: ethers.BigNumber;
+        i: ethers.BigNumber;
+    };
+};
+export declare const numberToInt: (n: number) => {
+    sign: boolean;
+    i: ethers.BigNumber;
+};
 //# sourceMappingURL=shared_user.d.ts.map

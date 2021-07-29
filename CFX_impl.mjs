@@ -177,7 +177,7 @@ export function _getDefaultNetworkAccount() {
   });
 }
 // from /scripts/devnet-cfx/default.toml
-var mining_key = '0xc72b8b13c6256b54ce428f6f67725d47194bc4ef97552867d037acd4fe6e86f3';
+var mining_key = '0x091ca0785ec2bd9a5eca245fdc83baddd570644f3e0489b41e515f0e5c33f3d9';
 var defaultFaucetWallet = new cfxers.Wallet(mining_key);
 export var _getDefaultFaucetNetworkAccount = memoizeThunk(function() {
   return __awaiter(void 0, void 0, void 0, function() {

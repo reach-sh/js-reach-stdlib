@@ -26,4 +26,20 @@ export var parseInt = function(x) {
 export var hasConsoleLogger = {
   log: console.log
 };
+export var numberToFixedPoint = function(n) {
+  var ns = n.toString();
+  var decs = ns.includes('.') ?
+    ns.split('.')[1].length :
+    0;
+  var scale = Math.pow(10, decs);
+  return {
+    sign: n >= 0,
+    i: { scale: bigNumberify(scale), i: bigNumberify(n * scale) }
+  };
+};
+export var numberToInt = function(n) {
+  var sign = n >= 0;
+  var i = bigNumberify(sign ? n : (-n));
+  return { sign: sign, i: i };
+};
 //# sourceMappingURL=shared_user.js.map

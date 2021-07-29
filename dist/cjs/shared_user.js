@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.hasConsoleLogger = exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
+exports.numberToInt = exports.numberToFixedPoint = exports.hasConsoleLogger = exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
 // This can depend on the shared backend and impl
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -37,4 +37,22 @@ exports.parseInt = parseInt;
 exports.hasConsoleLogger = {
     log: console.log
 };
+var numberToFixedPoint = function (n) {
+    var ns = n.toString();
+    var decs = ns.includes('.')
+        ? ns.split('.')[1].length
+        : 0;
+    var scale = Math.pow(10, decs);
+    return {
+        sign: n >= 0,
+        i: { scale: CBR_1.bigNumberify(scale), i: CBR_1.bigNumberify(n * scale) }
+    };
+};
+exports.numberToFixedPoint = numberToFixedPoint;
+var numberToInt = function (n) {
+    var sign = n >= 0;
+    var i = CBR_1.bigNumberify(sign ? n : (-n));
+    return { sign: sign, i: i };
+};
+exports.numberToInt = numberToInt;
 //# sourceMappingURL=shared_user.js.map

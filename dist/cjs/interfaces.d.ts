@@ -88,10 +88,15 @@ export interface Stdlib_User_Shared {
     bigNumberToHex: (bn: BigNumber) => string;
     uintToBytes: (bn: BigNumber) => string;
     parseFixedPoint: (fp: FixedPoint) => number;
+    numberToFixedPoint: (n: number) => FixedPoint;
     parseInt: (n: {
         sign: boolean;
         i: num;
     }) => number;
+    numberToInt: (n: number) => {
+        sign: boolean;
+        i: num;
+    };
 }
 export interface Stdlib_User_Base extends Stdlib_Backend_Shared_User, Stdlib_User_Shared, Arith, TypeDefs {
     isHex: (x: unknown) => boolean;
