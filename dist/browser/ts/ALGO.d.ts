@@ -72,8 +72,7 @@ declare type CompiledBackend = {
     escrow: CompileResultBytes;
 };
 declare type ContractInfo = number;
-declare type Digest = BigNumber;
-declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyALGO_Ty>;
+declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 declare const setWaitPort: (val: boolean) => void;
 export { setWaitPort };
@@ -125,6 +124,7 @@ export declare const balanceOf: (acc: Account, token?: Token | false) => Promise
 export declare const createAccount: () => Promise<Account>;
 export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
 export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
+export declare const newTestAccounts: (k: number, bal: any) => Promise<Account[]>;
 /** @description the display name of the standard unit of currency for the network */
 export declare const standardUnit = "ALGO";
 /** @description the display name of the atomic (smallest) unit of currency for the network */
@@ -158,8 +158,10 @@ export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Accou
  */
 export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
 export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<Account>;
-export declare const getNetworkTime: () => Promise<ethers.BigNumber>;
-export declare const waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+export declare const getNetworkTime: () => Promise<BigNumber>;
+export declare const getNetworkSecs: () => Promise<BigNumber>;
+export declare const waitUntilTime: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
+export declare const waitUntilSecs: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 declare type VerifyResult = {
     compiled: CompiledBackend;

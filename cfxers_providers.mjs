@@ -134,6 +134,18 @@ var Provider = /** @class */ (function() {
       });
     });
   };
+  Provider.prototype.getBlock = function(which) {
+    return __awaiter(this, void 0, void 0, function() {
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/ , this.conflux.getBlockByEpochNumber(which, true)];
+          case 1:
+            return [2 /*return*/ , _a.sent()];
+        }
+      });
+    });
+  };
   Provider.prototype.getTransactionReceipt = function(transactionHash) {
     return __awaiter(this, void 0, void 0, function() {
       var r;

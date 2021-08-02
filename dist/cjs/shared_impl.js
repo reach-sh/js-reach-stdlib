@@ -51,7 +51,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -140,11 +140,15 @@ var deferContract = function (shouldError, implP, implNow) {
         // @ts-ignore
         creationTime: delay('creationTime'),
         // @ts-ignore
+        creationSecs: delay('creationSecs'),
+        // @ts-ignore
         sendrecv: mnow('sendrecv'),
         // @ts-ignore
         recv: mnow('recv'),
         // @ts-ignore
-        wait: not_yet('wait'),
+        waitTime: not_yet('waitTime'),
+        // @ts-ignore
+        waitSecs: not_yet('waitSecs'),
         // @ts-ignore
         iam: mnow('iam'),
         // @ts-ignore
@@ -172,9 +176,11 @@ var deferContract = function (shouldError, implP, implNow) {
     return {
         sendrecv: wrap('sendrecv'),
         recv: wrap('recv'),
-        wait: wrap('wait'),
+        waitTime: wrap('waitTime'),
+        waitSecs: wrap('waitSecs'),
         getInfo: wrap('getInfo'),
         creationTime: wrap('creationTime'),
+        creationSecs: wrap('creationSecs'),
         iam: wrap('iam'),
         selfAddress: wrap('selfAddress'),
         getViews: wrap('getViews'),
@@ -319,4 +325,78 @@ var checkVersion = function (actual, expected, label) {
     }
 };
 exports.checkVersion = checkVersion;
+var argHelper = function (xs, f, op) {
+    if (xs.length == 0) {
+        return undefined;
+    }
+    return xs.reduce(function (accum, x) {
+        return op(f(x), f(accum)) ? x : accum;
+    }, xs[0]);
+};
+var argMax = function (xs, f) {
+    return argHelper(xs, f, function (a, b) { return a > b; });
+};
+exports.argMax = argMax;
+var argMin = function (xs, f) {
+    return argHelper(xs, f, function (a, b) { return a < b; });
+};
+exports.argMin = argMin;
+var make_newTestAccounts = function (newTestAccount) {
+    return function (k, bal) {
+        return Promise.all((new Array(k)).fill(1).map(function (_) { return newTestAccount(bal); }));
+    };
+};
+exports.make_newTestAccounts = make_newTestAccounts;
+var make_waitUntilX = function (label, getCurrent, step) { return function (target, onProgress) { return __awaiter(void 0, void 0, void 0, function () {
+    var onProg, current, notify;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                onProg = onProgress || (function () { });
+                return [4 /*yield*/, getCurrent()];
+            case 1:
+                current = _a.sent();
+                notify = function () {
+                    var o = { current: current, target: target };
+                    exports.debug("waitUntilX:", label, o);
+                    onProg(o);
+                };
+                _a.label = 2;
+            case 2:
+                if (!current.lt(target)) return [3 /*break*/, 4];
+                return [4 /*yield*/, step(current.add(1))];
+            case 3:
+                current = _a.sent();
+                notify();
+                return [3 /*break*/, 2];
+            case 4:
+                notify();
+                return [2 /*return*/, current];
+        }
+    });
+}); }; };
+exports.make_waitUntilX = make_waitUntilX;
+var checkTimeout = function (getTimeSecs, timeoutAt, nowTimeN) { return __awaiter(void 0, void 0, void 0, function () {
+    var mode, val, nowTime, nowSecs;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (!timeoutAt) {
+                    return [2 /*return*/, false];
+                }
+                mode = timeoutAt[0], val = timeoutAt[1];
+                nowTime = CBR_1.bigNumberify(nowTimeN);
+                if (!(mode === 'time')) return [3 /*break*/, 1];
+                return [2 /*return*/, val.lt(nowTime)];
+            case 1:
+                if (!(mode === 'secs')) return [3 /*break*/, 3];
+                return [4 /*yield*/, getTimeSecs(nowTime)];
+            case 2:
+                nowSecs = _a.sent();
+                return [2 /*return*/, val.lt(nowSecs)];
+            case 3: throw new Error("invalid TimeArg mode");
+        }
+    });
+}); };
+exports.checkTimeout = checkTimeout;
 //# sourceMappingURL=shared_impl.js.map

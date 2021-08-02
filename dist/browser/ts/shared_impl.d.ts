@@ -41,8 +41,8 @@ export declare const getViewsHelper: <ConnectorTy extends AnyBackendTy, B>(views
     };
 };
 export declare type OnProgress = (obj: {
-    currentTime: BigNumber;
-    targetTime: BigNumber;
+    current: BigNumber;
+    target: BigNumber;
 }) => any;
 export declare type WPArgs = {
     host: string | undefined;
@@ -59,37 +59,40 @@ export declare type IRecvNoTimeout<RawAddress> = {
     data: Array<unknown>;
     from: RawAddress;
     time: BigNumber;
+    secs: BigNumber;
     getOutput: (o_mode: string, o_lab: string, o_ctc: any) => Promise<any>;
 };
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
 };
-export declare type ISendRecvArgs<Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export declare type TimeArg = [('time' | 'secs'), BigNumber];
+export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     funcNum: number;
     evt_cnt: number;
-    hasLastTime: (BigNumber | false);
     tys: Array<ConnectorTy>;
     args: Array<any>;
     pay: MkPayAmt<Token>;
     out_tys: Array<ConnectorTy>;
     onlyIf: boolean;
     soloSend: boolean;
-    timeout_delay: BigNumber | false;
-    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Digest, Token, ConnectorTy>>;
+    timeoutAt: TimeArg | undefined;
+    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token, ConnectorTy>>;
 };
 export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     funcNum: number;
     evt_cnt: number;
     out_tys: Array<ConnectorTy>;
     waitIfNotPresent: boolean;
-    timeout_delay: BigNumber | false;
+    timeoutAt: TimeArg | undefined;
 };
-export declare type IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     creationTime: () => Promise<BigNumber>;
-    sendrecv: (args: ISendRecvArgs<Digest, RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
+    creationSecs: () => Promise<BigNumber>;
+    sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
-    wait: (delta: BigNumber) => Promise<BigNumber>;
+    waitTime: (v: BigNumber) => Promise<BigNumber>;
+    waitSecs: (v: BigNumber) => Promise<BigNumber>;
     iam: (some_addr: RawAddress) => RawAddress;
     selfAddress: () => CBR_Address;
     getViews: () => {
@@ -99,7 +102,7 @@ export declare type IContract<ContractInfo, Digest, RawAddress, Token, Connector
     };
     stdlib: Object;
 };
-export declare const deferContract: <ContractInfo, Digest, RawAddress, Token, ConnectorTy extends AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>, implNow: Partial<IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>>) => IContract<ContractInfo, Digest, RawAddress, Token, ConnectorTy>;
+export declare const deferContract: <ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo, RawAddress, Token, ConnectorTy>>, implNow: Partial<IContract<ContractInfo, RawAddress, Token, ConnectorTy>>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
@@ -113,15 +116,11 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Digest, Token, ConnectorTy> = {
-    prevSt: Digest;
-    prevSt_noPrevTime: Digest;
+export declare type ISimRes<Token, ConnectorTy> = {
     txns: Array<ISimTxn<Token>>;
     mapRefs: Array<string>;
     mapsPrev: any;
     mapsNext: any;
-    nextSt: Digest;
-    nextSt_noTime: Digest;
     view: [ConnectorTy, any];
     isHalt: boolean;
 };
@@ -207,4 +206,9 @@ export declare const mkAddressEq: (T_Address: {
 }) => (x: any, y: any) => boolean;
 export declare const ensureConnectorAvailable: (bin: any, conn: string, jsVer: number, connVer: number) => void;
 export declare const checkVersion: (actual: number, expected: number, label: string) => void;
+export declare const argMax: (xs: any[], f: (_: any) => any) => any;
+export declare const argMin: (xs: any[], f: (_: any) => any) => any;
+export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => (k: number, bal: any) => Promise<X[]>;
+export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+export declare const checkTimeout: (getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
 //# sourceMappingURL=shared_impl.d.ts.map

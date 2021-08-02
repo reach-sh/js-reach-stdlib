@@ -32,8 +32,7 @@ declare type NetworkAccount = {
     getBalance?: (...xs: any) => any;
 } | EthersLikeWallet | EthersLikeSigner;
 declare type ContractInfo = Address;
-declare type Digest = string;
-declare type Contract = IContract<ContractInfo, Digest, Address, Token, AnyETH_Ty>;
+declare type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
 export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> | any;
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
@@ -54,9 +53,12 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     createAccount: () => Promise<any>;
     fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
     newTestAccount: (startingBalance: any) => Promise<Account>;
+    newTestAccounts: (k: number, bal: any) => Promise<any[]>;
     getNetworkTime: () => Promise<BigNumber>;
+    waitUntilTime: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
     wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-    waitUntilTime: (targetTime: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+    getNetworkSecs: () => Promise<BigNumber>;
+    waitUntilSecs: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
     verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<{
         creation_block: number;
     }>;

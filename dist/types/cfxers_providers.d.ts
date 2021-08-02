@@ -10,6 +10,7 @@ export declare class Provider {
     constructor(conflux: Conflux);
     getBalance(address: string, epochNumber?: EpochNumber): Promise<BigNumber>;
     getBlockNumber(): Promise<number>;
+    getBlock(which: number): Promise<any>;
     getTransactionReceipt(transactionHash: string): Promise<any>;
     getCode(address: string, defaultEpoch?: EpochNumber | undefined): Promise<string>;
     on(...argz: any): void;

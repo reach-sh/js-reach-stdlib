@@ -147,11 +147,15 @@ export var deferContract = function(shouldError, implP, implNow) {
     // @ts-ignore
     creationTime: delay('creationTime'),
     // @ts-ignore
+    creationSecs: delay('creationSecs'),
+    // @ts-ignore
     sendrecv: mnow('sendrecv'),
     // @ts-ignore
     recv: mnow('recv'),
     // @ts-ignore
-    wait: not_yet('wait'),
+    waitTime: not_yet('waitTime'),
+    // @ts-ignore
+    waitSecs: not_yet('waitSecs'),
     // @ts-ignore
     iam: mnow('iam'),
     // @ts-ignore
@@ -181,9 +185,11 @@ export var deferContract = function(shouldError, implP, implNow) {
   return {
     sendrecv: wrap('sendrecv'),
     recv: wrap('recv'),
-    wait: wrap('wait'),
+    waitTime: wrap('waitTime'),
+    waitSecs: wrap('waitSecs'),
     getInfo: wrap('getInfo'),
     creationTime: wrap('creationTime'),
+    creationSecs: wrap('creationSecs'),
     iam: wrap('iam'),
     selfAddress: wrap('selfAddress'),
     getViews: wrap('getViews'),
@@ -316,5 +322,81 @@ export var checkVersion = function(actual, expected, label) {
     var more = older ? "update your compiler and recompile!" : "updated your standard library and rerun!";
     throw Error("This Reach compiled " + label + " does not match the expectations of this Reach standard library: expected " + expected + ", but got " + actual + "; " + more);
   }
+};
+var argHelper = function(xs, f, op) {
+  if (xs.length == 0) {
+    return undefined;
+  }
+  return xs.reduce(function(accum, x) {
+    return op(f(x), f(accum)) ? x : accum;
+  }, xs[0]);
+};
+export var argMax = function(xs, f) {
+  return argHelper(xs, f, function(a, b) { return a > b; });
+};
+export var argMin = function(xs, f) {
+  return argHelper(xs, f, function(a, b) { return a < b; });
+};
+export var make_newTestAccounts = function(newTestAccount) {
+  return function(k, bal) {
+    return Promise.all((new Array(k)).fill(1).map(function(_) { return newTestAccount(bal); }));
+  };
+};
+export var make_waitUntilX = function(label, getCurrent, step) {
+  return function(target, onProgress) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var onProg, current, notify;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            onProg = onProgress || (function() {});
+            return [4 /*yield*/ , getCurrent()];
+          case 1:
+            current = _a.sent();
+            notify = function() {
+              var o = { current: current, target: target };
+              debug("waitUntilX:", label, o);
+              onProg(o);
+            };
+            _a.label = 2;
+          case 2:
+            if (!current.lt(target)) return [3 /*break*/ , 4];
+            return [4 /*yield*/ , step(current.add(1))];
+          case 3:
+            current = _a.sent();
+            notify();
+            return [3 /*break*/ , 2];
+          case 4:
+            notify();
+            return [2 /*return*/ , current];
+        }
+      });
+    });
+  };
+};
+export var checkTimeout = function(getTimeSecs, timeoutAt, nowTimeN) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var mode, val, nowTime, nowSecs;
+    return __generator(this, function(_a) {
+      switch (_a.label) {
+        case 0:
+          if (!timeoutAt) {
+            return [2 /*return*/ , false];
+          }
+          mode = timeoutAt[0], val = timeoutAt[1];
+          nowTime = bigNumberify(nowTimeN);
+          if (!(mode === 'time')) return [3 /*break*/ , 1];
+          return [2 /*return*/ , val.lt(nowTime)];
+        case 1:
+          if (!(mode === 'secs')) return [3 /*break*/ , 3];
+          return [4 /*yield*/ , getTimeSecs(nowTime)];
+        case 2:
+          nowSecs = _a.sent();
+          return [2 /*return*/ , val.lt(nowSecs)];
+        case 3:
+          throw new Error("invalid TimeArg mode");
+      }
+    });
+  });
 };
 //# sourceMappingURL=shared_impl.js.map
