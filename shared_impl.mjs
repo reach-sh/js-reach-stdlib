@@ -380,19 +380,20 @@ export var checkTimeout = function(getTimeSecs, timeoutAt, nowTimeN) {
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
+          debug('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
           if (!timeoutAt) {
             return [2 /*return*/ , false];
           }
           mode = timeoutAt[0], val = timeoutAt[1];
           nowTime = bigNumberify(nowTimeN);
           if (!(mode === 'time')) return [3 /*break*/ , 1];
-          return [2 /*return*/ , val.lt(nowTime)];
+          return [2 /*return*/ , val.lte(nowTime)];
         case 1:
           if (!(mode === 'secs')) return [3 /*break*/ , 3];
           return [4 /*yield*/ , getTimeSecs(nowTime)];
         case 2:
           nowSecs = _a.sent();
-          return [2 /*return*/ , val.lt(nowSecs)];
+          return [2 /*return*/ , val.lte(nowSecs)];
         case 3:
           throw new Error("invalid TimeArg mode");
       }
