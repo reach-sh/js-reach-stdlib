@@ -1,6 +1,8 @@
 import { encode, decode } from './cfxaddr_index';
+import { debug } from './shared_impl';
 // XXX check if networkId is "correct"?
 export function address_cfxStandardize(addrC) {
+    debug("address_cfxStandardize", { addrC: addrC });
     var pieces = addrC.split(':');
     // XXX Missing type chunk means assume it's a user (?)
     // XXX would it be better for our purposes to strip the type out instead?

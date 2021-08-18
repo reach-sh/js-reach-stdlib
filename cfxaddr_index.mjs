@@ -6,6 +6,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from) {
 // lightly adapted from @conflux-dev/conflux-address-js@1.0.0
 // @ts-nocheck
 import { ALPHABET, ALPHABET_MAP, polyMod, convertBit } from './cfxaddr_base32.mjs';
+import { debug } from './shared_impl.mjs';
 var VERSION_BYTE = 0;
 var NET_ID_LIMIT = 0xFFFFFFFF;
 
@@ -72,8 +73,7 @@ function getAddressType(hexAddress) {
   }
 }
 
-function encode(hexAddress, netId, verbose) {
-  if (verbose === void 0) { verbose = false; }
+function encode(hexAddress, netId) {
   if (!(hexAddress instanceof Buffer)) {
     if (hexAddress instanceof Uint8Array) {
       hexAddress = Buffer.from(hexAddress);
@@ -93,12 +93,11 @@ function encode(hexAddress, netId, verbose) {
   var checksum5Bits = convertBit(checksumBytes, 8, 5, true);
   var payload = payload5Bits.map(function(byte) { return ALPHABET[byte]; }).join('');
   var checksum = checksum5Bits.map(function(byte) { return ALPHABET[byte]; }).join('');
-  return verbose ?
-    netName + ":TYPE." + addressType + ":" + payload + checksum :
-    (netName + ":" + payload + checksum).toLowerCase();
+  return netName + ":TYPE." + addressType + ":" + payload + checksum;
 }
 
 function decode(address) {
+  debug("decode", { address: address });
   // don't allow mixed case
   var lowered = address.toLowerCase();
   var uppered = address.toUpperCase();
@@ -130,8 +129,12 @@ function decode(address) {
   var hexAddress = Buffer.from(addressBytes);
   var netId = decodeNetId(netName.toLowerCase());
   var type = getAddressType(hexAddress);
-  if (shouldHaveType && "type." + type + ":" !== shouldHaveType.toLowerCase()) {
-    throw new Error('Type of address doesn\'t match');
+  if (shouldHaveType) {
+    var actual = "type." + type + ":";
+    var expected = shouldHaveType.toLowerCase();
+    if (actual !== expected) {
+      throw new Error("Type of address doesn't match, got '" + actual + "', expected '" + expected + "'");
+    }
   }
   var bigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits), [0]), payload5Bits), checksum5Bits));
   if (Number(bigInt)) {

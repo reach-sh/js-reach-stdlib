@@ -1,6 +1,6 @@
 export * from './CFX_compiled';
 export declare const connector = "CFX";
-export declare const getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
+export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQueryLowerBound: (networkTime: number | import("ethers").BigNumber) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
     random: () => import("ethers").BigNumber;
 }, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, getSignStrategy: () => string, setSignStrategy: (ss: string) => void, balanceOf: (acc: any, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: {
     address?: string | undefined;

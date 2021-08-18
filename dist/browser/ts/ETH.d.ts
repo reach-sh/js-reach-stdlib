@@ -1,7 +1,7 @@
 import * as ethImpl from './ETH_impl';
 export * from './ETH_compiled';
 export declare const connector = "ETH";
-export declare const getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
+export declare const getQueryLowerBound: () => ethImpl.ethers.BigNumber, setQueryLowerBound: (networkTime: number | ethImpl.ethers.BigNumber) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
     random: () => ethImpl.ethers.BigNumber;
 }, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, getSignStrategy: () => string, setSignStrategy: (ss: string) => void, balanceOf: (acc: any, token?: string | false) => Promise<ethImpl.ethers.BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: {
     address?: string | undefined;

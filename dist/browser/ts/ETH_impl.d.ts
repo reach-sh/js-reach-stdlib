@@ -41,4 +41,5 @@ export declare const providerLib: {
 };
 export declare const standardUnit = "ETH";
 export declare const atomicUnit = "WEI";
+export declare const validQueryWindow = true;
 //# sourceMappingURL=ETH_impl.d.ts.map

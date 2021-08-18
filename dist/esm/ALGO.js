@@ -514,6 +514,7 @@ function compileFor(bin, info) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    debug("compileFor", info, typeof (info), Number.isInteger(info));
                     if (!Number.isInteger(info)) {
                         throw Error("This Reach standard library cannot communicate with this contract, because it was deployed with an earlier version of Reach.");
                     }
@@ -627,10 +628,23 @@ var chooseMinRoundTxn = function (ptxns) {
 var chooseMaxRoundTxn = function (ptxns) {
     return argMax(ptxns, function (x) { return x['confirmed-round']; });
 };
+var _h = replaceableThunk(function () { return 0; }), _getQueryLowerBound = _h[0], _setQueryLowerBound = _h[1];
+export function getQueryLowerBound() {
+    return bigNumberify(_getQueryLowerBound());
+}
+export function setQueryLowerBound(networkTime) {
+    networkTime = typeof networkTime === 'number' ? networkTime
+        : networkTime._isBigNumber ? networkTime.toNumber()
+            : networkTime;
+    if (!(typeof networkTime === 'number')) {
+        throw Error("Expected number or BigNumber, but got " + networkTime + " : " + typeof networkTime);
+    }
+    _setQueryLowerBound(networkTime);
+}
 var EventCache = /** @class */ (function () {
     function EventCache() {
         this.cache = [];
-        this.currentRound = 0;
+        this.currentRound = _getQueryLowerBound();
         this.cache = [];
     }
     EventCache.prototype.query = function (dhead, ApplicationID, roundInfo, pred) {
@@ -934,7 +948,7 @@ export function setProviderByName(providerName) {
 }
 // eslint-disable-next-line max-len
 var rawFaucetDefaultMnemonic = 'around sleep system young lonely length mad decline argue army veteran knee truth sell hover any measure audit page mammal treat conduct marble above shell';
-var _h = replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+var _j = replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
     var FAUCET;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -947,7 +961,7 @@ var _h = replaceableThunk(function () { return __awaiter(void 0, void 0, void 0,
             case 1: return [2 /*return*/, _a.sent()];
         }
     });
-}); }), getFaucet = _h[0], setFaucet_ = _h[1];
+}); }), getFaucet = _j[0], setFaucet_ = _j[1];
 var settedFaucet = false;
 var setFaucet = function (x) {
     settedFaucet = true;

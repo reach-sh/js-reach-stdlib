@@ -4,15 +4,9 @@ import ETHstdlib from './stdlib_sol.mjs';
 import algosdk from 'algosdk';
 import real_ethers from 'ethers';
 import * as cfxers from './cfxers.mjs';
-// import type { EthersLike } from './ETH_like_interfaces.mjs';
 
-export default async function(name, sym) {
-  // NOTE This does not work in the browser, because process.env not directly available to libs; but we don't care because this is just for testing
-  const stdlib = await stdlib_loader.loadStdlib();
-
-  const startingBalance = stdlib.parseCurrency(10);
+export default async function(stdlib, accCreator, name, sym) {
   console.log(`Launching token, ${name} (${sym})`);
-  const accCreator = await stdlib.newTestAccount(startingBalance);
 
   const ETH_like_launchToken = async (ethers /*: EthersLike */ ) => {
     const addr = (acc) => acc.networkAccount.address;
@@ -22,7 +16,7 @@ export default async function(name, sym) {
     const factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);
     console.log(`${sym}: deploy`);
     const supply = ethers.BigNumber.from(2).pow(256).sub(1);
-    const contract = await factory.deploy(name, sym, [], [], supply);
+    const contract = await factory.deploy(name, sym, '', '', supply);
     console.log(`${sym}: wait for deploy: ${contract.deployTransaction.hash}`);
     const deploy_r = await contract.deployTransaction.wait();
     console.log(`${sym}: saw deploy: ${deploy_r.blockNumber}`);

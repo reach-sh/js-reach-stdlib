@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.atomicUnit = exports.standardUnit = exports.providerLib = exports.ethers = exports.setProvider = exports.getProvider = exports.isWindowProvider = exports.isIsolatedNetwork = exports.setProviderByName = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.ethLikeCompiled = void 0;
+exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports.providerLib = exports.ethers = exports.setProvider = exports.getProvider = exports.isWindowProvider = exports.isIsolatedNetwork = exports.setProviderByName = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.ethLikeCompiled = void 0;
 var ethers_1 = require("ethers");
 exports.ethers = ethers_1.ethers;
 var url_1 = __importDefault(require("url"));
@@ -295,7 +295,7 @@ function envDefaultsETH(env) {
         return { ETH_NET: ETH_NET, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else if (shared_impl_1.truthyEnv(ETH_NODE_URI)) {
-        var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'no');
+        var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'yes');
         return { ETH_NODE_URI: ETH_NODE_URI, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {
@@ -303,13 +303,7 @@ function envDefaultsETH(env) {
             return windowProviderEnv(REACH_ISOLATED_NETWORK);
         }
         else {
-            var REACH_DO_WAIT_PORT = env.REACH_DO_WAIT_PORT;
-            if (shared_impl_1.truthyEnv(REACH_DO_WAIT_PORT)) {
-                return __assign(__assign({}, localhostProviderEnv), { REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT });
-            }
-            else {
-                return localhostProviderEnv;
-            }
+            return localhostProviderEnv;
         }
     }
 }
@@ -409,4 +403,5 @@ exports.providerLib = {
 };
 exports.standardUnit = 'ETH';
 exports.atomicUnit = 'WEI';
+exports.validQueryWindow = true;
 //# sourceMappingURL=ETH_impl.js.map

@@ -82,6 +82,8 @@ declare const setAlgoSigner: (val: Promise<AlgoSigner>) => void;
 export { setAlgoSigner };
 export declare const waitForConfirmation: (txId: TxId, untilRound: number | undefined) => Promise<TxnInfo>;
 export declare const getTxnParams: () => Promise<TxnParams>;
+export declare function getQueryLowerBound(): BigNumber;
+export declare function setQueryLowerBound(networkTime: BigNumber | number): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
 export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;

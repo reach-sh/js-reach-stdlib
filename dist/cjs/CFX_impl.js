@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 exports.__esModule = true;
-exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
+exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports.setProvider = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
 var cfxers = __importStar(require("./cfxers"));
 exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
@@ -69,22 +69,23 @@ var shim_1 = require("./shim");
 var waitPort_1 = __importDefault(require("./waitPort"));
 var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
+var ConnectorMode_1 = require("./ConnectorMode");
 var Conflux = js_conflux_sdk_1["default"].Conflux;
 function notYetSupported(label) {
     throw Error(label + " not yet supported on CFX");
 }
-// XXX incorporate these into setProviderByEnv
+function throwError(msg) {
+    throw Error(msg);
+}
 var DEFAULT_CFX_NODE_URI = 'http://localhost:12537';
 var DEFAULT_CFX_NETWORK_ID = '999';
-var CFX_NODE_URI = shared_impl_1.envDefault(shim_1.process.env.CFX_NODE_URI, DEFAULT_CFX_NODE_URI);
-var CFX_NETWORK_ID = shared_impl_1.envDefault(shim_1.process.env.CFX_NETWORK_ID, DEFAULT_CFX_NETWORK_ID);
-var networkId = parseInt(CFX_NETWORK_ID);
 function isIsolatedNetwork() {
-    return true; // XXX
+    return shared_impl_1.truthyEnv(getProviderEnv().REACH_ISOLATED_NETWORK);
 }
 exports.isIsolatedNetwork = isIsolatedNetwork;
 function isWindowProvider() {
-    return true; // XXX
+    var env = getProviderEnv();
+    return 'CFX_NET' in env && env.CFX_NET === 'window' && !!shim_1.window.conflux;
 }
 exports.isWindowProvider = isWindowProvider;
 // /**
@@ -195,16 +196,20 @@ exports._getDefaultFaucetNetworkAccount = shared_impl_1.memoizeThunk(function ()
         }
     });
 }); });
-function waitCaughtUp(provider) {
+function waitCaughtUp(provider, env) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var maxTries, waitMs, err, tries, faddr, fbal, failMsg, w, txn, t, e_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0: return [4 /*yield*/, waitPort_1["default"](CFX_NODE_URI)];
+                case 0:
+                    if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && shared_impl_1.truthyEnv(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 2];
+                    return [4 /*yield*/, waitPort_1["default"](env.CFX_NODE_URI)];
                 case 1:
                     _b.sent();
-                    if (!isIsolatedNetwork()) return [3 /*break*/, 11];
+                    _b.label = 2;
+                case 2:
+                    if (!isIsolatedNetwork()) return [3 /*break*/, 12];
                     // XXX this doesn't work with setFaucet; requires the default faucet to be used
                     // But we can't call getFaucet() or _getDefaultFaucetNetworkAccount() here because
                     // those (if left to defaults) call getProvider which calls this fn (waitCaughtUp).
@@ -215,20 +220,20 @@ function waitCaughtUp(provider) {
                     waitMs = 1000;
                     err = null;
                     tries = 0;
-                    _b.label = 2;
-                case 2:
-                    if (!(tries < maxTries)) return [3 /*break*/, 10];
-                    if (!err) return [3 /*break*/, 4];
+                    _b.label = 3;
+                case 3:
+                    if (!(tries < maxTries)) return [3 /*break*/, 11];
+                    if (!err) return [3 /*break*/, 5];
                     shared_impl_1.debug("waitCaughtUp: waiting some more", { waitMs: waitMs, tries: tries, maxTries: maxTries, err: err });
                     return [4 /*yield*/, await_timeout_1["default"].set(waitMs)];
-                case 3:
-                    _b.sent(); // wait 1s between tries
-                    _b.label = 4;
                 case 4:
-                    _b.trys.push([4, 8, , 9]);
+                    _b.sent(); // wait 1s between tries
+                    _b.label = 5;
+                case 5:
+                    _b.trys.push([5, 9, , 10]);
                     faddr = defaultFaucetWallet.getAddress();
                     return [4 /*yield*/, ((_a = defaultFaucetWallet.provider) === null || _a === void 0 ? void 0 : _a.conflux.getBalance(faddr))];
-                case 5:
+                case 6:
                     fbal = _b.sent();
                     shared_impl_1.debug("Faucet bal", fbal);
                     // @ts-ignore
@@ -241,64 +246,241 @@ function waitCaughtUp(provider) {
                     txn = { to: w.getAddress(), value: '1' };
                     shared_impl_1.debug("sending dummy txn", txn);
                     return [4 /*yield*/, defaultFaucetWallet.sendTransaction(txn)];
-                case 6:
+                case 7:
                     t = _b.sent();
                     return [4 /*yield*/, t.wait()];
-                case 7:
+                case 8:
                     _b.sent();
                     return [2 /*return*/];
-                case 8:
+                case 9:
                     e_1 = _b.sent();
                     // TODO: only loop again if we detect that it's the "not caught up yet" error
                     //   err: RPCError: Request rejected due to still in the catch up mode.
                     //   { code: -32077 }
                     err = e_1;
-                    return [3 /*break*/, 9];
-                case 9:
-                    tries++;
-                    return [3 /*break*/, 2];
+                    return [3 /*break*/, 10];
                 case 10:
+                    tries++;
+                    return [3 /*break*/, 3];
+                case 11:
                     if (err)
                         throw err;
-                    _b.label = 11;
-                case 11: return [2 /*return*/];
+                    _b.label = 12;
+                case 12: return [2 /*return*/];
             }
         });
     });
 }
 var _b = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var conflux, provider;
+    var fullEnv, provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                conflux = new Conflux({
-                    url: CFX_NODE_URI,
-                    // logger: console,
-                    networkId: networkId
-                });
-                provider = new cfxers.providers.Provider(conflux);
+                fullEnv = getProviderEnv();
+                return [4 /*yield*/, waitProviderFromEnv(fullEnv)];
+            case 1:
+                provider = _a.sent();
+                // XXX disentangle the places where we waitProvider vs waitCaughtUp
                 // XXX is there a better place to wait for this
                 // such that toying with things at the repl doesn't hang if no connection is available?
-                return [4 /*yield*/, waitCaughtUp(provider)];
-            case 1:
+                return [4 /*yield*/, waitCaughtUp(provider, fullEnv)];
+            case 2:
+                // XXX disentangle the places where we waitProvider vs waitCaughtUp
                 // XXX is there a better place to wait for this
                 // such that toying with things at the repl doesn't hang if no connection is available?
                 _a.sent();
                 return [2 /*return*/, provider];
         }
     });
-}); }), getProvider = _b[0], setProvider = _b[1];
+}); }), getProvider = _b[0], _setProvider = _b[1];
+function setProvider(provider) {
+    _setProvider(provider);
+    if (!_providerEnv) {
+        // this circumstance is weird and maybe we should handle it better
+        // process.env isn't available in browser so we try to avoid relying on it here.
+        setProviderEnv({
+            // @ts-ignore
+            CFX_NET: '__custom_unspecified__',
+            REACH_CONNECTOR_MODE: 'CFX-unspecified',
+            REACH_ISOLATED_NETWORK: 'no'
+        });
+    }
+}
+exports.setProvider = setProvider;
+;
+function connectorModeIsolatedNetwork(cm) {
+    switch (cm) {
+        case 'CFX-devnet': return 'yes';
+        default: return 'no';
+    }
+}
+function guessConnectorMode(env) {
+    if ('CFX_NODE_URI' in env && env.CFX_NODE_URI) {
+        // take a guess if CFX_NODE_URI is set
+        return env.CFX_NODE_URI.toLowerCase().includes('localhost') ? 'CFX-devnet' : 'CFX-live';
+    }
+    else {
+        // abstain from guessing
+        return undefined;
+    }
+}
+// XXX less copy/paste from ETH_impl
+function envDefaultsCFX(env) {
+    var CFX_NET = env.CFX_NET, CFX_NODE_URI = env.CFX_NODE_URI, CFX_NETWORK_ID = env.CFX_NETWORK_ID;
+    var cm = shared_impl_1.envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+    var REACH_CONNECTOR_MODE = shared_impl_1.envDefault(cm, ConnectorMode_1.canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'CFX'));
+    var isolatedDefault = connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
+    // XXX
+    // CFX_NET === 'window' || window.conflux ? (windowLooksIsolated() ? 'yes' : 'no')
+    var REACH_ISOLATED_NETWORK = shared_impl_1.envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+    var CFX_LOG = shared_impl_1.envDefault(env.CFX_LOG, 'no');
+    if (shared_impl_1.truthyEnv(CFX_NET) && CFX_NET === 'window') {
+        return { CFX_NET: CFX_NET, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
+    }
+    else if (shared_impl_1.truthyEnv(CFX_NODE_URI)) {
+        var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'yes');
+        return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: CFX_NETWORK_ID, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
+    }
+    else {
+        if (shim_1.window.conflux) {
+            return localhostProviderEnv;
+            // XXX instead of this ^ support using window.conflux as provider
+            // return notYetSupported(`window.conflux`);
+            // return windowProviderEnv(REACH_ISOLATED_NETWORK);
+        }
+        else {
+            return localhostProviderEnv;
+        }
+    }
+}
+// Avoid using _providerEnv directly; use get/set
+// We don't use replaceableThunk because slightly more nuanced inspection needs to be possible.
+var _providerEnv;
+function getProviderEnv() {
+    if (!_providerEnv) {
+        // We only fall back on process.env if there no setProviderEnv occurrs
+        var env = envDefaultsCFX(shim_1.process.env);
+        _providerEnv = env;
+    }
+    return _providerEnv;
+}
+function setProviderEnv(env) {
+    if (_providerEnv) {
+        throw Error("setProviderEnv called after it was already set");
+    }
+    _providerEnv = env;
+    if ('CFX_NETWORK_ID' in env) {
+        try {
+            var networkId = parseInt(env.CFX_NETWORK_ID);
+            ethLikeCompiled.setNetworkId(networkId);
+        }
+        catch (_) {
+            throw Error("Invalid CFX_NETWORK_ID='" + env.CFX_NETWORK_ID + "'");
+        }
+    }
+}
+// XXX less copy/pasta from ETH_impl
+function waitProviderFromEnv(env) {
+    return __awaiter(this, void 0, void 0, function () {
+        var CFX_NODE_URI_1, CFX_NETWORK_ID_1, CFX_LOG_1, REACH_DO_WAIT_PORT_1, CFX_NET, conflux;
+        var _this = this;
+        return __generator(this, function (_a) {
+            if ('CFX_NODE_URI' in env && env.CFX_NODE_URI) {
+                CFX_NODE_URI_1 = env.CFX_NODE_URI, CFX_NETWORK_ID_1 = env.CFX_NETWORK_ID, CFX_LOG_1 = env.CFX_LOG, REACH_DO_WAIT_PORT_1 = env.REACH_DO_WAIT_PORT;
+                return [2 /*return*/, (function () { return __awaiter(_this, void 0, void 0, function () {
+                        var networkId, provider;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!shared_impl_1.truthyEnv(REACH_DO_WAIT_PORT_1)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, waitPort_1["default"](CFX_NODE_URI_1)];
+                                case 1:
+                                    _a.sent();
+                                    _a.label = 2;
+                                case 2:
+                                    networkId = CFX_NETWORK_ID_1 ? parseInt(CFX_NETWORK_ID_1) : undefined;
+                                    shared_impl_1.debug("waitProviderFromEnv", "new Conflux", { url: CFX_NODE_URI_1, networkId: networkId });
+                                    provider = new cfxers.providers.Provider(new Conflux({
+                                        url: CFX_NODE_URI_1,
+                                        // XXX pass CFX_LOG around correctly; this isn't working
+                                        logger: shared_impl_1.truthyEnv(CFX_LOG_1) ? console : undefined,
+                                        networkId: networkId
+                                    }));
+                                    // XXX: make some sort of configurable polling interval?
+                                    // provider.pollingInterval = 500; // ms
+                                    return [2 /*return*/, provider];
+                            }
+                        });
+                    }); })()];
+            }
+            else if ('CFX_NET' in env && env.CFX_NET) {
+                CFX_NET = env.CFX_NET;
+                if (CFX_NET === 'window') {
+                    conflux = shim_1.window.conflux;
+                    if (conflux) {
+                        return [2 /*return*/, (function () { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    return [2 /*return*/, notYetSupported("using window.conflux")];
+                                });
+                            }); })()];
+                    }
+                    else {
+                        throw Error("window.conflux is not defined");
+                    }
+                }
+                else {
+                    throw Error("CFX_NET not recognized: '" + CFX_NET + "'");
+                }
+            }
+            else {
+                // This branch should be impossible, but just in case...
+                throw Error("non-empty CFX_NET or CFX_NODE_URI is required, got: " + Object.keys(env));
+            }
+            return [2 /*return*/];
+        });
+    });
+}
 function setProviderByEnv(env) {
-    void (env);
-    return notYetSupported("setProviderByEnv");
+    var fullEnv = envDefaultsCFX(env);
+    setProviderEnv(fullEnv);
+    setProvider(waitProviderFromEnv(fullEnv));
 }
 function setProviderByName(providerName) {
-    void (providerName);
-    return notYetSupported("setProviderByName");
+    var env = providerEnvByName(providerName);
+    setProviderByEnv(env);
 }
+var localhostProviderEnv = {
+    CFX_NODE_URI: DEFAULT_CFX_NODE_URI,
+    CFX_NETWORK_ID: DEFAULT_CFX_NETWORK_ID,
+    CFX_LOG: 'no',
+    REACH_CONNECTOR_MODE: 'CFX-devnet',
+    REACH_DO_WAIT_PORT: 'yes',
+    REACH_ISOLATED_NETWORK: 'yes'
+};
 function providerEnvByName(providerName) {
-    void (providerName);
-    return notYetSupported("providerEnvByName");
+    switch (providerName) {
+        case 'LocalHost': return localhostProviderEnv;
+        case 'window': return notYetSupported("providerEnvByName('window')");
+        case 'MainNet': return providerEnvByName('tethys');
+        case 'TestNet': return cfxProviderEnv('TestNet');
+        case 'tethys': return cfxProviderEnv('tethys');
+        case 'BlockNumber': return cfxProviderEnv('BlockNumber'); // XXX temporary
+        default: throw Error("Unrecognized provider name: " + providerName);
+    }
+}
+function cfxProviderEnv(network) {
+    var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1 // XXX This isn't actually part of TestNet
+        : network == 'TestNet' ? ['https://test.confluxrpc.com', '1'] // 0x1
+            : network == 'tethys' ? ['https://main.confluxrpc.com', '1029'] // 0x405
+                : throwError("network name not recognized: '" + network + "'"), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
+    return {
+        CFX_NODE_URI: CFX_NODE_URI,
+        CFX_NETWORK_ID: CFX_NETWORK_ID,
+        CFX_LOG: 'no',
+        REACH_DO_WAIT_PORT: 'yes',
+        REACH_CONNECTOR_MODE: 'CFX-live',
+        REACH_ISOLATED_NETWORK: 'no'
+    };
 }
 function getConfluxPortal() {
     return __awaiter(this, void 0, void 0, function () {
@@ -337,4 +519,5 @@ exports.providerLib = {
 exports._warnTxNoBlockNumber = false; // XXX ?
 exports.standardUnit = 'CFX';
 exports.atomicUnit = 'Drip';
+exports.validQueryWindow = 1000;
 //# sourceMappingURL=CFX_impl.js.map

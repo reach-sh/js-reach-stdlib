@@ -16,6 +16,8 @@ var __assign = (this && this.__assign) || function() {
 import ethers from 'ethers';
 import * as shared_backend from './shared_backend.mjs';
 import * as CBR from './CBR.mjs';
+var bigNumberify = CBR.bigNumberify,
+  bigNumberToNumber = CBR.bigNumberToNumber;
 import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, } from './shared_impl.mjs';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
@@ -40,7 +42,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var V_Bool = function(b) {
     return T_Bool.canonicalize(b);
   };
-  var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bv; }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
+  var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bigNumberify(bv); }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
   var V_UInt = function(n) {
     return T_UInt.canonicalize(n);
   };
@@ -247,7 +249,9 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       // corresponding to    vs[0],       vs[1],       and vs[2] respectively.
       // We don't currently use these, but we could.
       unmunge: function(vs) {
-        var i = vs[0];
+        // @ts-ignore
+        var ibn = T_UInt.unmunge(vs[0]);
+        var i = bigNumberToNumber(ibn);
         var label = ascLabels[i];
         var val = vs[i + 1];
         return V_Data(co)([label, co[label].unmunge(val)]);

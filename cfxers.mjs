@@ -81,6 +81,7 @@ import { window } from './shim.mjs';
 // XXX Convenience export, may want to rethink
 export { cfxsdk };
 // This file immitates the ethers.js API
+var waitMs = 25;
 // Recursively stringify BigNumbers
 function unbn(arg) {
   if (!arg)
@@ -221,7 +222,7 @@ var Contract = /** @class */ (function() {
         args[_i] = arguments[_i];
       }
       return __awaiter(_this, void 0, void 0, function() {
-        var txn, argsConformed, cfc, to, data, txnDat, res, transactionHash_1;
+        var txn, argsConformed, cfc, est, est_err, e_1, to, data, txnDat, res, transactionHash_1;
         var _a, _b;
         var _this = this;
         return __generator(this, function(_c) {
@@ -234,20 +235,51 @@ var Contract = /** @class */ (function() {
                 txn = __assign(__assign({ from: from }, txn), { value: (txn.value || '0').toString() });
               }
               args = unbn(args);
+              if (txn.gasLimit !== undefined) {
+                txn.gas = txn.gasLimit;
+              }
+              delete txn.gasLimit;
+              debug("cfxers:handler", fname, 'txn', { txn: txn, args: args });
               argsConformed = conform(args, inputs);
               debug("cfxers:handler", fname, 'conform', argsConformed);
-              if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/ , 3];
+              if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/ , 7];
               debug("cfsers:handler", fname, "waitable");
               cfc = (_a = self._contract[fname]).call.apply(_a, argsConformed);
               debug("cfxers:handler", fname, "cfc", cfc);
+              est = undefined;
+              est_err = undefined;
+              _c.label = 1;
+            case 1:
+              _c.trys.push([1, 3, , 4]);
+              return [4 /*yield*/ , cfc.estimateGasAndCollateral()];
+            case 2:
+              est = _c.sent();
+              return [3 /*break*/ , 4];
+            case 3:
+              e_1 = _c.sent();
+              est_err = e_1;
+              return [3 /*break*/ , 4];
+            case 4:
+              debug("cfxers:handler", fname, { est: est, est_err: est_err });
+              if (est) {
+                if (txn.gas === undefined) {
+                  txn.gas = est.gasLimit;
+                }
+                if (txn.storageLimit === undefined) {
+                  txn.storageLimit = est.storageCollateralized;
+                }
+              }
+              if (txn.storageLimit === undefined || txn.storageLimit == 0) {
+                txn.storageLimit = 2048;
+              }
               to = cfc.to, data = cfc.data;
               txnDat = __assign(__assign({}, txn), { to: to, data: data });
               debug("cfxers:handler", fname, "txnDat", txnDat);
               return [4 /*yield*/ , _wallet.sendTransaction(__assign({}, txnDat))];
-            case 1:
+            case 5:
               res = _c.sent();
               return [4 /*yield*/ , res.wait()];
-            case 2:
+            case 6:
               transactionHash_1 = (_c.sent()).transactionHash;
               // debug(`cfxers:handler`, fname, 'receipt');
               // debug(transactionReceipt);
@@ -265,10 +297,10 @@ var Contract = /** @class */ (function() {
                   });
                 }
               }];
-            case 3:
+            case 7:
               debug("cfxers:handler", fname, 'view');
               return [4 /*yield*/ , (_b = self._contract[fname]).call.apply(_b, argsConformed)];
-            case 4:
+            case 8:
               // XXX in this case it doesn't return something with `wait`,
               // it just returns the result. Weird design choice, ethers. =/
               // @ts-ignore
@@ -390,7 +422,7 @@ var BrowserWallet = /** @class */ (function() {
   BrowserWallet.prototype.getAddress = function() { return this.address; };
   BrowserWallet.prototype.sendTransaction = function(txnOrig) {
     return __awaiter(this, void 0, void 0, function() {
-      var _a, provider, from, value, txn;
+      var _a, provider, from, txn, hexStringify, value;
       var _this = this;
       return __generator(this, function(_b) {
         switch (_b.label) {
@@ -399,8 +431,12 @@ var BrowserWallet = /** @class */ (function() {
             _a = this, provider = _a.provider, from = _a.address;
             if (!provider)
               throw Error("Impossible: provider is undefined");
-            value = '0x' + window.BigInt(txnOrig.value || '0').toString(16);
-            txn = __assign(__assign({}, txnOrig), { value: value, from: from });
+            txn = __assign(__assign({}, txnOrig), { from: from });
+            hexStringify = function(n) { return '0x' + window.BigInt(n || '0').toString(16); };
+            value = hexStringify(txnOrig.value);
+            txn.value = value;
+            if (txn.storageLimit !== undefined)
+              txn.storageLimit = hexStringify(txn.storageLimit);
             return [4 /*yield*/ , new Promise(function(resolve, reject) {
               _this.cp.sendAsync({
                 method: 'cfx_sendTransaction',
@@ -547,7 +583,7 @@ var waitUntilSendableEpoch = function(provider, addr) {
         case 0:
           if (!!tryGetLock(epochWaitLock, addr)) return [3 /*break*/ , 2];
           // XXX fail after waiting too long?
-          return [4 /*yield*/ , Timeout.set(50)];
+          return [4 /*yield*/ , Timeout.set(waitMs)];
         case 1:
           // XXX fail after waiting too long?
           _a.sent();
@@ -556,9 +592,9 @@ var waitUntilSendableEpoch = function(provider, addr) {
           return [4 /*yield*/ , provider.getBlockNumber()];
         case 3:
           if (!((current = _a.sent()) <= getLastSentAt(addr))) return [3 /*break*/ , 5];
-          return [4 /*yield*/ , Timeout.set(50)];
+          return [4 /*yield*/ , Timeout.set(waitMs)];
         case 4:
-          _a.sent(); // XXX revisit how long to wait?
+          _a.sent();
           return [3 /*break*/ , 2];
         case 5:
           updateSentAt(addr, current);
@@ -571,7 +607,7 @@ var waitUntilSendableEpoch = function(provider, addr) {
 
 function _retryingSendTxn(provider, txnOrig) {
   return __awaiter(this, void 0, void 0, function() {
-    var max_tries, addr, err, txnMut, _loop_1, tries, state_1;
+    var max_tries, addr, err, txnMut, _loop_1, out_tries_1, tries, state_1;
     var _this = this;
     return __generator(this, function(_a) {
       switch (_a.label) {
@@ -581,7 +617,7 @@ function _retryingSendTxn(provider, txnOrig) {
           err = null;
           txnMut = __assign({}, txnOrig);
           _loop_1 = function(tries) {
-            var transactionHashP_1, transactionHash_3, e_1;
+            var transactionHashP_1, transactionHash_3, e_2, es;
             return __generator(this, function(_b) {
               switch (_b.label) {
                 case 0:
@@ -590,37 +626,46 @@ function _retryingSendTxn(provider, txnOrig) {
                   _b.sent();
                   if (!err) return [3 /*break*/ , 3];
                   // XXX is this still needed?
-                  return [4 /*yield*/ , Timeout.set(1000)];
+                  return [4 /*yield*/ , Timeout.set(waitMs)];
                 case 2:
                   // XXX is this still needed?
-                  _b.sent(); // XXX shorten this?
+                  _b.sent();
                   _b.label = 3;
                 case 3:
                   _b.trys.push([3, 5, , 6]);
                   // Note: {...txn} because conflux is going to mutate it >=[
                   txnMut = __assign({}, txnOrig);
+                  debug("_retryingSendTxn attempt", txnOrig);
                   transactionHashP_1 = provider.conflux.sendTransaction(txnMut);
                   return [4 /*yield*/ , transactionHashP_1];
                 case 4:
                   transactionHash_3 = _b.sent();
-                  // debug(`_retryingSendTxn success`, {txnOrig, txnMut, transactionHash});
+                  debug("_retryingSendTxn sent", { txnOrig: txnOrig, txnMut: txnMut, transactionHash: transactionHash_3 });
                   updateSentAt(addr, txnMut.epochHeight);
                   return [2 /*return*/ , {
                     value: {
                       transactionHash: transactionHash_3,
                       wait: function() {
                         return __awaiter(_this, void 0, void 0, function() {
+                          var r, e_3, r;
                           return __generator(this, function(_a) {
                             switch (_a.label) {
                               case 0:
-                                // see: https://github.com/Conflux-Chain/js-conflux-sdk/blob/master/docs/how_to_send_tx.md#transactions-stage
-                                // @ts-ignore
-                                return [4 /*yield*/ , transactionHashP_1.executed()];
+                                _a.trys.push([0, 2, , 4]);
+                                return [4 /*yield*/ , transactionHashP_1.executed(1000, 60 * 1000)];
                               case 1:
-                                // see: https://github.com/Conflux-Chain/js-conflux-sdk/blob/master/docs/how_to_send_tx.md#transactions-stage
-                                // @ts-ignore
-                                _a.sent();
+                                r = _a.sent();
+                                debug("_retryingSendTxn receipt good", r);
                                 return [2 /*return*/ , { transactionHash: transactionHash_3 }];
+                              case 2:
+                                e_3 = _a.sent();
+                                return [4 /*yield*/ , provider.conflux.getTransactionReceipt(transactionHash_3)];
+                              case 3:
+                                r = _a.sent();
+                                debug("_retryingSendTxn receipt bad", r);
+                                throw e_3;
+                              case 4:
+                                return [2 /*return*/ ];
                             }
                           });
                         });
@@ -628,10 +673,23 @@ function _retryingSendTxn(provider, txnOrig) {
                     }
                   }];
                 case 5:
-                  e_1 = _b.sent();
-                  err = e_1;
-                  return [2 /*return*/ , "continue"];
+                  e_2 = _b.sent();
+                  err = e_2;
+                  es = e_2.toString();
+                  if (es.includes("stale nonce") || es.includes("same nonce")) {
+                    debug("_retryingSendTxn: nonce error, giving more tries");
+                    tries--;
+                  }
+                  debug("_retryingSendTxn fail", {
+                    txnOrig: txnOrig,
+                    txnMut: txnMut,
+                    e: e_2,
+                    tries: tries,
+                    max_tries: max_tries
+                  });
+                  return [2 /*return*/ , (out_tries_1 = tries, "continue")];
                 case 6:
+                  out_tries_1 = tries;
                   return [2 /*return*/ ];
               }
             });
@@ -643,6 +701,7 @@ function _retryingSendTxn(provider, txnOrig) {
           return [5 /*yield**/ , _loop_1(tries)];
         case 2:
           state_1 = _a.sent();
+          tries = out_tries_1;
           if (typeof state_1 === "object")
             return [2 /*return*/ , state_1.value];
           _a.label = 3;
@@ -660,17 +719,16 @@ function _retryingSendTxn(provider, txnOrig) {
 
 function waitReceipt(provider, txnHash) {
   return __awaiter(this, void 0, void 0, function() {
-    var maxTries, waitMs, tries, r;
+    var maxTries, tries, r;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
           maxTries = 400;
-          waitMs = 50;
           tries = 1;
           _a.label = 1;
         case 1:
           if (!(tries <= maxTries)) return [3 /*break*/ , 5];
-          return [4 /*yield*/ , provider.conflux.getTransactionReceipt(txnHash)];
+          return [4 /*yield*/ , provider.getTransactionReceipt(txnHash)];
         case 2:
           r = _a.sent();
           if (r) {

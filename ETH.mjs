@@ -4,7 +4,9 @@ export * from './ETH_compiled.mjs';
 export var connector = 'ETH';
 var ethLike = makeEthLike(ethImpl);
 // The following should be identical to CFX.ts
-export var getProvider = ethLike.getProvider,
+export var getQueryLowerBound = ethLike.getQueryLowerBound,
+  setQueryLowerBound = ethLike.setQueryLowerBound,
+  getProvider = ethLike.getProvider,
   setProvider = ethLike.setProvider,
   randomUInt = ethLike.randomUInt,
   hasRandom = ethLike.hasRandom,

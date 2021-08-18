@@ -67,6 +67,7 @@ export interface EthLikeArgs {
     _warnTxNoBlockNumber?: boolean;
     standardUnit: string;
     atomicUnit: string;
+    validQueryWindow: number | true;
 }
 export interface EthLikeCompiledArgs {
     T_Address: ETH_Ty<string, string>;

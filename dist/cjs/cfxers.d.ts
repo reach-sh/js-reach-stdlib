@@ -13,7 +13,7 @@ interface IContract {
 export declare class Contract implements IContract {
     [k: string]: any;
     _abi: any[];
-    _wallet: Wallet;
+    _wallet: IWallet;
     _receiptP?: Promise<any>;
     _contract: cfxsdk.Contract;
     address?: string;
@@ -25,7 +25,7 @@ export declare class Contract implements IContract {
         }>;
     };
     interface: ethers.utils.Interface;
-    constructor(address: string | null | undefined, abi: string | any[], wallet: Wallet, receiptP?: Promise<any>, hash?: string);
+    constructor(address: string | null | undefined, abi: string | any[], wallet: IWallet, receiptP?: Promise<any>, hash?: string);
     _makeHandler(abiFn: any): any;
 }
 export declare class ContractFactory {

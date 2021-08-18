@@ -307,18 +307,13 @@ function envDefaultsETH(env) {
   if (truthyEnv(ETH_NET)) {
     return { ETH_NET: ETH_NET, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
   } else if (truthyEnv(ETH_NODE_URI)) {
-    var REACH_DO_WAIT_PORT = envDefault(env.REACH_DO_WAIT_PORT, 'no');
+    var REACH_DO_WAIT_PORT = envDefault(env.REACH_DO_WAIT_PORT, 'yes');
     return { ETH_NODE_URI: ETH_NODE_URI, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
   } else {
     if (window.ethereum) {
       return windowProviderEnv(REACH_ISOLATED_NETWORK);
     } else {
-      var REACH_DO_WAIT_PORT = env.REACH_DO_WAIT_PORT;
-      if (truthyEnv(REACH_DO_WAIT_PORT)) {
-        return __assign(__assign({}, localhostProviderEnv), { REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT });
-      } else {
-        return localhostProviderEnv;
-      }
+      return localhostProviderEnv;
     }
   }
 }
@@ -429,4 +424,5 @@ export var providerLib = {
 };
 export var standardUnit = 'ETH';
 export var atomicUnit = 'WEI';
+export var validQueryWindow = true;
 //# sourceMappingURL=ETH_impl.js.map

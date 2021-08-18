@@ -9,6 +9,7 @@ exports.decode = exports.encode = void 0;
 // lightly adapted from @conflux-dev/conflux-address-js@1.0.0
 // @ts-nocheck
 var cfxaddr_base32_1 = require("./cfxaddr_base32");
+var shared_impl_1 = require("./shared_impl");
 var VERSION_BYTE = 0;
 var NET_ID_LIMIT = 0xFFFFFFFF;
 function encodeNetId(netId) {
@@ -70,8 +71,7 @@ function getAddressType(hexAddress) {
             throw new Error('hexAddress should start with 0x0, 0x1 or 0x8');
     }
 }
-function encode(hexAddress, netId, verbose) {
-    if (verbose === void 0) { verbose = false; }
+function encode(hexAddress, netId) {
     if (!(hexAddress instanceof Buffer)) {
         if (hexAddress instanceof Uint8Array) {
             hexAddress = Buffer.from(hexAddress);
@@ -92,12 +92,11 @@ function encode(hexAddress, netId, verbose) {
     var checksum5Bits = cfxaddr_base32_1.convertBit(checksumBytes, 8, 5, true);
     var payload = payload5Bits.map(function (byte) { return cfxaddr_base32_1.ALPHABET[byte]; }).join('');
     var checksum = checksum5Bits.map(function (byte) { return cfxaddr_base32_1.ALPHABET[byte]; }).join('');
-    return verbose
-        ? netName + ":TYPE." + addressType + ":" + payload + checksum
-        : (netName + ":" + payload + checksum).toLowerCase();
+    return netName + ":TYPE." + addressType + ":" + payload + checksum;
 }
 exports.encode = encode;
 function decode(address) {
+    shared_impl_1.debug("decode", { address: address });
     // don't allow mixed case
     var lowered = address.toLowerCase();
     var uppered = address.toUpperCase();
@@ -123,8 +122,12 @@ function decode(address) {
     var hexAddress = Buffer.from(addressBytes);
     var netId = decodeNetId(netName.toLowerCase());
     var type = getAddressType(hexAddress);
-    if (shouldHaveType && "type." + type + ":" !== shouldHaveType.toLowerCase()) {
-        throw new Error('Type of address doesn\'t match');
+    if (shouldHaveType) {
+        var actual = "type." + type + ":";
+        var expected = shouldHaveType.toLowerCase();
+        if (actual !== expected) {
+            throw new Error("Type of address doesn't match, got '" + actual + "', expected '" + expected + "'");
+        }
     }
     var bigInt = cfxaddr_base32_1.polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits), [0]), payload5Bits), checksum5Bits));
     if (Number(bigInt)) {

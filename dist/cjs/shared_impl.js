@@ -154,7 +154,7 @@ var deferContract = function (shouldError, implP, implNow) {
         // @ts-ignore
         selfAddress: mnow('selfAddress'),
         // @ts-ignore
-        getViews: not_yet('getViews'),
+        getViews: mnow('getViews'),
         stdlib: (function () {
             if (implNow.stdlib === undefined) {
                 throw Error("stdlib not defined");

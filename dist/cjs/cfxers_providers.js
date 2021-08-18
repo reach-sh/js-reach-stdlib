@@ -54,14 +54,99 @@ exports.Provider = exports.ethifyTxn = exports.ethifyOkReceipt = void 0;
 var ethers_1 = require("ethers");
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var CFX_util_1 = require("./CFX_util");
-function epochToBlockNumber(x) {
-    return __assign({ blockNumber: x.epochNumber }, x);
+var shared_impl_1 = require("./shared_impl");
+var waitMs = 1;
+function attachBlockNumbers(conflux, xs) {
+    return __awaiter(this, void 0, void 0, function () {
+        function actuallyLookup(blockHash) {
+            return __awaiter(this, void 0, void 0, function () {
+                var block;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            shared_impl_1.debug("actuallyLookup", "block by hash query", blockHash);
+                            return [4 /*yield*/, conflux.getBlockByHash(blockHash)];
+                        case 1:
+                            block = _a.sent();
+                            shared_impl_1.debug("actuallyLookup", "block by hash result", blockHash, block);
+                            // @ts-ignore // XXX requires an update to js-conflux-sdk types
+                            return [2 /*return*/, parseInt(block.blockNumber)];
+                    }
+                });
+            });
+        }
+        function lookup(blockHash) {
+            return __awaiter(this, void 0, void 0, function () {
+                var _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            if (!!(blockHash in cache)) return [3 /*break*/, 2];
+                            _a = cache;
+                            _b = blockHash;
+                            return [4 /*yield*/, actuallyLookup(blockHash)];
+                        case 1:
+                            _a[_b] = _c.sent();
+                            _c.label = 2;
+                        case 2: return [2 /*return*/, cache[blockHash]];
+                    }
+                });
+            });
+        }
+        function attachBlockNumber(x) {
+            return __awaiter(this, void 0, void 0, function () {
+                var blockHash, blockNumber;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (!x.blockNumber) return [3 /*break*/, 1];
+                            return [2 /*return*/, x];
+                        case 1:
+                            if (!x.blockHash) return [3 /*break*/, 3];
+                            blockHash = x.blockHash;
+                            return [4 /*yield*/, lookup(blockHash)];
+                        case 2:
+                            blockNumber = _a.sent();
+                            return [2 /*return*/, __assign(__assign({}, x), { blockNumber: blockNumber })];
+                        case 3: throw Error("No blockNumber or blockHash on log: " + Object.keys(x));
+                    }
+                });
+            });
+        }
+        var cache, out, _a, _b, _i, i, _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    ;
+                    cache = {};
+                    out = [];
+                    _a = [];
+                    for (_b in xs)
+                        _a.push(_b);
+                    _i = 0;
+                    _e.label = 1;
+                case 1:
+                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    i = _a[_i];
+                    _c = out;
+                    _d = i;
+                    return [4 /*yield*/, attachBlockNumber(xs[i])];
+                case 2:
+                    _c[_d] = _e.sent();
+                    _e.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, out];
+            }
+        });
+    });
 }
 function ethifyOkReceipt(receipt) {
     if (receipt.outcomeStatus !== 0) {
         throw Error("Receipt outcomeStatus is nonzero: " + receipt.outcomeStatus);
     }
-    return epochToBlockNumber(__assign({ status: 'ok' }, receipt));
+    return __assign({ status: 'ok' }, receipt);
 }
 exports.ethifyOkReceipt = ethifyOkReceipt;
 function ethifyTxn(txn) {
@@ -98,20 +183,19 @@ var Provider = /** @class */ (function () {
     };
     Provider.prototype.getBlockNumber = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var epochNumber, block;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: 
-                    // Arbitrarily make the user wait.
-                    // This is just because we tend to spam this a lot.
-                    // It can help to increase this to 1000 or more if you need to debug.
-                    return [4 /*yield*/, await_timeout_1["default"].set(50)];
+                    case 0: return [4 /*yield*/, this.conflux.getEpochNumber(CFX_util_1.defaultEpochTag)];
                     case 1:
-                        // Arbitrarily make the user wait.
-                        // This is just because we tend to spam this a lot.
-                        // It can help to increase this to 1000 or more if you need to debug.
-                        _a.sent();
-                        return [4 /*yield*/, this.conflux.getEpochNumber(CFX_util_1.defaultEpochTag)];
-                    case 2: return [2 /*return*/, _a.sent()];
+                        epochNumber = _a.sent();
+                        return [4 /*yield*/, this.conflux.getBlockByEpochNumber(epochNumber, true)];
+                    case 2:
+                        block = _a.sent();
+                        // @ts-ignore
+                        shared_impl_1.debug('getBlockNumber', epochNumber, block.epochNumber, block.blockNumber);
+                        // @ts-ignore
+                        return [2 /*return*/, parseInt(block.blockNumber)];
                 }
             });
         });
@@ -120,21 +204,36 @@ var Provider = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.conflux.getBlockByEpochNumber(which, true)];
-                    case 1: return [2 /*return*/, _a.sent()];
+                    case 0:
+                        shared_impl_1.debug("getBlock", which);
+                        return [4 /*yield*/, this.conflux.getBlockByBlockNumber(which, true)];
+                    case 1: 
+                    // @ts-ignore
+                    return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
     Provider.prototype.getTransactionReceipt = function (transactionHash) {
         return __awaiter(this, void 0, void 0, function () {
-            var r;
+            var r, rbn;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.conflux.getTransactionReceipt(transactionHash)];
+                    case 0: 
+                    // Arbitrarily make the user wait.
+                    return [4 /*yield*/, await_timeout_1["default"].set(waitMs)];
                     case 1:
+                        // Arbitrarily make the user wait.
+                        _a.sent();
+                        return [4 /*yield*/, this.conflux.getTransactionReceipt(transactionHash)];
+                    case 2:
                         r = _a.sent();
-                        return [2 /*return*/, ethifyOkReceipt(r)];
+                        if (!r)
+                            return [2 /*return*/, r];
+                        return [4 /*yield*/, attachBlockNumbers(this.conflux, [r])];
+                    case 3:
+                        rbn = (_a.sent())[0];
+                        return [2 /*return*/, ethifyOkReceipt(rbn)];
                 }
             });
         });
@@ -171,42 +270,29 @@ var Provider = /** @class */ (function () {
     };
     Provider.prototype.getLogs = function (opts) {
         return __awaiter(this, void 0, void 0, function () {
-            var cfxOpts, max_tries, e, tries, err_1;
+            var logs, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        cfxOpts = {
-                            fromEpoch: opts.fromBlock,
-                            toEpoch: opts.toBlock,
-                            address: opts.address,
-                            topics: opts.topics
-                        };
-                        max_tries = 20;
-                        e = null;
-                        tries = 1;
+                        shared_impl_1.debug("getLogs", "opts", opts);
+                        if (opts.fromBlock == 0) {
+                            opts.fromBlock = 1;
+                            shared_impl_1.debug("getLogs", "opts", opts);
+                        }
                         _a.label = 1;
                     case 1:
-                        if (!(tries <= max_tries)) return [3 /*break*/, 7];
-                        _a.label = 2;
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, this.conflux.getLogs(opts)];
                     case 2:
-                        _a.trys.push([2, 4, , 6]);
-                        return [4 /*yield*/, this.conflux.getLogs(cfxOpts)];
-                    case 3: return [2 /*return*/, (_a.sent()).map(epochToBlockNumber)];
+                        logs = _a.sent();
+                        shared_impl_1.debug("getLogs", "result", logs);
+                        return [4 /*yield*/, attachBlockNumbers(this.conflux, logs)];
+                    case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         err_1 = _a.sent();
-                        e = err_1;
-                        // XXX be pickier about which errs we are willing to catch
-                        // XXX find some way to be sure more that `toEpoch` has been executed before trying again
-                        return [4 /*yield*/, await_timeout_1["default"].set(50)];
-                    case 5:
-                        // XXX be pickier about which errs we are willing to catch
-                        // XXX find some way to be sure more that `toEpoch` has been executed before trying again
-                        _a.sent();
-                        return [3 /*break*/, 6];
-                    case 6:
-                        tries++;
-                        return [3 /*break*/, 1];
-                    case 7: throw e;
+                        shared_impl_1.debug("getLogs", "error", err_1);
+                        return [2 /*return*/, []];
+                    case 5: return [2 /*return*/];
                 }
             });
         });

@@ -78,8 +78,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c, _d;
 exports.__esModule = true;
-exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.setIndexer = exports.getIndexer = exports.setAlgodClient = exports.getAlgodClient = exports.setLedger = exports.getLedger = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.getTxnParams = exports.waitForConfirmation = exports.setAlgoSigner = exports.setSignStrategy = exports.getSignStrategy = exports.setWaitPort = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
-exports.reachStdlib = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromAlgoSigner = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = void 0;
+exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.setIndexer = exports.getIndexer = exports.setAlgodClient = exports.getAlgodClient = exports.setLedger = exports.getLedger = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.getTxnParams = exports.waitForConfirmation = exports.setAlgoSigner = exports.setSignStrategy = exports.getSignStrategy = exports.setWaitPort = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
+exports.reachStdlib = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromAlgoSigner = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = void 0;
 exports.connector = 'ALGO';
 // XXX: use @types/algosdk when we can
 var algosdk_1 = __importDefault(require("algosdk"));
@@ -546,6 +546,7 @@ function compileFor(bin, info) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    shared_impl_1.debug("compileFor", info, typeof (info), Number.isInteger(info));
                     if (!Number.isInteger(info)) {
                         throw Error("This Reach standard library cannot communicate with this contract, because it was deployed with an earlier version of Reach.");
                     }
@@ -659,10 +660,25 @@ var chooseMinRoundTxn = function (ptxns) {
 var chooseMaxRoundTxn = function (ptxns) {
     return shared_impl_1.argMax(ptxns, function (x) { return x['confirmed-round']; });
 };
+var _h = shared_impl_1.replaceableThunk(function () { return 0; }), _getQueryLowerBound = _h[0], _setQueryLowerBound = _h[1];
+function getQueryLowerBound() {
+    return shared_user_1.bigNumberify(_getQueryLowerBound());
+}
+exports.getQueryLowerBound = getQueryLowerBound;
+function setQueryLowerBound(networkTime) {
+    networkTime = typeof networkTime === 'number' ? networkTime
+        : networkTime._isBigNumber ? networkTime.toNumber()
+            : networkTime;
+    if (!(typeof networkTime === 'number')) {
+        throw Error("Expected number or BigNumber, but got " + networkTime + " : " + typeof networkTime);
+    }
+    _setQueryLowerBound(networkTime);
+}
+exports.setQueryLowerBound = setQueryLowerBound;
 var EventCache = /** @class */ (function () {
     function EventCache() {
         this.cache = [];
-        this.currentRound = 0;
+        this.currentRound = _getQueryLowerBound();
         this.cache = [];
     }
     EventCache.prototype.query = function (dhead, ApplicationID, roundInfo, pred) {
@@ -971,7 +987,7 @@ function setProviderByName(providerName) {
 exports.setProviderByName = setProviderByName;
 // eslint-disable-next-line max-len
 var rawFaucetDefaultMnemonic = 'around sleep system young lonely length mad decline argue army veteran knee truth sell hover any measure audit page mammal treat conduct marble above shell';
-var _h = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+var _j = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
     var FAUCET;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -984,7 +1000,7 @@ var _h = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, v
             case 1: return [2 /*return*/, _a.sent()];
         }
     });
-}); }), getFaucet = _h[0], setFaucet_ = _h[1];
+}); }), getFaucet = _j[0], setFaucet_ = _j[1];
 exports.getFaucet = getFaucet;
 var settedFaucet = false;
 var setFaucet = function (x) {

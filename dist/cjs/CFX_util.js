@@ -2,8 +2,10 @@
 exports.__esModule = true;
 exports.defaultEpochTag = exports.decodeCfxAddress = exports.encodeCfxAddress = exports.address_cfxStandardize = void 0;
 var cfxaddr_index_1 = require("./cfxaddr_index");
+var shared_impl_1 = require("./shared_impl");
 // XXX check if networkId is "correct"?
 function address_cfxStandardize(addrC) {
+    shared_impl_1.debug("address_cfxStandardize", { addrC: addrC });
     var pieces = addrC.split(':');
     // XXX Missing type chunk means assume it's a user (?)
     // XXX would it be better for our purposes to strip the type out instead?

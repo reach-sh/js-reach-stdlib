@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.T_Address = void 0;
+exports.T_Address = exports.setNetworkId = void 0;
 var eci = __importStar(require("./ETH_compiled_impl"));
 var buffer_1 = __importDefault(require("buffer"));
 var CFX_util_1 = require("./CFX_util");
@@ -41,6 +41,21 @@ var shared_impl_1 = require("./shared_impl");
 var Buffer = buffer_1["default"].Buffer;
 // XXX find a better way to support multiple netIds
 var netId = 999;
+function setNetworkId(networkId) {
+    netId = networkId;
+    exports.T_Address.defaultValue = recomputeDefaultAddr();
+}
+exports.setNetworkId = setNetworkId;
+// XXX this should not be computed at compile time, because it can change based on the netId
+// Note: 0x1 = user, 0x8 = contract
+// https://github.com/resodo/conflux-address-js/blob/0cbbe3d17fbd6cbc2c2fbafc3470ff6087f38087/lib/index.js#L86
+// defaultValue: address_cfxStandardize(address_ethToCfx(eci.T_Address.defaultValue.replace('0x0', '0x1'))),
+// XXX I (Dan) would like to address_cfxStandardize here, but I can't figure out how to disentangle defaultValue
+// so that this addr defaultValue can be different than its ETH-equivalent defaultValue.
+// (0x0 is not considered a valid addr prefix for the new cfx addr style)
+function recomputeDefaultAddr() {
+    return address_ethToCfx(eci.T_Address.defaultValue);
+}
 function address_ethToCfx(addrE) {
     shared_impl_1.debug("address_ethToCfx", "call", addrE);
     addrE = addrE.toLowerCase();
@@ -59,6 +74,7 @@ function address_cfxToEth(addrC) {
     return addrE;
 }
 exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: function (uv) {
+        shared_impl_1.debug("address canonicalize", { uv: uv });
         if (typeof uv === 'string') {
             if (uv.slice(0, 2) === '0x') {
                 var addrC = address_ethToCfx(uv);
@@ -77,15 +93,7 @@ exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: functi
             return exports.T_Address.canonicalize(uobj.address);
         }
         throw Error("TODO: canonicalize non-string addr");
-    }, 
-    // XXX this should not be computed at compile time, because it can change based on the netId
-    // Note: 0x1 = user, 0x8 = contract
-    // https://github.com/resodo/conflux-address-js/blob/0cbbe3d17fbd6cbc2c2fbafc3470ff6087f38087/lib/index.js#L86
-    // defaultValue: address_cfxStandardize(address_ethToCfx(eci.T_Address.defaultValue.replace('0x0', '0x1'))),
-    // XXX I (Dan) would like to address_cfxStandardize here, but I can't figure out how to disentangle defaultValue
-    // so that this addr defaultValue can be different than its ETH-equivalent defaultValue.
-    // (0x0 is not considered a valid addr prefix for the new cfx addr style)
-    defaultValue: address_ethToCfx(eci.T_Address.defaultValue), 
+    }, defaultValue: recomputeDefaultAddr(), 
     // Note: address_cfxToEth is not strictly necessary for munge.
     // ((x) => x) also seems to work.
     // But perhaps CBR for CFX should be the hex string, more like ETH?
