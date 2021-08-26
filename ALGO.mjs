@@ -2130,6 +2130,24 @@ export var createAccount = function() {
     });
   });
 };
+export var canFundFromFaucet = function() {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var faucet, fbal;
+    return __generator(this, function(_a) {
+      switch (_a.label) {
+        case 0:
+          return [4 /*yield*/ , getFaucet()];
+        case 1:
+          faucet = _a.sent();
+          debug('canFundFromFaucet');
+          return [4 /*yield*/ , balanceOf(faucet)];
+        case 2:
+          fbal = _a.sent();
+          return [2 /*return*/ , gt(fbal, 0)];
+      }
+    });
+  });
+};
 export var fundFromFaucet = function(account, value) {
   return __awaiter(void 0, void 0, void 0, function() {
     var faucet, tag;

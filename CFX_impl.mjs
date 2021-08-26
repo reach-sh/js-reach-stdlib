@@ -65,6 +65,8 @@ import waitPort from './waitPort.mjs';
 import cfxsdk from 'js-conflux-sdk';
 import Timeout from 'await-timeout';
 import { canonicalizeConnectorMode } from './ConnectorMode.mjs';
+import buffer from 'buffer';
+var Buffer = buffer.Buffer;
 var Conflux = cfxsdk.Conflux;
 
 function notYetSupported(label) {
@@ -82,6 +84,10 @@ export function isIsolatedNetwork() {
 export function isWindowProvider() {
   var env = getProviderEnv();
   return 'CFX_NET' in env && env.CFX_NET === 'window' && !!window.conflux;
+}
+export function canGetDefaultAccount() {
+  // XXX be pickier
+  return true;
 }
 // /**
 //  * Strategies for deciding what getDefaultAccount returns.
@@ -201,6 +207,71 @@ export var _getDefaultFaucetNetworkAccount = memoizeThunk(function() {
     });
   });
 });
+
+function toHexAddr(cfxAddr) {
+  return '0x' + Buffer.from(
+    // @ts-ignore
+    cfxsdk.address.decodeCfxAddress(cfxAddr).hexAddress).toString('hex').toLowerCase();
+}
+
+function _fundOnCfxTestNet(to, amt) {
+  return __awaiter(this, void 0, void 0, function() {
+    var method, _a, toHex, res, resJson;
+    return __generator(this, function(_b) {
+      switch (_b.label) {
+        case 0:
+          // XXX TestNet faucet only gives out 100 CFX at a time
+          // Should we throw an error if amt !== 100 CFX?
+          void(amt);
+          method = '_fundOnCfxTestNet';
+          if (!to.getAddress) return [3 /*break*/ , 2];
+          return [4 /*yield*/ , to.getAddress()];
+        case 1:
+          _a = _b.sent();
+          return [3 /*break*/ , 3];
+        case 2:
+          _a = to;
+          _b.label = 3;
+        case 3:
+          to = _a;
+          debug({ method: method, to: to });
+          toHex = toHexAddr(to);
+          debug({ method: method, message: 'requesting from testnet faucet', toHex: toHex });
+          return [4 /*yield*/ , window.fetch("http://test-faucet.confluxnetwork.org:18088/dev/ask?address=" + toHex)];
+        case 4:
+          res = _b.sent();
+          return [4 /*yield*/ , res.json()];
+        case 5:
+          resJson = _b.sent();
+          debug({ method: method, message: 'got response from testnet faucet', resJson: resJson });
+          return [2 /*return*/ ];
+      }
+    });
+  });
+}
+export function canFundFromFaucet() {
+  return __awaiter(this, void 0, void 0, function() {
+    var netId;
+    return __generator(this, function(_a) {
+      debug('canFundFromFaucet');
+      netId = ethLikeCompiled.getNetworkId();
+      return [2 /*return*/ , netId == 0x1 || netId == 999];
+    });
+  });
+}
+export function _specialFundFromFaucet() {
+  return __awaiter(this, void 0, void 0, function() {
+    return __generator(this, function(_a) {
+      debug("_specialFundFromFaucet");
+      if (ethLikeCompiled.getNetworkId() == 0x1) {
+        return [2 /*return*/ , _fundOnCfxTestNet];
+      } else {
+        return [2 /*return*/ , null];
+      }
+      return [2 /*return*/ ];
+    });
+  });
+}
 
 function waitCaughtUp(provider, env) {
   var _a;
@@ -479,11 +550,14 @@ function providerEnvByName(providerName) {
     case 'window':
       return notYetSupported("providerEnvByName('window')");
     case 'MainNet':
-      return providerEnvByName('tethys');
+      return notYetSupported("providerEnvByName('MainNet')");
+      // case 'MainNet': return providerEnvByName('tethys');
     case 'TestNet':
-      return cfxProviderEnv('TestNet');
+      return notYetSupported("providerEnvByName('TestNet')");
+      // case 'TestNet': return cfxProviderEnv('TestNet');
     case 'tethys':
-      return cfxProviderEnv('tethys');
+      return notYetSupported("providerEnvByName('tethys')");
+      // case 'tethys': return cfxProviderEnv('tethys');
     case 'BlockNumber':
       return cfxProviderEnv('BlockNumber'); // XXX temporary
     default:
@@ -492,7 +566,7 @@ function providerEnvByName(providerName) {
 }
 
 function cfxProviderEnv(network) {
-  var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1 // XXX This isn't actually part of TestNet
+  var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
     :
     network == 'TestNet' ? ['https://test.confluxrpc.com', '1'] // 0x1
     :

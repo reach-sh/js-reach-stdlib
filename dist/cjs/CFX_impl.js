@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 exports.__esModule = true;
-exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports.setProvider = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
+exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports.setProvider = exports._specialFundFromFaucet = exports.canFundFromFaucet = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.canGetDefaultAccount = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
 var cfxers = __importStar(require("./cfxers"));
 exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
@@ -70,6 +70,8 @@ var waitPort_1 = __importDefault(require("./waitPort"));
 var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var ConnectorMode_1 = require("./ConnectorMode");
+var buffer_1 = __importDefault(require("buffer"));
+var Buffer = buffer_1["default"].Buffer;
 var Conflux = js_conflux_sdk_1["default"].Conflux;
 function notYetSupported(label) {
     throw Error(label + " not yet supported on CFX");
@@ -88,6 +90,11 @@ function isWindowProvider() {
     return 'CFX_NET' in env && env.CFX_NET === 'window' && !!shim_1.window.conflux;
 }
 exports.isWindowProvider = isWindowProvider;
+function canGetDefaultAccount() {
+    // XXX be pickier
+    return true;
+}
+exports.canGetDefaultAccount = canGetDefaultAccount;
 // /**
 //  * Strategies for deciding what getDefaultAccount returns.
 //  */
@@ -196,6 +203,72 @@ exports._getDefaultFaucetNetworkAccount = shared_impl_1.memoizeThunk(function ()
         }
     });
 }); });
+function toHexAddr(cfxAddr) {
+    return '0x' + Buffer.from(
+    // @ts-ignore
+    js_conflux_sdk_1["default"].address.decodeCfxAddress(cfxAddr).hexAddress).toString('hex').toLowerCase();
+}
+function _fundOnCfxTestNet(to, amt) {
+    return __awaiter(this, void 0, void 0, function () {
+        var method, _a, toHex, res, resJson;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    // XXX TestNet faucet only gives out 100 CFX at a time
+                    // Should we throw an error if amt !== 100 CFX?
+                    void (amt);
+                    method = '_fundOnCfxTestNet';
+                    if (!to.getAddress) return [3 /*break*/, 2];
+                    return [4 /*yield*/, to.getAddress()];
+                case 1:
+                    _a = _b.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    _a = to;
+                    _b.label = 3;
+                case 3:
+                    to = _a;
+                    shared_impl_1.debug({ method: method, to: to });
+                    toHex = toHexAddr(to);
+                    shared_impl_1.debug({ method: method, message: 'requesting from testnet faucet', toHex: toHex });
+                    return [4 /*yield*/, shim_1.window.fetch("http://test-faucet.confluxnetwork.org:18088/dev/ask?address=" + toHex)];
+                case 4:
+                    res = _b.sent();
+                    return [4 /*yield*/, res.json()];
+                case 5:
+                    resJson = _b.sent();
+                    shared_impl_1.debug({ method: method, message: 'got response from testnet faucet', resJson: resJson });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function canFundFromFaucet() {
+    return __awaiter(this, void 0, void 0, function () {
+        var netId;
+        return __generator(this, function (_a) {
+            shared_impl_1.debug('canFundFromFaucet');
+            netId = ethLikeCompiled.getNetworkId();
+            return [2 /*return*/, netId == 0x1 || netId == 999];
+        });
+    });
+}
+exports.canFundFromFaucet = canFundFromFaucet;
+function _specialFundFromFaucet() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            shared_impl_1.debug("_specialFundFromFaucet");
+            if (ethLikeCompiled.getNetworkId() == 0x1) {
+                return [2 /*return*/, _fundOnCfxTestNet];
+            }
+            else {
+                return [2 /*return*/, null];
+            }
+            return [2 /*return*/];
+        });
+    });
+}
+exports._specialFundFromFaucet = _specialFundFromFaucet;
 function waitCaughtUp(provider, env) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
@@ -461,15 +534,18 @@ function providerEnvByName(providerName) {
     switch (providerName) {
         case 'LocalHost': return localhostProviderEnv;
         case 'window': return notYetSupported("providerEnvByName('window')");
-        case 'MainNet': return providerEnvByName('tethys');
-        case 'TestNet': return cfxProviderEnv('TestNet');
-        case 'tethys': return cfxProviderEnv('tethys');
+        case 'MainNet': return notYetSupported("providerEnvByName('MainNet')");
+        // case 'MainNet': return providerEnvByName('tethys');
+        case 'TestNet': return notYetSupported("providerEnvByName('TestNet')");
+        // case 'TestNet': return cfxProviderEnv('TestNet');
+        case 'tethys': return notYetSupported("providerEnvByName('tethys')");
+        // case 'tethys': return cfxProviderEnv('tethys');
         case 'BlockNumber': return cfxProviderEnv('BlockNumber'); // XXX temporary
         default: throw Error("Unrecognized provider name: " + providerName);
     }
 }
 function cfxProviderEnv(network) {
-    var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1 // XXX This isn't actually part of TestNet
+    var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
         : network == 'TestNet' ? ['https://test.confluxrpc.com', '1'] // 0x1
             : network == 'tethys' ? ['https://main.confluxrpc.com', '1029'] // 0x405
                 : throwError("network name not recognized: '" + network + "'"), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];

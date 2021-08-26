@@ -28,6 +28,7 @@ declare type Window = {
     ethereum?: ethers.providers.ExternalProvider;
     prompt?: (s: string) => string | null;
     reach?: any;
+    fetch: (...args: any) => any;
 };
 declare const windowShim: Window;
 export { processShim as process, windowShim as window, };

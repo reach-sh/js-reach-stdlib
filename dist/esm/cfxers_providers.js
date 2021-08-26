@@ -262,7 +262,7 @@ var Provider = /** @class */ (function () {
     };
     Provider.prototype.getLogs = function (opts) {
         return __awaiter(this, void 0, void 0, function () {
-            var logs, err_1;
+            var logs;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -271,20 +271,12 @@ var Provider = /** @class */ (function () {
                             opts.fromBlock = 1;
                             debug("getLogs", "opts", opts);
                         }
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, , 5]);
                         return [4 /*yield*/, this.conflux.getLogs(opts)];
-                    case 2:
+                    case 1:
                         logs = _a.sent();
                         debug("getLogs", "result", logs);
                         return [4 /*yield*/, attachBlockNumbers(this.conflux, logs)];
-                    case 3: return [2 /*return*/, _a.sent()];
-                    case 4:
-                        err_1 = _a.sent();
-                        debug("getLogs", "error", err_1);
-                        return [2 /*return*/, []];
-                    case 5: return [2 /*return*/];
+                    case 2: return [2 /*return*/, _a.sent()];
                 }
             });
         });

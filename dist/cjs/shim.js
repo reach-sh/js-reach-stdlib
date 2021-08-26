@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 exports.__esModule = true;
 exports.window = exports.process = void 0;
+var node_fetch_1 = __importDefault(require("node-fetch"));
 var processShim = (function () {
     try {
         // XXX make better use of process-browserify
@@ -30,7 +34,9 @@ var windowShim = (function () {
     }
     catch (e) {
         // ReferenceError
-        return {};
+        return {
+            fetch: node_fetch_1["default"]
+        };
     }
 })();
 exports.window = windowShim;

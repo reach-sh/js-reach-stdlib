@@ -79,7 +79,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a, _b, _c, _d;
 exports.__esModule = true;
 exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.setIndexer = exports.getIndexer = exports.setAlgodClient = exports.getAlgodClient = exports.setLedger = exports.getLedger = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.getTxnParams = exports.waitForConfirmation = exports.setAlgoSigner = exports.setSignStrategy = exports.getSignStrategy = exports.setWaitPort = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
-exports.reachStdlib = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromAlgoSigner = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = void 0;
+exports.reachStdlib = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromAlgoSigner = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = void 0;
 exports.connector = 'ALGO';
 // XXX: use @types/algosdk when we can
 var algosdk_1 = __importDefault(require("algosdk"));
@@ -1945,6 +1945,22 @@ var createAccount = function () { return __awaiter(void 0, void 0, void 0, funct
     });
 }); };
 exports.createAccount = createAccount;
+var canFundFromFaucet = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var faucet, fbal;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, getFaucet()];
+            case 1:
+                faucet = _a.sent();
+                shared_impl_1.debug('canFundFromFaucet');
+                return [4 /*yield*/, exports.balanceOf(faucet)];
+            case 2:
+                fbal = _a.sent();
+                return [2 /*return*/, exports.gt(fbal, 0)];
+        }
+    });
+}); };
+exports.canFundFromFaucet = canFundFromFaucet;
 var fundFromFaucet = function (account, value) { return __awaiter(void 0, void 0, void 0, function () {
     var faucet, tag;
     return __generator(this, function (_a) {

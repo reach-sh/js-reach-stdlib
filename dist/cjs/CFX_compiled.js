@@ -19,11 +19,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 exports.__esModule = true;
-exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Data = exports.T_Object = exports.T_Token = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.mod = exports.div = exports.mul = exports.sub = exports.add = exports.typeDefs = exports.stdlib = exports.setNetworkId = void 0;
+exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Data = exports.T_Object = exports.T_Token = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.mod = exports.div = exports.mul = exports.sub = exports.add = exports.typeDefs = exports.stdlib = exports.setNetworkId = exports.getNetworkId = void 0;
 var ETH_like_compiled_1 = require("./ETH_like_compiled");
 var cfxCompiledImpl = __importStar(require("./CFX_compiled_impl"));
 var cfxCompiled = ETH_like_compiled_1.makeEthLikeCompiled(cfxCompiledImpl);
-exports.setNetworkId = cfxCompiledImpl.setNetworkId;
+exports.getNetworkId = cfxCompiledImpl.getNetworkId, exports.setNetworkId = cfxCompiledImpl.setNetworkId;
 // The following should be identical to ETH_compiled.ts
 exports.stdlib = cfxCompiled.stdlib, exports.typeDefs = cfxCompiled.typeDefs;
 // start ...arith,

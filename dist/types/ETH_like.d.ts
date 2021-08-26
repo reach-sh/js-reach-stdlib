@@ -53,7 +53,8 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     newAccountFromMnemonic: (phrase: string) => Promise<Account>;
     getDefaultAccount: () => Promise<Account>;
     createAccount: () => Promise<any>;
-    fundFromFaucet: (account: AccountTransferable, value: any) => Promise<void>;
+    canFundFromFaucet: () => Promise<boolean>;
+    fundFromFaucet: (account: AccountTransferable, value: any) => Promise<any>;
     newTestAccount: (startingBalance: any) => Promise<Account>;
     newTestAccounts: (k: number, bal: any) => Promise<any[]>;
     getNetworkTime: () => Promise<BigNumber>;

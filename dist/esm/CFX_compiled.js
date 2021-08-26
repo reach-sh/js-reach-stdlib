@@ -1,7 +1,7 @@
 import { makeEthLikeCompiled } from './ETH_like_compiled';
 import * as cfxCompiledImpl from './CFX_compiled_impl';
 var cfxCompiled = makeEthLikeCompiled(cfxCompiledImpl);
-export var setNetworkId = cfxCompiledImpl.setNetworkId;
+export var getNetworkId = cfxCompiledImpl.getNetworkId, setNetworkId = cfxCompiledImpl.setNetworkId;
 // The following should be identical to ETH_compiled.ts
 export var stdlib = cfxCompiled.stdlib, typeDefs = cfxCompiled.typeDefs;
 export var 

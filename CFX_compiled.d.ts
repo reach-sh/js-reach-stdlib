@@ -1,5 +1,5 @@
 import * as cfxCompiledImpl from './CFX_compiled_impl';
-export declare const setNetworkId: typeof cfxCompiledImpl.setNetworkId;
+export declare const getNetworkId: typeof cfxCompiledImpl.getNetworkId, setNetworkId: typeof cfxCompiledImpl.setNetworkId;
 export declare const stdlib: import("./interfaces").Stdlib_Backend_Base<import("./ETH_like_interfaces").AnyETH_Ty>, typeDefs: import("./interfaces").TypeDefs;
 export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => import("ethers").BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => import("ethers").BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => import("ethers").BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => import("ethers").BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => import("ethers").BigNumber, T_Null: any, T_Bool: any, T_UInt: any, T_Bytes: any, T_Address: any, T_Digest: any, T_Token: any, T_Object: (tyMap: {
     [key: string]: any;

@@ -71,12 +71,16 @@ void (isSome);
 export function makeEthLike(ethLikeArgs) {
     var _this = this;
     // ...............................................
-    var ethLikeCompiled = ethLikeArgs.ethLikeCompiled, ethers = ethLikeArgs.ethers, _a = ethLikeArgs.standardDigits, standardDigits = _a === void 0 ? 18 : _a, providerLib = ethLikeArgs.providerLib, isIsolatedNetwork = ethLikeArgs.isIsolatedNetwork, isWindowProvider = ethLikeArgs.isWindowProvider, _getDefaultNetworkAccount = ethLikeArgs._getDefaultNetworkAccount, _getDefaultFaucetNetworkAccount = ethLikeArgs._getDefaultFaucetNetworkAccount, _b = ethLikeArgs._warnTxNoBlockNumber, _warnTxNoBlockNumber = _b === void 0 ? true : _b, standardUnit = ethLikeArgs.standardUnit, atomicUnit = ethLikeArgs.atomicUnit, validQueryWindow = ethLikeArgs.validQueryWindow;
+    var ethLikeCompiled = ethLikeArgs.ethLikeCompiled, ethers = ethLikeArgs.ethers, _a = ethLikeArgs.standardDigits, standardDigits = _a === void 0 ? 18 : _a, providerLib = ethLikeArgs.providerLib, isIsolatedNetwork = ethLikeArgs.isIsolatedNetwork, canGetDefaultAccount = ethLikeArgs.canGetDefaultAccount, 
+    // isWindowProvider,
+    _getDefaultNetworkAccount = ethLikeArgs._getDefaultNetworkAccount, _getDefaultFaucetNetworkAccount = ethLikeArgs._getDefaultFaucetNetworkAccount, _b = ethLikeArgs._warnTxNoBlockNumber, _warnTxNoBlockNumber = _b === void 0 ? true : _b, _c = ethLikeArgs._specialFundFromFaucet, _specialFundFromFaucet = _c === void 0 ? function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/, null];
+    }); }); } : _c, canFundFromFaucet = ethLikeArgs.canFundFromFaucet, standardUnit = ethLikeArgs.standardUnit, atomicUnit = ethLikeArgs.atomicUnit, validQueryWindow = ethLikeArgs.validQueryWindow;
     var getProvider = providerLib.getProvider;
     var stdlib = ethLikeCompiled.stdlib;
     var T_Address = stdlib.T_Address, T_Tuple = stdlib.T_Tuple, T_UInt = stdlib.T_UInt, addressEq = stdlib.addressEq;
     var reachStdlib = stdlib;
-    var _c = replaceableThunk(function () { return 0; }), _getQueryLowerBound = _c[0], _setQueryLowerBound = _c[1];
+    var _d = replaceableThunk(function () { return 0; }), _getQueryLowerBound = _d[0], _setQueryLowerBound = _d[1];
     function getQueryLowerBound() {
         return bigNumberify(_getQueryLowerBound());
     }
@@ -215,10 +219,10 @@ export function makeEthLike(ethLikeArgs) {
         };
         EventCache.prototype.query_ = function (dhead, fromBlock, timeoutAt, topic) {
             return __awaiter(this, void 0, void 0, function () {
-                var lab, h, maxTime, maxSecs, showCache, searchLogs, initLogs, _a, res, toBlock_eff, foundLogs;
+                var lab, h, maxTime, maxSecs, showCache, searchLogs, initLogs, failed, leftOver, provider, fromBlock_act, currentTime, toBlock, res, e_1, foundLogs;
                 var _this = this;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
                             lab = "EventCache.query";
                             debug(dhead, lab, { fromBlock: fromBlock, timeoutAt: timeoutAt, topic: topic });
@@ -272,88 +276,83 @@ export function makeEthLike(ethLikeArgs) {
                             }); };
                             return [4 /*yield*/, searchLogs(this.cache)];
                         case 1:
-                            initLogs = _b.sent();
+                            initLogs = _a.sent();
                             if (initLogs.length > 0) {
                                 debug(dhead, lab, "in cache");
                                 return [2 /*return*/, { succ: true, evt: getMinBlock(initLogs) }];
                             }
                             debug(dhead, lab, "not in cache");
-                            return [4 /*yield*/, this.doGetLogs(dhead, fromBlock)];
+                            failed = function () { return ({ succ: false, block: _this.currentBlock }); };
+                            debug(dhead, lab, "querying");
+                            leftOver = this.lastQueryTime + 1000 - Date.now();
+                            if (!(leftOver > 0)) return [3 /*break*/, 3];
+                            debug(dhead, lab, "waiting...", leftOver);
+                            return [4 /*yield*/, Timeout.set(leftOver)];
                         case 2:
-                            _a = _b.sent(), res = _a[0], toBlock_eff = _a[1];
+                            _a.sent();
+                            _a.label = 3;
+                        case 3:
+                            this.lastQueryTime = Date.now();
+                            return [4 /*yield*/, getProvider()];
+                        case 4:
+                            provider = _a.sent();
+                            fromBlock_act = Math.max(fromBlock, this.currentBlock);
+                            return [4 /*yield*/, getNetworkTimeNumber()];
+                        case 5:
+                            currentTime = _a.sent();
+                            debug(dhead, lab, { fromBlock_act: fromBlock_act, currentTime: currentTime });
+                            if (fromBlock_act > currentTime) {
+                                debug(dhead, lab, "no contact, from block in future");
+                                return [2 /*return*/, failed()];
+                            }
+                            toBlock = validQueryWindow === true
+                                ? currentTime
+                                : Math.min(currentTime, fromBlock_act + validQueryWindow);
+                            debug(dhead, lab, { fromBlock_act: fromBlock_act, currentTime: currentTime, toBlock: toBlock });
+                            assert(fromBlock <= toBlock, "from <= to");
+                            res = [];
+                            _a.label = 6;
+                        case 6:
+                            _a.trys.push([6, 8, , 9]);
+                            return [4 /*yield*/, provider.getLogs({
+                                    fromBlock: fromBlock_act,
+                                    toBlock: toBlock,
+                                    address: this.theAddress
+                                })];
+                        case 7:
+                            res = _a.sent();
+                            return [3 /*break*/, 9];
+                        case 8:
+                            e_1 = _a.sent();
+                            debug(dhead, lab, 'getLogs err', e_1);
+                            return [2 /*return*/, failed()];
+                        case 9:
+                            debug(dhead, lab, 'getLogs succ', res);
                             this.cache = res;
                             this.currentBlock =
                                 (this.cache.length == 0)
-                                    ? toBlock_eff
+                                    ? toBlock
                                     : getMaxBlock(this.cache).blockNumber;
                             debug(dhead, lab, 'got network', this.currentBlock);
                             return [4 /*yield*/, searchLogs(this.cache)];
-                        case 3:
-                            foundLogs = _b.sent();
+                        case 10:
+                            foundLogs = _a.sent();
                             if (foundLogs.length > 0) {
                                 debug(dhead, lab, "in network");
                                 return [2 /*return*/, { succ: true, evt: getMinBlock(foundLogs) }];
                             }
                             debug(dhead, lab, "not in network");
-                            return [2 /*return*/, { succ: false, block: this.currentBlock }];
+                            return [2 /*return*/, failed()];
                     }
                 });
             });
         };
-        EventCache.prototype.doGetLogs = function (dhead, fromBlock_given) {
-            return __awaiter(this, void 0, void 0, function () {
-                var lab, leftOver, provider, fromBlock, currentTime, toBlock, res;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            lab = "doGetLogs";
-                            debug(dhead, lab, { fromBlock_given: fromBlock_given, currentBlock: this.currentBlock });
-                            leftOver = this.lastQueryTime + 1000 - Date.now();
-                            if (!(leftOver > 0)) return [3 /*break*/, 2];
-                            debug(dhead, lab, "waiting...", leftOver);
-                            return [4 /*yield*/, Timeout.set(leftOver)];
-                        case 1:
-                            _a.sent();
-                            _a.label = 2;
-                        case 2:
-                            this.lastQueryTime = Date.now();
-                            return [4 /*yield*/, getProvider()];
-                        case 3:
-                            provider = _a.sent();
-                            fromBlock = Math.max(fromBlock_given, this.currentBlock);
-                            return [4 /*yield*/, getNetworkTimeNumber()];
-                        case 4:
-                            currentTime = _a.sent();
-                            debug(dhead, lab, { fromBlock: fromBlock, currentTime: currentTime });
-                            if (fromBlock > currentTime) {
-                                debug(dhead, lab, "no contact");
-                                return [2 /*return*/, [[], currentTime]];
-                            }
-                            toBlock = validQueryWindow === true
-                                ? currentTime
-                                : Math.min(currentTime, fromBlock + validQueryWindow);
-                            debug(dhead, lab, { fromBlock: fromBlock, currentTime: currentTime, toBlock: toBlock });
-                            assert(fromBlock <= toBlock, "from <= to");
-                            return [4 /*yield*/, provider.getLogs({
-                                    fromBlock: fromBlock,
-                                    toBlock: toBlock,
-                                    address: this.theAddress
-                                })];
-                        case 5:
-                            res = _a.sent();
-                            debug(dhead, lab, 'res', res);
-                            return [2 /*return*/, [res, toBlock]];
-                    }
-                });
-            });
-        };
-        ;
         return EventCache;
     }());
     // ****************************************************************************
     // Common Interface Exports
     // ****************************************************************************
-    var _d = makeRandom(32), randomUInt = _d.randomUInt, hasRandom = _d.hasRandom;
+    var _e = makeRandom(32), randomUInt = _e.randomUInt, hasRandom = _e.hasRandom;
     var balanceOf = function (acc, token) {
         if (token === void 0) { token = false; }
         return __awaiter(_this, void 0, void 0, function () {
@@ -717,7 +716,7 @@ export function makeEthLike(ethLikeArgs) {
                                             });
                                         }); };
                                         maybePayTok = function (i) { return __awaiter(_this, void 0, void 0, function () {
-                                            var _a, amt, tok, e_1;
+                                            var _a, amt, tok, e_2;
                                             return __generator(this, function (_b) {
                                                 switch (_b.label) {
                                                     case 0:
@@ -734,11 +733,11 @@ export function makeEthLike(ethLikeArgs) {
                                                         _b.sent();
                                                         return [3 /*break*/, 6];
                                                     case 4:
-                                                        e_1 = _b.sent();
+                                                        e_2 = _b.sent();
                                                         return [4 /*yield*/, callTok(tok, zero)];
                                                     case 5:
                                                         _b.sent();
-                                                        throw e_1;
+                                                        throw e_2;
                                                     case 6: return [3 /*break*/, 9];
                                                     case 7: return [4 /*yield*/, actualCall()];
                                                     case 8:
@@ -789,7 +788,7 @@ export function makeEthLike(ethLikeArgs) {
                             }
                         }); }); };
                         var sendrecv = function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                            var funcNum, evt_cnt, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, _a, args_svs, args_msg, _b, tys_svs, tys_msg, arg_ty, arg, lastBlock, block_send_attempt, block_repeat_count, e_2, current_block, error;
+                            var funcNum, evt_cnt, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, _a, args_svs, args_msg, _b, tys_svs, tys_msg, arg_ty, arg, lastBlock, block_send_attempt, block_repeat_count, e_3, current_block, error;
                             var _this = this;
                             return __generator(this, function (_c) {
                                 switch (_c.label) {
@@ -842,12 +841,12 @@ export function makeEthLike(ethLikeArgs) {
                                         _c.sent();
                                         return [3 /*break*/, 14];
                                     case 9:
-                                        e_2 = _c.sent();
+                                        e_3 = _c.sent();
                                         if (!!soloSend) return [3 /*break*/, 10];
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["SKIPPING", e_2]));
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["SKIPPING", e_3]));
                                         return [3 /*break*/, 13];
                                     case 10:
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["ERROR", { stack: e_2.stack }]));
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["ERROR", { stack: e_3.stack }]));
                                         // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
                                         return [4 /*yield*/, Timeout.set(1)];
                                     case 11:
@@ -861,8 +860,8 @@ export function makeEthLike(ethLikeArgs) {
                                         }
                                         block_send_attempt = current_block;
                                         if (block_repeat_count > 32) {
-                                            if (e_2.code === 'UNPREDICTABLE_GAS_LIMIT') {
-                                                error = e_2;
+                                            if (e_3.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                                                error = e_3;
                                                 while (error.error) {
                                                     error = error.error;
                                                 }
@@ -1069,7 +1068,7 @@ export function makeEthLike(ethLikeArgs) {
                                     args[_i] = arguments[_i];
                                 }
                                 return __awaiter(_this, void 0, void 0, function () {
-                                    var ty, ethersC, vkn, val, e_3;
+                                    var ty, ethersC, vkn, val, e_4;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -1089,8 +1088,8 @@ export function makeEthLike(ethLikeArgs) {
                                                 debug('getView1', v, k, 'val', val);
                                                 return [2 /*return*/, ['Some', ty.unmunge(val)]];
                                             case 4:
-                                                e_3 = _a.sent();
-                                                debug('getView1', v, k, 'error', e_3);
+                                                e_4 = _a.sent();
+                                                debug('getView1', v, k, 'error', e_4);
                                                 return [2 /*return*/, ['None', null]];
                                             case 5: return [2 /*return*/];
                                         }
@@ -1115,7 +1114,7 @@ export function makeEthLike(ethLikeArgs) {
                                     go = function (t, f, m) {
                                         if (m === void 0) { m = f; }
                                         return __awaiter(_this, void 0, void 0, function () {
-                                            var rv, v, e_4;
+                                            var rv, v, e_5;
                                             return __generator(this, function (_a) {
                                                 switch (_a.label) {
                                                     case 0:
@@ -1132,8 +1131,8 @@ export function makeEthLike(ethLikeArgs) {
                                                         md[f] = v;
                                                         return [3 /*break*/, 4];
                                                     case 3:
-                                                        e_4 = _a.sent();
-                                                        debug('tokenMetadata', { f: f, m: m, e: e_4 });
+                                                        e_5 = _a.sent();
+                                                        debug('tokenMetadata', { f: f, m: m, e: e_5 });
                                                         return [3 /*break*/, 4];
                                                     case 4: return [2 /*return*/];
                                                 }
@@ -1200,7 +1199,7 @@ export function makeEthLike(ethLikeArgs) {
             switch (_b.label) {
                 case 0:
                     debug("getDefaultAccount");
-                    if (!(isWindowProvider() || isIsolatedNetwork()))
+                    if (!canGetDefaultAccount())
                         throw Error("Default account not available");
                     _a = connectAccount;
                     return [4 /*yield*/, _getDefaultNetworkAccount()];
@@ -1210,7 +1209,7 @@ export function makeEthLike(ethLikeArgs) {
     }); };
     // TODO: Should users be able to access this directly?
     // TODO: define a faucet on Ropsten & other testnets?
-    var _e = replaceableThunk(function () { return __awaiter(_this, void 0, void 0, function () {
+    var _f = replaceableThunk(function () { return __awaiter(_this, void 0, void 0, function () {
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1221,7 +1220,7 @@ export function makeEthLike(ethLikeArgs) {
                 case 2: return [2 /*return*/, _b.sent()];
             }
         });
-    }); }), getFaucet = _e[0], setFaucet = _e[1];
+    }); }), getFaucet = _f[0], setFaucet = _f[1];
     var createAccount = function () { return __awaiter(_this, void 0, void 0, function () {
         var provider, networkAccount;
         return __generator(this, function (_a) {
@@ -1238,21 +1237,28 @@ export function makeEthLike(ethLikeArgs) {
         });
     }); };
     var fundFromFaucet = function (account, value) { return __awaiter(_this, void 0, void 0, function () {
-        var faucet;
+        var f, faucet;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, getFaucet()];
+                case 0: return [4 /*yield*/, _specialFundFromFaucet()];
                 case 1:
+                    f = _a.sent();
+                    if (!f) return [3 /*break*/, 3];
+                    return [4 /*yield*/, f(account, value)];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3: return [4 /*yield*/, getFaucet()];
+                case 4:
                     faucet = _a.sent();
                     return [4 /*yield*/, transfer(faucet, account, value)];
-                case 2:
+                case 5:
                     _a.sent();
-                    return [2 /*return*/];
+                    _a.label = 6;
+                case 6: return [2 /*return*/];
             }
         });
     }); };
     var newTestAccount = function (startingBalance) { return __awaiter(_this, void 0, void 0, function () {
-        var acc, to, e_5;
+        var acc, to, e_6;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1273,9 +1279,9 @@ export function makeEthLike(ethLikeArgs) {
                     debug('newTestAccount got transfer:', to);
                     return [2 /*return*/, acc];
                 case 5:
-                    e_5 = _a.sent();
+                    e_6 = _a.sent();
                     console.log("newTestAccount: Trouble with account " + to);
-                    throw e_5;
+                    throw e_6;
                 case 6: return [2 /*return*/];
             }
         });
@@ -1533,6 +1539,7 @@ export function makeEthLike(ethLikeArgs) {
         newAccountFromMnemonic: newAccountFromMnemonic,
         getDefaultAccount: getDefaultAccount,
         createAccount: createAccount,
+        canFundFromFaucet: canFundFromFaucet,
         fundFromFaucet: fundFromFaucet,
         newTestAccount: newTestAccount,
         newTestAccounts: newTestAccounts,

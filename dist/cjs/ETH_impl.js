@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports.providerLib = exports.ethers = exports.setProvider = exports.getProvider = exports.isWindowProvider = exports.isIsolatedNetwork = exports.setProviderByName = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.ethLikeCompiled = void 0;
+exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports.providerLib = exports.ethers = exports.setProvider = exports.getProvider = exports.canGetDefaultAccount = exports.isWindowProvider = exports.isIsolatedNetwork = exports.setProviderByName = exports.canFundFromFaucet = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.ethLikeCompiled = void 0;
 var ethers_1 = require("ethers");
 exports.ethers = ethers_1.ethers;
 var url_1 = __importDefault(require("url"));
@@ -125,6 +125,15 @@ function _getDefaultFaucetNetworkAccount() {
     });
 }
 exports._getDefaultFaucetNetworkAccount = _getDefaultFaucetNetworkAccount;
+function canFundFromFaucet() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            shared_impl_1.debug('canFundFromFaucet');
+            return [2 /*return*/, isIsolatedNetwork()];
+        });
+    });
+}
+exports.canFundFromFaucet = canFundFromFaucet;
 // Not an async fn because it throws some errors synchronously, rather than in the Promise thread
 function waitProviderFromEnv(env) {
     var _this = this;
@@ -260,6 +269,10 @@ function isWindowProvider() {
     return 'ETH_NET' in env && env.ETH_NET === 'window' && !!shim_1.window.ethereum;
 }
 exports.isWindowProvider = isWindowProvider;
+function canGetDefaultAccount() {
+    return isWindowProvider() || isIsolatedNetwork();
+}
+exports.canGetDefaultAccount = canGetDefaultAccount;
 function windowLooksIsolated() {
     if (!shim_1.window.ethereum)
         return false;

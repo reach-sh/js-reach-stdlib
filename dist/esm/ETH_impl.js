@@ -97,6 +97,14 @@ export function _getDefaultFaucetNetworkAccount() {
         });
     });
 }
+export function canFundFromFaucet() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            debug('canFundFromFaucet');
+            return [2 /*return*/, isIsolatedNetwork()];
+        });
+    });
+}
 // Not an async fn because it throws some errors synchronously, rather than in the Promise thread
 function waitProviderFromEnv(env) {
     var _this = this;
@@ -228,6 +236,9 @@ export function isIsolatedNetwork() {
 export function isWindowProvider() {
     var env = getProviderEnv();
     return 'ETH_NET' in env && env.ETH_NET === 'window' && !!window.ethereum;
+}
+export function canGetDefaultAccount() {
+    return isWindowProvider() || isIsolatedNetwork();
 }
 function windowLooksIsolated() {
     if (!window.ethereum)

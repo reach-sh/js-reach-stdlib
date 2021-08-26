@@ -124,6 +124,7 @@ export declare const transfer: (from: Account, to: Account, value: any, token?: 
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
+export declare const canFundFromFaucet: () => Promise<boolean>;
 export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
 export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
 export declare const newTestAccounts: (k: number, bal: any) => Promise<Account[]>;

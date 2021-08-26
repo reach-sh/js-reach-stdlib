@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.T_Address = exports.setNetworkId = void 0;
+exports.T_Address = exports.getNetworkId = exports.setNetworkId = void 0;
 var eci = __importStar(require("./ETH_compiled_impl"));
 var buffer_1 = __importDefault(require("buffer"));
 var CFX_util_1 = require("./CFX_util");
@@ -46,6 +46,10 @@ function setNetworkId(networkId) {
     exports.T_Address.defaultValue = recomputeDefaultAddr();
 }
 exports.setNetworkId = setNetworkId;
+function getNetworkId() {
+    return netId;
+}
+exports.getNetworkId = getNetworkId;
 // XXX this should not be computed at compile time, because it can change based on the netId
 // Note: 0x1 = user, 0x8 = contract
 // https://github.com/resodo/conflux-address-js/blob/0cbbe3d17fbd6cbc2c2fbafc3470ff6087f38087/lib/index.js#L86

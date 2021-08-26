@@ -1,3 +1,4 @@
+import node_fetch from 'node-fetch';
 var processShim = (function() {
   try {
     // XXX make better use of process-browserify
@@ -24,7 +25,9 @@ var windowShim = (function() {
     return window;
   } catch (e) {
     // ReferenceError
-    return {};
+    return {
+      fetch: node_fetch
+    };
   }
 })();
 export { processShim as process, windowShim as window, };
