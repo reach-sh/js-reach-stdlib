@@ -14,7 +14,6 @@ bump-version-and-publish:
 
 .PHONY: finalize-patch
 finalize-patch:
-	sbin/check-recent-commits.sh
 	npm version patch
 	npm publish --access=public --tag=stable
 	npm dist-tag add $(PACKAGE)"@$$(npm view $(PACKAGE)@stable version)" latest
