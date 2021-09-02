@@ -237,16 +237,12 @@ export var labelMaps = function(co) {
   }
   return { ascLabels: ascLabels, labelMap: labelMap };
 };
-/** @description Access an environment variable, or its react-prefixed equivalent */
-export function rEnv(env, k) {
-  return env[k] || env["REACT_APP_" + k];
-}
 /** @description Check that a stringy env value doesn't look falsy. */
 export function truthyEnv(v) {
   if (!v)
     return false;
   return ![
-    '0', 'false', 'f', '#f', 'no', 'off',
+    '0', 'false', 'f', '#f', 'no', 'off', 'n', '',
   ].includes(v && v.toLowerCase && v.toLowerCase());
 }
 export var envDefault = function(v, d) {

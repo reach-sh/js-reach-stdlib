@@ -27,31 +27,25 @@ var ConnectorMode_1 = require("./ConnectorMode");
 exports.getConnectorMode = ConnectorMode_1.getConnectorMode;
 exports.getConnector = ConnectorMode_1.getConnector;
 var shim_1 = require("./shim");
-var shared_impl_1 = require("./shared_impl");
 var registry_1 = require("./registry");
 var registry_2 = require("./registry");
 __createBinding(exports, registry_2, "unsafeAllowMultipleStdlibs");
+function extractMode(x) {
+    if (!x) {
+        return extractMode(shim_1.process.env);
+    }
+    if (typeof x === 'string') {
+        return extractMode({ REACH_CONNECTOR_MODE: x });
+    }
+    shim_1.updateProcessEnv(x);
+    var g = shim_1.process.env['REACH_CONNECTOR_MODE'];
+    return g || 'ETH';
+}
+;
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
 function loadStdlib(connectorModeOrEnv) {
-    if (!connectorModeOrEnv) {
-        // @ts-ignore // XXX why doesn't TS understand that Env satisfies {[key: string}: string} ?
-        return loadStdlib(shim_1.process.env);
-    }
-    var connectorModeStr;
-    if (typeof connectorModeOrEnv === 'string') {
-        connectorModeStr = connectorModeOrEnv;
-    }
-    else if (connectorModeOrEnv['REACH_CONNECTOR_MODE']) {
-        connectorModeStr = connectorModeOrEnv['REACH_CONNECTOR_MODE'];
-    }
-    else if (connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE']) {
-        connectorModeStr = connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE'];
-    }
-    else {
-        // TODO: also check {REACT_APP_,}REACH_DEFAULT_NETWORK
-        connectorModeStr = 'ETH'; // If absolutely none specified/found, just default to 'ETH'
-    }
+    var connectorModeStr = extractMode(connectorModeOrEnv);
     var connectorMode = ConnectorMode_1.canonicalizeConnectorMode(connectorModeStr);
     var connector = ConnectorMode_1.getConnector(connectorMode);
     // Remember the connector to prevent users from accidentally using multiple stdlibs
@@ -68,10 +62,6 @@ function loadStdlib(connectorModeOrEnv) {
             stdlib = stdlib_CFX;
             break;
         default: throw Error("impossible: unknown connector " + connector);
-    }
-    if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
-        var debug = shared_impl_1.truthyEnv(shared_impl_1.rEnv(connectorModeOrEnv, 'REACH_DEBUG'));
-        shared_impl_1.setDEBUG(debug);
     }
     // also just inject ourselves into the window for ease of use
     shim_1.window.reach = stdlib;

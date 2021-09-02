@@ -51,7 +51,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.rEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -230,17 +230,12 @@ var labelMaps = function (co) {
     return { ascLabels: ascLabels, labelMap: labelMap };
 };
 exports.labelMaps = labelMaps;
-/** @description Access an environment variable, or its react-prefixed equivalent */
-function rEnv(env, k) {
-    return env[k] || env["REACT_APP_" + k];
-}
-exports.rEnv = rEnv;
 /** @description Check that a stringy env value doesn't look falsy. */
 function truthyEnv(v) {
     if (!v)
         return false;
     return ![
-        '0', 'false', 'f', '#f', 'no', 'off',
+        '0', 'false', 'f', '#f', 'no', 'off', 'n', '',
     ].includes(v && v.toLowerCase && v.toLowerCase());
 }
 exports.truthyEnv = truthyEnv;

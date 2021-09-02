@@ -57,9 +57,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 exports.__esModule = true;
-exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports.setProvider = exports._specialFundFromFaucet = exports.canFundFromFaucet = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.setSignStrategy = exports.getSignStrategy = exports.canGetDefaultAccount = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
+exports.validQueryWindow = exports.atomicUnit = exports.standardUnit = exports._warnTxNoBlockNumber = exports.providerLib = exports.ethers = exports.ethLikeCompiled = exports.setProvider = exports._specialFundFromFaucet = exports.canFundFromFaucet = exports._getDefaultFaucetNetworkAccount = exports._getDefaultNetworkAccount = exports.canGetDefaultAccount = exports.isWindowProvider = exports.isIsolatedNetwork = void 0;
 var cfxers = __importStar(require("./cfxers"));
 exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
@@ -95,89 +94,24 @@ function canGetDefaultAccount() {
     return true;
 }
 exports.canGetDefaultAccount = canGetDefaultAccount;
-// /**
-//  * Strategies for deciding what getDefaultAccount returns.
-//  */
-// type SignStrategy
-//   = 'secret'   // window.prompt for secret
-//   | 'mnemonic' // window.prompt for mnemonic
-//   | 'faucet'   // use the faucet account
-//   | 'window'   // use window.conflux
-//   | 'ConfluxPortal' // same as 'window'
-exports.getSignStrategy = (_a = shared_impl_1.replaceableThunk(function () {
-    // XXX make window.conflux the default at some point
-    // if (window.conflux) {
-    //   // XXX this should be more lenient about letting cp load later
-    //   return 'window';
-    // }
-    if (shim_1.window.prompt) {
-        return 'secret';
-    }
-    else {
-        // XXX this should only work on the devnet
-        return 'faucet';
-    }
-}), _a[0]), exports.setSignStrategy = _a[1];
 function _getDefaultNetworkAccount() {
     return __awaiter(this, void 0, void 0, function () {
-        var provider, promptFor, ss, w, _a, skMay, sk, mnemonic, cp, addr;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, getProvider()];
+        var cp, addr, w, _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, getConfluxPortal()];
                 case 1:
-                    provider = _b.sent();
-                    promptFor = function (s) {
-                        if (!shim_1.window.prompt) {
-                            throw Error("Can't prompt user with window.prompt");
-                        }
-                        return shim_1.window.prompt("Please paste your account's " + s + ", or click cancel to generate a new one.");
-                    };
-                    ss = exports.getSignStrategy();
-                    w = null;
-                    _a = ss.toLowerCase();
-                    switch (_a) {
-                        case 'secret': return [3 /*break*/, 2];
-                        case 'mnemonic': return [3 /*break*/, 3];
-                        case 'window': return [3 /*break*/, 4];
-                        case 'confluxportal': return [3 /*break*/, 4];
-                        case 'faucet': return [3 /*break*/, 7];
-                    }
-                    return [3 /*break*/, 9];
-                case 2:
-                    skMay = promptFor('secret key');
-                    if (skMay) {
-                        sk = skMay.slice(0, 2) == '0x' ? skMay : '0x' + skMay;
-                        w = new cfxers.Wallet(sk);
-                    }
-                    else {
-                        w = cfxers.Wallet.createRandom();
-                    }
-                    return [3 /*break*/, 10];
-                case 3:
-                    mnemonic = promptFor('mnemonic');
-                    w = mnemonic
-                        ? cfxers.Wallet.fromMnemonic(mnemonic)
-                        : cfxers.Wallet.createRandom();
-                    return [3 /*break*/, 10];
-                case 4: return [4 /*yield*/, getConfluxPortal()];
-                case 5:
-                    cp = _b.sent();
+                    cp = _c.sent();
                     return [4 /*yield*/, cp.enable()];
-                case 6:
-                    addr = (_b.sent())[0];
+                case 2:
+                    addr = (_c.sent())[0];
                     w = new cfxers.BrowserWallet(cp, addr);
-                    return [3 /*break*/, 10];
-                case 7: return [4 /*yield*/, exports._getDefaultFaucetNetworkAccount()];
-                case 8:
-                    w = _b.sent();
-                    return [3 /*break*/, 10];
-                case 9: throw Error("Sign strategy not recognized: '" + ss + "'");
-                case 10:
-                    if (!w)
-                        throw Error("impossible: no account found for sign strategy '" + ss + "'");
-                    if (!w.provider)
-                        w = w.connect(provider);
+                    if (!w.provider) return [3 /*break*/, 3];
                     return [2 /*return*/, w];
+                case 3:
+                    _b = (_a = w).connect;
+                    return [4 /*yield*/, getProvider()];
+                case 4: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
             }
         });
     });
@@ -344,7 +278,7 @@ function waitCaughtUp(provider, env) {
         });
     });
 }
-var _b = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+var _a = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
     var fullEnv, provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -365,7 +299,7 @@ var _b = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, v
                 return [2 /*return*/, provider];
         }
     });
-}); }), getProvider = _b[0], _setProvider = _b[1];
+}); }), getProvider = _a[0], _setProvider = _a[1];
 function setProvider(provider) {
     _setProvider(provider);
     if (!_providerEnv) {
@@ -412,7 +346,8 @@ function envDefaultsCFX(env) {
     }
     else if (shared_impl_1.truthyEnv(CFX_NODE_URI)) {
         var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'yes');
-        return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: CFX_NETWORK_ID, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
+        var cni = shared_impl_1.envDefault(CFX_NETWORK_ID, localhostProviderEnv.CFX_NETWORK_ID);
+        return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: cni, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {
         if (shim_1.window.conflux) {
@@ -534,20 +469,17 @@ function providerEnvByName(providerName) {
     switch (providerName) {
         case 'LocalHost': return localhostProviderEnv;
         case 'window': return notYetSupported("providerEnvByName('window')");
-        case 'MainNet': return notYetSupported("providerEnvByName('MainNet')");
-        // case 'MainNet': return providerEnvByName('tethys');
-        case 'TestNet': return notYetSupported("providerEnvByName('TestNet')");
-        // case 'TestNet': return cfxProviderEnv('TestNet');
-        case 'tethys': return notYetSupported("providerEnvByName('tethys')");
-        // case 'tethys': return cfxProviderEnv('tethys');
+        case 'MainNet': return providerEnvByName('tethys');
+        case 'TestNet': return cfxProviderEnv('TestNet');
+        case 'tethys': return cfxProviderEnv('tethys');
         case 'BlockNumber': return cfxProviderEnv('BlockNumber'); // XXX temporary
         default: throw Error("Unrecognized provider name: " + providerName);
     }
 }
 function cfxProviderEnv(network) {
     var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
-        : network == 'TestNet' ? ['https://test.confluxrpc.com', '1'] // 0x1
-            : network == 'tethys' ? ['https://main.confluxrpc.com', '1029'] // 0x405
+        : network == 'TestNet' ? ['https://portal-test.confluxrpc.com', '1'] // 0x1
+            : network == 'tethys' ? ['https://portal-main.confluxrpc.com', '1029'] // 0x405
                 : throwError("network name not recognized: '" + network + "'"), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
     return {
         CFX_NODE_URI: CFX_NODE_URI,
@@ -583,14 +515,23 @@ function getConfluxPortal() {
         });
     });
 }
+var setWalletFallback = function (wf) {
+    if (!shim_1.window.conflux) {
+        shim_1.window.conflux = wf();
+    }
+};
+var walletFallback = function (opts) { return function () {
+    void (opts);
+    throw new Error("There is no wallet fallback for Conflux");
+}; };
 exports.providerLib = {
     getProvider: getProvider,
     setProvider: setProvider,
     setProviderByName: setProviderByName,
     setProviderByEnv: setProviderByEnv,
     providerEnvByName: providerEnvByName,
-    getSignStrategy: exports.getSignStrategy,
-    setSignStrategy: exports.setSignStrategy
+    setWalletFallback: setWalletFallback,
+    walletFallback: walletFallback
 };
 exports._warnTxNoBlockNumber = false; // XXX ?
 exports.standardUnit = 'CFX';

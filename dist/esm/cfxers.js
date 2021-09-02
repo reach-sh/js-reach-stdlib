@@ -627,7 +627,7 @@ function _retryingSendTxn(provider, txnOrig) {
                                 case 5:
                                     e_2 = _b.sent();
                                     err = e_2;
-                                    es = e_2.toString();
+                                    es = JSON.stringify(e_2);
                                     if (es.includes("stale nonce") || es.includes("same nonce")) {
                                         debug("_retryingSendTxn: nonce error, giving more tries");
                                         tries--;
@@ -671,7 +671,7 @@ function waitReceipt(provider, txnHash) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    maxTries = 400;
+                    maxTries = 800;
                     tries = 1;
                     _a.label = 1;
                 case 1:

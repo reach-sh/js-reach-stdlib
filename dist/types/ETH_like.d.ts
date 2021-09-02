@@ -71,14 +71,20 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
+    launchToken: (accCreator: Account, name: string, sym: string) => Promise<{
+        name: string;
+        sym: string;
+        id: any;
+        mint: (accTo: Account, amt: any) => Promise<void>;
+    }>;
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
     getProvider: () => any;
     setProvider: (p: any) => void;
     setProviderByEnv: (env: any) => void;
     setProviderByName: (providerName: any) => void;
     providerEnvByName: (providerName: any) => any;
-    getSignStrategy: () => string;
-    setSignStrategy: (ss: string) => void;
+    setWalletFallback: (wallet: any) => void;
+    walletFallback: (opts: any) => any;
     stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
     typeDefs: import("./interfaces").TypeDefs;
 };

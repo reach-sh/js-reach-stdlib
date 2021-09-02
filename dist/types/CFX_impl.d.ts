@@ -5,7 +5,6 @@ declare type Provider = cfxers.providers.Provider;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
 export declare function canGetDefaultAccount(): boolean;
-export declare const getSignStrategy: () => string, setSignStrategy: (val: string) => void;
 export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
 export declare const _getDefaultFaucetNetworkAccount: () => Promise<cfxers.IWallet>;
 declare function _fundOnCfxTestNet(to: any, amt: any): Promise<void>;
@@ -40,8 +39,8 @@ export declare const providerLib: {
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;
     providerEnvByName: typeof providerEnvByName;
-    getSignStrategy: () => string;
-    setSignStrategy: (val: string) => void;
+    setWalletFallback: (wf: () => any) => void;
+    walletFallback: (opts: any) => () => never;
 };
 export declare const _warnTxNoBlockNumber = false;
 export declare const standardUnit = "CFX";

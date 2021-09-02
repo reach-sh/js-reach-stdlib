@@ -72,8 +72,8 @@ export interface ProviderLib {
     setProviderByEnv: (env: ProviderEnv) => void;
     setProviderByName: (providerName: ProviderName) => void;
     providerEnvByName: (providerName: ProviderName) => ProviderEnv;
-    getSignStrategy: () => string;
-    setSignStrategy: (ss: string) => void;
+    setWalletFallback: (wallet: any) => void;
+    walletFallback: (opts: any) => any;
 }
 declare type FixedPoint = {
     sign: boolean;
@@ -145,6 +145,7 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     minimumBalance: BigNumber;
     formatCurrency: (amt: BigNumber, decimals: number) => string;
     formatAddress: (addr: string) => string;
+    launchToken: (acc: Acc, name: string, sym: string) => any;
     reachStdlib: Stdlib_Backend<Ty>;
 }
 export {};

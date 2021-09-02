@@ -1,7 +1,7 @@
 export declare const connector = "ALGO";
 import algosdk from 'algosdk';
 import { ethers } from 'ethers';
-import type { Transaction } from 'algosdk';
+import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
@@ -11,45 +11,19 @@ declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 declare type Address = string;
 declare type SecretKey = Uint8Array;
-declare type AlgoSigner = {
-    sign: (txn: Transaction) => Promise<{
-        blob: string;
-        txID: string;
-    }>;
-    accounts: (args: {
-        ledger: string;
-    }) => Promise<Array<{
-        address: string;
-    }>>;
-};
-declare type Wallet = {
-    addr: Address;
-    sk: SecretKey;
-    AlgoSigner?: AlgoSigner;
-} | {
-    addr: Address;
-    sk?: SecretKey;
-    AlgoSigner: AlgoSigner;
-};
-declare type TxnParams = {
-    flatFee?: boolean;
-    fee: number;
-    firstRound: number;
-    lastRound: number;
-    genesisID: string;
-    genesisHash: string;
-};
 declare type TxnInfo = {
     'confirmed-round': number;
     'application-index'?: number;
 };
-declare type TxId = string;
 declare type CompileResultBytes = {
     src: String;
     result: Uint8Array;
     hash: Address;
 };
-declare type NetworkAccount = Wallet;
+declare type NetworkAccount = {
+    addr: Address;
+    sk?: SecretKey;
+};
 declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
@@ -74,14 +48,6 @@ declare type CompiledBackend = {
 declare type ContractInfo = number;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
-declare const setWaitPort: (val: boolean) => void;
-export { setWaitPort };
-declare const getSignStrategy: () => string, setSignStrategy: (val: string) => void;
-export { getSignStrategy, setSignStrategy };
-declare const setAlgoSigner: (val: Promise<AlgoSigner>) => void;
-export { setAlgoSigner };
-export declare const waitForConfirmation: (txId: TxId, untilRound: number | undefined) => Promise<TxnInfo>;
-export declare const getTxnParams: () => Promise<TxnParams>;
 export declare function getQueryLowerBound(): BigNumber;
 export declare function setQueryLowerBound(networkTime: BigNumber | number): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
@@ -93,33 +59,29 @@ export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: AL
 export declare const randomUInt: () => ethers.BigNumber, hasRandom: {
     random: () => ethers.BigNumber;
 };
-export declare const getLedger: () => string | undefined, setLedger: (val: string | undefined) => void;
-export declare const getAlgodClient: () => Promise<algosdk.Algodv2>, setAlgodClient: (val: Promise<algosdk.Algodv2>) => void;
-export declare const getIndexer: () => Promise<algosdk.Indexer>, setIndexer: (val: Promise<algosdk.Indexer>) => void;
-interface ALGO_Provider {
+interface Provider {
     algodClient: algosdk.Algodv2;
     indexer: algosdk.Indexer;
-    ledger?: string;
+    getDefaultAddress: () => Address;
+    isIsolatedNetwork: boolean;
+    signAndPostTxns: (txns: WalletTransaction[], opts?: any) => Promise<any>;
 }
-export declare function getProvider(): Promise<ALGO_Provider>;
-export declare function setProvider(provider: ALGO_Provider | Promise<ALGO_Provider>): Promise<void>;
+export declare const setWalletFallback: (wf: () => any) => void;
+export declare const walletFallback: (opts: any) => () => ARC11_Wallet;
+export declare const getProvider: () => Promise<Provider>, setProvider: (val: Promise<Provider>) => void;
 export interface ProviderEnv {
-    ALGO_LEDGER: string | undefined;
     ALGO_SERVER: string;
     ALGO_PORT: string;
     ALGO_TOKEN: string;
     ALGO_INDEXER_SERVER: string;
     ALGO_INDEXER_PORT: string;
     ALGO_INDEXER_TOKEN: string;
+    REACH_ISOLATED_NETWORK: string;
 }
 export declare function setProviderByEnv(env: Partial<ProviderEnv>): void;
-declare type WhichNetExternal = 'MainNet' | 'TestNet' | 'BetaNet';
-export declare type ProviderName = WhichNetExternal | 'LocalHost' | 'randlabs/MainNet' | 'randlabs/TestNet' | 'randlabs/BetaNet';
-export declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
-export declare function setProviderByName(providerName: ProviderName): void;
-declare const getFaucet: () => Promise<Account>;
-declare const setFaucet: (x: Promise<Account>) => void;
-export { getFaucet, setFaucet };
+export declare function providerEnvByName(providerName: string): ProviderEnv;
+export declare function setProviderByName(providerName: string): void;
+export declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
 export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined, tag?: number | undefined) => Promise<TxnInfo>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
@@ -144,7 +106,7 @@ export declare const minimumBalance: BigNumber;
  * @description  Format currency by network
  * @param amt  the amount in the {@link atomicUnit} of the network.
  * @param decimals  up to how many decimal places to display in the {@link standardUnit}.
- *   Trailing zeroes will be omitted. Excess decimal places will be truncated. (not rounded)
+ *   Trailing zeros will be omitted. Excess decimal places will be truncated (not rounded).
  *   This argument defaults to maximum precision.
  * @returns  a string representation of that amount in the {@link standardUnit} for that network.
  * @example  formatCurrency(bigNumberify('100000000')); // => '100'
@@ -159,8 +121,7 @@ export declare const newAccountFromMnemonic: (mnemonic: string) => Promise<Accou
 /**
  * @param secret a Uint8Array, or its hex string representation
  */
-export declare const newAccountFromSecret: (secret: string | Uint8Array) => Promise<Account>;
-export declare const newAccountFromAlgoSigner: (addr: string, AlgoSigner: AlgoSigner, ledger: string) => Promise<Account>;
+export declare const newAccountFromSecret: (secret: string | SecretKey) => Promise<Account>;
 export declare const getNetworkTime: () => Promise<BigNumber>;
 export declare const getNetworkSecs: () => Promise<BigNumber>;
 export declare const waitUntilTime: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
@@ -180,5 +141,12 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  * @returns the address formatted as a base32-encoded string with checksum
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
+export declare function launchToken(accCreator: Account, name: string, sym: string): Promise<{
+    name: string;
+    sym: string;
+    id: any;
+    mint: (accTo: Account, amt: any) => Promise<void>;
+    optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
+}>;
 export declare const reachStdlib: import("./interfaces").Stdlib_Backend_Base<ALGO_Ty<any>>;
 //# sourceMappingURL=ALGO.d.ts.map

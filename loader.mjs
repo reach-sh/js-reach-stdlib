@@ -2,29 +2,26 @@ import * as stdlib_ETH from './ETH.mjs';
 import * as stdlib_ALGO from './ALGO.mjs';
 import * as stdlib_CFX from './CFX.mjs';
 import { getConnectorMode, canonicalizeConnectorMode, getConnector } from './ConnectorMode.mjs';
-import { process, window } from './shim.mjs';
-import { rEnv, setDEBUG, truthyEnv, } from './shared_impl.mjs';
+import { process, window, updateProcessEnv, } from './shim.mjs';
 import { doStdlibLoad } from './registry.mjs';
 export { unsafeAllowMultipleStdlibs } from './registry.mjs';
 export { getConnectorMode, getConnector };
+
+function extractMode(x) {
+  if (!x) {
+    return extractMode(process.env);
+  }
+  if (typeof x === 'string') {
+    return extractMode({ REACH_CONNECTOR_MODE: x });
+  }
+  updateProcessEnv(x);
+  var g = process.env['REACH_CONNECTOR_MODE'];
+  return g || 'ETH';
+};
 // The connectorMode arg is optional;
 // It will use REACH_CONNECTOR_MODE if 0 args.
 export function loadStdlib(connectorModeOrEnv) {
-  if (!connectorModeOrEnv) {
-    // @ts-ignore // XXX why doesn't TS understand that Env satisfies {[key: string}: string} ?
-    return loadStdlib(process.env);
-  }
-  var connectorModeStr;
-  if (typeof connectorModeOrEnv === 'string') {
-    connectorModeStr = connectorModeOrEnv;
-  } else if (connectorModeOrEnv['REACH_CONNECTOR_MODE']) {
-    connectorModeStr = connectorModeOrEnv['REACH_CONNECTOR_MODE'];
-  } else if (connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE']) {
-    connectorModeStr = connectorModeOrEnv['REACT_APP_REACH_CONNECTOR_MODE'];
-  } else {
-    // TODO: also check {REACT_APP_,}REACH_DEFAULT_NETWORK
-    connectorModeStr = 'ETH'; // If absolutely none specified/found, just default to 'ETH'
-  }
+  var connectorModeStr = extractMode(connectorModeOrEnv);
   var connectorMode = canonicalizeConnectorMode(connectorModeStr);
   var connector = getConnector(connectorMode);
   // Remember the connector to prevent users from accidentally using multiple stdlibs
@@ -42,10 +39,6 @@ export function loadStdlib(connectorModeOrEnv) {
       break;
     default:
       throw Error("impossible: unknown connector " + connector);
-  }
-  if (connectorModeOrEnv && typeof connectorModeOrEnv !== 'string') {
-    var debug = truthyEnv(rEnv(connectorModeOrEnv, 'REACH_DEBUG'));
-    setDEBUG(debug);
   }
   // also just inject ourselves into the window for ease of use
   window.reach = stdlib;

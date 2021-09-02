@@ -170,10 +170,6 @@ export declare const labelMaps: (co: {
         [key: string]: number;
     };
 };
-/** @description Access an environment variable, or its react-prefixed equivalent */
-export declare function rEnv(env: {
-    [k: string]: string;
-}, k: string): string | undefined;
 /** @description Check that a stringy env value doesn't look falsy. */
 export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;

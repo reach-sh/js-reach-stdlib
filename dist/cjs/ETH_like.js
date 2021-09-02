@@ -432,14 +432,18 @@ function makeEthLike(ethLikeArgs) {
             }
         });
     }); };
-    var doCall = function (dhead, ctc, funcName, args, value, gasLimit) { return __awaiter(_this, void 0, void 0, function () {
-        var dpre;
+    var doCall = function (dhead, ctc, funcName, args, value, gasLimit, storageLimit) { return __awaiter(_this, void 0, void 0, function () {
+        var dpre, tx;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     dpre = __assign(__assign({}, dhead), { funcName: funcName, args: args, value: value });
                     shared_impl_1.debug(__assign(__assign({}, dpre), { step: "pre call" }));
-                    return [4 /*yield*/, doTxn(dpre, ctc[funcName].apply(ctc, __spreadArray(__spreadArray([], args), [{ value: value, gasLimit: gasLimit }])))];
+                    tx = { value: value, gasLimit: gasLimit };
+                    if (storageLimit !== undefined) {
+                        tx = __assign(__assign({}, tx), { storageLimit: storageLimit });
+                    }
+                    return [4 /*yield*/, doTxn(dpre, ctc[funcName].apply(ctc, __spreadArray(__spreadArray([], args), [tx])))];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -448,7 +452,7 @@ function makeEthLike(ethLikeArgs) {
     var transfer = function (from, to, value, token) {
         if (token === void 0) { token = false; }
         return __awaiter(_this, void 0, void 0, function () {
-            var sender, receiver, valueb, dhead, txn, tokCtc, gl;
+            var sender, receiver, valueb, dhead, txn, tokCtc, gl, sl;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -466,7 +470,8 @@ function makeEthLike(ethLikeArgs) {
                     case 3:
                         tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
                         gl = from.getGasLimit ? from.getGasLimit() : undefined;
-                        return [4 /*yield*/, doCall(dhead, tokCtc, "transfer", [receiver, valueb], shared_user_1.bigNumberify(0), gl)];
+                        sl = from.getStorageLimit ? from.getStorageLimit() : undefined;
+                        return [4 /*yield*/, doCall(dhead, tokCtc, "transfer", [receiver, valueb], shared_user_1.bigNumberify(0), gl, sl)];
                     case 4: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -486,7 +491,7 @@ function makeEthLike(ethLikeArgs) {
                 });
             });
         }
-        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, deploy, attach, tokenMetadata;
+        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, deploy, attach, tokenMetadata;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -522,6 +527,10 @@ function makeEthLike(ethLikeArgs) {
                         gasLimit = shared_user_1.bigNumberify(ngl);
                     };
                     getGasLimit = function () { return gasLimit; };
+                    setStorageLimit = function (bn) {
+                        storageLimit = shared_user_1.bigNumberify(bn);
+                    };
+                    getStorageLimit = function () { return storageLimit; };
                     deploy = function (bin) {
                         shared_impl_1.ensureConnectorAvailable(bin, 'ETH', reachBackendVersion, reachEthBackendVersion);
                         if (!ethers.Signer.isSigner(networkAccount)) {
@@ -700,7 +709,7 @@ function makeEthLike(ethLikeArgs) {
                                         zero = shared_user_1.bigNumberify(0);
                                         actualCall = function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
                                             switch (_a.label) {
-                                                case 0: return [4 /*yield*/, doCall(__assign(__assign({}, dhead), { kind: 'reach' }), ethersC, funcName, [arg], value, gasLimit)];
+                                                case 0: return [4 /*yield*/, doCall(__assign(__assign({}, dhead), { kind: 'reach' }), ethersC, funcName, [arg], value, gasLimit, storageLimit)];
                                                 case 1: return [2 /*return*/, _a.sent()];
                                             }
                                         }); }); };
@@ -714,7 +723,7 @@ function makeEthLike(ethLikeArgs) {
                                                         shared_impl_1.debug(__assign(__assign({}, dhead), { kind: 'token' }), 'balanceOf', tokBalance);
                                                         shared_backend_1.assert(tokBalance.gte(amt), "local account token balance is insufficient: " + tokBalance + " < " + amt);
                                                         tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
-                                                        return [4 /*yield*/, doCall(__assign(__assign({}, dhead), { kind: 'token' }), tokCtc, "approve", [ethersC.address, amt], zero, gasLimit)];
+                                                        return [4 /*yield*/, doCall(__assign(__assign({}, dhead), { kind: 'token' }), tokCtc, "approve", [ethersC.address, amt], zero, gasLimit, storageLimit)];
                                                     case 2:
                                                         _a.sent();
                                                         return [2 /*return*/];
@@ -1165,7 +1174,7 @@ function makeEthLike(ethLikeArgs) {
                             }
                         });
                     }); };
-                    return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, setGasLimit: setGasLimit, getGasLimit: getGasLimit, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata }];
+                    return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata }];
             }
         });
     }); };
@@ -1530,6 +1539,49 @@ function makeEthLike(ethLikeArgs) {
     function formatAddress(acc) {
         return T_Address.canonicalize(acc); // TODO: typing
     }
+    function launchToken(accCreator, name, sym) {
+        return __awaiter(this, void 0, void 0, function () {
+            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, contract, deploy_r, id, mint;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        console.log("Launching token, " + name + " (" + sym + ")");
+                        addr = function (acc) { return acc.networkAccount.address; };
+                        remoteCtc = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"];
+                        remoteABI = remoteCtc["abi"];
+                        remoteBytecode = remoteCtc["bin"];
+                        factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);
+                        console.log(sym + ": deploy");
+                        supply = shared_user_1.bigNumberify(2).pow(256).sub(1);
+                        return [4 /*yield*/, factory.deploy(name, sym, '', '', supply)];
+                    case 1:
+                        contract = _a.sent();
+                        console.log(sym + ": wait for deploy: " + contract.deployTransaction.hash);
+                        return [4 /*yield*/, contract.deployTransaction.wait()];
+                    case 2:
+                        deploy_r = _a.sent();
+                        console.log(sym + ": saw deploy: " + deploy_r.blockNumber);
+                        id = contract.address;
+                        console.log(sym + ": deployed: " + id);
+                        mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        console.log(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                        return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); };
+                        return [2 /*return*/, { name: name, sym: sym, id: id, mint: mint }];
+                }
+            });
+        });
+    }
+    ;
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
     var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound,
@@ -1561,6 +1613,7 @@ function makeEthLike(ethLikeArgs) {
         minimumBalance: minimumBalance,
         formatCurrency: formatCurrency,
         formatAddress: formatAddress,
+        launchToken: launchToken,
         reachStdlib: reachStdlib });
     return ethLike;
 }

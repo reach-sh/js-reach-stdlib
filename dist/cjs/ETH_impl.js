@@ -80,7 +80,6 @@ exports.ethLikeCompiled = ethLikeCompiled;
 var shared_impl_1 = require("./shared_impl");
 var shim_1 = require("./shim");
 var waitPort_1 = __importDefault(require("./waitPort"));
-// TODO: types on these
 function _getDefaultNetworkAccount() {
     return __awaiter(this, void 0, void 0, function () {
         var provider, signer;
@@ -98,14 +97,12 @@ function _getDefaultNetworkAccount() {
     });
 }
 exports._getDefaultNetworkAccount = _getDefaultNetworkAccount;
-// TODO: types on these
 function _getDefaultFaucetNetworkAccount() {
     return __awaiter(this, void 0, void 0, function () {
         var p;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!isIsolatedNetwork()) return [3 /*break*/, 2];
                     if (isWindowProvider()) {
                         p = new ethers_1.ethers.providers.JsonRpcProvider('http://localhost:8545');
                         return [2 /*return*/, p.getSigner()];
@@ -119,7 +116,6 @@ function _getDefaultFaucetNetworkAccount() {
                 // This is true of reach-provided devnets.
                 // TODO: allow the user to set the faucet via mnemnonic.
                 return [2 /*return*/, _a.sent()];
-                case 2: throw Error("getFaucet not supported in this context.");
             }
         });
     });
@@ -348,6 +344,15 @@ function setProvider(provider) {
 }
 exports.setProvider = setProvider;
 ;
+var setWalletFallback = function (wf) {
+    if (!shim_1.window.ethereum) {
+        shim_1.window.ethereum = wf();
+    }
+};
+var walletFallback = function (opts) { return function () {
+    void (opts);
+    throw new Error("There is no wallet fallback for Ethereum");
+}; };
 // XXX: doesn't even retry, just returns the first attempt
 var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0, function () {
     var urlObj;
@@ -398,21 +403,14 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
-function getSignStrategy() {
-    throw Error("getSignStrategy not yet implemented on ETH");
-}
-function setSignStrategy(ss) {
-    void (ss);
-    throw Error("setSignStrategy not yet implemented on ETH");
-}
 exports.providerLib = {
     getProvider: getProvider,
     setProvider: setProvider,
     setProviderByName: setProviderByName,
     setProviderByEnv: setProviderByEnv,
-    setSignStrategy: setSignStrategy,
-    getSignStrategy: getSignStrategy,
-    providerEnvByName: providerEnvByName
+    providerEnvByName: providerEnvByName,
+    setWalletFallback: setWalletFallback,
+    walletFallback: walletFallback
 };
 exports.standardUnit = 'ETH';
 exports.atomicUnit = 'WEI';
