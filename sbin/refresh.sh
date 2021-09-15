@@ -20,7 +20,7 @@ fi
 rm -f ./*.mjs ./*.d.ts
 rm -rf ./dist/
 docker run --entrypoint /bin/sh --volume "$(pwd):/cwd" "$IMAGE" \
-  -c 'cp /stdlib/*.mjs /stdlib/package.json /cwd/ && cp -r dist /cwd/dist && cp /stdlib/dist/types/* /cwd/'
+  -c 'cp /stdlib/*.mjs /stdlib/package.json /cwd/ && cp -r /stdlib/dist /cwd/dist && cp /stdlib/dist/types/* /cwd/'
   # -c 'cp /stdlib/*.mjs /stdlib/package.json /stdlib/*.d.ts /cwd/'
 
 
