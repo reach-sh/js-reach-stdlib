@@ -504,5 +504,7 @@ export var providerLib = {
 export var _warnTxNoBlockNumber = false; // XXX ?
 export var standardUnit = 'CFX';
 export var atomicUnit = 'Drip';
-export var validQueryWindow = 1000;
+// This can probably be 999, but Dan is superstitious,
+// and wants to avoid off-by-ones by a larger margin
+export var validQueryWindow = 990;
 //# sourceMappingURL=CFX_impl.js.map

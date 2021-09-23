@@ -536,5 +536,7 @@ exports.providerLib = {
 exports._warnTxNoBlockNumber = false; // XXX ?
 exports.standardUnit = 'CFX';
 exports.atomicUnit = 'Drip';
-exports.validQueryWindow = 1000;
+// This can probably be 999, but Dan is superstitious,
+// and wants to avoid off-by-ones by a larger margin
+exports.validQueryWindow = 990;
 //# sourceMappingURL=CFX_impl.js.map

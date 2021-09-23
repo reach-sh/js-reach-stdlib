@@ -45,5 +45,5 @@ export declare const providerLib: {
 export declare const _warnTxNoBlockNumber = false;
 export declare const standardUnit = "CFX";
 export declare const atomicUnit = "Drip";
-export declare const validQueryWindow = 1000;
+export declare const validQueryWindow = 990;
 //# sourceMappingURL=CFX_impl.d.ts.map
