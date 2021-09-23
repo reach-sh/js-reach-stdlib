@@ -252,7 +252,11 @@ export var makeArith = function (m) {
     var mod = function (a, b) { return check(bigNumberify(a).mod(bigNumberify(b))); };
     var mul = function (a, b) { return check(bigNumberify(a).mul(bigNumberify(b))); };
     var div = function (a, b) { return check(bigNumberify(a).div(bigNumberify(b))); };
-    return { add: add, sub: sub, mod: mod, mul: mul, div: div };
+    var muldiv = function (a, b, c) {
+        var prod = bigNumberify(a).mul(bigNumberify(b));
+        return check(prod.div(bigNumberify(c)));
+    };
+    return { add: add, sub: sub, mod: mod, mul: mul, div: div, muldiv: muldiv };
 };
 export var argsSlice = function (args, cnt) {
     return cnt == 0 ? [] : args.slice(-1 * cnt);

@@ -72,6 +72,7 @@ exports.__esModule = true;
 exports.Wallet = exports.BrowserWallet = exports.ContractFactory = exports.Contract = exports.Signer = exports.cfxsdk = exports.providers = exports.utils = exports.BigNumber = void 0;
 var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
 exports.cfxsdk = js_conflux_sdk_1["default"];
+var js_conflux_sdk_2 = require("js-conflux-sdk");
 var ethers_1 = require("ethers");
 var providers = __importStar(require("./cfxers_providers"));
 exports.providers = providers;
@@ -241,7 +242,7 @@ var Contract = /** @class */ (function () {
                             argsConformed = conform(args, inputs);
                             shared_impl_1.debug("cfxers:handler", fname, 'conform', argsConformed);
                             if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/, 7];
-                            shared_impl_1.debug("cfsers:handler", fname, "waitable");
+                            shared_impl_1.debug("cfxers:handler", fname, "waitable");
                             cfc = (_a = self._contract[fname]).call.apply(_a, argsConformed);
                             shared_impl_1.debug("cfxers:handler", fname, "cfc", cfc);
                             est = undefined;
@@ -261,7 +262,7 @@ var Contract = /** @class */ (function () {
                             shared_impl_1.debug("cfxers:handler", fname, { est: est, est_err: est_err });
                             if (est) {
                                 if (txn.gas === undefined) {
-                                    txn.gas = est.gasLimit;
+                                    txn.gas = est.gasUsed;
                                 }
                                 if (txn.storageLimit === undefined) {
                                     txn.storageLimit = est.storageCollateralized;
@@ -506,7 +507,7 @@ var Wallet = /** @class */ (function () {
     };
     Wallet.prototype.sendTransaction = function (txn) {
         return __awaiter(this, void 0, void 0, function () {
-            var from, _a;
+            var from, estimate, storageRatio, gasRatio, balance, newGasCost, newStorageCost, gasXstorage, finalCost, final, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -515,13 +516,31 @@ var Wallet = /** @class */ (function () {
                             throw Error("Impossible: provider is undefined");
                         from = this.getAddress();
                         txn = __assign(__assign({ from: from }, txn), { value: (txn.value || '0').toString() });
-                        if (!(txn.to instanceof Promise)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.provider.conflux.estimateGasAndCollateral(txn)];
+                    case 1:
+                        estimate = _b.sent();
+                        storageRatio = this.provider.conflux.defaultStorageRatio;
+                        gasRatio = this.provider.conflux.defaultGasRatio;
+                        return [4 /*yield*/, this.provider.conflux.getBalance(from)];
+                    case 2:
+                        balance = _b.sent();
+                        newGasCost = js_conflux_sdk_2.format.big(estimate.gasUsed).times(gasRatio).toFixed(0);
+                        newStorageCost = js_conflux_sdk_2.format.big(estimate.storageCollateralized).times(storageRatio).toFixed(0);
+                        gasXstorage = js_conflux_sdk_2.format.big(newGasCost).plus(newStorageCost).toFixed(0);
+                        finalCost = js_conflux_sdk_2.format.big(txn.value).plus(gasXstorage).toFixed(0);
+                        final = BigInt(finalCost);
+                        shared_impl_1.debug("SendTxn attempt, Final Cost of Tx is , " + final + ",  Balance of sender " + from + " is " + balance);
+                        if (final > balance) {
+                            shared_impl_1.debug("Checking: Account balanace of  " + from + " is " + balance + " and gasFee is, " + newGasCost + ": Total TxValue is " + final);
+                            throw Error(" INSUFFICIENT FUNDS GAS COST IS " + newGasCost + ",  TXN VALUE IS  " + final + ", ACCOUNT " + from + " ONLY HAS A BALANCE OF " + balance);
+                        }
+                        if (!(txn.to instanceof Promise)) return [3 /*break*/, 4];
                         _a = txn;
                         return [4 /*yield*/, txn.to];
-                    case 1:
+                    case 3:
                         _a.to = _b.sent();
-                        _b.label = 2;
-                    case 2: return [2 /*return*/, _retryingSendTxn(this.provider, txn)];
+                        _b.label = 4;
+                    case 4: return [2 /*return*/, _retryingSendTxn(this.provider, txn)];
                 }
             });
         });

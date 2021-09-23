@@ -280,7 +280,11 @@ var makeArith = function (m) {
     var mod = function (a, b) { return check(CBR_1.bigNumberify(a).mod(CBR_1.bigNumberify(b))); };
     var mul = function (a, b) { return check(CBR_1.bigNumberify(a).mul(CBR_1.bigNumberify(b))); };
     var div = function (a, b) { return check(CBR_1.bigNumberify(a).div(CBR_1.bigNumberify(b))); };
-    return { add: add, sub: sub, mod: mod, mul: mul, div: div };
+    var muldiv = function (a, b, c) {
+        var prod = CBR_1.bigNumberify(a).mul(CBR_1.bigNumberify(b));
+        return check(prod.div(CBR_1.bigNumberify(c)));
+    };
+    return { add: add, sub: sub, mod: mod, mul: mul, div: div, muldiv: muldiv };
 };
 exports.makeArith = makeArith;
 var argsSlice = function (args, cnt) {

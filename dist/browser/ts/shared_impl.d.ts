@@ -189,6 +189,7 @@ export declare const makeArith: (m: BigNumber) => {
     mod: (a: num, b: num) => BigNumber;
     mul: (a: num, b: num) => BigNumber;
     div: (a: num, b: num) => BigNumber;
+    muldiv: (a: num, b: num, c: num) => BigNumber;
 };
 export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
 export declare const argsSplit: <T>(args: T[], cnt: number) => [T[], T[]];
