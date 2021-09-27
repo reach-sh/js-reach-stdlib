@@ -18,7 +18,7 @@ To check which version you have:
 :bulb: Misc tips:
 * If you use the Docker images and the node.js package, we recommend that you update them simultaneously.
 * If you are noticing old images still running, you can clear them out with
-  `reach docker-reset`
+  `reach down`
 * If you are noticing old build artifacts still in use, you can clear them out with
   `reach clean`
 * If you have any questions or issues, we are happy to answer in #❓help
