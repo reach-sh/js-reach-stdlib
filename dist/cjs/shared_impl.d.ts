@@ -56,6 +56,7 @@ export declare type MkPayAmt<Token> = [
 ];
 export declare type IRecvNoTimeout<RawAddress> = {
     didTimeout: false;
+    didSend: boolean;
     data: Array<unknown>;
     from: RawAddress;
     time: BigNumber;
@@ -76,19 +77,19 @@ export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBack
     onlyIf: boolean;
     soloSend: boolean;
     timeoutAt: TimeArg | undefined;
-    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token, ConnectorTy>>;
+    lct: BigNumber;
+    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token>>;
 };
 export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     funcNum: number;
     evt_cnt: number;
     out_tys: Array<ConnectorTy>;
+    didSend: boolean;
     waitIfNotPresent: boolean;
     timeoutAt: TimeArg | undefined;
 };
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
-    creationTime: () => Promise<BigNumber>;
-    creationSecs: () => Promise<BigNumber>;
     sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     waitTime: (v: BigNumber) => Promise<BigNumber>;
@@ -116,12 +117,9 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Token, ConnectorTy> = {
+export declare type ISimRes<Token> = {
     txns: Array<ISimTxn<Token>>;
     mapRefs: Array<string>;
-    mapsPrev: any;
-    mapsNext: any;
-    view: [ConnectorTy, any];
     isHalt: boolean;
 };
 export declare type ISimTxn<Token> = {
@@ -208,4 +206,11 @@ export declare const argMin: (xs: any[], f: (_: any) => any) => any;
 export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => (k: number, bal: any) => Promise<X[]>;
 export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const checkTimeout: (getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
+export declare class Signal {
+    p: Promise<boolean>;
+    r: (a: boolean) => void;
+    constructor();
+    wait(): Promise<boolean>;
+    notify(): void;
+}
 //# sourceMappingURL=shared_impl.d.ts.map

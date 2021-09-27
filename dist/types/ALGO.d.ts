@@ -31,8 +31,8 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
             appApproval: string;
             appClear: string;
             escrow: string;
-            viewSize: number;
-            viewKeys: number;
+            stateSize: number;
+            stateKeys: number;
             mapDataSize: number;
             mapDataKeys: number;
             unsupported: Array<string>;
@@ -130,8 +130,7 @@ export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefine
 declare type VerifyResult = {
     compiled: CompiledBackend;
     ApplicationID: number;
-    allocRound: number;
-    ctorRound: number;
+    startRound: number;
     Deployer: Address;
 };
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<VerifyResult>;

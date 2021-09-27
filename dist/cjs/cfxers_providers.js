@@ -64,11 +64,11 @@ function attachBlockNumbers(conflux, xs) {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            shared_impl_1.debug("actuallyLookup", "block by hash query", blockHash);
+                            (0, shared_impl_1.debug)("actuallyLookup", "block by hash query", blockHash);
                             return [4 /*yield*/, conflux.getBlockByHash(blockHash)];
                         case 1:
                             block = _a.sent();
-                            shared_impl_1.debug("actuallyLookup", "block by hash result", blockHash, block);
+                            (0, shared_impl_1.debug)("actuallyLookup", "block by hash result", blockHash, block);
                             // @ts-ignore // XXX requires an update to js-conflux-sdk types
                             return [2 /*return*/, parseInt(block.blockNumber)];
                     }
@@ -193,7 +193,7 @@ var Provider = /** @class */ (function () {
                     case 2:
                         block = _a.sent();
                         // @ts-ignore
-                        shared_impl_1.debug('getBlockNumber', epochNumber, block.epochNumber, block.blockNumber);
+                        (0, shared_impl_1.debug)('getBlockNumber', epochNumber, block.epochNumber, block.blockNumber);
                         // @ts-ignore
                         return [2 /*return*/, parseInt(block.blockNumber)];
                 }
@@ -205,7 +205,7 @@ var Provider = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        shared_impl_1.debug("getBlock", which);
+                        (0, shared_impl_1.debug)("getBlock", which);
                         return [4 /*yield*/, this.conflux.getBlockByBlockNumber(which, true)];
                     case 1: 
                     // @ts-ignore
@@ -274,15 +274,15 @@ var Provider = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        shared_impl_1.debug("getLogs", "opts", opts);
+                        (0, shared_impl_1.debug)("getLogs", "opts", opts);
                         if (opts.fromBlock == 0) {
                             opts.fromBlock = 1;
-                            shared_impl_1.debug("getLogs", "opts", opts);
+                            (0, shared_impl_1.debug)("getLogs", "opts", opts);
                         }
                         return [4 /*yield*/, this.conflux.getLogs(opts)];
                     case 1:
                         logs = _a.sent();
-                        shared_impl_1.debug("getLogs", "result", logs);
+                        (0, shared_impl_1.debug)("getLogs", "result", logs);
                         return [4 /*yield*/, attachBlockNumbers(this.conflux, logs)];
                     case 2: return [2 /*return*/, _a.sent()];
                 }

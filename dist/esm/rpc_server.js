@@ -45,10 +45,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { createSecureServer } from 'http2';
 import { randomBytes } from 'crypto';
@@ -224,7 +228,7 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                                 switch (_d.label) {
                                     case 0:
                                         _b = (_a = contract).track;
-                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], args))];
+                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], args, false))];
                                     case 1: return [2 /*return*/, _b.apply(_a, [_d.sent()])];
                                 }
                             });
@@ -430,8 +434,7 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                 fetchOrFail = function (envvar, desc) {
                     var f = process.env[envvar];
                     if (!f) {
-                        console.error(["\nPlease populate the `" + envvar + "` environment variable with",
-                            " the path to your TLS " + desc + ".\n"
+                        console.error(["\nPlease populate the `" + envvar + "` environment variable with", " the path to your TLS " + desc + ".\n"
                         ].join(''));
                         process.exit(1);
                     }

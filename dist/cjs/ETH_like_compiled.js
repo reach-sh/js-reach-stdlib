@@ -44,7 +44,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
     var T_Address = ethLikeCompiledArgs.T_Address;
     var UInt_max = ethers_1.ethers.BigNumber.from(2).pow(256).sub(1);
-    var digest = shared_impl_1.makeDigest('keccak256', function (t, v) {
+    var digest = (0, shared_impl_1.makeDigest)('keccak256', function (t, v) {
         // Note: abiCoder.encode doesn't correctly handle an empty tuple type
         if (t.paramType === 'tuple()') {
             if (Array.isArray(v) && v.length === 0) {
@@ -86,7 +86,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         }
     }
     var T_Bytes = function (len) {
-        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function (bv) { return Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv)); }, unmunge: function (nv) { return me.canonicalize(shared_impl_1.hexToString(ethers_1.ethers.utils.hexlify(unBigInt(nv)))); }, paramType: "uint8[" + len + "]" });
+        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function (bv) { return Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv)); }, unmunge: function (nv) { return me.canonicalize((0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv)))); }, paramType: "uint8[" + len + "]" });
         return me;
     };
     var T_Digest = __assign(__assign({}, CBR.BT_Digest), { defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
@@ -186,7 +186,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
             }
             return V_Object(co)(obj);
         }, paramType: (function () {
-            var ascLabels = shared_impl_1.labelMaps(co).ascLabels;
+            var ascLabels = (0, shared_impl_1.labelMaps)(co).ascLabels;
             var tupFields = ascLabels.map(function (label) { return co[label].paramType + " _" + label; }).join(',');
             return "tuple(" + tupFields + ")";
         })() })); };
@@ -195,7 +195,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     }; };
     var T_Data = function (co) {
         // TODO: not duplicate between this and CBR.ts
-        var _a = shared_impl_1.labelMaps(co), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
+        var _a = (0, shared_impl_1.labelMaps)(co), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
         return __assign(__assign({}, CBR.BT_Data(co)), { defaultValue: (function () {
                 var label = ascLabels[0];
                 return [label, co[label].defaultValue];
@@ -236,7 +236,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 var val = vs[i + 1];
                 return V_Data(co)([label, co[label].unmunge(val)]);
             }, paramType: (function () {
-                var ascLabels = shared_impl_1.labelMaps(co).ascLabels;
+                var ascLabels = (0, shared_impl_1.labelMaps)(co).ascLabels;
                 // See comment on unmunge about field names that we could use but currently don't
                 var optionTys = ascLabels.map(function (label) { return co[label].paramType + " _" + label; });
                 var tupFields = [T_UInt.paramType + " which"].concat(optionTys).join(',');
@@ -246,7 +246,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Data = function (co) { return function (val) {
         return T_Data(co).canonicalize(val);
     }; };
-    var addressEq = shared_impl_1.mkAddressEq(T_Address);
+    var addressEq = (0, shared_impl_1.mkAddressEq)(T_Address);
     var T_Token = T_Address;
     var tokenEq = addressEq;
     var typeDefs = {
@@ -263,18 +263,14 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         T_Tuple: T_Tuple,
         T_Struct: T_Struct
     };
-    var arith = shared_impl_1.makeArith(UInt_max);
-    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq,
-        tokenEq: tokenEq,
-        digest: digest,
-        UInt_max: UInt_max });
+    var arith = (0, shared_impl_1.makeArith)(UInt_max);
+    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max });
     // ...............................................
     // It's the same as stdlib, but with convenient access to
     // stdlib and typeDefs as bundles of bindings
     // TODO: restore type annotation once types are in place
     // const ethLikeCompiled: EthLikeCompiled = {
-    var ethLikeCompiled = __assign(__assign({}, stdlib), { typeDefs: typeDefs,
-        stdlib: stdlib });
+    var ethLikeCompiled = __assign(__assign({}, stdlib), { typeDefs: typeDefs, stdlib: stdlib });
     return ethLikeCompiled;
 }
 exports.makeEthLikeCompiled = makeEthLikeCompiled;

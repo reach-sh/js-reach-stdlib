@@ -86,7 +86,7 @@ function _getDefaultNetworkAccount() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    shared_impl_1.debug("_getDefaultAccount");
+                    (0, shared_impl_1.debug)("_getDefaultAccount");
                     return [4 /*yield*/, getProvider()];
                 case 1:
                     provider = _a.sent();
@@ -124,7 +124,7 @@ exports._getDefaultFaucetNetworkAccount = _getDefaultFaucetNetworkAccount;
 function canFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            shared_impl_1.debug('canFundFromFaucet');
+            (0, shared_impl_1.debug)('canFundFromFaucet');
             return [2 /*return*/, isIsolatedNetwork()];
         });
     });
@@ -140,8 +140,8 @@ function waitProviderFromEnv(env) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!shared_impl_1.truthyEnv(REACH_DO_WAIT_PORT_1)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, waitPort_1["default"](ETH_NODE_URI_1)];
+                        if (!(0, shared_impl_1.truthyEnv)(REACH_DO_WAIT_PORT_1)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, (0, waitPort_1["default"])(ETH_NODE_URI_1)];
                     case 1:
                         _a.sent();
                         _a.label = 2;
@@ -257,7 +257,7 @@ function setProviderEnv(env) {
     _providerEnv = env;
 }
 function isIsolatedNetwork() {
-    return shared_impl_1.truthyEnv(getProviderEnv().REACH_ISOLATED_NETWORK);
+    return (0, shared_impl_1.truthyEnv)(getProviderEnv().REACH_ISOLATED_NETWORK);
 }
 exports.isIsolatedNetwork = isIsolatedNetwork;
 function isWindowProvider() {
@@ -294,17 +294,17 @@ function guessConnectorMode(env) {
 }
 function envDefaultsETH(env) {
     var ETH_NET = env.ETH_NET, ETH_NODE_URI = env.ETH_NODE_URI;
-    var cm = shared_impl_1.envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
-    var REACH_CONNECTOR_MODE = shared_impl_1.envDefault(cm, ConnectorMode_1.canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'ETH'));
+    var cm = (0, shared_impl_1.envDefault)(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+    var REACH_CONNECTOR_MODE = (0, shared_impl_1.envDefault)(cm, (0, ConnectorMode_1.canonicalizeConnectorMode)(env.REACH_CONNECTOR_MODE || 'ETH'));
     var isolatedDefault = ETH_NET && ETH_NET !== 'window' ? 'no'
         : ETH_NET === 'window' || shim_1.window.ethereum ? (windowLooksIsolated() ? 'yes' : 'no')
             : connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
-    var REACH_ISOLATED_NETWORK = shared_impl_1.envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
-    if (shared_impl_1.truthyEnv(ETH_NET)) {
+    var REACH_ISOLATED_NETWORK = (0, shared_impl_1.envDefault)(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+    if ((0, shared_impl_1.truthyEnv)(ETH_NET)) {
         return { ETH_NET: ETH_NET, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
-    else if (shared_impl_1.truthyEnv(ETH_NODE_URI)) {
-        var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'yes');
+    else if ((0, shared_impl_1.truthyEnv)(ETH_NODE_URI)) {
+        var REACH_DO_WAIT_PORT = (0, shared_impl_1.envDefault)(env.REACH_DO_WAIT_PORT, 'yes');
         return { ETH_NODE_URI: ETH_NODE_URI, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {
@@ -316,7 +316,7 @@ function envDefaultsETH(env) {
         }
     }
 }
-var _a = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+var _a = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var fullEnv;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -359,7 +359,7 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                shared_impl_1.debug('doHealthcheck');
+                (0, shared_impl_1.debug)('doHealthcheck');
                 urlObj = url_1["default"] && url_1["default"].parse && url_1["default"].parse(theUrl);
                 // XXX the code below only supports http
                 if (!urlObj || urlObj.protocol !== 'http:') {
@@ -372,16 +372,16 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
                             params: [],
                             id: 67
                         });
-                        shared_impl_1.debug('Sending health check request...');
+                        (0, shared_impl_1.debug)('Sending health check request...');
                         var opts = __assign(__assign({}, urlObj), { method: 'POST', headers: {
                                 'Content-Type': 'application/json',
                                 'Content-Length': data.length
                             } });
                         var req = http_1["default"].request(opts, function (res) {
-                            shared_impl_1.debug("statusCode:", res.statusCode);
+                            (0, shared_impl_1.debug)("statusCode:", res.statusCode);
                             res.on('data', function (d) {
-                                shared_impl_1.debug('rpc health check succeeded');
-                                if (shared_impl_1.getDEBUG()) {
+                                (0, shared_impl_1.debug)('rpc health check succeeded');
+                                if ((0, shared_impl_1.getDEBUG)()) {
                                     shim_1.process.stdout.write(d);
                                 }
                                 resolve({ res: res, d: d });
@@ -393,9 +393,9 @@ var doHealthcheck = function (theUrl) { return __awaiter(void 0, void 0, void 0,
                             reject(e);
                         });
                         req.write(data);
-                        shared_impl_1.debug('attached all the handlers...');
+                        (0, shared_impl_1.debug)('attached all the handlers...');
                         req.end();
-                        shared_impl_1.debug('req.end...');
+                        (0, shared_impl_1.debug)('req.end...');
                     })];
             case 1:
                 _a.sent();

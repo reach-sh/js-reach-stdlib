@@ -78,7 +78,6 @@ export { BigNumber, utils, providers };
 import { address_cfxStandardize } from './CFX_util.mjs';
 import Timeout from 'await-timeout';
 import { debug } from './shared_impl.mjs';
-import { window } from './shim.mjs';
 // XXX Convenience export, may want to rethink
 export { cfxsdk };
 // This file immitates the ethers.js API
@@ -136,6 +135,22 @@ function conform(args, tys) {
     }
   }
   return args;
+}
+
+function prepForConfluxPortal(txnOrig) {
+  var hexStringify = function(n) { return '0x' + BigInt(n || '0').toString(16); };
+  var txn = __assign({}, txnOrig);
+  // value should always be present
+  txn.value = hexStringify(txnOrig.value);
+  // These fields are transformed if present
+  // TODO: is it safe just to turn all number fields into hex strings?
+  // Where is the "real" Conflux Portal source code to check this?
+  for (var _i = 0, _a = ['storageLimit', 'gas']; _i < _a.length; _i++) {
+    var field = _a[_i];
+    if (txn[field] !== undefined)
+      txn[field] = hexStringify(txnOrig[field]);
+  }
+  return txn;
 }
 var Signer = /** @class */ (function() {
   function Signer() {}
@@ -423,7 +438,7 @@ var BrowserWallet = /** @class */ (function() {
   BrowserWallet.prototype.getAddress = function() { return this.address; };
   BrowserWallet.prototype.sendTransaction = function(txnOrig) {
     return __awaiter(this, void 0, void 0, function() {
-      var _a, provider, from, txn, hexStringify, value;
+      var _a, provider, from, txn, value;
       var _this = this;
       return __generator(this, function(_b) {
         switch (_b.label) {
@@ -432,12 +447,8 @@ var BrowserWallet = /** @class */ (function() {
             _a = this, provider = _a.provider, from = _a.address;
             if (!provider)
               throw Error("Impossible: provider is undefined");
-            txn = __assign(__assign({}, txnOrig), { from: from });
-            hexStringify = function(n) { return '0x' + window.BigInt(n || '0').toString(16); };
-            value = hexStringify(txnOrig.value);
-            txn.value = value;
-            if (txn.storageLimit !== undefined)
-              txn.storageLimit = hexStringify(txn.storageLimit);
+            txn = prepForConfluxPortal(__assign(__assign({}, txnOrig), { from: from }));
+            value = txn.value;
             return [4 /*yield*/ , new Promise(function(resolve, reject) {
               _this.cp.sendAsync({
                 method: 'cfx_sendTransaction',

@@ -35,7 +35,7 @@ var updateProcessEnv = function (x) {
         var kp = k.replace(/^REACT_APP_/, "");
         env[kp] = x[k];
     }
-    shared_impl_1.setDEBUG(shared_impl_1.truthyEnv(env['REACH_DEBUG']));
+    (0, shared_impl_1.setDEBUG)((0, shared_impl_1.truthyEnv)(env['REACH_DEBUG']));
 };
 exports.updateProcessEnv = updateProcessEnv;
 var windowShim = (function () {

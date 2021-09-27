@@ -26,7 +26,7 @@ var assert = function (d, ai) {
 };
 exports.assert = assert;
 var checkedBigNumberify = function (at, m, x) {
-    var xb = CBR_1.bigNumberify(x);
+    var xb = (0, CBR_1.bigNumberify)(x);
     if (xb.gte(0) && xb.lte(m)) {
         return xb;
     }
@@ -50,11 +50,11 @@ var _a = ethers_1.ethers.utils, toUtf8Bytes = _a.toUtf8Bytes, isHexString = _a.i
 exports.hexlify = ethers_1.ethers.utils.hexlify;
 exports.isHex = isHexString;
 var stringToHex = function (x) {
-    return exports.hexlify(toUtf8Bytes(x));
+    return (0, exports.hexlify)(toUtf8Bytes(x));
 };
 exports.stringToHex = stringToHex;
 var forceHex = function (x) {
-    return exports.isHex(x) ? x : exports.stringToHex(x);
+    return (0, exports.isHex)(x) ? x : (0, exports.stringToHex)(x);
 };
 var bytesEq = function (x, y) {
     return forceHex(x) === forceHex(y);
@@ -66,15 +66,15 @@ var bytesConcat = function (x, y) {
 };
 exports.bytesConcat = bytesConcat;
 exports.digestEq = exports.bytesEq;
-var eq = function (a, b) { return CBR_1.bigNumberify(a).eq(CBR_1.bigNumberify(b)); };
+var eq = function (a, b) { return (0, CBR_1.bigNumberify)(a).eq((0, CBR_1.bigNumberify)(b)); };
 exports.eq = eq;
-var ge = function (a, b) { return CBR_1.bigNumberify(a).gte(CBR_1.bigNumberify(b)); };
+var ge = function (a, b) { return (0, CBR_1.bigNumberify)(a).gte((0, CBR_1.bigNumberify)(b)); };
 exports.ge = ge;
-var gt = function (a, b) { return CBR_1.bigNumberify(a).gt(CBR_1.bigNumberify(b)); };
+var gt = function (a, b) { return (0, CBR_1.bigNumberify)(a).gt((0, CBR_1.bigNumberify)(b)); };
 exports.gt = gt;
-var le = function (a, b) { return CBR_1.bigNumberify(a).lte(CBR_1.bigNumberify(b)); };
+var le = function (a, b) { return (0, CBR_1.bigNumberify)(a).lte((0, CBR_1.bigNumberify)(b)); };
 exports.le = le;
-var lt = function (a, b) { return CBR_1.bigNumberify(a).lt(CBR_1.bigNumberify(b)); };
+var lt = function (a, b) { return (0, CBR_1.bigNumberify)(a).lt((0, CBR_1.bigNumberify)(b)); };
 exports.lt = lt;
 function Array_set(arr, idx, elem) {
     var arrp = arr.slice();
@@ -107,7 +107,7 @@ var simMapLog = function (sim_r, f) {
 };
 var simMapRef = function (sim_r, mapi, f) {
     simMapLog(sim_r, f);
-    return exports.mapRef(sim_r.mapsNext[mapi], f);
+    return (0, exports.mapRef)(sim_r.mapsNext[mapi], f);
 };
 exports.simMapRef = simMapRef;
 var simMapSet = function (sim_r, mapi, f, nv) {

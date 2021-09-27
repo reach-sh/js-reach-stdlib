@@ -61,30 +61,30 @@ function recomputeDefaultAddr() {
     return address_ethToCfx(eci.T_Address.defaultValue);
 }
 function address_ethToCfx(addrE) {
-    shared_impl_1.debug("address_ethToCfx", "call", addrE);
+    (0, shared_impl_1.debug)("address_ethToCfx", "call", addrE);
     addrE = addrE.toLowerCase();
     var addrB = Buffer.from(addrE.slice(2), 'hex');
-    var addrC = CFX_util_1.encodeCfxAddress(addrB, netId);
+    var addrC = (0, CFX_util_1.encodeCfxAddress)(addrB, netId);
     return addrC;
 }
 // Note: does not add the mixed-case checksum info to the ETH-like address
 function address_cfxToEth(addrC) {
     // XXX why doesn't ts know about this fn?
-    shared_impl_1.debug("address_cfxToEth", "call", addrC);
-    var addrObj = CFX_util_1.decodeCfxAddress(addrC);
+    (0, shared_impl_1.debug)("address_cfxToEth", "call", addrC);
+    var addrObj = (0, CFX_util_1.decodeCfxAddress)(addrC);
     var addrE = '0x' + addrObj.hexAddress.toString('hex');
     if (netId !== addrObj.netId)
         throw Error("Expected netId=" + netId + ", got netId=" + addrObj.netId);
     return addrE;
 }
 exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: function (uv) {
-        shared_impl_1.debug("address canonicalize", { uv: uv });
+        (0, shared_impl_1.debug)("address canonicalize", { uv: uv });
         if (typeof uv === 'string') {
             if (uv.slice(0, 2) === '0x') {
                 var addrC = address_ethToCfx(uv);
-                return CFX_util_1.address_cfxStandardize(addrC);
+                return (0, CFX_util_1.address_cfxStandardize)(addrC);
             }
-            return CFX_util_1.address_cfxStandardize(uv);
+            return (0, CFX_util_1.address_cfxStandardize)(uv);
         }
         if (!uv)
             throw Error("Expected address, got " + JSON.stringify(uv));

@@ -43,7 +43,7 @@ function canonicalizeConnectorMode(connectorMode) {
 }
 exports.canonicalizeConnectorMode = canonicalizeConnectorMode;
 function getConnectorMode() {
-    var connectorMode = shared_impl_1.envDefault(shim_1.process.env.REACH_CONNECTOR_MODE, 'ETH');
+    var connectorMode = (0, shared_impl_1.envDefault)(shim_1.process.env.REACH_CONNECTOR_MODE, 'ETH');
     return canonicalizeConnectorMode(connectorMode);
 }
 exports.getConnectorMode = getConnectorMode;

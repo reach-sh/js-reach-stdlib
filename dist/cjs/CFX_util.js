@@ -5,7 +5,7 @@ var cfxaddr_index_1 = require("./cfxaddr_index");
 var shared_impl_1 = require("./shared_impl");
 // XXX check if networkId is "correct"?
 function address_cfxStandardize(addrC) {
-    shared_impl_1.debug("address_cfxStandardize", { addrC: addrC });
+    (0, shared_impl_1.debug)("address_cfxStandardize", { addrC: addrC });
     var pieces = addrC.split(':');
     // XXX Missing type chunk means assume it's a user (?)
     // XXX would it be better for our purposes to strip the type out instead?
@@ -20,12 +20,12 @@ function address_cfxStandardize(addrC) {
 exports.address_cfxStandardize = address_cfxStandardize;
 // mimicking cfxsdk.address.encodeCfxAddress
 function encodeCfxAddress(hexAddress, netId) {
-    return cfxaddr_index_1.encode(hexAddress, netId);
+    return (0, cfxaddr_index_1.encode)(hexAddress, netId);
 }
 exports.encodeCfxAddress = encodeCfxAddress;
 // mimicking cfxsdk.address.decodeCfxAddress
 function decodeCfxAddress(addr) {
-    return cfxaddr_index_1.decode(addr);
+    return (0, cfxaddr_index_1.decode)(addr);
 }
 exports.decodeCfxAddress = decodeCfxAddress;
 // TODO: 'latest_state' seems to work well; is there a better choice?

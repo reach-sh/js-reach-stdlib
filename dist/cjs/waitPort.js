@@ -70,11 +70,11 @@ function waitPort(uri, givenPort) {
                         output: 'silent',
                         timeout: 1000 * 60 * 1
                     };
-                    shared_impl_1.debug('waitPort', { uri: uri, givenPort: givenPort, thePort: thePort, testPort: testPort }, args);
-                    return [4 /*yield*/, wait_port_1["default"](args)];
+                    (0, shared_impl_1.debug)('waitPort', { uri: uri, givenPort: givenPort, thePort: thePort, testPort: testPort }, args);
+                    return [4 /*yield*/, (0, wait_port_1["default"])(args)];
                 case 1:
                     _b.sent();
-                    shared_impl_1.debug('waitPort complete');
+                    (0, shared_impl_1.debug)('waitPort complete');
                     return [2 /*return*/];
             }
         });

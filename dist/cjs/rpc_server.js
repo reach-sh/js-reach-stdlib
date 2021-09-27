@@ -46,10 +46,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -100,7 +104,7 @@ var mkKont = function () {
         var rb, id;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, crypto_1.randomBytes(24)];
+                case 0: return [4 /*yield*/, (0, crypto_1.randomBytes)(24)];
                 case 1:
                     rb = _a.sent();
                     id = i + "_" + rb.toString('hex');
@@ -143,7 +147,7 @@ exports.mkKont = mkKont;
 var mkStdlibProxy = function (lib) { return __awaiter(void 0, void 0, void 0, function () {
     var account, rpc_stdlib;
     return __generator(this, function (_a) {
-        account = exports.mkKont();
+        account = (0, exports.mkKont)();
         rpc_stdlib = __assign(__assign({}, lib), { newTestAccount: function (bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -209,15 +213,15 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
     var real_stdlib, _a, account, rpc_stdlib, contract, kont, app, route_backend, rpc_acc, rpc_ctc, safely, mkRPC, _loop_1, b, do_kont, mkForget, fetchOrFail, opts, passphrase;
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, loader_1.loadStdlib()];
+            case 0: return [4 /*yield*/, (0, loader_1.loadStdlib)()];
             case 1:
                 real_stdlib = _b.sent();
-                return [4 /*yield*/, exports.mkStdlibProxy(real_stdlib)];
+                return [4 /*yield*/, (0, exports.mkStdlibProxy)(real_stdlib)];
             case 2:
                 _a = _b.sent(), account = _a.account, rpc_stdlib = _a.rpc_stdlib;
-                contract = exports.mkKont();
-                kont = exports.mkKont();
-                app = express_1["default"]();
+                contract = (0, exports.mkKont)();
+                kont = (0, exports.mkKont)();
+                app = (0, express_1["default"])();
                 route_backend = express_1["default"].Router();
                 rpc_acc = {
                     attach: function (id) {
@@ -232,7 +236,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 switch (_d.label) {
                                     case 0:
                                         _b = (_a = contract).track;
-                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], args))];
+                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], args, false))];
                                     case 1: return [2 /*return*/, _b.apply(_a, [_d.sent()])];
                                 }
                             });
@@ -283,23 +287,23 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 _b.label = 1;
                             case 1:
                                 _b.trys.push([1, 3, , 4]);
-                                shared_impl_1.debug("Attempting to process request by " + client);
+                                (0, shared_impl_1.debug)("Attempting to process request by " + client);
                                 return [4 /*yield*/, f(req, res)];
                             case 2:
                                 _b.sent();
                                 return [3 /*break*/, 4];
                             case 3:
                                 e_1 = _b.sent();
-                                shared_impl_1.debug("!! Witnessed exception triggered by " + client + ":\n  " + e_1.stack);
+                                (0, shared_impl_1.debug)("!! Witnessed exception triggered by " + client + ":\n  " + e_1.stack);
                                 _a = was.untracked(e_1) ? [404, String(e_1)]
                                     : [500, 'Unspecified fault'], s = _a[0], message = _a[1];
                                 if (!res.headersSent) {
                                     res.status(s).json({ message: message, request: req.body });
-                                    shared_impl_1.debug("!! HTTP " + s + ": \"" + message + "\" response sent to client");
+                                    (0, shared_impl_1.debug)("!! HTTP " + s + ": \"" + message + "\" response sent to client");
                                 }
                                 else {
                                     res.end();
-                                    shared_impl_1.debug("!! Response already initiated; unable to send appropriate payload");
+                                    (0, shared_impl_1.debug)("!! Response already initiated; unable to send appropriate payload");
                                 }
                                 return [3 /*break*/, 4];
                             case 4: return [2 /*return*/];
@@ -316,11 +320,11 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     case 0:
                                         args = req.body;
                                         lab = "RPC " + olab + "/" + k + " " + JSON.stringify(args);
-                                        shared_impl_1.debug("" + lab);
+                                        (0, shared_impl_1.debug)("" + lab);
                                         return [4 /*yield*/, obj[k].apply(obj, args)];
                                     case 1:
                                         ans = _a.sent();
-                                        shared_impl_1.debug(lab + " ==> " + JSON.stringify(ans));
+                                        (0, shared_impl_1.debug)(lab + " ==> " + JSON.stringify(ans));
                                         res.json(ans);
                                         return [2 /*return*/];
                                 }
@@ -339,14 +343,14 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             switch (_b.label) {
                                 case 0:
                                     lab = "RPC backend/" + b;
-                                    shared_impl_1.debug(lab + " IN");
+                                    (0, shared_impl_1.debug)(lab + " IN");
                                     _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
                                     ctc = contract.id(cid);
                                     return [4 /*yield*/, kont.track(res)];
                                 case 1:
                                     kid = _b.sent();
                                     lab = lab + " " + cid + " " + kid;
-                                    shared_impl_1.debug(lab + " START " + JSON.stringify(req.body));
+                                    (0, shared_impl_1.debug)(lab + " START " + JSON.stringify(req.body));
                                     io = __assign({}, vals);
                                     if (io["stdlib.hasRandom"]) {
                                         delete io["stdlib.hasRandom"];
@@ -359,7 +363,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                                 args[_i] = arguments[_i];
                                             }
                                             return new Promise(function (resolve, reject) {
-                                                shared_impl_1.debug(lab + " IO " + m + " " + JSON.stringify(args));
+                                                (0, shared_impl_1.debug)(lab + " IO " + m + " " + JSON.stringify(args));
                                                 var old_res = kont.id(kid);
                                                 kont.replace(kid, { resolve: resolve, reject: reject });
                                                 old_res.json({ t: "Kont", kid: kid, m: m, args: args });
@@ -372,10 +376,10 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     return [4 /*yield*/, backend[b](ctc, io)];
                                 case 2:
                                     ans = _b.sent();
-                                    shared_impl_1.debug(lab + " END " + JSON.stringify(ans));
+                                    (0, shared_impl_1.debug)(lab + " END " + JSON.stringify(ans));
                                     new_res = kont.id(kid);
                                     kont.forget(kid);
-                                    shared_impl_1.debug(lab + " DONE");
+                                    (0, shared_impl_1.debug)(lab + " DONE");
                                     new_res.json({ t: "Done", ans: ans });
                                     return [2 /*return*/];
                             }
@@ -389,14 +393,14 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                     var lab, _a, kid, ans, _b, resolve, reject;
                     return __generator(this, function (_c) {
                         lab = "KONT";
-                        shared_impl_1.debug(lab + " IN");
+                        (0, shared_impl_1.debug)(lab + " IN");
                         _a = req.body, kid = _a[0], ans = _a[1];
                         lab = lab + " " + kid;
-                        shared_impl_1.debug(lab + " ANS " + JSON.stringify(ans));
+                        (0, shared_impl_1.debug)(lab + " ANS " + JSON.stringify(ans));
                         _b = kont.id(kid), resolve = _b.resolve, reject = _b.reject;
                         void (reject);
                         kont.replace(kid, res);
-                        shared_impl_1.debug(lab + " OUT");
+                        (0, shared_impl_1.debug)(lab + " OUT");
                         resolve(ans);
                         return [2 /*return*/];
                     });
@@ -438,17 +442,16 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                 fetchOrFail = function (envvar, desc) {
                     var f = process.env[envvar];
                     if (!f) {
-                        console.error(["\nPlease populate the `" + envvar + "` environment variable with",
-                            " the path to your TLS " + desc + ".\n"
+                        console.error(["\nPlease populate the `" + envvar + "` environment variable with", " the path to your TLS " + desc + ".\n"
                         ].join(''));
                         process.exit(1);
                     }
-                    var fq = path_1.resolve("./tls/" + f);
-                    if (!fs_1.existsSync(fq)) {
+                    var fq = (0, path_1.resolve)("./tls/" + f);
+                    if (!(0, fs_1.existsSync)(fq)) {
                         console.error("\nPath: " + fq + " does not exist!\n");
                         process.exit(1);
                     }
-                    return fs_1.readFileSync(fq);
+                    return (0, fs_1.readFileSync)(fq);
                 };
                 opts = {
                     allowHTTP1: true,
@@ -459,9 +462,9 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                 if (passphrase)
                     Object.assign(opts, { passphrase: passphrase });
                 // @ts-ignore
-                http2_1.createSecureServer(opts, app)
+                (0, http2_1.createSecureServer)(opts, app)
                     .listen(process.env.REACH_RPC_PORT, function () {
-                    return shared_impl_1.debug("I am alive");
+                    return (0, shared_impl_1.debug)("I am alive");
                 });
                 return [2 /*return*/];
         }

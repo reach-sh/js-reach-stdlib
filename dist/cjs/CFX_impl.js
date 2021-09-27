@@ -81,7 +81,7 @@ function throwError(msg) {
 var DEFAULT_CFX_NODE_URI = 'http://localhost:12537';
 var DEFAULT_CFX_NETWORK_ID = '999';
 function isIsolatedNetwork() {
-    return shared_impl_1.truthyEnv(getProviderEnv().REACH_ISOLATED_NETWORK);
+    return (0, shared_impl_1.truthyEnv)(getProviderEnv().REACH_ISOLATED_NETWORK);
 }
 exports.isIsolatedNetwork = isIsolatedNetwork;
 function isWindowProvider() {
@@ -120,7 +120,7 @@ exports._getDefaultNetworkAccount = _getDefaultNetworkAccount;
 // from /scripts/devnet-cfx/default.toml
 var mining_key = '0x091ca0785ec2bd9a5eca245fdc83baddd570644f3e0489b41e515f0e5c33f3d9';
 var defaultFaucetWallet = new cfxers.Wallet(mining_key);
-exports._getDefaultFaucetNetworkAccount = shared_impl_1.memoizeThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+exports._getDefaultFaucetNetworkAccount = (0, shared_impl_1.memoizeThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -162,16 +162,16 @@ function _fundOnCfxTestNet(to, amt) {
                     _b.label = 3;
                 case 3:
                     to = _a;
-                    shared_impl_1.debug({ method: method, to: to });
+                    (0, shared_impl_1.debug)({ method: method, to: to });
                     toHex = toHexAddr(to);
-                    shared_impl_1.debug({ method: method, message: 'requesting from testnet faucet', toHex: toHex });
+                    (0, shared_impl_1.debug)({ method: method, message: 'requesting from testnet faucet', toHex: toHex });
                     return [4 /*yield*/, shim_1.window.fetch("http://test-faucet.confluxnetwork.org:18088/dev/ask?address=" + toHex)];
                 case 4:
                     res = _b.sent();
                     return [4 /*yield*/, res.json()];
                 case 5:
                     resJson = _b.sent();
-                    shared_impl_1.debug({ method: method, message: 'got response from testnet faucet', resJson: resJson });
+                    (0, shared_impl_1.debug)({ method: method, message: 'got response from testnet faucet', resJson: resJson });
                     return [2 /*return*/];
             }
         });
@@ -181,7 +181,7 @@ function canFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
         var netId;
         return __generator(this, function (_a) {
-            shared_impl_1.debug('canFundFromFaucet');
+            (0, shared_impl_1.debug)('canFundFromFaucet');
             netId = ethLikeCompiled.getNetworkId();
             return [2 /*return*/, netId == 0x1 || netId == 999];
         });
@@ -191,7 +191,7 @@ exports.canFundFromFaucet = canFundFromFaucet;
 function _specialFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            shared_impl_1.debug("_specialFundFromFaucet");
+            (0, shared_impl_1.debug)("_specialFundFromFaucet");
             if (ethLikeCompiled.getNetworkId() == 0x1) {
                 return [2 /*return*/, _fundOnCfxTestNet];
             }
@@ -210,8 +210,8 @@ function waitCaughtUp(provider, env) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && shared_impl_1.truthyEnv(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 2];
-                    return [4 /*yield*/, waitPort_1["default"](env.CFX_NODE_URI)];
+                    if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && (0, shared_impl_1.truthyEnv)(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 2];
+                    return [4 /*yield*/, (0, waitPort_1["default"])(env.CFX_NODE_URI)];
                 case 1:
                     _b.sent();
                     _b.label = 2;
@@ -231,7 +231,7 @@ function waitCaughtUp(provider, env) {
                 case 3:
                     if (!(tries < maxTries)) return [3 /*break*/, 11];
                     if (!err) return [3 /*break*/, 5];
-                    shared_impl_1.debug("waitCaughtUp: waiting some more", { waitMs: waitMs, tries: tries, maxTries: maxTries, err: err });
+                    (0, shared_impl_1.debug)("waitCaughtUp: waiting some more", { waitMs: waitMs, tries: tries, maxTries: maxTries, err: err });
                     return [4 /*yield*/, await_timeout_1["default"].set(waitMs)];
                 case 4:
                     _b.sent(); // wait 1s between tries
@@ -242,16 +242,16 @@ function waitCaughtUp(provider, env) {
                     return [4 /*yield*/, ((_a = defaultFaucetWallet.provider) === null || _a === void 0 ? void 0 : _a.conflux.getBalance(faddr))];
                 case 6:
                     fbal = _b.sent();
-                    shared_impl_1.debug("Faucet bal", fbal);
+                    (0, shared_impl_1.debug)("Faucet bal", fbal);
                     // @ts-ignore
                     if (fbal == 0) {
                         failMsg = "Faucet balance is 0 (" + faddr + ")";
-                        shared_impl_1.debug(failMsg);
+                        (0, shared_impl_1.debug)(failMsg);
                         throw Error(failMsg);
                     }
                     w = cfxers.Wallet.createRandom().connect(provider);
                     txn = { to: w.getAddress(), value: '1' };
-                    shared_impl_1.debug("sending dummy txn", txn);
+                    (0, shared_impl_1.debug)("sending dummy txn", txn);
                     return [4 /*yield*/, defaultFaucetWallet.sendTransaction(txn)];
                 case 7:
                     t = _b.sent();
@@ -278,7 +278,7 @@ function waitCaughtUp(provider, env) {
         });
     });
 }
-var _a = shared_impl_1.replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
+var _a = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var fullEnv, provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -334,19 +334,19 @@ function guessConnectorMode(env) {
 // XXX less copy/paste from ETH_impl
 function envDefaultsCFX(env) {
     var CFX_NET = env.CFX_NET, CFX_NODE_URI = env.CFX_NODE_URI, CFX_NETWORK_ID = env.CFX_NETWORK_ID;
-    var cm = shared_impl_1.envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
-    var REACH_CONNECTOR_MODE = shared_impl_1.envDefault(cm, ConnectorMode_1.canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'CFX'));
+    var cm = (0, shared_impl_1.envDefault)(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+    var REACH_CONNECTOR_MODE = (0, shared_impl_1.envDefault)(cm, (0, ConnectorMode_1.canonicalizeConnectorMode)(env.REACH_CONNECTOR_MODE || 'CFX'));
     var isolatedDefault = connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
     // XXX
     // CFX_NET === 'window' || window.conflux ? (windowLooksIsolated() ? 'yes' : 'no')
-    var REACH_ISOLATED_NETWORK = shared_impl_1.envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
-    var CFX_LOG = shared_impl_1.envDefault(env.CFX_LOG, 'no');
-    if (shared_impl_1.truthyEnv(CFX_NET) && CFX_NET === 'window') {
+    var REACH_ISOLATED_NETWORK = (0, shared_impl_1.envDefault)(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+    var CFX_LOG = (0, shared_impl_1.envDefault)(env.CFX_LOG, 'no');
+    if ((0, shared_impl_1.truthyEnv)(CFX_NET) && CFX_NET === 'window') {
         return { CFX_NET: CFX_NET, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
-    else if (shared_impl_1.truthyEnv(CFX_NODE_URI)) {
-        var REACH_DO_WAIT_PORT = shared_impl_1.envDefault(env.REACH_DO_WAIT_PORT, 'yes');
-        var cni = shared_impl_1.envDefault(CFX_NETWORK_ID, localhostProviderEnv.CFX_NETWORK_ID);
+    else if ((0, shared_impl_1.truthyEnv)(CFX_NODE_URI)) {
+        var REACH_DO_WAIT_PORT = (0, shared_impl_1.envDefault)(env.REACH_DO_WAIT_PORT, 'yes');
+        var cni = (0, shared_impl_1.envDefault)(CFX_NETWORK_ID, localhostProviderEnv.CFX_NETWORK_ID);
         return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: cni, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {
@@ -400,18 +400,18 @@ function waitProviderFromEnv(env) {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    if (!shared_impl_1.truthyEnv(REACH_DO_WAIT_PORT_1)) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, waitPort_1["default"](CFX_NODE_URI_1)];
+                                    if (!(0, shared_impl_1.truthyEnv)(REACH_DO_WAIT_PORT_1)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, (0, waitPort_1["default"])(CFX_NODE_URI_1)];
                                 case 1:
                                     _a.sent();
                                     _a.label = 2;
                                 case 2:
                                     networkId = CFX_NETWORK_ID_1 ? parseInt(CFX_NETWORK_ID_1) : undefined;
-                                    shared_impl_1.debug("waitProviderFromEnv", "new Conflux", { url: CFX_NODE_URI_1, networkId: networkId });
+                                    (0, shared_impl_1.debug)("waitProviderFromEnv", "new Conflux", { url: CFX_NODE_URI_1, networkId: networkId });
                                     provider = new cfxers.providers.Provider(new Conflux({
                                         url: CFX_NODE_URI_1,
                                         // XXX pass CFX_LOG around correctly; this isn't working
-                                        logger: shared_impl_1.truthyEnv(CFX_LOG_1) ? console : undefined,
+                                        logger: (0, shared_impl_1.truthyEnv)(CFX_LOG_1) ? console : undefined,
                                         networkId: networkId
                                     }));
                                     // XXX: make some sort of configurable polling interval?

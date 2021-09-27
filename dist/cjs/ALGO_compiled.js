@@ -44,7 +44,7 @@ var CBR = __importStar(require("./CBR"));
 var BigNumber = ethers_1.ethers.BigNumber;
 var Buffer = buffer_1["default"].Buffer;
 exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
-exports.digest = shared_impl_1.makeDigest('sha256', function (t, v) { return t.toNet(v); });
+exports.digest = (0, shared_impl_1.makeDigest)('sha256', function (t, v) { return t.toNet(v); });
 exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); } });
 exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; } });
 exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize: 8, toNet: function (bv) {
@@ -69,7 +69,7 @@ var bytestringyNet = {
     toNet: function (bv) { return (ethers_1.ethers.utils.arrayify(bv)); },
     fromNet: function (nv) { return (ethers_1.ethers.utils.hexlify(nv)); }
 };
-var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet), { netSize: shared_user_1.bigNumberToNumber(len) })); };
+var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet), { netSize: (0, shared_user_1.bigNumberToNumber)(len) })); };
 exports.T_Bytes = T_Bytes;
 exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet), { netSize: 32 });
 var addressToHex = function (x) {
@@ -86,7 +86,7 @@ function addressUnwrapper(x) {
         || typeof x === 'string' && x;
     return !addr ? x
         : addr.slice(0, 2) === '0x' ? addr
-            : exports.addressToHex(addr);
+            : (0, exports.addressToHex)(addr);
 }
 ;
 exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet), { netSize: 32, canonicalize: function (uv) {
@@ -148,7 +148,7 @@ exports.T_Struct = T_Struct;
 var T_Object = function (coMap) {
     var cos = Object.values(coMap);
     var netSize = cos.reduce(function (acc, co) { return acc + co.netSize; }, 0);
-    var ascLabels = shared_impl_1.labelMaps(coMap).ascLabels;
+    var ascLabels = (0, shared_impl_1.labelMaps)(coMap).ascLabels;
     return __assign(__assign({}, CBR.BT_Object(coMap)), { netSize: netSize, toNet: function (bv) {
             var chunks = ascLabels.map(function (label) {
                 return coMap[label].toNet(bv[label]);
@@ -177,7 +177,7 @@ var T_Data = function (coMap) {
     var cos = Object.values(coMap);
     var valSize = Math.max.apply(Math, cos.map(function (co) { return co.netSize; }));
     var netSize = valSize + 1;
-    var _a = shared_impl_1.labelMaps(coMap), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
+    var _a = (0, shared_impl_1.labelMaps)(coMap), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
     return __assign(__assign({}, CBR.BT_Data(coMap)), { netSize: netSize, toNet: function (_a) {
             var label = _a[0], val = _a[1];
             var i = labelMap[label];
@@ -190,7 +190,7 @@ var T_Data = function (coMap) {
             var i = nv[0];
             var label = ascLabels[i];
             var val_co = coMap[label];
-            shared_impl_1.debug({ nv: nv, i: i, label: label, val_co: val_co });
+            (0, shared_impl_1.debug)({ nv: nv, i: i, label: label, val_co: val_co });
             var rest = nv.slice(1);
             var sliceTo = val_co.netSize;
             var val = val_co.fromNet(rest.slice(0, sliceTo));
@@ -198,7 +198,7 @@ var T_Data = function (coMap) {
         } });
 };
 exports.T_Data = T_Data;
-exports.addressEq = shared_impl_1.mkAddressEq(exports.T_Address);
+exports.addressEq = (0, shared_impl_1.mkAddressEq)(exports.T_Address);
 var T_Token = exports.T_UInt;
 var tokenEq = function (x, y) {
     return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
@@ -218,9 +218,6 @@ exports.typeDefs = {
     T_Tuple: exports.T_Tuple,
     T_Struct: exports.T_Struct
 };
-var arith = shared_impl_1.makeArith(exports.UInt_max);
-exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq,
-    tokenEq: exports.tokenEq,
-    digest: exports.digest,
-    UInt_max: exports.UInt_max });
+var arith = (0, shared_impl_1.makeArith)(exports.UInt_max);
+exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max });
 //# sourceMappingURL=ALGO_compiled.js.map

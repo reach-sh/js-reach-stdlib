@@ -42,16 +42,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -80,7 +84,7 @@ var debug = function () {
     for (var _i = 0; _i < arguments.length; _i++) {
         msgs[_i] = arguments[_i];
     }
-    if (exports.getDEBUG()) {
+    if ((0, exports.getDEBUG)()) {
         // Print arrays/objects in full instead of the default depth of 2
         var betterMsgs = msgs.map(function (msg) {
             return ["object", "array"].includes(typeof msg) && util_1["default"] && util_1["default"].inspect instanceof Function
@@ -89,14 +93,14 @@ var debug = function () {
         });
         void (betterMsgs);
         // Print objects for indentation, colors, etc...
-        console.log.apply(console, __spreadArray([new Date(), "DEBUG:"], msgs));
+        console.log.apply(console, __spreadArray([new Date(), "DEBUG:"], msgs, false));
     }
 };
 exports.debug = debug;
 var getViewsHelper = function (views, getView1) {
     return function () {
-        return exports.objectMap(views.infos, (function (v, vm) {
-            return exports.objectMap(vm, (function (k, vi) {
+        return (0, exports.objectMap)(views.infos, (function (v, vm) {
+            return (0, exports.objectMap)(vm, (function (k, vi) {
                 return getView1(views.views, v, k, vi);
             }));
         }));
@@ -133,14 +137,13 @@ var deferContract = function (shouldError, implP, implNow) {
     var mnow = function (which) {
         return implNow[which] === undefined ? thenow(which) : implNow[which];
     };
+    var must = function (which) {
+        return implNow[which];
+    };
     // impl starts with a shim that deploys on first sendrecv,
     // then replaces itself with the real impl once deployed.
     var impl = {
         getInfo: delay('getInfo'),
-        // @ts-ignore
-        creationTime: delay('creationTime'),
-        // @ts-ignore
-        creationSecs: delay('creationSecs'),
         // @ts-ignore
         sendrecv: mnow('sendrecv'),
         // @ts-ignore
@@ -150,9 +153,9 @@ var deferContract = function (shouldError, implP, implNow) {
         // @ts-ignore
         waitSecs: not_yet('waitSecs'),
         // @ts-ignore
-        iam: mnow('iam'),
+        iam: must('iam'),
         // @ts-ignore
-        selfAddress: mnow('selfAddress'),
+        selfAddress: must('selfAddress'),
         // @ts-ignore
         getViews: mnow('getViews'),
         stdlib: (function () {
@@ -179,8 +182,6 @@ var deferContract = function (shouldError, implP, implNow) {
         waitTime: wrap('waitTime'),
         waitSecs: wrap('waitSecs'),
         getInfo: wrap('getInfo'),
-        creationTime: wrap('creationTime'),
-        creationSecs: wrap('creationSecs'),
         iam: wrap('iam'),
         selfAddress: wrap('selfAddress'),
         getViews: wrap('getViews'),
@@ -259,11 +260,11 @@ exports.hexToString = ethers_1.ethers.utils.toUtf8String;
 var byteToHex = function (b) { return (b & 0xFF).toString(16).padStart(2, '0'); };
 var byteArrayToHex = function (b) { return Array.from(b, byteToHex).join(''); };
 var hexTo0x = function (h) { return '0x' + h.replace(/^0x/, ''); };
-var hexToBigNumber = function (h) { return CBR_1.bigNumberify(hexTo0x(h)); };
+var hexToBigNumber = function (h) { return (0, CBR_1.bigNumberify)(hexTo0x(h)); };
 exports.hexToBigNumber = hexToBigNumber;
 var makeRandom = function (width) {
     var randomUInt = function () {
-        return exports.hexToBigNumber(byteArrayToHex(crypto_1["default"].randomBytes(width)));
+        return (0, exports.hexToBigNumber)(byteArrayToHex(crypto_1["default"].randomBytes(width)));
     };
     var hasRandom = {
         random: randomUInt
@@ -273,16 +274,16 @@ var makeRandom = function (width) {
 exports.makeRandom = makeRandom;
 var makeArith = function (m) {
     var check = function (x) {
-        return shared_backend_1.checkedBigNumberify("internal", m, x);
+        return (0, shared_backend_1.checkedBigNumberify)("internal", m, x);
     };
-    var add = function (a, b) { return check(CBR_1.bigNumberify(a).add(CBR_1.bigNumberify(b))); };
-    var sub = function (a, b) { return check(CBR_1.bigNumberify(a).sub(CBR_1.bigNumberify(b))); };
-    var mod = function (a, b) { return check(CBR_1.bigNumberify(a).mod(CBR_1.bigNumberify(b))); };
-    var mul = function (a, b) { return check(CBR_1.bigNumberify(a).mul(CBR_1.bigNumberify(b))); };
-    var div = function (a, b) { return check(CBR_1.bigNumberify(a).div(CBR_1.bigNumberify(b))); };
+    var add = function (a, b) { return check((0, CBR_1.bigNumberify)(a).add((0, CBR_1.bigNumberify)(b))); };
+    var sub = function (a, b) { return check((0, CBR_1.bigNumberify)(a).sub((0, CBR_1.bigNumberify)(b))); };
+    var mod = function (a, b) { return check((0, CBR_1.bigNumberify)(a).mod((0, CBR_1.bigNumberify)(b))); };
+    var mul = function (a, b) { return check((0, CBR_1.bigNumberify)(a).mul((0, CBR_1.bigNumberify)(b))); };
+    var div = function (a, b) { return check((0, CBR_1.bigNumberify)(a).div((0, CBR_1.bigNumberify)(b))); };
     var muldiv = function (a, b, c) {
-        var prod = CBR_1.bigNumberify(a).mul(CBR_1.bigNumberify(b));
-        return check(prod.div(CBR_1.bigNumberify(c)));
+        var prod = (0, CBR_1.bigNumberify)(a).mul((0, CBR_1.bigNumberify)(b));
+        return check(prod.div((0, CBR_1.bigNumberify)(c)));
     };
     return { add: add, sub: sub, mod: mod, mul: mul, div: div, muldiv: muldiv };
 };
@@ -303,17 +304,17 @@ var objectMap = function (object, mapFn) {
 };
 exports.objectMap = objectMap;
 var mkAddressEq = function (T_Address) { return function (x, y) {
-    return shared_backend_1.bytesEq(T_Address.canonicalize(x), T_Address.canonicalize(y));
+    return (0, shared_backend_1.bytesEq)(T_Address.canonicalize(x), T_Address.canonicalize(y));
 }; };
 exports.mkAddressEq = mkAddressEq;
 var ensureConnectorAvailable = function (bin, conn, jsVer, connVer) {
-    exports.checkVersion(bin._backendVersion, jsVer, "JavaScript backend");
+    (0, exports.checkVersion)(bin._backendVersion, jsVer, "JavaScript backend");
     var connectors = bin._Connectors;
     var conn_bin = connectors[conn];
     if (!conn_bin) {
         throw (new Error("The application was not compiled for the " + conn + " connector, only: " + Object.keys(connectors)));
     }
-    exports.checkVersion(conn_bin.version, connVer, conn + " backend");
+    (0, exports.checkVersion)(conn_bin.version, connVer, conn + " backend");
 };
 exports.ensureConnectorAvailable = ensureConnectorAvailable;
 var checkVersion = function (actual, expected, label) {
@@ -357,7 +358,7 @@ var make_waitUntilX = function (label, getCurrent, step) { return function (targ
                 current = _a.sent();
                 notify = function () {
                     var o = { current: current, target: target };
-                    exports.debug("waitUntilX:", label, o);
+                    (0, exports.debug)("waitUntilX:", label, o);
                     onProg(o);
                 };
                 _a.label = 2;
@@ -380,12 +381,12 @@ var checkTimeout = function (getTimeSecs, timeoutAt, nowTimeN) { return __awaite
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                exports.debug('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
+                (0, exports.debug)('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
                 if (!timeoutAt) {
                     return [2 /*return*/, false];
                 }
                 mode = timeoutAt[0], val = timeoutAt[1];
-                nowTime = CBR_1.bigNumberify(nowTimeN);
+                nowTime = (0, CBR_1.bigNumberify)(nowTimeN);
                 if (!(mode === 'time')) return [3 /*break*/, 1];
                 return [2 /*return*/, val.lte(nowTime)];
             case 1:
@@ -399,4 +400,16 @@ var checkTimeout = function (getTimeSecs, timeoutAt, nowTimeN) { return __awaite
     });
 }); };
 exports.checkTimeout = checkTimeout;
+var Signal = /** @class */ (function () {
+    function Signal() {
+        this.r = function (a) { void (a); throw new Error("signal never initialized"); };
+        var me = this;
+        this.p = new Promise(function (resolve) { me.r = resolve; });
+    }
+    Signal.prototype.wait = function () { return this.p; };
+    Signal.prototype.notify = function () { this.r(true); };
+    return Signal;
+}());
+exports.Signal = Signal;
+;
 //# sourceMappingURL=shared_impl.js.map

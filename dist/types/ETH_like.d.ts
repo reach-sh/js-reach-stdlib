@@ -8,14 +8,12 @@ AnyETH_Ty, Token } from './ETH_like_compiled';
 import type { EthersLikeSigner, EthersLikeWallet, EthLikeArgs } from './ETH_like_interfaces';
 import type { // =>
 Stdlib_Backend } from './interfaces';
-declare type DeployMode = 'DM_firstMsg' | 'DM_constructor';
 declare type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
         ETH: {
             version: number;
             ABI: string;
             Bytecode: string;
-            deployMode: DeployMode;
             views: {
                 [viewn: string]: {
                     [keyn: string]: string;
@@ -39,7 +37,7 @@ declare type AccountTransferable = Account | {
 };
 export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     getQueryLowerBound: () => real_ethers.BigNumber;
-    setQueryLowerBound: (networkTime: BigNumber | number) => void;
+    setQueryLowerBound: (x: BigNumber | number) => void;
     getFaucet: () => Promise<any>;
     setFaucet: (val: Promise<any>) => void;
     randomUInt: () => real_ethers.BigNumber;

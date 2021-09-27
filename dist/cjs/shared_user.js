@@ -13,25 +13,25 @@ exports.isHex = shared_backend_1.isHex;
 exports.stringToHex = shared_backend_1.stringToHex;
 var BigNumber = ethers_1.ethers.BigNumber;
 exports.isBigNumber = BigNumber.isBigNumber;
-var uintToBytes = function (i) { return exports.bigNumberToHex(i); };
+var uintToBytes = function (i) { return (0, exports.bigNumberToHex)(i); };
 exports.uintToBytes = uintToBytes;
 var bigNumberToHex = function (u, size) {
     if (size === void 0) { size = 32; }
     var width = 8 * size;
     var format = "ufixed" + width + "x0";
-    var nPos = CBR_1.bigNumberify(u).toTwos(width);
+    var nPos = (0, CBR_1.bigNumberify)(u).toTwos(width);
     // They took away padZeros so we have to use FixedNumber
     var nFix = ethers_1.ethers.FixedNumber.from(nPos.toString(), format);
     // XXX why do we slice off the 0x?
-    return shared_impl_1.hexlify(nFix).slice(2);
+    return (0, shared_impl_1.hexlify)(nFix).slice(2);
 };
 exports.bigNumberToHex = bigNumberToHex;
 var parseFixedPoint = function (x) {
-    return exports.parseInt({ sign: x.sign, i: x.i.i }) / CBR_1.bigNumberify(x.i.scale).toNumber();
+    return (0, exports.parseInt)({ sign: x.sign, i: x.i.i }) / (0, CBR_1.bigNumberify)(x.i.scale).toNumber();
 };
 exports.parseFixedPoint = parseFixedPoint;
 var parseInt = function (x) {
-    return CBR_1.bigNumberify(x.i).toNumber() * (x.sign ? 1 : (-1));
+    return (0, CBR_1.bigNumberify)(x.i).toNumber() * (x.sign ? 1 : (-1));
 };
 exports.parseInt = parseInt;
 exports.hasConsoleLogger = {
@@ -45,13 +45,13 @@ var numberToFixedPoint = function (n) {
     var scale = Math.pow(10, decs);
     return {
         sign: n >= 0,
-        i: { scale: CBR_1.bigNumberify(scale), i: CBR_1.bigNumberify(n * scale) }
+        i: { scale: (0, CBR_1.bigNumberify)(scale), i: (0, CBR_1.bigNumberify)(n * scale) }
     };
 };
 exports.numberToFixedPoint = numberToFixedPoint;
 var numberToInt = function (n) {
     var sign = n >= 0;
-    var i = CBR_1.bigNumberify(sign ? n : (-n));
+    var i = (0, CBR_1.bigNumberify)(sign ? n : (-n));
     return { sign: sign, i: i };
 };
 exports.numberToInt = numberToInt;

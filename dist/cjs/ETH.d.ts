@@ -1,7 +1,7 @@
 import * as ethImpl from './ETH_impl';
 export * from './ETH_compiled';
 export declare const connector = "ETH";
-export declare const getQueryLowerBound: () => ethImpl.ethers.BigNumber, setQueryLowerBound: (networkTime: number | ethImpl.ethers.BigNumber) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
+export declare const getQueryLowerBound: () => ethImpl.ethers.BigNumber, setQueryLowerBound: (x: number | ethImpl.ethers.BigNumber) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
     random: () => ethImpl.ethers.BigNumber;
 }, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: any, token?: string | false) => Promise<ethImpl.ethers.BigNumber>, transfer: (from: any, to: any, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
     address?: string | undefined;
@@ -14,7 +14,6 @@ export declare const getQueryLowerBound: () => ethImpl.ethers.BigNumber, setQuer
             version: number;
             ABI: string;
             Bytecode: string;
-            deployMode: "DM_firstMsg" | "DM_constructor";
             views: {
                 [viewn: string]: {
                     [keyn: string]: string;

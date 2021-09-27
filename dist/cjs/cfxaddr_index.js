@@ -1,8 +1,12 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
 exports.decode = exports.encode = void 0;
@@ -86,17 +90,17 @@ function encode(hexAddress, netId) {
     var addressType = getAddressType(hexAddress).toUpperCase();
     var netName = encodeNetId(netId).toUpperCase();
     var netName5Bits = Buffer.from(netName).map(function (byte) { return byte & 31; });
-    var payload5Bits = cfxaddr_base32_1.convertBit(__spreadArray([VERSION_BYTE], hexAddress), 8, 5, true);
-    var checksumBigInt = cfxaddr_base32_1.polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], netName5Bits), [0]), payload5Bits), [0, 0, 0, 0, 0, 0, 0, 0]));
+    var payload5Bits = (0, cfxaddr_base32_1.convertBit)(__spreadArray([VERSION_BYTE], hexAddress, true), 8, 5, true);
+    var checksumBigInt = (0, cfxaddr_base32_1.polyMod)(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], netName5Bits, true), [0], false), payload5Bits, true), [0, 0, 0, 0, 0, 0, 0, 0], false));
     var checksumBytes = Buffer.from(checksumBigInt.toString(16).padStart(10, '0'), 'hex');
-    var checksum5Bits = cfxaddr_base32_1.convertBit(checksumBytes, 8, 5, true);
+    var checksum5Bits = (0, cfxaddr_base32_1.convertBit)(checksumBytes, 8, 5, true);
     var payload = payload5Bits.map(function (byte) { return cfxaddr_base32_1.ALPHABET[byte]; }).join('');
     var checksum = checksum5Bits.map(function (byte) { return cfxaddr_base32_1.ALPHABET[byte]; }).join('');
     return netName + ":TYPE." + addressType + ":" + payload + checksum;
 }
 exports.encode = encode;
 function decode(address) {
-    shared_impl_1.debug("decode", { address: address });
+    (0, shared_impl_1.debug)("decode", { address: address });
     // don't allow mixed case
     var lowered = address.toLowerCase();
     var uppered = address.toUpperCase();
@@ -115,7 +119,7 @@ function decode(address) {
         var char = checksum_1[_b];
         checksum5Bits.push(cfxaddr_base32_1.ALPHABET_MAP[char]);
     }
-    var _c = cfxaddr_base32_1.convertBit(payload5Bits, 5, 8), version = _c[0], addressBytes = _c.slice(1);
+    var _c = (0, cfxaddr_base32_1.convertBit)(payload5Bits, 5, 8), version = _c[0], addressBytes = _c.slice(1);
     if (version !== VERSION_BYTE) {
         throw new Error('Can not recognize version byte');
     }
@@ -129,7 +133,7 @@ function decode(address) {
             throw new Error("Type of address doesn't match, got '" + actual + "', expected '" + expected + "'");
         }
     }
-    var bigInt = cfxaddr_base32_1.polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits), [0]), payload5Bits), checksum5Bits));
+    var bigInt = (0, cfxaddr_base32_1.polyMod)(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits, true), [0], false), payload5Bits, true), checksum5Bits, true));
     if (Number(bigInt)) {
         throw new Error("Invalid checksum for " + address);
     }

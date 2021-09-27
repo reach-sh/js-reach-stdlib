@@ -37,7 +37,7 @@ function extractMode(x) {
     if (typeof x === 'string') {
         return extractMode({ REACH_CONNECTOR_MODE: x });
     }
-    shim_1.updateProcessEnv(x);
+    (0, shim_1.updateProcessEnv)(x);
     var g = shim_1.process.env['REACH_CONNECTOR_MODE'];
     return g || 'ETH';
 }
@@ -46,10 +46,10 @@ function extractMode(x) {
 // It will use REACH_CONNECTOR_MODE if 0 args.
 function loadStdlib(connectorModeOrEnv) {
     var connectorModeStr = extractMode(connectorModeOrEnv);
-    var connectorMode = ConnectorMode_1.canonicalizeConnectorMode(connectorModeStr);
-    var connector = ConnectorMode_1.getConnector(connectorMode);
+    var connectorMode = (0, ConnectorMode_1.canonicalizeConnectorMode)(connectorModeStr);
+    var connector = (0, ConnectorMode_1.getConnector)(connectorMode);
     // Remember the connector to prevent users from accidentally using multiple stdlibs
-    registry_1.doStdlibLoad(connector);
+    (0, registry_1.doStdlibLoad)(connector);
     var stdlib;
     switch (connector) {
         case 'ETH':

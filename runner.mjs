@@ -56,10 +56,15 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
-var __spreadArray = (this && this.__spreadArray) || function(to, from) {
-  for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-    to[j] = from[i];
-  return to;
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { loadStdlib } from './loader.mjs';
 import { envDefault } from './shared_impl.mjs';
@@ -83,7 +88,7 @@ export function run(file) {
           return [4 /*yield*/ , loadStdlib()];
         case 2:
           stdlib = _a.sent();
-          m.main.apply(m, __spreadArray([stdlib], args));
+          m.main.apply(m, __spreadArray([stdlib], args, false));
           return [2 /*return*/ ];
       }
     });
@@ -94,7 +99,7 @@ export function main() {
   var _a = process.argv.slice(2),
     file = _a[0],
     args = _a.slice(1);
-  run.apply(void 0, __spreadArray([file], args));
+  run.apply(void 0, __spreadArray([file], args, false));
 }
 // TODO: only run main if running as script?
 main();

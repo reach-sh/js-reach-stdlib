@@ -288,21 +288,13 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     T_Struct: T_Struct
   };
   var arith = makeArith(UInt_max);
-  var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), {
-    addressEq: addressEq,
-    tokenEq: tokenEq,
-    digest: digest,
-    UInt_max: UInt_max
-  });
+  var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max });
   // ...............................................
   // It's the same as stdlib, but with convenient access to
   // stdlib and typeDefs as bundles of bindings
   // TODO: restore type annotation once types are in place
   // const ethLikeCompiled: EthLikeCompiled = {
-  var ethLikeCompiled = __assign(__assign({}, stdlib), {
-    typeDefs: typeDefs,
-    stdlib: stdlib
-  });
+  var ethLikeCompiled = __assign(__assign({}, stdlib), { typeDefs: typeDefs, stdlib: stdlib });
   return ethLikeCompiled;
 }
 //# sourceMappingURL=ETH_like_compiled.js.map

@@ -54,16 +54,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
 exports.main = exports.run = void 0;
 var loader_1 = require("./loader");
 var shared_impl_1 = require("./shared_impl");
-var mountDir = shared_impl_1.envDefault(process.env.REACH_RUNNER_MOUNT_DIR, '.');
+var mountDir = (0, shared_impl_1.envDefault)(process.env.REACH_RUNNER_MOUNT_DIR, '.');
 function run(file) {
     var args = [];
     for (var _i = 1; _i < arguments.length; _i++) {
@@ -80,10 +84,10 @@ function run(file) {
                     return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require(mountDir + "/" + file)); })];
                 case 1:
                     m = _a.sent();
-                    return [4 /*yield*/, loader_1.loadStdlib()];
+                    return [4 /*yield*/, (0, loader_1.loadStdlib)()];
                 case 2:
                     stdlib = _a.sent();
-                    m.main.apply(m, __spreadArray([stdlib], args));
+                    m.main.apply(m, __spreadArray([stdlib], args, false));
                     return [2 /*return*/];
             }
         });
@@ -93,7 +97,7 @@ exports.run = run;
 function main() {
     // slice off $(which node) and runner file
     var _a = process.argv.slice(2), file = _a[0], args = _a.slice(1);
-    run.apply(void 0, __spreadArray([file], args));
+    run.apply(void 0, __spreadArray([file], args, false));
 }
 exports.main = main;
 // TODO: only run main if running as script?

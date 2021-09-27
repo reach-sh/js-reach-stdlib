@@ -10,7 +10,7 @@ var bigNumberify = function (x) {
 };
 exports.bigNumberify = bigNumberify;
 var bigNumberToNumber = function (x) {
-    return exports.bigNumberify(x).toNumber();
+    return (0, exports.bigNumberify)(x).toNumber();
 };
 exports.bigNumberToNumber = bigNumberToNumber;
 exports.BV_Null = null;
@@ -41,7 +41,7 @@ var BT_UInt = function (max) { return ({
     name: 'UInt',
     canonicalize: function (uv) {
         try {
-            return shared_backend_1.checkedBigNumberify('stdlib:CBR:BT_UInt', max, uv);
+            return (0, shared_backend_1.checkedBigNumberify)('stdlib:CBR:BT_UInt', max, uv);
         }
         catch (e) {
             if (typeof (uv) === 'string') {
@@ -53,13 +53,13 @@ var BT_UInt = function (max) { return ({
 }); };
 exports.BT_UInt = BT_UInt;
 var BV_UInt = function (val, max) {
-    return exports.BT_UInt(max).canonicalize(val);
+    return (0, exports.BT_UInt)(max).canonicalize(val);
 };
 exports.BV_UInt = BV_UInt;
 var BT_Bytes = function (len) { return ({
     name: "Bytes(" + len + ")",
     canonicalize: function (val) {
-        var lenn = exports.bigNumberToNumber(len);
+        var lenn = (0, exports.bigNumberToNumber)(len);
         if (typeof (val) !== 'string') {
             throw Error("Bytes expected string, but got " + JSON.stringify(val));
         }
@@ -134,7 +134,7 @@ exports.BT_Array = BT_Array;
 // Note: curried
 /** @example BV_Array(BT_UInt, 3)([1, 2, 3]) */
 var BV_Array = function (ctc, size) { return function (val) {
-    return exports.BT_Array(ctc, size).canonicalize(val);
+    return (0, exports.BT_Array)(ctc, size).canonicalize(val);
 }; };
 exports.BV_Array = BV_Array;
 var BT_Tuple = function (ctcs) {
@@ -157,7 +157,7 @@ exports.BT_Tuple = BT_Tuple;
 // Note: curried
 /** @example BV_Tuple([BT_UInt, BT_Bytes])([42, 'hello']) */
 var BV_Tuple = function (ctcs) { return function (val) {
-    return exports.BT_Tuple(ctcs).canonicalize(val);
+    return (0, exports.BT_Tuple)(ctcs).canonicalize(val);
 }; };
 exports.BV_Tuple = BV_Tuple;
 var BT_Struct = function (ctcs) {
@@ -178,7 +178,7 @@ var BT_Struct = function (ctcs) {
 };
 exports.BT_Struct = BT_Struct;
 var BV_Struct = function (ctcs) { return function (val) {
-    return exports.BT_Struct(ctcs).canonicalize(val);
+    return (0, exports.BT_Struct)(ctcs).canonicalize(val);
 }; };
 exports.BV_Struct = BV_Struct;
 var BT_Object = function (co) {
@@ -206,7 +206,7 @@ exports.BT_Object = BT_Object;
 // Note: curried
 /** @example BV_Object({x: BT_UInt})({x: 3}) */
 var BV_Object = function (co) { return function (val) {
-    return exports.BT_Object(co).canonicalize(val);
+    return (0, exports.BT_Object)(co).canonicalize(val);
 }; };
 exports.BV_Object = BV_Object;
 var BT_Data = function (co) {
@@ -228,7 +228,7 @@ var BT_Data = function (co) {
 exports.BT_Data = BT_Data;
 /** @example BV_Data({x: BT_UInt, y: BT_Bytes})(['x', 3]); */
 var BV_Data = function (co) { return function (val) {
-    return exports.BT_Data(co).canonicalize(val);
+    return (0, exports.BT_Data)(co).canonicalize(val);
 }; };
 exports.BV_Data = BV_Data;
 //# sourceMappingURL=CBR.js.map

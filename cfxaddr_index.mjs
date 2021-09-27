@@ -1,7 +1,12 @@
-var __spreadArray = (this && this.__spreadArray) || function(to, from) {
-  for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-    to[j] = from[i];
-  return to;
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
 };
 // lightly adapted from @conflux-dev/conflux-address-js@1.0.0
 // @ts-nocheck
@@ -87,8 +92,8 @@ function encode(hexAddress, netId) {
   var addressType = getAddressType(hexAddress).toUpperCase();
   var netName = encodeNetId(netId).toUpperCase();
   var netName5Bits = Buffer.from(netName).map(function(byte) { return byte & 31; });
-  var payload5Bits = convertBit(__spreadArray([VERSION_BYTE], hexAddress), 8, 5, true);
-  var checksumBigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], netName5Bits), [0]), payload5Bits), [0, 0, 0, 0, 0, 0, 0, 0]));
+  var payload5Bits = convertBit(__spreadArray([VERSION_BYTE], hexAddress, true), 8, 5, true);
+  var checksumBigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], netName5Bits, true), [0], false), payload5Bits, true), [0, 0, 0, 0, 0, 0, 0, 0], false));
   var checksumBytes = Buffer.from(checksumBigInt.toString(16).padStart(10, '0'), 'hex');
   var checksum5Bits = convertBit(checksumBytes, 8, 5, true);
   var payload = payload5Bits.map(function(byte) { return ALPHABET[byte]; }).join('');
@@ -136,7 +141,7 @@ function decode(address) {
       throw new Error("Type of address doesn't match, got '" + actual + "', expected '" + expected + "'");
     }
   }
-  var bigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits), [0]), payload5Bits), checksum5Bits));
+  var bigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], prefix5Bits, true), [0], false), payload5Bits, true), checksum5Bits, true));
   if (Number(bigInt)) {
     throw new Error("Invalid checksum for " + address);
   }

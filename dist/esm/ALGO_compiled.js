@@ -185,8 +185,5 @@ export var typeDefs = {
     T_Struct: T_Struct
 };
 var arith = makeArith(UInt_max);
-export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq,
-    tokenEq: tokenEq,
-    digest: digest,
-    UInt_max: UInt_max });
+export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max });
 //# sourceMappingURL=ALGO_compiled.js.map

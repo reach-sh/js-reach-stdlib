@@ -22,7 +22,7 @@ exports.__esModule = true;
 exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Data = exports.T_Object = exports.T_Token = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.mod = exports.div = exports.mul = exports.sub = exports.add = exports.typeDefs = exports.stdlib = void 0;
 var ETH_like_compiled_1 = require("./ETH_like_compiled");
 var ethCompiledImpl = __importStar(require("./ETH_compiled_impl"));
-var ethCompiled = ETH_like_compiled_1.makeEthLikeCompiled(ethCompiledImpl);
+var ethCompiled = (0, ETH_like_compiled_1.makeEthLikeCompiled)(ethCompiledImpl);
 // The following should be identical to CFX_compiled.ts
 exports.stdlib = ethCompiled.stdlib, exports.typeDefs = ethCompiled.typeDefs;
 // start ...arith,

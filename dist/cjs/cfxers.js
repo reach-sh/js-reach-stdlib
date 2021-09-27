@@ -82,7 +82,6 @@ exports.utils = utils;
 var CFX_util_1 = require("./CFX_util");
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var shared_impl_1 = require("./shared_impl");
-var shim_1 = require("./shim");
 // This file immitates the ethers.js API
 var waitMs = 25;
 // Recursively stringify BigNumbers
@@ -121,7 +120,7 @@ function conform(args, tys) {
     args = unbn(args);
     if (Array.isArray(args)) {
         if (args.length !== tys.length) {
-            shared_impl_1.debug("conform", "err", { args: args, tys: tys });
+            (0, shared_impl_1.debug)("conform", "err", { args: args, tys: tys });
             throw Error("impossible: number of args (" + args.length + ") does not match number of tys (" + tys.length + ")");
         }
         for (var i in tys) {
@@ -138,6 +137,21 @@ function conform(args, tys) {
         }
     }
     return args;
+}
+function prepForConfluxPortal(txnOrig) {
+    var hexStringify = function (n) { return '0x' + BigInt(n || '0').toString(16); };
+    var txn = __assign({}, txnOrig);
+    // value should always be present
+    txn.value = hexStringify(txnOrig.value);
+    // These fields are transformed if present
+    // TODO: is it safe just to turn all number fields into hex strings?
+    // Where is the "real" Conflux Portal source code to check this?
+    for (var _i = 0, _a = ['storageLimit', 'gas']; _i < _a.length; _i++) {
+        var field = _a[_i];
+        if (txn[field] !== undefined)
+            txn[field] = hexStringify(txnOrig[field]);
+    }
+    return txn;
 }
 var Signer = /** @class */ (function () {
     function Signer() {
@@ -174,14 +188,14 @@ var Contract = /** @class */ (function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            shared_impl_1.debug("cfxers:Contract.wait", "start");
+                            (0, shared_impl_1.debug)("cfxers:Contract.wait", "start");
                             if (!receiptP) {
                                 throw Error("No receipt promise to wait on");
                             }
                             return [4 /*yield*/, self._receiptP];
                         case 1:
                             receipt = _a.sent();
-                            shared_impl_1.debug("cfxers:Contract.wait", "got receipt", receipt);
+                            (0, shared_impl_1.debug)("cfxers:Contract.wait", "got receipt", receipt);
                             if (self.address && self.address !== receipt.contractCreated) {
                                 throw Error("Impossible: ctc addresses don't match: " + self.address + " vs " + receipt.contractCreated);
                             }
@@ -227,7 +241,7 @@ var Contract = /** @class */ (function () {
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0:
-                            shared_impl_1.debug("cfxers:handler", fname, 'call', { args: args });
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, 'call', { args: args });
                             txn = { from: from, value: '0' };
                             if (args.length === inputs.length + 1) {
                                 txn = unbn(args.pop());
@@ -238,13 +252,13 @@ var Contract = /** @class */ (function () {
                                 txn.gas = txn.gasLimit;
                             }
                             delete txn.gasLimit;
-                            shared_impl_1.debug("cfxers:handler", fname, 'txn', { txn: txn, args: args });
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, 'txn', { txn: txn, args: args });
                             argsConformed = conform(args, inputs);
-                            shared_impl_1.debug("cfxers:handler", fname, 'conform', argsConformed);
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, 'conform', argsConformed);
                             if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/, 7];
-                            shared_impl_1.debug("cfxers:handler", fname, "waitable");
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, "waitable");
                             cfc = (_a = self._contract[fname]).call.apply(_a, argsConformed);
-                            shared_impl_1.debug("cfxers:handler", fname, "cfc", cfc);
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, "cfc", cfc);
                             est = undefined;
                             est_err = undefined;
                             _c.label = 1;
@@ -259,7 +273,7 @@ var Contract = /** @class */ (function () {
                             est_err = e_1;
                             return [3 /*break*/, 4];
                         case 4:
-                            shared_impl_1.debug("cfxers:handler", fname, { est: est, est_err: est_err });
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, { est: est, est_err: est_err });
                             if (est) {
                                 if (txn.gas === undefined) {
                                     txn.gas = est.gasUsed;
@@ -273,7 +287,7 @@ var Contract = /** @class */ (function () {
                             }
                             to = cfc.to, data = cfc.data;
                             txnDat = __assign(__assign({}, txn), { to: to, data: data });
-                            shared_impl_1.debug("cfxers:handler", fname, "txnDat", txnDat);
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, "txnDat", txnDat);
                             return [4 /*yield*/, _wallet.sendTransaction(__assign({}, txnDat))];
                         case 5:
                             res = _c.sent();
@@ -287,7 +301,7 @@ var Contract = /** @class */ (function () {
                                     // XXX not sure what the distinction is supposed to be here
                                     wait: function () { return __awaiter(_this, void 0, void 0, function () {
                                         return __generator(this, function (_a) {
-                                            shared_impl_1.debug('cfxers:handler', fname, 'wait');
+                                            (0, shared_impl_1.debug)('cfxers:handler', fname, 'wait');
                                             return [2 /*return*/, {
                                                     transactionHash: transactionHash_1
                                                 }];
@@ -295,7 +309,7 @@ var Contract = /** @class */ (function () {
                                     }); }
                                 }];
                         case 7:
-                            shared_impl_1.debug("cfxers:handler", fname, 'view');
+                            (0, shared_impl_1.debug)("cfxers:handler", fname, 'view');
                             return [4 /*yield*/, (_b = self._contract[fname]).call.apply(_b, argsConformed)];
                         case 8: 
                         // XXX in this case it doesn't return something with `wait`,
@@ -332,7 +346,7 @@ var ContractFactory = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         _a = this, abi = _a.abi, wallet = _a.wallet;
-                        shared_impl_1.debug("deploy", { wallet: wallet });
+                        (0, shared_impl_1.debug)("deploy", { wallet: wallet });
                         wallet._requireConnected();
                         if (!wallet.provider)
                             throw Error("Impossible: provider is undefined");
@@ -346,7 +360,7 @@ var ContractFactory = /** @class */ (function () {
                         return [4 /*yield*/, conflux.getTransactionByHash(hash)];
                     case 2:
                         txnRes = _b.sent();
-                        shared_impl_1.debug("deploy result", { hash: hash, txnRes: txnRes });
+                        (0, shared_impl_1.debug)("deploy result", { hash: hash, txnRes: txnRes });
                         return [2 /*return*/, new Contract(undefined, abi, wallet, receiptP, hash)];
                 }
             });
@@ -362,7 +376,7 @@ var ContractFactory = /** @class */ (function () {
         }
         // Note: can't bind keyword "interface"
         var _b = this, abi = _b.abi, bcode = _b.bytecode, iface = _b.interface, wallet = _b.wallet;
-        shared_impl_1.debug("getDeployTransaction", { wallet: wallet });
+        (0, shared_impl_1.debug)("getDeployTransaction", { wallet: wallet });
         var bytecode = bcode.slice(0, 2) === '0x' || bcode === '' ? bcode : '0x' + bcode;
         if (!wallet.provider)
             throw Error("Impossible: provider is undefined");
@@ -381,7 +395,7 @@ var ContractFactory = /** @class */ (function () {
         var value = BigNumber.from(0).toString();
         var txn = __assign({ from: from, value: value }, txnOverrides);
         var argsConformed = conform(args, iface.deploy.inputs);
-        shared_impl_1.debug("cfxers:Contract.deploy", { argsConformed: argsConformed, txn: txn });
+        (0, shared_impl_1.debug)("cfxers:Contract.deploy", { argsConformed: argsConformed, txn: txn });
         // Note: this usage of `.call` here is because javascript is insane.
         // XXX 2021-06-07 Dan: This works for the cjs compilation target, but does it work for the other targets?
         // @ts-ignore
@@ -416,7 +430,7 @@ var BrowserWallet = /** @class */ (function () {
     BrowserWallet.prototype.getAddress = function () { return this.address; };
     BrowserWallet.prototype.sendTransaction = function (txnOrig) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, provider, from, txn, hexStringify, value;
+            var _a, provider, from, txn, value;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -425,12 +439,8 @@ var BrowserWallet = /** @class */ (function () {
                         _a = this, provider = _a.provider, from = _a.address;
                         if (!provider)
                             throw Error("Impossible: provider is undefined");
-                        txn = __assign(__assign({}, txnOrig), { from: from });
-                        hexStringify = function (n) { return '0x' + shim_1.window.BigInt(n || '0').toString(16); };
-                        value = hexStringify(txnOrig.value);
-                        txn.value = value;
-                        if (txn.storageLimit !== undefined)
-                            txn.storageLimit = hexStringify(txn.storageLimit);
+                        txn = prepForConfluxPortal(__assign(__assign({}, txnOrig), { from: from }));
+                        value = txn.value;
                         return [4 /*yield*/, new Promise(function (resolve, reject) {
                                 _this.cp.sendAsync({
                                     method: 'cfx_sendTransaction',
@@ -503,7 +513,7 @@ var Wallet = /** @class */ (function () {
         this._requireConnected();
         if (!this.account)
             throw Error("Impossible: account is undefined");
-        return CFX_util_1.address_cfxStandardize(this.account.toString());
+        return (0, CFX_util_1.address_cfxStandardize)(this.account.toString());
     };
     Wallet.prototype.sendTransaction = function (txn) {
         return __awaiter(this, void 0, void 0, function () {
@@ -529,9 +539,9 @@ var Wallet = /** @class */ (function () {
                         gasXstorage = js_conflux_sdk_2.format.big(newGasCost).plus(newStorageCost).toFixed(0);
                         finalCost = js_conflux_sdk_2.format.big(txn.value).plus(gasXstorage).toFixed(0);
                         final = BigInt(finalCost);
-                        shared_impl_1.debug("SendTxn attempt, Final Cost of Tx is , " + final + ",  Balance of sender " + from + " is " + balance);
+                        (0, shared_impl_1.debug)("SendTxn attempt, Final Cost of Tx is , " + final + ",  Balance of sender " + from + " is " + balance);
                         if (final > balance) {
-                            shared_impl_1.debug("Checking: Account balanace of  " + from + " is " + balance + " and gasFee is, " + newGasCost + ": Total TxValue is " + final);
+                            (0, shared_impl_1.debug)("Checking: Account balanace of  " + from + " is " + balance + " and gasFee is, " + newGasCost + ": Total TxValue is " + final);
                             throw Error(" INSUFFICIENT FUNDS GAS COST IS " + newGasCost + ",  TXN VALUE IS  " + final + ", ACCOUNT " + from + " ONLY HAS A BALANCE OF " + balance);
                         }
                         if (!(txn.to instanceof Promise)) return [3 /*break*/, 4];
@@ -637,12 +647,12 @@ function _retryingSendTxn(provider, txnOrig) {
                                     _b.trys.push([3, 5, , 6]);
                                     // Note: {...txn} because conflux is going to mutate it >=[
                                     txnMut = __assign({}, txnOrig);
-                                    shared_impl_1.debug("_retryingSendTxn attempt", txnOrig);
+                                    (0, shared_impl_1.debug)("_retryingSendTxn attempt", txnOrig);
                                     transactionHashP_1 = provider.conflux.sendTransaction(txnMut);
                                     return [4 /*yield*/, transactionHashP_1];
                                 case 4:
                                     transactionHash_3 = _b.sent();
-                                    shared_impl_1.debug("_retryingSendTxn sent", { txnOrig: txnOrig, txnMut: txnMut, transactionHash: transactionHash_3 });
+                                    (0, shared_impl_1.debug)("_retryingSendTxn sent", { txnOrig: txnOrig, txnMut: txnMut, transactionHash: transactionHash_3 });
                                     updateSentAt(addr, txnMut.epochHeight);
                                     return [2 /*return*/, { value: {
                                                 transactionHash: transactionHash_3,
@@ -655,14 +665,14 @@ function _retryingSendTxn(provider, txnOrig) {
                                                                 return [4 /*yield*/, transactionHashP_1.executed(1000, 60 * 1000)];
                                                             case 1:
                                                                 r = _a.sent();
-                                                                shared_impl_1.debug("_retryingSendTxn receipt good", r);
+                                                                (0, shared_impl_1.debug)("_retryingSendTxn receipt good", r);
                                                                 return [2 /*return*/, { transactionHash: transactionHash_3 }];
                                                             case 2:
                                                                 e_3 = _a.sent();
                                                                 return [4 /*yield*/, provider.conflux.getTransactionReceipt(transactionHash_3)];
                                                             case 3:
                                                                 r = _a.sent();
-                                                                shared_impl_1.debug("_retryingSendTxn receipt bad", r);
+                                                                (0, shared_impl_1.debug)("_retryingSendTxn receipt bad", r);
                                                                 throw e_3;
                                                             case 4: return [2 /*return*/];
                                                         }
@@ -674,12 +684,15 @@ function _retryingSendTxn(provider, txnOrig) {
                                     err = e_2;
                                     es = JSON.stringify(e_2);
                                     if (es.includes("stale nonce") || es.includes("same nonce")) {
-                                        shared_impl_1.debug("_retryingSendTxn: nonce error, giving more tries");
+                                        (0, shared_impl_1.debug)("_retryingSendTxn: nonce error, giving more tries");
                                         tries--;
                                     }
-                                    shared_impl_1.debug("_retryingSendTxn fail", {
-                                        txnOrig: txnOrig, txnMut: txnMut,
-                                        e: e_2, tries: tries, max_tries: max_tries
+                                    (0, shared_impl_1.debug)("_retryingSendTxn fail", {
+                                        txnOrig: txnOrig,
+                                        txnMut: txnMut,
+                                        e: e_2,
+                                        tries: tries,
+                                        max_tries: max_tries
                                     });
                                     return [2 /*return*/, (out_tries_1 = tries, "continue")];
                                 case 6:

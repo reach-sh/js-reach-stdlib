@@ -45,10 +45,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
@@ -56,8 +60,11 @@ import { assert, eq, } from './shared_backend';
 import { replaceableThunk, debug, getViewsHelper, deferContract, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
-var reachBackendVersion = 1;
-var reachEthBackendVersion = 1;
+// Note: if you want your programs to exit fail
+// on unhandled promise rejection, use:
+// node --unhandled-rejections=strict
+var reachBackendVersion = 3;
+var reachEthBackendVersion = 3;
 function isNone(m) {
     return m.length === 0;
 }
@@ -84,14 +91,8 @@ export function makeEthLike(ethLikeArgs) {
     function getQueryLowerBound() {
         return bigNumberify(_getQueryLowerBound());
     }
-    function setQueryLowerBound(networkTime) {
-        networkTime = typeof networkTime === 'number' ? networkTime
-            : networkTime._isBigNumber ? networkTime.toNumber()
-                : networkTime;
-        if (!(typeof networkTime === 'number')) {
-            throw Error("Expected number or BigNumber, but got " + networkTime + " : " + typeof networkTime);
-        }
-        _setQueryLowerBound(networkTime);
+    function setQueryLowerBound(x) {
+        _setQueryLowerBound(bigNumberToNumber(x));
     }
     /** @description convenience function for drilling down to the actual address */
     var getAddr = function (acc) { return __awaiter(_this, void 0, void 0, function () {
@@ -152,8 +153,17 @@ export function makeEthLike(ethLikeArgs) {
             }
         });
     }); };
+    var sendRecv_prepArg = function (lct, args, tys, evt_cnt) {
+        var _a = argsSplit(args, evt_cnt), _args_svs = _a[0], args_msg = _a[1];
+        var _b = argsSplit(tys, evt_cnt), _tys_svs = _b[0], tys_msg = _b[1];
+        void (_args_svs);
+        void (_tys_svs);
+        // @ts-ignore XXX
+        var arg_ty = T_Tuple([T_UInt, T_Tuple(tys_msg)]);
+        return arg_ty.munge([lct, args_msg]);
+    };
     var initOrDefaultArgs = function (init) { return ({
-        argsMay: init ? Some(init.args) : None,
+        arg: init ? init.arg : sendRecv_prepArg(bigNumberify(0), [], [], 0),
         value: init ? init.value : bigNumberify(0)
     }); };
     // ****************************************************************************
@@ -437,7 +447,7 @@ export function makeEthLike(ethLikeArgs) {
                     if (storageLimit !== undefined) {
                         tx = __assign(__assign({}, tx), { storageLimit: storageLimit });
                     }
-                    return [4 /*yield*/, doTxn(dpre, ctc[funcName].apply(ctc, __spreadArray(__spreadArray([], args), [tx])))];
+                    return [4 /*yield*/, doTxn(dpre, ctc[funcName].apply(ctc, __spreadArray(__spreadArray([], args, false), [tx], false)))];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -539,7 +549,8 @@ export function makeEthLike(ethLikeArgs) {
                         })(), infoP = _a.infoP, resolveInfo = _a.resolveInfo;
                         var performDeploy = function (init) {
                             debug(shad, ': performDeploy with', init);
-                            var _a = initOrDefaultArgs(init), argsMay = _a.argsMay, value = _a.value;
+                            var _a = initOrDefaultArgs(init), arg = _a.arg, value = _a.value;
+                            debug(shad, { arg: arg });
                             var _b = bin._Connectors.ETH, ABI = _b.ABI, Bytecode = _b.Bytecode;
                             debug(shad, ': making contract factory');
                             var factory = new ethers.ContractFactory(ABI, Bytecode, networkAccount);
@@ -549,7 +560,7 @@ export function makeEthLike(ethLikeArgs) {
                                     switch (_a.label) {
                                         case 0:
                                             debug(shad, ": deploying factory");
-                                            return [4 /*yield*/, factory.deploy.apply(factory, __spreadArray(__spreadArray([], argsMay), [{ value: value, gasLimit: gasLimit }]))];
+                                            return [4 /*yield*/, factory.deploy(arg, { value: value, gasLimit: gasLimit })];
                                         case 1:
                                             contract = _a.sent();
                                             debug(shad, ": deploying factory; done:", contract.address);
@@ -573,31 +584,33 @@ export function makeEthLike(ethLikeArgs) {
                             var implP = new Promise(function (resolve) { setImpl = resolve; });
                             var implNow = {
                                 stdlib: stdlib,
+                                iam: iam,
+                                selfAddress: selfAddress,
                                 sendrecv: function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                                    var funcNum, evt_cnt, out_tys, args, pay, onlyIf, soloSend, timeoutAt, value, toks;
+                                    var funcNum, evt_cnt, lct, tys, out_tys, args, pay, onlyIf, soloSend, timeoutAt, value, toks;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
-                                                funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, out_tys = srargs.out_tys, args = srargs.args, pay = srargs.pay, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
+                                                funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, out_tys = srargs.out_tys, args = srargs.args, pay = srargs.pay, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
                                                 debug(shad, ":", label, 'sendrecv m', funcNum, "(deferred deploy)");
                                                 value = pay[0], toks = pay[1];
                                                 // The following must be true for the first sendrecv.
                                                 try {
-                                                    assert(onlyIf, "verifyContract: onlyIf must be true");
-                                                    assert(soloSend, "verifyContract: soloSend must be true");
-                                                    assert(eq(funcNum, 1), "verifyContract: funcNum must be 1");
-                                                    assert(!timeoutAt, "verifyContract: no timeout");
-                                                    assert(toks.length == 0, "verifyContract: no tokens");
+                                                    assert(onlyIf, "firstMsg: onlyIf must be true");
+                                                    assert(soloSend, "firstMsg: soloSend must be true");
+                                                    assert(eq(funcNum, 0), "firstMsg: funcNum must be 1");
+                                                    assert(!timeoutAt, "firstMsg: no timeout");
+                                                    assert(toks.length == 0, "firstMsg: no tokens");
                                                 }
                                                 catch (e) {
                                                     throw Error("impossible: Deferred deploy sendrecv assumptions violated.\n" + e);
                                                 }
                                                 // shim impl is replaced with real impl
-                                                setImpl(performDeploy({ args: [[0], args], value: value }));
+                                                setImpl(performDeploy({ arg: sendRecv_prepArg(lct, args, tys, evt_cnt), value: value }));
                                                 return [4 /*yield*/, infoP];
                                             case 1:
                                                 _a.sent(); // Wait for the deploy to actually happen.
-                                                return [4 /*yield*/, impl.recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, waitIfNotPresent: false, timeoutAt: timeoutAt })];
+                                                return [4 /*yield*/, impl.recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: true, waitIfNotPresent: false, timeoutAt: timeoutAt })];
                                             case 2: // Wait for the deploy to actually happen.
                                             // simulated recv
                                             return [2 /*return*/, _a.sent()];
@@ -608,16 +621,7 @@ export function makeEthLike(ethLikeArgs) {
                             var impl = deferContract(true, implP, implNow);
                             return impl;
                         };
-                        var deployMode = bin._Connectors.ETH.deployMode;
-                        switch (deployMode) {
-                            case 'DM_firstMsg':
-                                return attachDeferDeploy();
-                            case 'DM_constructor':
-                                return performDeploy();
-                            default:
-                                throw Error("Unrecognized deployMode: " + deployMode);
-                        }
-                        ;
+                        return attachDeferDeploy();
                     };
                     attach = function (bin, infoP) {
                         ensureConnectorAvailable(bin, 'ETH', reachBackendVersion, reachEthBackendVersion);
@@ -659,7 +663,6 @@ export function makeEthLike(ethLikeArgs) {
                             }
                             setLastBlock(o.blockNumber);
                         };
-                        var theCreationTime = undefined;
                         var getC = (function () {
                             var _ethersC = null;
                             return function () { return __awaiter(_this, void 0, void 0, function () {
@@ -676,7 +679,6 @@ export function makeEthLike(ethLikeArgs) {
                                             return [4 /*yield*/, verifyContract_(info, bin, eventCache, label)];
                                         case 2:
                                             creation_block = (_a.sent()).creation_block;
-                                            theCreationTime = creation_block;
                                             setLastBlock(creation_block);
                                             address = info;
                                             debug(shad, ": contract verified");
@@ -796,81 +798,116 @@ export function makeEthLike(ethLikeArgs) {
                                 case 1: return [2 /*return*/, _a.sent()];
                             }
                         }); }); };
+                        var canIWin = function (lct) { return __awaiter(_this, void 0, void 0, function () {
+                            var ethersC, ret, val, e_3;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, getC()];
+                                    case 1:
+                                        ethersC = _a.sent();
+                                        ret = true;
+                                        _a.label = 2;
+                                    case 2:
+                                        _a.trys.push([2, 4, , 5]);
+                                        return [4 /*yield*/, ethersC["_reachCurrentTime"]()];
+                                    case 3:
+                                        val = _a.sent();
+                                        ret = lct.eq(val);
+                                        debug("canIWin", { lct: lct, val: val });
+                                        return [3 /*break*/, 5];
+                                    case 4:
+                                        e_3 = _a.sent();
+                                        debug("canIWin", { e: e_3 });
+                                        return [3 /*break*/, 5];
+                                    case 5:
+                                        debug("canIWin", { ret: ret });
+                                        return [2 /*return*/, ret];
+                                }
+                            });
+                        }); };
                         var sendrecv = function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                            var funcNum, evt_cnt, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, _a, args_svs, args_msg, _b, tys_svs, tys_msg, arg_ty, arg, lastBlock, block_send_attempt, block_repeat_count, e_3, current_block, error;
+                            var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, arg, lastBlock, block_send_attempt, block_repeat_count, _a, e_4, current_block, error;
                             var _this = this;
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
-                                        funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
-                                        doRecv = function (waitIfNotPresent) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+                                        funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
+                                        doRecv = function (didSend, waitIfNotPresent) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
                                             switch (_a.label) {
-                                                case 0: return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
+                                                case 0: return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                                                 case 1: return [2 /*return*/, _a.sent()];
                                             }
                                         }); }); };
                                         if (!!onlyIf) return [3 /*break*/, 2];
-                                        return [4 /*yield*/, doRecv(true)];
-                                    case 1: return [2 /*return*/, _c.sent()];
+                                        return [4 /*yield*/, doRecv(false, true)];
+                                    case 1: return [2 /*return*/, _b.sent()];
                                     case 2:
                                         funcName = "m" + funcNum;
                                         if (tys.length !== args.length) {
                                             throw Error("tys.length (" + tys.length + ") !== args.length (" + args.length + ")");
                                         }
                                         dhead = [shad, label, 'send', funcName, timeoutAt, 'SEND'];
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['ARGS', args]));
-                                        _a = argsSplit(args, evt_cnt), args_svs = _a[0], args_msg = _a[1];
-                                        _b = argsSplit(tys, evt_cnt), tys_svs = _b[0], tys_msg = _b[1];
-                                        arg_ty = T_Tuple([T_Tuple(tys_svs), T_Tuple(tys_msg)]);
-                                        arg = arg_ty.munge([args_svs, args_msg]);
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARGS', args], false));
+                                        arg = sendRecv_prepArg(lct, args, tys, evt_cnt);
                                         // Make sure the ctc is available and verified (before we get into try/catch)
                                         // https://github.com/reach-sh/reach-lang/issues/134
                                         return [4 /*yield*/, getC()];
                                     case 3:
                                         // Make sure the ctc is available and verified (before we get into try/catch)
                                         // https://github.com/reach-sh/reach-lang/issues/134
-                                        _c.sent();
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['START', arg]));
+                                        _b.sent();
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['START', arg], false));
                                         return [4 /*yield*/, getLastBlock()];
                                     case 4:
-                                        lastBlock = _c.sent();
+                                        lastBlock = _b.sent();
                                         block_send_attempt = lastBlock;
                                         block_repeat_count = 0;
-                                        _c.label = 5;
+                                        _b.label = 5;
                                     case 5: return [4 /*yield*/, checkTimeout(getTimeSecs, timeoutAt, block_send_attempt)];
                                     case 6:
-                                        if (!!(_c.sent())) return [3 /*break*/, 16];
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['TRY']));
-                                        _c.label = 7;
+                                        if (!!(_b.sent())) return [3 /*break*/, 20];
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['TRY'], false));
+                                        _a = !soloSend;
+                                        if (!_a) return [3 /*break*/, 8];
+                                        return [4 /*yield*/, canIWin(lct)];
                                     case 7:
-                                        _c.trys.push([7, 9, , 14]);
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['ARG', arg, pay]));
-                                        return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
+                                        _a = !(_b.sent());
+                                        _b.label = 8;
                                     case 8:
-                                        _c.sent();
-                                        return [3 /*break*/, 14];
-                                    case 9:
-                                        e_3 = _c.sent();
-                                        if (!!soloSend) return [3 /*break*/, 10];
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["SKIPPING", e_3]));
-                                        return [3 /*break*/, 13];
+                                        if (!_a) return [3 /*break*/, 10];
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["CANNOT WIN"], false));
+                                        return [4 /*yield*/, doRecv(false, false)];
+                                    case 9: return [2 /*return*/, _b.sent()];
                                     case 10:
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["ERROR", { stack: e_3.stack }]));
+                                        _b.trys.push([10, 12, , 18]);
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARG', arg, pay], false));
+                                        return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
+                                    case 11:
+                                        _b.sent();
+                                        return [3 /*break*/, 18];
+                                    case 12:
+                                        e_4 = _b.sent();
+                                        if (!!soloSend) return [3 /*break*/, 14];
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["LOST", e_4], false));
+                                        return [4 /*yield*/, doRecv(false, false)];
+                                    case 13: return [2 /*return*/, _b.sent()];
+                                    case 14:
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["ERROR", { stack: e_4.stack }], false));
                                         // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
                                         return [4 /*yield*/, Timeout.set(1)];
-                                    case 11:
+                                    case 15:
                                         // XXX What should we do...? If we fail, but there's no timeout delay... then we should just die
-                                        _c.sent();
+                                        _b.sent();
                                         return [4 /*yield*/, getNetworkTimeNumber()];
-                                    case 12:
-                                        current_block = _c.sent();
+                                    case 16:
+                                        current_block = _b.sent();
                                         if (current_block == block_send_attempt) {
                                             block_repeat_count++;
                                         }
                                         block_send_attempt = current_block;
                                         if (block_repeat_count > 32) {
-                                            if (e_3.code === 'UNPREDICTABLE_GAS_LIMIT') {
-                                                error = e_3;
+                                            if (e_4.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                                                error = e_4;
                                                 while (error.error) {
                                                     error = error.error;
                                                 }
@@ -881,38 +918,38 @@ export function makeEthLike(ethLikeArgs) {
                                             console.log(arg);
                                             throw Error(dhead + " REPEAT @ " + block_send_attempt + " x " + block_repeat_count);
                                         }
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["TRY FAIL", lastBlock, current_block, block_repeat_count, block_send_attempt]));
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["TRY FAIL", lastBlock, current_block, block_repeat_count, block_send_attempt], false));
                                         return [3 /*break*/, 5];
-                                    case 13: return [3 /*break*/, 14];
-                                    case 14:
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ['SUCC']));
-                                        return [4 /*yield*/, doRecv(false)];
-                                    case 15: return [2 /*return*/, _c.sent()];
-                                    case 16:
+                                    case 17: return [3 /*break*/, 18];
+                                    case 18:
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['SUCC'], false));
+                                        return [4 /*yield*/, doRecv(true, false)];
+                                    case 19: return [2 /*return*/, _b.sent()];
+                                    case 20:
                                         // XXX If we were trying to join, but we got sniped, then we'll
                                         // think that there is a timeout and then we'll wait forever for
                                         // the timeout message.
-                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead), ["FAIL/TIMEOUT"]));
+                                        debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["FAIL/TIMEOUT"], false));
                                         return [2 /*return*/, { didTimeout: true }];
                                 }
                             });
                         }); };
                         // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
                         var recv = function (rargs) { return __awaiter(_this, void 0, void 0, function () {
-                            var funcNum, out_tys, waitIfNotPresent, timeoutAt, isFirstMsgDeploy, lastBlock, ok_evt, dhead, fromBlock, _loop_1, state_1;
+                            var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, lastBlock, ok_evt, dhead, fromBlock, _loop_1, state_1;
                             var _this = this;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
-                                        funcNum = rargs.funcNum, out_tys = rargs.out_tys, waitIfNotPresent = rargs.waitIfNotPresent, timeoutAt = rargs.timeoutAt;
-                                        isFirstMsgDeploy = (funcNum == 1) && (bin._Connectors.ETH.deployMode == 'DM_firstMsg');
+                                        funcNum = rargs.funcNum, out_tys = rargs.out_tys, didSend = rargs.didSend, waitIfNotPresent = rargs.waitIfNotPresent, timeoutAt = rargs.timeoutAt;
+                                        isCtor = (funcNum == 0);
                                         return [4 /*yield*/, getLastBlock()];
                                     case 1:
                                         lastBlock = _a.sent();
                                         ok_evt = "e" + funcNum;
                                         dhead = { t: 'recv', label: label, ok_evt: ok_evt };
                                         debug(dhead, "START");
-                                        fromBlock = lastBlock + (isFirstMsgDeploy ? 0 : 1);
+                                        fromBlock = lastBlock + (isCtor ? 0 : 1);
                                         _loop_1 = function () {
                                             var res, currentTime, ok_e, ok_r, ok_t, theBlock_1, ok_ed, ok_vals, data, _getLog_1, getOutput, theBlockBN, from, theSecsBN;
                                             return __generator(this, function (_b) {
@@ -988,15 +1025,15 @@ export function makeEthLike(ethLikeArgs) {
                                                                         return [4 /*yield*/, getLog(theBlock_1, theBlock_1, l_evt)];
                                                                     case 1:
                                                                         l_e = (_a.sent());
-                                                                        dheadl = __spreadArray(__spreadArray([], dheadl), ['log', l_e]);
+                                                                        dheadl = __spreadArray(__spreadArray([], dheadl, true), ['log', l_e], false);
                                                                         debug(dheadl);
                                                                         return [4 /*yield*/, getEventData(l_evt, l_e)];
                                                                     case 2:
                                                                         l_ed = (_a.sent())[0];
-                                                                        dheadl = __spreadArray(__spreadArray([], dheadl), ['data', l_ed]);
+                                                                        dheadl = __spreadArray(__spreadArray([], dheadl, true), ['data', l_ed], false);
                                                                         debug(dheadl);
                                                                         l_edu = l_ctc.unmunge(l_ed);
-                                                                        dheadl = __spreadArray(__spreadArray([], dheadl), ['unmunge', l_edu]);
+                                                                        dheadl = __spreadArray(__spreadArray([], dheadl, true), ['unmunge', l_edu], false);
                                                                         debug(dheadl);
                                                                         return [2 /*return*/, l_edu];
                                                                 }
@@ -1013,7 +1050,10 @@ export function makeEthLike(ethLikeArgs) {
                                                     case 12:
                                                         theSecsBN = _b.sent();
                                                         return [2 /*return*/, { value: {
-                                                                    data: data, getOutput: getOutput, from: from,
+                                                                    data: data,
+                                                                    getOutput: getOutput,
+                                                                    from: from,
+                                                                    didSend: didSend,
                                                                     didTimeout: false,
                                                                     time: theBlockBN,
                                                                     secs: theSecsBN
@@ -1034,26 +1074,6 @@ export function makeEthLike(ethLikeArgs) {
                                 }
                             });
                         }); };
-                        var creationTime = function () { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, getC()];
-                                    case 1:
-                                        _a.sent();
-                                        // @ts-ignore
-                                        return [2 /*return*/, bigNumberify(theCreationTime)];
-                                }
-                            });
-                        }); };
-                        var creationSecs = function () { return __awaiter(_this, void 0, void 0, function () { var _a; return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0:
-                                    _a = getTimeSecs;
-                                    return [4 /*yield*/, creationTime()];
-                                case 1: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
-                                case 2: return [2 /*return*/, _b.sent()];
-                            }
-                        }); }); };
                         var viewlib = {
                             viewMapRef: function () {
                                 var args = [];
@@ -1077,7 +1097,7 @@ export function makeEthLike(ethLikeArgs) {
                                     args[_i] = arguments[_i];
                                 }
                                 return __awaiter(_this, void 0, void 0, function () {
-                                    var ty, ethersC, vkn, val, e_4;
+                                    var ty, ethersC, vkn, val, e_5;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -1097,8 +1117,8 @@ export function makeEthLike(ethLikeArgs) {
                                                 debug('getView1', v, k, 'val', val);
                                                 return [2 /*return*/, ['Some', ty.unmunge(val)]];
                                             case 4:
-                                                e_4 = _a.sent();
-                                                debug('getView1', v, k, 'error', e_4);
+                                                e_5 = _a.sent();
+                                                debug('getView1', v, k, 'error', e_5);
                                                 return [2 /*return*/, ['None', null]];
                                             case 5: return [2 /*return*/];
                                         }
@@ -1107,7 +1127,7 @@ export function makeEthLike(ethLikeArgs) {
                             };
                         };
                         var getViews = getViewsHelper(views_bin, getView1);
-                        return { getInfo: getInfo, creationTime: creationTime, creationSecs: creationSecs, sendrecv: sendrecv, recv: recv, waitTime: waitUntilTime, waitSecs: waitUntilSecs, iam: iam, selfAddress: selfAddress, getViews: getViews, stdlib: stdlib };
+                        return { getInfo: getInfo, sendrecv: sendrecv, recv: recv, waitTime: waitUntilTime, waitSecs: waitUntilSecs, iam: iam, selfAddress: selfAddress, getViews: getViews, stdlib: stdlib };
                     };
                     ;
                     ;
@@ -1123,7 +1143,7 @@ export function makeEthLike(ethLikeArgs) {
                                     go = function (t, f, m) {
                                         if (m === void 0) { m = f; }
                                         return __awaiter(_this, void 0, void 0, function () {
-                                            var rv, v, e_5;
+                                            var rv, v, e_6;
                                             return __generator(this, function (_a) {
                                                 switch (_a.label) {
                                                     case 0:
@@ -1140,8 +1160,8 @@ export function makeEthLike(ethLikeArgs) {
                                                         md[f] = v;
                                                         return [3 /*break*/, 4];
                                                     case 3:
-                                                        e_5 = _a.sent();
-                                                        debug('tokenMetadata', { f: f, m: m, e: e_5 });
+                                                        e_6 = _a.sent();
+                                                        debug('tokenMetadata', { f: f, m: m, e: e_6 });
                                                         return [3 /*break*/, 4];
                                                     case 4: return [2 /*return*/];
                                                 }
@@ -1267,7 +1287,7 @@ export function makeEthLike(ethLikeArgs) {
         });
     }); };
     var newTestAccount = function (startingBalance) { return __awaiter(_this, void 0, void 0, function () {
-        var acc, to, e_6;
+        var acc, to, e_7;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1288,9 +1308,9 @@ export function makeEthLike(ethLikeArgs) {
                     debug('newTestAccount got transfer:', to);
                     return [2 /*return*/, acc];
                 case 5:
-                    e_6 = _a.sent();
+                    e_7 = _a.sent();
                     console.log("newTestAccount: Trouble with account " + to);
-                    throw e_6;
+                    throw e_7;
                 case 6: return [2 /*return*/];
             }
         });
@@ -1395,12 +1415,12 @@ export function makeEthLike(ethLikeArgs) {
         });
     }); };
     var verifyContract_ = function (ctcInfo, backend, eventCache, label) { return __awaiter(_this, void 0, void 0, function () {
-        var _a, ABI, Bytecode, deployMode, address, iface, dhead, chk, chkeq, provider, now, lookupLog, e0log, creation_block, dt, ctorArgs, actual, expected;
+        var _a, ABI, Bytecode, address, iface, dhead, chk, chkeq, provider, now, lookupLog, e0log, creation_block, dt, e0p, ctorArg, actual, expected;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode, deployMode = _a.deployMode;
+                    _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
                     address = ctcInfo;
                     iface = new real_ethers.utils.Interface(ABI);
                     dhead = ['verifyContract', label];
@@ -1452,32 +1472,12 @@ export function makeEthLike(ethLikeArgs) {
                 case 4:
                     dt = _b.sent();
                     debug(dhead, 'dt', dt);
-                    return [4 /*yield*/, (function () { return __awaiter(_this, void 0, void 0, function () {
-                            var _a, e1log, e1p;
-                            return __generator(this, function (_b) {
-                                switch (_b.label) {
-                                    case 0:
-                                        _a = deployMode;
-                                        switch (_a) {
-                                            case 'DM_firstMsg': return [3 /*break*/, 1];
-                                            case 'DM_constructor': return [3 /*break*/, 3];
-                                        }
-                                        return [3 /*break*/, 4];
-                                    case 1: return [4 /*yield*/, lookupLog('e1')];
-                                    case 2:
-                                        e1log = _b.sent();
-                                        e1p = iface.parseLog(e1log);
-                                        debug("e1p", e1p);
-                                        return [2 /*return*/, e1p.args];
-                                    case 3: return [2 /*return*/, []];
-                                    case 4: throw Error("Unrecognized deployMode: " + deployMode);
-                                }
-                            });
-                        }); })()];
-                case 5:
-                    ctorArgs = _b.sent();
+                    e0p = iface.parseLog(e0log);
+                    debug(dhead, { e0p: e0p });
+                    ctorArg = e0p.args;
+                    debug(dhead, { ctorArg: ctorArg });
                     actual = dt.data;
-                    expected = Bytecode + iface.encodeDeploy(ctorArgs).slice(2);
+                    expected = Bytecode + iface.encodeDeploy(ctorArg).slice(2);
                     chkeq(actual, expected, "Contract bytecode does not match expected bytecode.");
                     // We are not checking the balance or the contract storage, because we know
                     // that the code is correct and we know that the code mandates the way that
@@ -1578,37 +1578,7 @@ export function makeEthLike(ethLikeArgs) {
     ;
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound,
-        setQueryLowerBound: setQueryLowerBound,
-        getFaucet: getFaucet,
-        setFaucet: setFaucet,
-        randomUInt: randomUInt,
-        hasRandom: hasRandom,
-        balanceOf: balanceOf,
-        transfer: transfer,
-        connectAccount: connectAccount,
-        newAccountFromSecret: newAccountFromSecret,
-        newAccountFromMnemonic: newAccountFromMnemonic,
-        getDefaultAccount: getDefaultAccount,
-        createAccount: createAccount,
-        canFundFromFaucet: canFundFromFaucet,
-        fundFromFaucet: fundFromFaucet,
-        newTestAccount: newTestAccount,
-        newTestAccounts: newTestAccounts,
-        getNetworkTime: getNetworkTime,
-        waitUntilTime: waitUntilTime,
-        wait: wait,
-        getNetworkSecs: getNetworkSecs,
-        waitUntilSecs: waitUntilSecs,
-        verifyContract: verifyContract,
-        standardUnit: standardUnit,
-        atomicUnit: atomicUnit,
-        parseCurrency: parseCurrency,
-        minimumBalance: minimumBalance,
-        formatCurrency: formatCurrency,
-        formatAddress: formatAddress,
-        launchToken: launchToken,
-        reachStdlib: reachStdlib });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, launchToken: launchToken, reachStdlib: reachStdlib });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map
