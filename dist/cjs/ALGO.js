@@ -701,9 +701,9 @@ var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
         });
     }); };
     var signAndPostTxns = function (txns, sopts) { return __awaiter(void 0, void 0, void 0, function () {
-        var to_sign, signed, stxns, bs;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var to_sign, signed, _a, stxns, bs;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     if (!p) {
                         throw new Error("must call enable");
@@ -718,9 +718,15 @@ var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
                         }
                     });
                     (0, shared_impl_1.debug)("fallBack: signAndPostTxns", { to_sign: to_sign });
-                    return [4 /*yield*/, signTxns(to_sign)];
-                case 1:
-                    signed = _a.sent();
+                    if (!(to_sign.length == 0)) return [3 /*break*/, 1];
+                    _a = [];
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, signTxns(to_sign)];
+                case 2:
+                    _a = _b.sent();
+                    _b.label = 3;
+                case 3:
+                    signed = _a;
                     (0, shared_impl_1.debug)("fallBack: signAndPostTxns", { signed: signed });
                     stxns = txns.map(function (txn) {
                         if (txn.stxn) {
@@ -735,8 +741,8 @@ var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
                     bs = stxns.map(function (stxn) { return Buffer.from(stxn, 'base64'); });
                     (0, shared_impl_1.debug)("fallBack: signAndPostTxns", bs);
                     return [4 /*yield*/, p.algodClient.sendRawTransaction(bs)["do"]()];
-                case 2:
-                    _a.sent();
+                case 4:
+                    _b.sent();
                     return [2 /*return*/, {}];
             }
         });
