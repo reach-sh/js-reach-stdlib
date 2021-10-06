@@ -51,7 +51,7 @@ declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo,
 export declare function getQueryLowerBound(): BigNumber;
 export declare function setQueryLowerBound(networkTime: BigNumber | number): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
-export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Object: (coMap: {
+export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Contract: ALGO_Ty<ethers.BigNumber>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<import("./CBR").CBR_Object>, T_Data: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
@@ -140,7 +140,7 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  * @returns the address formatted as a base32-encoded string with checksum
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
-export declare function launchToken(accCreator: Account, name: string, sym: string): Promise<{
+export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: any): Promise<{
     name: string;
     sym: string;
     id: any;

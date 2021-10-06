@@ -124,8 +124,8 @@ exports._getDefaultFaucetNetworkAccount = _getDefaultFaucetNetworkAccount;
 function canFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            (0, shared_impl_1.debug)('canFundFromFaucet');
-            return [2 /*return*/, isIsolatedNetwork()];
+            (0, shared_impl_1.debug)('ETH:canFundFromFaucet');
+            return [2 /*return*/, isIsolatedNetwork() || windowLooksIsolated()];
         });
     });
 }
@@ -294,17 +294,17 @@ function guessConnectorMode(env) {
 }
 function envDefaultsETH(env) {
     var ETH_NET = env.ETH_NET, ETH_NODE_URI = env.ETH_NODE_URI;
-    var cm = (0, shared_impl_1.envDefault)(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
-    var REACH_CONNECTOR_MODE = (0, shared_impl_1.envDefault)(cm, (0, ConnectorMode_1.canonicalizeConnectorMode)(env.REACH_CONNECTOR_MODE || 'ETH'));
+    var cm = (0, shared_impl_1.envDefaultNoEmpty)(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+    var REACH_CONNECTOR_MODE = (0, shared_impl_1.envDefaultNoEmpty)(cm, (0, ConnectorMode_1.canonicalizeConnectorMode)(env.REACH_CONNECTOR_MODE || 'ETH'));
     var isolatedDefault = ETH_NET && ETH_NET !== 'window' ? 'no'
         : ETH_NET === 'window' || shim_1.window.ethereum ? (windowLooksIsolated() ? 'yes' : 'no')
             : connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
-    var REACH_ISOLATED_NETWORK = (0, shared_impl_1.envDefault)(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+    var REACH_ISOLATED_NETWORK = (0, shared_impl_1.envDefaultNoEmpty)(env.REACH_ISOLATED_NETWORK, isolatedDefault);
     if ((0, shared_impl_1.truthyEnv)(ETH_NET)) {
         return { ETH_NET: ETH_NET, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else if ((0, shared_impl_1.truthyEnv)(ETH_NODE_URI)) {
-        var REACH_DO_WAIT_PORT = (0, shared_impl_1.envDefault)(env.REACH_DO_WAIT_PORT, 'yes');
+        var REACH_DO_WAIT_PORT = (0, shared_impl_1.envDefaultNoEmpty)(env.REACH_DO_WAIT_PORT, 'yes');
         return { ETH_NODE_URI: ETH_NODE_URI, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {

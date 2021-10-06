@@ -496,7 +496,7 @@ function makeEthLike(ethLikeArgs) {
         function tokenAccept(token) {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
-                    (0, shared_impl_1.debug)("tokenAccept: Unnecessary on ETH", token);
+                    (0, shared_impl_1.debug)("tokenAccept: Unnecessary on ETHlike", token);
                     return [2 /*return*/];
                 });
             });
@@ -1539,36 +1539,37 @@ function makeEthLike(ethLikeArgs) {
     function formatAddress(acc) {
         return T_Address.canonicalize(acc); // TODO: typing
     }
-    function launchToken(accCreator, name, sym) {
+    function launchToken(accCreator, name, sym, opts) {
+        if (opts === void 0) { opts = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, contract, deploy_r, id, mint;
+            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, contract, deploy_r, id, mint, optOut;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log("Launching token, " + name + " (" + sym + ")");
+                        (0, shared_impl_1.debug)("Launching token, " + name + " (" + sym + ")");
                         addr = function (acc) { return acc.networkAccount.address; };
                         remoteCtc = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"];
                         remoteABI = remoteCtc["abi"];
                         remoteBytecode = remoteCtc["bin"];
                         factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);
-                        console.log(sym + ": deploy");
-                        supply = (0, shared_user_1.bigNumberify)(2).pow(256).sub(1);
+                        (0, shared_impl_1.debug)(sym + ": deploy");
+                        supply = (opts.supply && (0, shared_user_1.bigNumberify)(opts.supply)) || (0, shared_user_1.bigNumberify)(2).pow(256).sub(1);
                         return [4 /*yield*/, factory.deploy(name, sym, '', '', supply)];
                     case 1:
                         contract = _a.sent();
-                        console.log(sym + ": wait for deploy: " + contract.deployTransaction.hash);
+                        (0, shared_impl_1.debug)(sym + ": wait for deploy: " + contract.deployTransaction.hash);
                         return [4 /*yield*/, contract.deployTransaction.wait()];
                     case 2:
                         deploy_r = _a.sent();
-                        console.log(sym + ": saw deploy: " + deploy_r.blockNumber);
+                        (0, shared_impl_1.debug)(sym + ": saw deploy: " + deploy_r.blockNumber);
                         id = contract.address;
-                        console.log(sym + ": deployed: " + id);
+                        (0, shared_impl_1.debug)(sym + ": deployed: " + id);
                         mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
-                                        console.log(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                        (0, shared_impl_1.debug)(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
                                         return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
                                     case 1:
                                         _a.sent();
@@ -1576,7 +1577,16 @@ function makeEthLike(ethLikeArgs) {
                                 }
                             });
                         }); };
-                        return [2 /*return*/, { name: name, sym: sym, id: id, mint: mint }];
+                        optOut = function (accFrom, accTo) {
+                            if (accTo === void 0) { accTo = accCreator; }
+                            return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    (0, shared_impl_1.debug)(sym + ": optOut unnecessary on ETHlike", accFrom, accTo);
+                                    return [2 /*return*/];
+                                });
+                            });
+                        };
+                        return [2 /*return*/, { name: name, sym: sym, id: id, mint: mint, optOut: optOut }];
                 }
             });
         });

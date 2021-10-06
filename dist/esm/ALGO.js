@@ -544,7 +544,7 @@ var EventCache = /** @class */ (function () {
 // Common Interface Exports
 // ****************************************************************************
 export var addressEq = compiledStdlib.addressEq, tokenEq = compiledStdlib.tokenEq, digest = compiledStdlib.digest;
-export var T_Null = typeDefs.T_Null, T_Bool = typeDefs.T_Bool, T_UInt = typeDefs.T_UInt, T_Tuple = typeDefs.T_Tuple, T_Array = typeDefs.T_Array, T_Object = typeDefs.T_Object, T_Data = typeDefs.T_Data, T_Bytes = typeDefs.T_Bytes, T_Address = typeDefs.T_Address, T_Digest = typeDefs.T_Digest, T_Struct = typeDefs.T_Struct, T_Token = typeDefs.T_Token;
+export var T_Null = typeDefs.T_Null, T_Bool = typeDefs.T_Bool, T_UInt = typeDefs.T_UInt, T_Tuple = typeDefs.T_Tuple, T_Array = typeDefs.T_Array, T_Contract = typeDefs.T_Contract, T_Object = typeDefs.T_Object, T_Data = typeDefs.T_Data, T_Bytes = typeDefs.T_Bytes, T_Address = typeDefs.T_Address, T_Digest = typeDefs.T_Digest, T_Struct = typeDefs.T_Struct, T_Token = typeDefs.T_Token;
 export var randomUInt = (_a = makeRandom(8), _a.randomUInt), hasRandom = _a.hasRandom;
 function waitIndexerFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
@@ -2247,14 +2247,15 @@ var verifyContract_ = function (label, info, bin, eventCache) { return __awaiter
 export function formatAddress(acc) {
     return addressFromHex(T_Address.canonicalize(acc));
 }
-export function launchToken(accCreator, name, sym) {
+export function launchToken(accCreator, name, sym, opts) {
+    if (opts === void 0) { opts = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, algod, dotxn, ctxn_p, id, mint, optOut;
+        var addr, caddr, zaddr, algod, dotxn, supply, ctxn_p, id, mint, optOut;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log("Launching token, " + name + " (" + sym + ")");
+                    debug("Launching token, " + name + " (" + sym + ")");
                     addr = function (acc) { return acc.networkAccount.addr; };
                     caddr = addr(accCreator);
                     zaddr = caddr;
@@ -2289,18 +2290,19 @@ export function launchToken(accCreator, name, sym) {
                             });
                         });
                     };
+                    supply = (opts.supply && bigNumberify(opts.supply)) || bigNumberify(2).pow(64).sub(1);
                     return [4 /*yield*/, dotxn(function (params) {
-                            return algosdk.makeAssetCreateTxnWithSuggestedParams(caddr, undefined, Math.pow(2, 48), 6, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
+                            return algosdk.makeAssetCreateTxnWithSuggestedParams(caddr, undefined, bigNumberToBigInt(supply), 6, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
                         })];
                 case 2:
                     ctxn_p = _a.sent();
                     id = ctxn_p["asset-index"];
-                    console.log(sym + ": asset is " + id);
+                    debug(sym + ": asset is " + id);
                     mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    console.log(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                    debug(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
                                     return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
                                 case 1:
                                     _a.sent();

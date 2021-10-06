@@ -59,8 +59,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = void 0;
+exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var ethers_1 = require("ethers");
@@ -563,7 +563,7 @@ var EventCache = /** @class */ (function () {
 // Common Interface Exports
 // ****************************************************************************
 exports.addressEq = ALGO_compiled_1.stdlib.addressEq, exports.tokenEq = ALGO_compiled_1.stdlib.tokenEq, exports.digest = ALGO_compiled_1.stdlib.digest;
-exports.T_Null = ALGO_compiled_1.typeDefs.T_Null, exports.T_Bool = ALGO_compiled_1.typeDefs.T_Bool, exports.T_UInt = ALGO_compiled_1.typeDefs.T_UInt, exports.T_Tuple = ALGO_compiled_1.typeDefs.T_Tuple, exports.T_Array = ALGO_compiled_1.typeDefs.T_Array, exports.T_Object = ALGO_compiled_1.typeDefs.T_Object, exports.T_Data = ALGO_compiled_1.typeDefs.T_Data, exports.T_Bytes = ALGO_compiled_1.typeDefs.T_Bytes, exports.T_Address = ALGO_compiled_1.typeDefs.T_Address, exports.T_Digest = ALGO_compiled_1.typeDefs.T_Digest, exports.T_Struct = ALGO_compiled_1.typeDefs.T_Struct, exports.T_Token = ALGO_compiled_1.typeDefs.T_Token;
+exports.T_Null = ALGO_compiled_1.typeDefs.T_Null, exports.T_Bool = ALGO_compiled_1.typeDefs.T_Bool, exports.T_UInt = ALGO_compiled_1.typeDefs.T_UInt, exports.T_Tuple = ALGO_compiled_1.typeDefs.T_Tuple, exports.T_Array = ALGO_compiled_1.typeDefs.T_Array, exports.T_Contract = ALGO_compiled_1.typeDefs.T_Contract, exports.T_Object = ALGO_compiled_1.typeDefs.T_Object, exports.T_Data = ALGO_compiled_1.typeDefs.T_Data, exports.T_Bytes = ALGO_compiled_1.typeDefs.T_Bytes, exports.T_Address = ALGO_compiled_1.typeDefs.T_Address, exports.T_Digest = ALGO_compiled_1.typeDefs.T_Digest, exports.T_Struct = ALGO_compiled_1.typeDefs.T_Struct, exports.T_Token = ALGO_compiled_1.typeDefs.T_Token;
 exports.randomUInt = (_a = (0, shared_impl_1.makeRandom)(8), _a.randomUInt), exports.hasRandom = _a.hasRandom;
 function waitIndexerFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
@@ -2288,14 +2288,15 @@ function formatAddress(acc) {
     return (0, ALGO_compiled_1.addressFromHex)(exports.T_Address.canonicalize(acc));
 }
 exports.formatAddress = formatAddress;
-function launchToken(accCreator, name, sym) {
+function launchToken(accCreator, name, sym, opts) {
+    if (opts === void 0) { opts = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, algod, dotxn, ctxn_p, id, mint, optOut;
+        var addr, caddr, zaddr, algod, dotxn, supply, ctxn_p, id, mint, optOut;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log("Launching token, " + name + " (" + sym + ")");
+                    (0, shared_impl_1.debug)("Launching token, " + name + " (" + sym + ")");
                     addr = function (acc) { return acc.networkAccount.addr; };
                     caddr = addr(accCreator);
                     zaddr = caddr;
@@ -2330,18 +2331,19 @@ function launchToken(accCreator, name, sym) {
                             });
                         });
                     };
+                    supply = (opts.supply && (0, shared_user_1.bigNumberify)(opts.supply)) || (0, shared_user_1.bigNumberify)(2).pow(64).sub(1);
                     return [4 /*yield*/, dotxn(function (params) {
-                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, Math.pow(2, 48), 6, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
+                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, (0, shared_impl_1.bigNumberToBigInt)(supply), 6, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
                         })];
                 case 2:
                     ctxn_p = _a.sent();
                     id = ctxn_p["asset-index"];
-                    console.log(sym + ": asset is " + id);
+                    (0, shared_impl_1.debug)(sym + ": asset is " + id);
                     mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    console.log(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                    (0, shared_impl_1.debug)(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
                                     return [4 /*yield*/, (0, exports.transfer)(accCreator, accTo, amt, id)];
                                 case 1:
                                     _a.sent();

@@ -250,6 +250,10 @@ export function truthyEnv(v) {
 export var envDefault = function(v, d) {
   return (v === undefined || v === null) ? d : v;
 };
+export var envDefaultNoEmpty = function(v, d) {
+  var v2 = envDefault(v, d);
+  return v2 === '' ? d : v2;
+};
 export var makeDigest = function(mode, prep) {
   return function(t, v) {
     void(hexlify);

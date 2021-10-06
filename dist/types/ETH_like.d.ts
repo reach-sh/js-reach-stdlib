@@ -69,11 +69,12 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
-    launchToken: (accCreator: Account, name: string, sym: string) => Promise<{
+    launchToken: (accCreator: Account, name: string, sym: string, opts?: any) => Promise<{
         name: string;
         sym: string;
         id: any;
         mint: (accTo: Account, amt: any) => Promise<void>;
+        optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
     }>;
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
     getProvider: () => any;

@@ -7,6 +7,7 @@ export interface TypeDefs {
     T_UInt: Ty;
     T_Bytes: Ty;
     T_Address: Ty;
+    T_Contract: Ty;
     T_Digest: Ty;
     T_Token: Ty;
     T_Object: (tyMap: {
@@ -145,7 +146,7 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     minimumBalance: BigNumber;
     formatCurrency: (amt: BigNumber, decimals: number) => string;
     formatAddress: (addr: string) => string;
-    launchToken: (acc: Acc, name: string, sym: string) => any;
+    launchToken: (acc: Acc, name: string, sym: string, opts?: any) => any;
     reachStdlib: Stdlib_Backend<Ty>;
 }
 export {};

@@ -270,6 +270,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       return T_Data(co).canonicalize(val);
     };
   };
+  var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
   var addressEq = mkAddressEq(T_Address);
   var T_Token = T_Address;
   var tokenEq = addressEq;
@@ -279,6 +280,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     T_UInt: T_UInt,
     T_Bytes: T_Bytes,
     T_Address: T_Address,
+    T_Contract: T_Contract,
     T_Digest: T_Digest,
     T_Token: T_Token,
     T_Object: T_Object,

@@ -74,6 +74,7 @@ export var T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestrin
     return hs.padEnd(32 * 2 + 2, '0');
   }
 });
+export var T_Contract = __assign(__assign({}, T_UInt), { name: 'Contract' });
 export var T_Array = function(co, size) {
   return (__assign(__assign({}, CBR.BT_Array(co, size)), {
     netSize: size * co.netSize,
@@ -212,6 +213,7 @@ export var typeDefs = {
   T_UInt: T_UInt,
   T_Bytes: T_Bytes,
   T_Address: T_Address,
+  T_Contract: T_Contract,
   T_Digest: T_Digest,
   T_Token: T_Token,
   T_Object: T_Object,

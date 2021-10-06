@@ -49,6 +49,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     T_UInt: any;
     T_Bytes: any;
     T_Address: any;
+    T_Contract: any;
     T_Digest: any;
     T_Token: any;
     T_Object: (tyMap: {

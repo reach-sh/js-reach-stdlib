@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.typeDefs = exports.tokenEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.typeDefs = exports.tokenEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -95,6 +95,7 @@ exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyN
         // We are filling up with zeros if the address is less than 32 bytes
         return hs.padEnd(32 * 2 + 2, '0');
     } });
+exports.T_Contract = __assign(__assign({}, exports.T_UInt), { name: 'Contract' });
 var T_Array = function (co, size) { return (__assign(__assign({}, CBR.BT_Array(co, size)), { netSize: size * co.netSize, toNet: function (bv) {
         return ethers_1.ethers.utils.concat(bv.map(function (v) { return co.toNet(v); }));
     }, fromNet: function (nv) {
@@ -210,6 +211,7 @@ exports.typeDefs = {
     T_UInt: exports.T_UInt,
     T_Bytes: exports.T_Bytes,
     T_Address: exports.T_Address,
+    T_Contract: exports.T_Contract,
     T_Digest: exports.T_Digest,
     T_Token: T_Token,
     T_Object: exports.T_Object,

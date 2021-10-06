@@ -22,6 +22,7 @@ export declare const T_Digest: ALGO_Ty<CBR_Digest>;
 export declare const addressToHex: (x: string) => string;
 export declare const addressFromHex: (hexAddr: string) => string;
 export declare const T_Address: ALGO_Ty<CBR_Address>;
+export declare const T_Contract: ALGO_Ty<Contract>;
 export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
 export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
 export declare const T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
@@ -33,6 +34,7 @@ export declare const T_Data: (coMap: {
 }) => ALGO_Ty<CBR_Data>;
 export declare const addressEq: (x: any, y: any) => boolean;
 export declare type Token = CBR_UInt;
+export declare type Contract = CBR_UInt;
 export declare const tokenEq: (x: unknown, y: unknown) => boolean;
 export declare type PayAmt = MkPayAmt<Token>;
 export declare const typeDefs: {
@@ -41,6 +43,7 @@ export declare const typeDefs: {
     T_UInt: ALGO_Ty<ethers.BigNumber>;
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
     T_Address: ALGO_Ty<string>;
+    T_Contract: ALGO_Ty<ethers.BigNumber>;
     T_Digest: ALGO_Ty<string>;
     T_Token: ALGO_Ty<ethers.BigNumber>;
     T_Object: (coMap: {

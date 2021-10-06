@@ -171,6 +171,7 @@ export declare const labelMaps: (co: {
 /** @description Check that a stringy env value doesn't look falsy. */
 export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;
+export declare const envDefaultNoEmpty: <T>(v: string | undefined | null, d: T) => string | T;
 declare type DigestMode = 'keccak256' | 'sha256';
 export declare const makeDigest: (mode: DigestMode, prep: any) => (t: any, v: any) => string;
 export declare const hexToString: typeof ethers.utils.toUtf8String;

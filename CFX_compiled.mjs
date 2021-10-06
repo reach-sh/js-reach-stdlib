@@ -20,6 +20,7 @@ export var
   T_UInt = stdlib.T_UInt,
   T_Bytes = stdlib.T_Bytes,
   T_Address = stdlib.T_Address,
+  T_Contract = stdlib.T_Contract,
   T_Digest = stdlib.T_Digest,
   T_Token = stdlib.T_Token,
   T_Object = stdlib.T_Object,

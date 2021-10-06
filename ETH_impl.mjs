@@ -73,7 +73,7 @@ import url from 'url';
 import http from 'http';
 import { canonicalizeConnectorMode } from './ConnectorMode.mjs';
 import * as ethLikeCompiled from './ETH_compiled.mjs';
-import { debug, envDefault, getDEBUG, truthyEnv, replaceableThunk } from './shared_impl.mjs';
+import { debug, envDefaultNoEmpty, getDEBUG, truthyEnv, replaceableThunk, } from './shared_impl.mjs';
 import { process, window } from './shim.mjs';
 import waitPort from './waitPort.mjs';
 export { ethLikeCompiled };
@@ -119,8 +119,8 @@ export function _getDefaultFaucetNetworkAccount() {
 export function canFundFromFaucet() {
   return __awaiter(this, void 0, void 0, function() {
     return __generator(this, function(_a) {
-      debug('canFundFromFaucet');
-      return [2 /*return*/ , isIsolatedNetwork()];
+      debug('ETH:canFundFromFaucet');
+      return [2 /*return*/ , isIsolatedNetwork() || windowLooksIsolated()];
     });
   });
 }
@@ -304,16 +304,16 @@ function guessConnectorMode(env) {
 function envDefaultsETH(env) {
   var ETH_NET = env.ETH_NET,
     ETH_NODE_URI = env.ETH_NODE_URI;
-  var cm = envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
-  var REACH_CONNECTOR_MODE = envDefault(cm, canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'ETH'));
+  var cm = envDefaultNoEmpty(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
+  var REACH_CONNECTOR_MODE = envDefaultNoEmpty(cm, canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'ETH'));
   var isolatedDefault = ETH_NET && ETH_NET !== 'window' ? 'no' :
     ETH_NET === 'window' || window.ethereum ? (windowLooksIsolated() ? 'yes' : 'no') :
     connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
-  var REACH_ISOLATED_NETWORK = envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
+  var REACH_ISOLATED_NETWORK = envDefaultNoEmpty(env.REACH_ISOLATED_NETWORK, isolatedDefault);
   if (truthyEnv(ETH_NET)) {
     return { ETH_NET: ETH_NET, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
   } else if (truthyEnv(ETH_NODE_URI)) {
-    var REACH_DO_WAIT_PORT = envDefault(env.REACH_DO_WAIT_PORT, 'yes');
+    var REACH_DO_WAIT_PORT = envDefaultNoEmpty(env.REACH_DO_WAIT_PORT, 'yes');
     return { ETH_NODE_URI: ETH_NODE_URI, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
   } else {
     if (window.ethereum) {

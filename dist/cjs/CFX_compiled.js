@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 exports.__esModule = true;
-exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Data = exports.T_Object = exports.T_Token = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.mod = exports.div = exports.mul = exports.sub = exports.add = exports.typeDefs = exports.stdlib = exports.setNetworkId = exports.getNetworkId = void 0;
+exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Data = exports.T_Object = exports.T_Token = exports.T_Digest = exports.T_Contract = exports.T_Address = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.mod = exports.div = exports.mul = exports.sub = exports.add = exports.typeDefs = exports.stdlib = exports.setNetworkId = exports.getNetworkId = void 0;
 var ETH_like_compiled_1 = require("./ETH_like_compiled");
 var cfxCompiledImpl = __importStar(require("./CFX_compiled_impl"));
 var cfxCompiled = (0, ETH_like_compiled_1.makeEthLikeCompiled)(cfxCompiledImpl);
@@ -30,7 +30,7 @@ exports.stdlib = cfxCompiled.stdlib, exports.typeDefs = cfxCompiled.typeDefs;
 exports.add = exports.stdlib.add, exports.sub = exports.stdlib.sub, exports.mul = exports.stdlib.mul, exports.div = exports.stdlib.div, exports.mod = exports.stdlib.mod, 
 // end ...arith,
 // start ...typeDefs,
-exports.T_Null = exports.stdlib.T_Null, exports.T_Bool = exports.stdlib.T_Bool, exports.T_UInt = exports.stdlib.T_UInt, exports.T_Bytes = exports.stdlib.T_Bytes, exports.T_Address = exports.stdlib.T_Address, exports.T_Digest = exports.stdlib.T_Digest, exports.T_Token = exports.stdlib.T_Token, exports.T_Object = exports.stdlib.T_Object, exports.T_Data = exports.stdlib.T_Data, exports.T_Array = exports.stdlib.T_Array, exports.T_Tuple = exports.stdlib.T_Tuple, exports.T_Struct = exports.stdlib.T_Struct, 
+exports.T_Null = exports.stdlib.T_Null, exports.T_Bool = exports.stdlib.T_Bool, exports.T_UInt = exports.stdlib.T_UInt, exports.T_Bytes = exports.stdlib.T_Bytes, exports.T_Address = exports.stdlib.T_Address, exports.T_Contract = exports.stdlib.T_Contract, exports.T_Digest = exports.stdlib.T_Digest, exports.T_Token = exports.stdlib.T_Token, exports.T_Object = exports.stdlib.T_Object, exports.T_Data = exports.stdlib.T_Data, exports.T_Array = exports.stdlib.T_Array, exports.T_Tuple = exports.stdlib.T_Tuple, exports.T_Struct = exports.stdlib.T_Struct, 
 // end ...typeDefs,
 exports.UInt_max = exports.stdlib.UInt_max, exports.digest = exports.stdlib.digest, exports.addressEq = exports.stdlib.addressEq, exports.tokenEq = exports.stdlib.tokenEq;
 //# sourceMappingURL=CFX_compiled.js.map
