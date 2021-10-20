@@ -36,6 +36,7 @@ exports.checkedBigNumberify = checkedBigNumberify;
 // .canonicalize turns stuff into the "canonical backend representation"
 function protect(ctc, v, ai) {
     if (ai === void 0) { ai = null; }
+    (0, shared_impl_1.debug)("protect", ctc.name, v);
     try {
         return ctc.canonicalize(v);
     }
@@ -115,11 +116,11 @@ var simMapSet = function (sim_r, mapi, f, nv) {
     sim_r.mapsNext[mapi][f] = nv;
 };
 exports.simMapSet = simMapSet;
-var simTokenNew = function (sim_r, n, s, u, m, p) {
-    sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p });
+var simTokenNew = function (sim_r, n, s, u, m, p, d) {
+    sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p, d: d });
     // XXX This 0 is a hack... on Algorand we can't know at simulation time what
     // this is going to be... so this will cause a runtime exception from
-    // something if it gets looked at (i.e. if you try to create an immediately
+    // something if it gets looked at (i.e. if you try to create and immediately
     // use it)
     return 0;
 };

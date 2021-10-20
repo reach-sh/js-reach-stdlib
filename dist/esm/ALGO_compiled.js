@@ -32,20 +32,20 @@ export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { netSize: 8, 
     }, fromNet: function (nv) {
         // debug(`fromNet: UInt`);
         // if (getDEBUG()) console.log(nv);
-        return ethers.BigNumber.from(nv);
+        return ethers.BigNumber.from(nv.slice(0, 8));
     } });
 /** @description For arbitrary utf8 strings */
-var stringyNet = {
+var stringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers.utils.toUtf8Bytes(bv)); },
-    fromNet: function (nv) { return (ethers.utils.toUtf8String(nv)); }
-};
+    fromNet: function (nv) { return (ethers.utils.toUtf8String(nv.slice(0, len))); }
+}); };
 /** @description For hex strings representing bytes */
-var bytestringyNet = {
+var bytestringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers.utils.arrayify(bv)); },
-    fromNet: function (nv) { return (ethers.utils.hexlify(nv)); }
-};
-export var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet), { netSize: bigNumberToNumber(len) })); };
-export var T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet), { netSize: 32 });
+    fromNet: function (nv) { return (ethers.utils.hexlify(nv.slice(0, len))); }
+}); };
+export var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: bigNumberToNumber(len) })); };
+export var T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet(32)), { netSize: 32 });
 export var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk.decodeAddress(x).publicKey).toString('hex');
 };
@@ -61,7 +61,7 @@ function addressUnwrapper(x) {
             : addressToHex(addr);
 }
 ;
-export var T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet), { netSize: 32, canonicalize: function (uv) {
+export var T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet(32)), { netSize: 32, canonicalize: function (uv) {
         var val = addressUnwrapper(uv);
         var hs = CBR.BT_Address.canonicalize(val || uv);
         // We are filling up with zeros if the address is less than 32 bytes
@@ -186,6 +186,7 @@ export var typeDefs = {
     T_Tuple: T_Tuple,
     T_Struct: T_Struct
 };
+export var emptyContractInfo = 0;
 var arith = makeArith(UInt_max);
-export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max });
+export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

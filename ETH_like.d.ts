@@ -38,6 +38,8 @@ declare type AccountTransferable = Account | {
 export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     getQueryLowerBound: () => real_ethers.BigNumber;
     setQueryLowerBound: (x: BigNumber | number) => void;
+    getValidQueryWindow: () => number | true;
+    setValidQueryWindow: (val: number | true) => void;
     getFaucet: () => Promise<any>;
     setFaucet: (val: Promise<any>) => void;
     randomUInt: () => real_ethers.BigNumber;

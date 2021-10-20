@@ -56,6 +56,7 @@ export declare const typeDefs: {
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 };
+export declare const emptyContractInfo = 0;
 export declare const stdlib: Stdlib_Backend_Base<ALGO_Ty<any>>;
 export {};
 //# sourceMappingURL=ALGO_compiled.d.ts.map

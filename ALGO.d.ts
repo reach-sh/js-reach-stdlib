@@ -48,6 +48,9 @@ declare type CompiledBackend = {
 declare type ContractInfo = number;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+declare const getValidQueryWindow: () => number | true;
+export { getValidQueryWindow };
+export declare function setValidQueryWindow(n: number | true): void;
 export declare function getQueryLowerBound(): BigNumber;
 export declare function setQueryLowerBound(networkTime: BigNumber | number): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;

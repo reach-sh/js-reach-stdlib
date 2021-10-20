@@ -6,6 +6,8 @@ var ethLike = makeEthLike(cfxImpl);
 // The following should be identical to ETH.ts
 export var getQueryLowerBound = ethLike.getQueryLowerBound,
   setQueryLowerBound = ethLike.setQueryLowerBound,
+  getValidQueryWindow = ethLike.getValidQueryWindow,
+  setValidQueryWindow = ethLike.setValidQueryWindow,
   getProvider = ethLike.getProvider,
   setProvider = ethLike.setProvider,
   randomUInt = ethLike.randomUInt,

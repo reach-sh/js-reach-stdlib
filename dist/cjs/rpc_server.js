@@ -224,6 +224,24 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                 app = (0, express_1["default"])();
                 route_backend = express_1["default"].Router();
                 rpc_acc = {
+                    contract: function (id) {
+                        var args = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            args[_i - 1] = arguments[_i];
+                        }
+                        return __awaiter(void 0, void 0, void 0, function () {
+                            var _a, _b;
+                            var _c;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0:
+                                        _b = (_a = contract).track;
+                                        return [4 /*yield*/, (_c = account.id(id)).contract.apply(_c, __spreadArray([backend], args, false))];
+                                    case 1: return [2 /*return*/, _b.apply(_a, [_d.sent()])];
+                                }
+                            });
+                        });
+                    },
                     attach: function (id) {
                         var args = [];
                         for (var _i = 1; _i < arguments.length; _i++) {

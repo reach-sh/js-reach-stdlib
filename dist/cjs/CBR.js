@@ -125,8 +125,11 @@ var BT_Array = function (ctc, size) {
             if (size != args.length) {
                 throw Error("Expected array of length " + size + ", but got " + args.length);
             }
-            var val = args.map(function (arg) { return ctc.canonicalize(arg); });
-            return val;
+            var parr = new Array(size);
+            for (var i = 0; i < size; i++) {
+                parr[i] = ctc.canonicalize(args[i]);
+            }
+            return parr;
         }
     };
 };

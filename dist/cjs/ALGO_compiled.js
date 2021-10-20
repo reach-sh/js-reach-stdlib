@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.typeDefs = exports.tokenEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -57,21 +57,21 @@ exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize
     }, fromNet: function (nv) {
         // debug(`fromNet: UInt`);
         // if (getDEBUG()) console.log(nv);
-        return ethers_1.ethers.BigNumber.from(nv);
+        return ethers_1.ethers.BigNumber.from(nv.slice(0, 8));
     } });
 /** @description For arbitrary utf8 strings */
-var stringyNet = {
+var stringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); },
-    fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }
-};
+    fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv.slice(0, len))); }
+}); };
 /** @description For hex strings representing bytes */
-var bytestringyNet = {
+var bytestringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers_1.ethers.utils.arrayify(bv)); },
-    fromNet: function (nv) { return (ethers_1.ethers.utils.hexlify(nv)); }
-};
-var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet), { netSize: (0, shared_user_1.bigNumberToNumber)(len) })); };
+    fromNet: function (nv) { return (ethers_1.ethers.utils.hexlify(nv.slice(0, len))); }
+}); };
+var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len) })); };
 exports.T_Bytes = T_Bytes;
-exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet), { netSize: 32 });
+exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet(32)), { netSize: 32 });
 var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk_1["default"].decodeAddress(x).publicKey).toString('hex');
 };
@@ -89,7 +89,7 @@ function addressUnwrapper(x) {
             : (0, exports.addressToHex)(addr);
 }
 ;
-exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet), { netSize: 32, canonicalize: function (uv) {
+exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet(32)), { netSize: 32, canonicalize: function (uv) {
         var val = addressUnwrapper(uv);
         var hs = CBR.BT_Address.canonicalize(val || uv);
         // We are filling up with zeros if the address is less than 32 bytes
@@ -220,6 +220,7 @@ exports.typeDefs = {
     T_Tuple: exports.T_Tuple,
     T_Struct: exports.T_Struct
 };
+exports.emptyContractInfo = 0;
 var arith = (0, shared_impl_1.makeArith)(exports.UInt_max);
-exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max });
+exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

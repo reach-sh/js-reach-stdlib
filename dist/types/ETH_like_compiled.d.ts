@@ -17,6 +17,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
     tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: AnyETH_Ty, a: unknown) => string;
+    emptyContractInfo: string | number;
     checkedBigNumberify: (at: string, max: ethers.BigNumber, n: any) => ethers.BigNumber;
     protect: (t: any, v: unknown, ai?: string | undefined) => unknown;
     Array_zip: <A, B>(a1: A[], a2: B[]) => [A, B][];

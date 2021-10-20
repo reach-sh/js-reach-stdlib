@@ -244,7 +244,8 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
         T_Struct: T_Struct
     };
     var arith = makeArith(UInt_max);
-    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max });
+    var emptyContractInfo = "0x00000000000000000000000000000000";
+    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
     // ...............................................
     // It's the same as stdlib, but with convenient access to
     // stdlib and typeDefs as bundles of bindings

@@ -57,8 +57,7 @@ export function isIsolatedNetwork() {
     return truthyEnv(getProviderEnv().REACH_ISOLATED_NETWORK);
 }
 export function isWindowProvider() {
-    var env = getProviderEnv();
-    return 'CFX_NET' in env && env.CFX_NET === 'window' && !!window.conflux;
+    return !!window.conflux;
 }
 export function canGetDefaultAccount() {
     // XXX be pickier
@@ -273,8 +272,6 @@ export function setProvider(provider) {
         // this circumstance is weird and maybe we should handle it better
         // process.env isn't available in browser so we try to avoid relying on it here.
         setProviderEnv({
-            // @ts-ignore
-            CFX_NET: '__custom_unspecified__',
             REACH_CONNECTOR_MODE: 'CFX-unspecified',
             REACH_ISOLATED_NETWORK: 'no'
         });
@@ -299,21 +296,15 @@ function guessConnectorMode(env) {
 }
 // XXX less copy/paste from ETH_impl
 function envDefaultsCFX(env) {
-    var CFX_NET = env.CFX_NET, CFX_NODE_URI = env.CFX_NODE_URI, CFX_NETWORK_ID = env.CFX_NETWORK_ID;
+    var CFX_NODE_URI = env.CFX_NODE_URI, CFX_NETWORK_ID = env.CFX_NETWORK_ID;
     var cm = envDefault(env.REACH_CONNECTOR_MODE, guessConnectorMode(env));
     var REACH_CONNECTOR_MODE = envDefault(cm, canonicalizeConnectorMode(env.REACH_CONNECTOR_MODE || 'CFX'));
     var isolatedDefault = connectorModeIsolatedNetwork(REACH_CONNECTOR_MODE);
-    // XXX
-    // CFX_NET === 'window' || window.conflux ? (windowLooksIsolated() ? 'yes' : 'no')
     var REACH_ISOLATED_NETWORK = envDefault(env.REACH_ISOLATED_NETWORK, isolatedDefault);
-    var CFX_LOG = envDefault(env.CFX_LOG, 'no');
-    if (truthyEnv(CFX_NET) && CFX_NET === 'window') {
-        return { CFX_NET: CFX_NET, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
-    }
-    else if (truthyEnv(CFX_NODE_URI)) {
+    if (truthyEnv(CFX_NODE_URI)) {
         var REACH_DO_WAIT_PORT = envDefault(env.REACH_DO_WAIT_PORT, 'yes');
         var cni = envDefault(CFX_NETWORK_ID, localhostProviderEnv.CFX_NETWORK_ID);
-        return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: cni, CFX_LOG: CFX_LOG, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
+        return { CFX_NODE_URI: CFX_NODE_URI, CFX_NETWORK_ID: cni, REACH_CONNECTOR_MODE: REACH_CONNECTOR_MODE, REACH_DO_WAIT_PORT: REACH_DO_WAIT_PORT, REACH_ISOLATED_NETWORK: REACH_ISOLATED_NETWORK };
     }
     else {
         if (window.conflux) {
@@ -356,11 +347,11 @@ function setProviderEnv(env) {
 // XXX less copy/pasta from ETH_impl
 function waitProviderFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var CFX_NODE_URI_1, CFX_NETWORK_ID_1, CFX_LOG_1, REACH_DO_WAIT_PORT_1, CFX_NET, conflux;
+        var CFX_NODE_URI_1, CFX_NETWORK_ID_1, REACH_DO_WAIT_PORT_1, conflux;
         var _this = this;
         return __generator(this, function (_a) {
             if ('CFX_NODE_URI' in env && env.CFX_NODE_URI) {
-                CFX_NODE_URI_1 = env.CFX_NODE_URI, CFX_NETWORK_ID_1 = env.CFX_NETWORK_ID, CFX_LOG_1 = env.CFX_LOG, REACH_DO_WAIT_PORT_1 = env.REACH_DO_WAIT_PORT;
+                CFX_NODE_URI_1 = env.CFX_NODE_URI, CFX_NETWORK_ID_1 = env.CFX_NETWORK_ID, REACH_DO_WAIT_PORT_1 = env.REACH_DO_WAIT_PORT;
                 return [2 /*return*/, (function () { return __awaiter(_this, void 0, void 0, function () {
                         var networkId, provider;
                         return __generator(this, function (_a) {
@@ -376,8 +367,6 @@ function waitProviderFromEnv(env) {
                                     debug("waitProviderFromEnv", "new Conflux", { url: CFX_NODE_URI_1, networkId: networkId });
                                     provider = new cfxers.providers.Provider(new Conflux({
                                         url: CFX_NODE_URI_1,
-                                        // XXX pass CFX_LOG around correctly; this isn't working
-                                        logger: truthyEnv(CFX_LOG_1) ? console : undefined,
                                         networkId: networkId
                                     }));
                                     // XXX: make some sort of configurable polling interval?
@@ -387,28 +376,18 @@ function waitProviderFromEnv(env) {
                         });
                     }); })()];
             }
-            else if ('CFX_NET' in env && env.CFX_NET) {
-                CFX_NET = env.CFX_NET;
-                if (CFX_NET === 'window') {
-                    conflux = window.conflux;
-                    if (conflux) {
-                        return [2 /*return*/, (function () { return __awaiter(_this, void 0, void 0, function () {
-                                return __generator(this, function (_a) {
-                                    return [2 /*return*/, notYetSupported("using window.conflux")];
-                                });
-                            }); })()];
-                    }
-                    else {
-                        throw Error("window.conflux is not defined");
-                    }
+            else {
+                conflux = window.conflux;
+                if (conflux) {
+                    return [2 /*return*/, (function () { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                return [2 /*return*/, notYetSupported("using window.conflux as provider.")];
+                            });
+                        }); })()];
                 }
                 else {
-                    throw Error("CFX_NET not recognized: '" + CFX_NET + "'");
+                    throw Error("window.conflux is not defined");
                 }
-            }
-            else {
-                // This branch should be impossible, but just in case...
-                throw Error("non-empty CFX_NET or CFX_NODE_URI is required, got: " + Object.keys(env));
             }
             return [2 /*return*/];
         });
@@ -426,7 +405,6 @@ function setProviderByName(providerName) {
 var localhostProviderEnv = {
     CFX_NODE_URI: DEFAULT_CFX_NODE_URI,
     CFX_NETWORK_ID: DEFAULT_CFX_NETWORK_ID,
-    CFX_LOG: 'no',
     REACH_CONNECTOR_MODE: 'CFX-devnet',
     REACH_DO_WAIT_PORT: 'yes',
     REACH_ISOLATED_NETWORK: 'yes'
@@ -450,7 +428,6 @@ function cfxProviderEnv(network) {
     return {
         CFX_NODE_URI: CFX_NODE_URI,
         CFX_NETWORK_ID: CFX_NETWORK_ID,
-        CFX_LOG: 'no',
         REACH_DO_WAIT_PORT: 'yes',
         REACH_CONNECTOR_MODE: 'CFX-live',
         REACH_ISOLATED_NETWORK: 'no'

@@ -73,8 +73,9 @@ function address_cfxToEth(addrC) {
     (0, shared_impl_1.debug)("address_cfxToEth", "call", addrC);
     var addrObj = (0, CFX_util_1.decodeCfxAddress)(addrC);
     var addrE = '0x' + addrObj.hexAddress.toString('hex');
-    if (netId !== addrObj.netId)
-        throw Error("Expected netId=" + netId + ", got netId=" + addrObj.netId);
+    if (netId !== addrObj.netId) {
+        (0, shared_impl_1.debug)("Expected netId=" + netId + ", got netId=" + addrObj.netId + ".", "You might want to select " + netId + " in Conflux Portal.");
+    }
     return addrE;
 }
 exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: function (uv) {

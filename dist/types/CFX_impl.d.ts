@@ -14,15 +14,12 @@ export declare function setProvider(provider: Provider | Promise<Provider>): voi
 export declare type WhichNetExternal = 'tethys' | 'TestNet' | 'BlockNumber';
 export declare type ProviderName = WhichNetExternal | 'MainNet' | 'TestNet' | 'LocalHost' | 'window';
 export interface ProviderByWindow {
-    CFX_NET: 'window';
-    CFX_LOG: string;
     REACH_CONNECTOR_MODE: string;
     REACH_ISOLATED_NETWORK: string;
 }
 declare type ProviderByURI = {
     CFX_NODE_URI: string;
     CFX_NETWORK_ID: string;
-    CFX_LOG: string;
     REACH_CONNECTOR_MODE: string;
     REACH_DO_WAIT_PORT: string;
     REACH_ISOLATED_NETWORK: string;

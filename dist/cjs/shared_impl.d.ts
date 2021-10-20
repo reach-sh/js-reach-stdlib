@@ -34,10 +34,13 @@ export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
     _backendVersion: number;
     _getViews: (stdlib: Object, viewlib: IViewLib) => IBackendViews<ConnectorTy>;
     _getMaps: (stdlib: Object) => IBackendMaps<ConnectorTy>;
-};
-export declare const getViewsHelper: <ConnectorTy extends AnyBackendTy, B>(views: IBackendViews<ConnectorTy>, getView1: (views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => B) => () => {
-    [key: string]: {
-        [key: string]: B;
+    _Participants: {
+        [n: string]: any;
+    };
+    _APIs: {
+        [n: string]: {
+            [n: string]: any;
+        };
     };
 };
 export declare type OnProgress = (obj: {
@@ -61,7 +64,7 @@ export declare type IRecvNoTimeout<RawAddress> = {
     from: RawAddress;
     time: BigNumber;
     secs: BigNumber;
-    getOutput: (o_mode: string, o_lab: string, o_ctc: any) => Promise<any>;
+    getOutput: (o_mode: string, o_lab: string, o_ctc: any, o_val: any) => Promise<any>;
 };
 export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
@@ -88,32 +91,70 @@ export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     waitIfNotPresent: boolean;
     timeoutAt: TimeArg | undefined;
 };
-export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export declare type ParticipantVal = (io: any) => Promise<any>;
+export declare type ParticipantMap = {
+    [key: string]: ParticipantVal;
+};
+export declare type ViewVal = (...args: any) => Promise<any>;
+export declare type ViewFunMap = {
+    [key: string]: ViewVal;
+};
+export declare type ViewMap = {
+    [key: string]: ViewFunMap;
+};
+export declare type APIMap = ViewMap;
+export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
+    getContractAddress: () => Promise<CBR_Address>;
+    waitUntilTime: (v: BigNumber) => Promise<BigNumber>;
+    waitUntilSecs: (v: BigNumber) => Promise<BigNumber>;
+    selfAddress: () => CBR_Address;
+    iam: (some_addr: RawAddress) => RawAddress;
+    stdlib: Object;
     sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
-    waitTime: (v: BigNumber) => Promise<BigNumber>;
-    waitSecs: (v: BigNumber) => Promise<BigNumber>;
-    iam: (some_addr: RawAddress) => RawAddress;
-    selfAddress: () => CBR_Address;
-    getViews: () => {
-        [key: string]: {
-            [key: string]: (() => Promise<any>);
-        };
-    };
-    stdlib: Object;
+    getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
 };
-export declare const deferContract: <ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy>(shouldError: boolean, implP: Promise<IContract<ContractInfo, RawAddress, Token, ConnectorTy>>, implNow: Partial<IContract<ContractInfo, RawAddress, Token, ConnectorTy>>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
+export declare type ISetupArgs<ContractInfo> = {
+    setInfo: (info: ContractInfo) => void;
+    getInfo: () => Promise<ContractInfo>;
+};
+export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractAddress" | "sendrecv" | "recv" | "getState")>;
+export declare type IStdContractArgs<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+    bin: IBackend<ConnectorTy>;
+    setupView: ISetupView<ContractInfo, ConnectorTy>;
+    givenInfoP: (Promise<ContractInfo> | undefined);
+    _setup: (args: ISetupArgs<ContractInfo>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
+} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
+export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+    getInfo: () => Promise<ContractInfo>;
+    getViews: () => ViewMap;
+    getContractAddress: () => Promise<CBR_Address>;
+    participants: ParticipantMap;
+    p: ParticipantMap;
+    views: ViewMap;
+    v: ViewMap;
+    apis: APIMap;
+    a: APIMap;
+    _initialize: () => IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>;
+};
+export declare type ISetupView<ContractInfo, ConnectorTy extends AnyBackendTy> = (getInfo: (() => Promise<ContractInfo>)) => {
+    viewLib: IViewLib;
+    getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => ViewVal);
+};
+export declare const stdContract: <ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => Contract;
+    contract: (bin: Backend, ctcInfoP?: Promise<ContractInfo>) => Contract;
     stdlib: Object;
     getAddress: () => string;
     setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
     tokenAccept: (token: Token) => Promise<void>;
     tokenMetadata: (token: Token) => Promise<any>;
 };
+export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
@@ -141,6 +182,7 @@ export declare type ISimTxn<Token> = {
     u: any;
     m: any;
     p: BigNumber;
+    d: BigNumber | undefined;
 } | {
     kind: 'tokenBurn';
     tok: Token;
@@ -214,4 +256,11 @@ export declare class Signal {
     wait(): Promise<boolean>;
     notify(): void;
 }
+export declare type Some<T> = [T];
+export declare type None = [];
+export declare type Maybe<T> = None | Some<T>;
+export declare function isNone<T>(m: Maybe<T>): m is None;
+export declare function isSome<T>(m: Maybe<T>): m is Some<T>;
+export declare const Some: <T>(m: T) => Some<T>;
+export declare const None: None;
 //# sourceMappingURL=shared_impl.d.ts.map

@@ -1,16 +1,13 @@
 import { encode, decode } from './cfxaddr_index.mjs';
 import { debug } from './shared_impl.mjs';
-// XXX check if networkId is "correct"?
+/** @description Precondition: addrC is a valid Conflux address */
 export function address_cfxStandardize(addrC) {
   debug("address_cfxStandardize", { addrC: addrC });
   var pieces = addrC.split(':');
-  // XXX Missing type chunk means assume it's a user (?)
-  // XXX would it be better for our purposes to strip the type out instead?
-  if (pieces.length === 2) {
-    return (pieces[0] + ":TYPE.USER:" + pieces[1]).toUpperCase();
+  if (pieces.length === 3) {
+    return (pieces[0] + ":" + pieces[2]).toUpperCase();
   }
-  // XXX throw error if pieces.length isn't 2 or 3?
-  if (pieces.length !== 3)
+  if (pieces.length !== 2)
     throw Error("impossible: bad CFX addr: '" + addrC + "'");
   return addrC.toUpperCase();
 }

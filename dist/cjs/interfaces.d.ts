@@ -59,6 +59,7 @@ export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared, Arith, T
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
     tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: Ty, a: unknown) => string;
+    emptyContractInfo: (number | string);
 }
 export interface Stdlib_Backend<Ty> extends Stdlib_Backend_Base<Ty> {
 }
@@ -112,6 +113,10 @@ declare type Token = any;
 declare type CtcInfo = any;
 declare type Backend = any;
 export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
+    getValidQueryWindow: () => number | true;
+    setValidQueryWindow: (n: number | true) => void;
+    getQueryLowerBound: () => BigNumber;
+    setQueryLowerBound: (n: number | BigNumber) => void;
     connector: string;
     randomUInt: () => BigNumber;
     hasRandom: {

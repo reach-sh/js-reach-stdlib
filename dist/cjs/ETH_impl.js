@@ -123,9 +123,16 @@ function _getDefaultFaucetNetworkAccount() {
 exports._getDefaultFaucetNetworkAccount = _getDefaultFaucetNetworkAccount;
 function canFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
+        var provider;
         return __generator(this, function (_a) {
-            (0, shared_impl_1.debug)('ETH:canFundFromFaucet');
-            return [2 /*return*/, isIsolatedNetwork() || windowLooksIsolated()];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getProvider()];
+                case 1:
+                    provider = _a.sent();
+                    (0, shared_impl_1.debug)('ETH:canFundFromFaucet');
+                    // @ts-ignore
+                    return [2 /*return*/, provider._network && provider._network.chainId === 1337];
+            }
         });
     });
 }
@@ -273,7 +280,7 @@ function windowLooksIsolated() {
     if (!shim_1.window.ethereum)
         return false;
     // XXX this is a hacky way of checking if we're on a devnet
-    // @ts-ignore // 0x539 = 1337
+    // 0x539 = 1337
     return (shim_1.window.ethereum.chainId === '0xNaN' || shim_1.window.ethereum.chainId == '0x539');
 }
 function connectorModeIsolatedNetwork(connectorMode) {

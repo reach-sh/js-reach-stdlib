@@ -28,7 +28,7 @@ export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare const simMapDupe: (sim_r: any, mapi: number, mapo: any) => void;
 export declare const simMapRef: (sim_r: any, mapi: number, f: any) => any;
 export declare const simMapSet: (sim_r: any, mapi: number, f: any, nv: any) => void;
-export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p: any) => any;
+export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p: any, d: any) => any;
 export declare const simTokenBurn: (sim_r: any, tok: any, amt: any) => void;
 export declare const simTokenDestroy: (sim_r: any, tok: any) => void;
 export {};

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -55,7 +66,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.deferContract = exports.getViewsHelper = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.None = exports.Some = exports.isSome = exports.isNone = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var ethers_1 = require("ethers");
@@ -97,98 +108,120 @@ var debug = function () {
     }
 };
 exports.debug = debug;
-var getViewsHelper = function (views, getView1) {
-    return function () {
-        return (0, exports.objectMap)(views.infos, (function (v, vm) {
-            return (0, exports.objectMap)(vm, (function (k, vi) {
-                return getView1(views.views, v, k, vi);
-            }));
-        }));
-    };
-};
-exports.getViewsHelper = getViewsHelper;
-var deferContract = function (shouldError, implP, implNow) {
-    var not_yet = function (which) { return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
+var stdContract = function (stdContractArgs) {
+    var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var _a = (function () {
+        var _setInfo = function (info) {
+            throw Error("Cannot set info(" + JSON.stringify(info) + ") when acc.contract called with contract info");
+            return;
+        };
+        if (givenInfoP !== undefined) {
+            return {
+                setInfo: _setInfo,
+                getInfo: (function () { return givenInfoP; })
+            };
         }
-        void (args);
-        throw Error("Cannot " + which + " yet; contract is not actually deployed");
-    }; };
-    var delay = function (which) { return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(void 0, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, implP];
-                    case 1: 
-                    // @ts-ignore
-                    return [2 /*return*/, (_a = (_b.sent()))[which].apply(_a, args)];
-                }
+        else {
+            var beenSet_1 = false;
+            var _infoP_1 = new Promise(function (resolve) {
+                _setInfo = function (info) {
+                    if (beenSet_1) {
+                        throw Error("Cannot set info(" + JSON.stringify(info) + ") twice");
+                    }
+                    resolve(info);
+                    beenSet_1 = true;
+                };
             });
-        });
-    }; };
-    var thenow = shouldError ? not_yet : delay;
-    var mnow = function (which) {
-        return implNow[which] === undefined ? thenow(which) : implNow[which];
-    };
-    var must = function (which) {
-        return implNow[which];
-    };
-    // impl starts with a shim that deploys on first sendrecv,
-    // then replaces itself with the real impl once deployed.
-    var impl = {
-        getInfo: delay('getInfo'),
-        // @ts-ignore
-        sendrecv: mnow('sendrecv'),
-        // @ts-ignore
-        recv: mnow('recv'),
-        // @ts-ignore
-        waitTime: not_yet('waitTime'),
-        // @ts-ignore
-        waitSecs: not_yet('waitSecs'),
-        // @ts-ignore
-        iam: must('iam'),
-        // @ts-ignore
-        selfAddress: must('selfAddress'),
-        // @ts-ignore
-        getViews: mnow('getViews'),
-        stdlib: (function () {
-            if (implNow.stdlib === undefined) {
-                throw Error("stdlib not defined");
-            }
-            return implNow.stdlib;
-        })()
-    };
-    implP.then(function (x) { impl = x; });
-    var wrap = function (which) { return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
+            return {
+                setInfo: _setInfo,
+                getInfo: (function () { return _infoP_1; })
+            };
         }
-        // @ts-ignore
-        return impl[which].apply(impl, args);
-    }; };
-    // Return a wrapper around the impl. This obj and its fields do not mutate,
-    // but the fields are closures around a mutating ref to impl.
-    return {
-        sendrecv: wrap('sendrecv'),
-        recv: wrap('recv'),
-        waitTime: wrap('waitTime'),
-        waitSecs: wrap('waitSecs'),
-        getInfo: wrap('getInfo'),
-        iam: wrap('iam'),
-        selfAddress: wrap('selfAddress'),
-        getViews: wrap('getViews'),
-        stdlib: impl.stdlib
+    })(), setInfo = _a.setInfo, getInfo = _a.getInfo;
+    var _initialize = function () {
+        var _a = _setup({ setInfo: setInfo, getInfo: getInfo }), getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
+        return {
+            selfAddress: selfAddress,
+            iam: iam,
+            stdlib: stdlib,
+            waitUntilTime: waitUntilTime,
+            waitUntilSecs: waitUntilSecs,
+            getInfo: getInfo,
+            getContractAddress: getContractAddress,
+            sendrecv: sendrecv,
+            recv: recv,
+            getState: getState
+        };
     };
+    var ctcC = { _initialize: _initialize };
+    var _b = setupView(getInfo), viewLib = _b.viewLib, getView1 = _b.getView1;
+    var views_bin = bin._getViews({ reachStdlib: stdlib }, viewLib);
+    var views = (0, exports.objectMap)(views_bin.infos, (function (v, vm) {
+        return (0, exports.objectMap)(vm, (function (k, vi) {
+            return getView1(views_bin.views, v, k, vi);
+        }));
+    }));
+    var participants = (0, exports.objectMap)(bin._Participants, (function (pn, p) {
+        void (pn);
+        return (function (io) {
+            return p(ctcC, io);
+        });
+    }));
+    var apis = (0, exports.objectMap)(bin._APIs, (function (an, am) {
+        return (0, exports.objectMap)(am, (function (afn, ab) {
+            var bl = an + "." + afn;
+            return function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                var terminal = { terminated: bl };
+                var theResolve;
+                var theReject;
+                var p = new Promise(function (resolve, reject) {
+                    theResolve = resolve;
+                    theReject = reject;
+                });
+                ab(ctcC, {
+                    "in": (function () {
+                        (0, exports.debug)(bl + ": in", args);
+                        return args;
+                    }),
+                    "out": (function (oargs, res) {
+                        (0, exports.debug)(bl + ": out", oargs, res);
+                        theResolve(res);
+                        throw terminal;
+                    })
+                })["catch"](function (err) {
+                    if (Object.is(err, terminal)) {
+                        (0, exports.debug)(bl + ": done");
+                    }
+                    else {
+                        theReject(new Error(bl + " errored with " + err));
+                    }
+                }).then(function (res) {
+                    theReject(new Error(bl + " returned with " + JSON.stringify(res)));
+                });
+                return p;
+            };
+        }));
+    }));
+    return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
+            console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
+            return views;
+        }, apis: apis, a: apis });
 };
-exports.deferContract = deferContract;
+exports.stdContract = stdContract;
+var stdAccount = function (orig) {
+    return __assign(__assign({}, orig), { deploy: function (bin) {
+            console.log("WARNING: acc.deploy(bin) is deprecated; use acc.contract(bin) instead. Deployment is implied by the first publication.");
+            return orig.contract(bin, undefined);
+        }, attach: function (bin, ctcInfoP) {
+            console.log("WARNING: acc.attach(bin, info) is deprecated; use acc.contract(bin, info) instead. Attachment is implied by reception of the first publication.");
+            return orig.contract(bin, ctcInfoP);
+        } });
+};
+exports.stdAccount = stdAccount;
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk
  */
@@ -417,4 +450,15 @@ var Signal = /** @class */ (function () {
 }());
 exports.Signal = Signal;
 ;
+function isNone(m) {
+    return m.length === 0;
+}
+exports.isNone = isNone;
+function isSome(m) {
+    return !isNone(m);
+}
+exports.isSome = isSome;
+var Some = function (m) { return [m]; };
+exports.Some = Some;
+exports.None = [];
 //# sourceMappingURL=shared_impl.js.map

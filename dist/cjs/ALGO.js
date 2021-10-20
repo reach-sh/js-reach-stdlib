@@ -59,8 +59,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = void 0;
+exports.balanceOf = exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var ethers_1 = require("ethers");
@@ -75,8 +75,8 @@ var ALGO_compiled_1 = require("./ALGO_compiled");
 var shim_1 = require("./shim");
 exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq;
 __exportStar(require("./shared_user"), exports);
-var reachBackendVersion = 3;
-var reachAlgoBackendVersion = 4;
+var reachBackendVersion = 5;
+var reachAlgoBackendVersion = 5;
 // Helpers
 // Parse CBR into Public Key
 var cbr2algo_addr = function (x) {
@@ -207,7 +207,7 @@ var doSignTxn = function (ts, sk) {
     return doSignTxnToB64(decodeB64Txn(ts), sk);
 };
 var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0, void 0, function () {
-    var p, e_2, t0, e_3;
+    var p, e_2, N, tN, e_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -235,11 +235,12 @@ var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0,
                 e_2 = _a.sent();
                 throw { type: 'signAndPost', e: e_2 };
             case 5:
-                t0 = decodeB64Txn(txns[0].txn);
+                N = txns.length - 1;
+                tN = decodeB64Txn(txns[N].txn);
                 _a.label = 6;
             case 6:
                 _a.trys.push([6, 8, , 9]);
-                return [4 /*yield*/, waitForConfirmation(t0.txID(), t0.lastRound)];
+                return [4 /*yield*/, waitForConfirmation(tN.txID(), tN.lastRound)];
             case 7: return [2 /*return*/, _a.sent()];
             case 8:
                 e_3 = _a.sent();
@@ -363,18 +364,14 @@ var MaxAppTxnAccounts = 4;
 var MaxExtraAppProgramPages = 3;
 function compileFor(bin, info) {
     return __awaiter(this, void 0, void 0, function () {
-        var ApplicationID, algob, appApproval, appClear, escrow, subst_appid, checkLen, appApproval_bin, appClear_bin, escrow_bin;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var ApplicationID, _a, appApproval, appClear, escrow, subst_appid, checkLen, appApproval_bin, appClear_bin, escrow_bin;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     (0, shared_impl_1.debug)("compileFor", info, typeof (info), Number.isInteger(info));
-                    if (!Number.isInteger(info)) {
-                        throw Error("This Reach standard library cannot communicate with this contract, because it was deployed with an earlier version of Reach.");
-                    }
-                    ApplicationID = info;
+                    ApplicationID = (0, shared_user_1.bigNumberToNumber)(exports.T_Contract.canonicalize(info));
                     must_be_supported(bin);
-                    algob = bin._Connectors.ALGO;
-                    appApproval = algob.appApproval, appClear = algob.appClear, escrow = algob.escrow;
+                    _a = bin._Connectors.ALGO, appApproval = _a.appApproval, appClear = _a.appClear, escrow = _a.escrow;
                     subst_appid = function (x) {
                         return replaceAll(x, '{{ApplicationID}}', "" + ApplicationID);
                     };
@@ -386,14 +383,14 @@ function compileFor(bin, info) {
                     };
                     return [4 /*yield*/, compileTEAL('appApproval_subst', appApproval)];
                 case 1:
-                    appApproval_bin = _a.sent();
+                    appApproval_bin = _b.sent();
                     return [4 /*yield*/, compileTEAL('appClear', appClear)];
                 case 2:
-                    appClear_bin = _a.sent();
+                    appClear_bin = _b.sent();
                     checkLen("App Program Length", (appClear_bin.result.length + appApproval_bin.result.length), (1 + MaxExtraAppProgramPages) * MaxAppProgramLen);
                     return [4 /*yield*/, compileTEAL('escrow_subst', subst_appid(escrow))];
                 case 3:
-                    escrow_bin = _a.sent();
+                    escrow_bin = _b.sent();
                     checkLen("Escrow Contract", escrow_bin.result.length, LogicSigMaxSize);
                     return [2 /*return*/, {
                             ApplicationID: ApplicationID,
@@ -466,7 +463,7 @@ var doQuery_ = function (dhead, query, alwaysRetry) {
                     if (!res) {
                         throw Error("impossible: query res is empty");
                     }
-                    (0, shared_impl_1.debug)(dhead, '--- RESULT =', res);
+                    (0, shared_impl_1.debug)(dhead, 'RESULT', res);
                     return [2 /*return*/, res];
             }
         });
@@ -482,6 +479,16 @@ var chooseMaxRoundTxn = function (ptxns) {
     return (0, shared_impl_1.argMax)(ptxns, function (x) { return x['confirmed-round']; });
 };
 var _d = (0, shared_impl_1.replaceableThunk)(function () { return 0; }), _getQueryLowerBound = _d[0], _setQueryLowerBound = _d[1];
+var _e = (0, shared_impl_1.replaceableThunk)(function () { return true; }), getValidQueryWindow = _e[0], _setValidQueryWindow = _e[1];
+exports.getValidQueryWindow = getValidQueryWindow;
+function setValidQueryWindow(n) {
+    if (typeof n === 'number') {
+        // TODO?
+        throw Error("Only setValidQueryWindow(true) is supported on Algorand");
+    }
+    _setValidQueryWindow(n);
+}
+exports.setValidQueryWindow = setValidQueryWindow;
 function getQueryLowerBound() {
     return (0, shared_user_1.bigNumberify)(_getQueryLowerBound());
 }
@@ -954,7 +961,7 @@ function setProviderByName(providerName) {
 }
 exports.setProviderByName = setProviderByName;
 // eslint-disable-next-line max-len
-var rawFaucetDefaultMnemonic = 'around sleep system young lonely length mad decline argue army veteran knee truth sell hover any measure audit page mammal treat conduct marble above shell';
+var rawFaucetDefaultMnemonic = 'frown slush talent visual weather bounce evil teach tower view fossil trip sauce express moment sea garbage pave monkey exercise soap lawn army above dynamic';
 exports.getFaucet = (_c = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var FAUCET;
     return __generator(this, function (_a) {
@@ -1003,6 +1010,7 @@ var transfer = function (from, to, value, token, tag) {
     });
 };
 exports.transfer = transfer;
+// XXX need to make this a log
 var makeIsMethod = function (i) { return function (txn) {
     return txn['application-transaction']['application-args'][0] === base64ify([i]);
 }; };
@@ -1033,12 +1041,12 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
             });
         });
     }
-    var thisAcc, label, pks, selfAddress, iam, attachP, deployP, implNow, attach, deploy, tokenMetadata;
+    var thisAcc, label, pks, selfAddress, iam, contract, tokenMetadata;
     return __generator(this, function (_a) {
         thisAcc = networkAccount;
         label = thisAcc.addr.substring(2, 6);
         pks = exports.T_Address.canonicalize(thisAcc);
-        (0, shared_impl_1.debug)(label, ': connectAccount');
+        (0, shared_impl_1.debug)(label, 'connectAccount');
         selfAddress = function () {
             return pks;
         };
@@ -1050,790 +1058,842 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                 throw Error("I should be " + some_addr + ", but am " + pks);
             }
         };
-        attachP = function (bin, ctcInfoP, eventCache, vr) {
-            if (eventCache === void 0) { eventCache = new EventCache(); }
-            return __awaiter(void 0, void 0, void 0, function () {
-                var ctcInfo, ctorRan, getInfo, _a, compiled, ApplicationID, startRound, Deployer, _b, realLastRound, escrowAddr, escrow_prog, _c, stateSize, stateKeys, mapDataKeys, mapDataSize, hasMaps, mapDataTy, emptyMapDataTy, emptyMapData, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin, sendrecv, recv, readStateBytes, recoverSplitBytes, viewlib, views_bin, getView1, getViews;
-                return __generator(this, function (_d) {
-                    switch (_d.label) {
-                        case 0: return [4 /*yield*/, ctcInfoP];
-                        case 1:
-                            ctcInfo = _d.sent();
-                            ctorRan = new shared_impl_1.Signal();
-                            getInfo = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, ctorRan.wait()];
-                                        case 1:
-                                            _a.sent();
-                                            return [2 /*return*/, ctcInfo];
-                                    }
-                                });
-                            }); };
-                            _b = vr;
-                            if (_b) return [3 /*break*/, 3];
-                            return [4 /*yield*/, verifyContract_(label, ctcInfo, bin, eventCache)];
-                        case 2:
-                            _b = (_d.sent());
-                            _d.label = 3;
-                        case 3:
-                            _a = _b, compiled = _a.compiled, ApplicationID = _a.ApplicationID, startRound = _a.startRound, Deployer = _a.Deployer;
-                            (0, shared_impl_1.debug)(label, 'attach', { ApplicationID: ApplicationID, startRound: startRound });
-                            realLastRound = startRound;
-                            escrowAddr = compiled.escrow.hash;
-                            escrow_prog = algosdk_1["default"].makeLogicSig(compiled.escrow.result, []);
-                            _c = bin._Connectors.ALGO, stateSize = _c.stateSize, stateKeys = _c.stateKeys, mapDataKeys = _c.mapDataKeys, mapDataSize = _c.mapDataSize;
-                            hasMaps = mapDataKeys > 0;
-                            mapDataTy = bin._getMaps({ reachStdlib: ALGO_compiled_1.stdlib }).mapDataTy;
-                            emptyMapDataTy = (0, exports.T_Bytes)(mapDataTy.netSize);
-                            emptyMapData = 
-                            // This is a bunch of Nones
-                            mapDataTy.fromNet(emptyMapDataTy.toNet(emptyMapDataTy.canonicalize('')));
-                            (0, shared_impl_1.debug)({ emptyMapData: emptyMapData });
-                            getLocalState = function (a) { return __awaiter(void 0, void 0, void 0, function () {
-                                var client, ai, als;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, getAlgodClient()];
-                                        case 1:
-                                            client = _a.sent();
-                                            return [4 /*yield*/, client.accountInformation(a)["do"]()];
-                                        case 2:
-                                            ai = _a.sent();
-                                            (0, shared_impl_1.debug)("getLocalState", ai);
-                                            als = ai['apps-local-state'].find(function (x) { return (x.id === ApplicationID); });
-                                            (0, shared_impl_1.debug)("getLocalState", als);
-                                            return [2 /*return*/, als ? als['key-value'] : undefined];
-                                    }
-                                });
-                            }); };
-                            didOptIn = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, getLocalState(thisAcc.addr)];
-                                    case 1: return [2 /*return*/, ((_a.sent()) !== undefined)];
+        contract = function (bin, givenInfoP) {
+            (0, shared_impl_1.ensureConnectorAvailable)(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
+            must_be_supported(bin);
+            var _a = bin._Connectors.ALGO, stateSize = _a.stateSize, stateKeys = _a.stateKeys, mapDataKeys = _a.mapDataKeys, mapDataSize = _a.mapDataSize;
+            var hasMaps = mapDataKeys > 0;
+            var mapDataTy = bin._getMaps({ reachStdlib: ALGO_compiled_1.stdlib }).mapDataTy;
+            var emptyMapDataTy = (0, exports.T_Bytes)(mapDataTy.netSize);
+            var emptyMapData = 
+            // This is a bunch of Nones
+            mapDataTy.fromNet(emptyMapDataTy.toNet(emptyMapDataTy.canonicalize('')));
+            (0, shared_impl_1.debug)({ emptyMapData: emptyMapData });
+            var makeGetC = function (fake_getInfo, eventCache, getTrustedVerifyResult) {
+                var _theC = undefined;
+                return function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var ctcInfo, _a, compiled, ApplicationID, startRound, Deployer, _b, realLastRound, getLastRound, setLastRound, escrowAddr, escrow_prog, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin;
+                    return __generator(this, function (_c) {
+                        switch (_c.label) {
+                            case 0:
+                                if (_theC) {
+                                    return [2 /*return*/, _theC];
                                 }
-                            }); }); };
-                            doOptIn = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                var _a, _b, _c, _d, _e, _f, _g;
-                                return __generator(this, function (_h) {
-                                    switch (_h.label) {
-                                        case 0:
-                                            (0, shared_impl_1.debug)("doOptIn");
-                                            _a = sign_and_send_sync;
-                                            _b = ['ApplicationOptIn',
-                                                thisAcc];
-                                            _c = toWTxn;
-                                            _e = (_d = algosdk_1["default"]).makeApplicationOptInTxn;
-                                            _f = [thisAcc.addr];
-                                            return [4 /*yield*/, getTxnParams()];
-                                        case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_h.sent(), ApplicationID,
-                                                        undefined, undefined, undefined, undefined,
-                                                        NOTE_Reach]))])]))];
-                                        case 2:
-                                            _h.sent();
-                                            _g = exports.assert;
-                                            return [4 /*yield*/, didOptIn()];
-                                        case 3:
-                                            _g.apply(void 0, [_h.sent(), "didOptIn after doOptIn"]);
-                                            return [2 /*return*/];
-                                    }
-                                });
-                            }); };
-                            ensuredOptIn = false;
-                            ensureOptIn = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                return __generator(this, function (_a) {
+                                return [4 /*yield*/, fake_getInfo()];
+                            case 1:
+                                ctcInfo = _c.sent();
+                                _b = getTrustedVerifyResult();
+                                if (_b) return [3 /*break*/, 3];
+                                return [4 /*yield*/, verifyContract_(label, ctcInfo, bin, eventCache)];
+                            case 2:
+                                _b = (_c.sent());
+                                _c.label = 3;
+                            case 3:
+                                _a = _b, compiled = _a.compiled, ApplicationID = _a.ApplicationID, startRound = _a.startRound, Deployer = _a.Deployer;
+                                (0, shared_impl_1.debug)(label, 'getC', { ApplicationID: ApplicationID, startRound: startRound });
+                                realLastRound = startRound;
+                                getLastRound = function () { return realLastRound; };
+                                setLastRound = function (x) { return (realLastRound = x); };
+                                escrowAddr = compiled.escrow.hash;
+                                escrow_prog = algosdk_1["default"].makeLogicSig(compiled.escrow.result, []);
+                                getLocalState = function (a) { return __awaiter(void 0, void 0, void 0, function () {
+                                    var client, ai, als;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, getAlgodClient()];
+                                            case 1:
+                                                client = _a.sent();
+                                                return [4 /*yield*/, client.accountInformation(a)["do"]()];
+                                            case 2:
+                                                ai = _a.sent();
+                                                (0, shared_impl_1.debug)("getLocalState", ai);
+                                                als = ai['apps-local-state'].find(function (x) { return (x.id === ApplicationID); });
+                                                (0, shared_impl_1.debug)("getLocalState", als);
+                                                return [2 /*return*/, als ? als['key-value'] : undefined];
+                                        }
+                                    });
+                                }); };
+                                didOptIn = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                                     switch (_a.label) {
-                                        case 0:
-                                            if (!!ensuredOptIn) return [3 /*break*/, 4];
-                                            return [4 /*yield*/, didOptIn()];
-                                        case 1:
-                                            if (!!(_a.sent())) return [3 /*break*/, 3];
-                                            return [4 /*yield*/, doOptIn()];
-                                        case 2:
-                                            _a.sent();
-                                            _a.label = 3;
-                                        case 3:
-                                            ensuredOptIn = true;
-                                            _a.label = 4;
-                                        case 4: return [2 /*return*/];
+                                        case 0: return [4 /*yield*/, getLocalState(thisAcc.addr)];
+                                        case 1: return [2 /*return*/, ((_a.sent()) !== undefined)];
                                     }
-                                });
-                            }); };
-                            getAppState = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                var lab, client, appInfo, e_7, appSt;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0:
-                                            lab = "getAppState";
-                                            return [4 /*yield*/, getAlgodClient()];
-                                        case 1:
-                                            client = _a.sent();
-                                            _a.label = 2;
-                                        case 2:
-                                            _a.trys.push([2, 4, , 5]);
-                                            return [4 /*yield*/, client.getApplicationByID(ApplicationID)["do"]()];
-                                        case 3:
-                                            appInfo = _a.sent();
-                                            return [3 /*break*/, 5];
-                                        case 4:
-                                            e_7 = _a.sent();
-                                            (0, shared_impl_1.debug)(lab, { e: e_7 });
-                                            return [2 /*return*/, undefined];
-                                        case 5:
-                                            appSt = appInfo['params']['global-state'];
-                                            (0, shared_impl_1.debug)(lab, { appSt: appSt });
-                                            return [2 /*return*/, appSt];
-                                    }
-                                });
-                            }); };
-                            getGlobalState = function (appSt_g) { return __awaiter(void 0, void 0, void 0, function () {
-                                var appSt, _a, gsbs, gty;
-                                return __generator(this, function (_b) {
-                                    switch (_b.label) {
-                                        case 0:
-                                            _a = appSt_g;
-                                            if (_a) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, getAppState()];
-                                        case 1:
-                                            _a = (_b.sent());
-                                            _b.label = 2;
-                                        case 2:
-                                            appSt = _a;
-                                            if (!appSt) {
-                                                return [2 /*return*/, undefined];
-                                            }
-                                            gsbs = readStateBytes('', [], appSt);
-                                            if (!gsbs) {
-                                                return [2 /*return*/, undefined];
-                                            }
-                                            gty = (0, exports.T_Tuple)([exports.T_UInt, exports.T_UInt, exports.T_Address]);
-                                            // @ts-ignore
-                                            return [2 /*return*/, gty.fromNet(gsbs)];
-                                    }
-                                });
-                            }); };
-                            canIWin = function (lct) { return __awaiter(void 0, void 0, void 0, function () {
-                                var gs, r;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, getGlobalState()];
-                                        case 1:
-                                            gs = _a.sent();
-                                            r = !gs || lct.eq(gs[1]);
-                                            (0, shared_impl_1.debug)("canIWin", { lct: lct, gs: gs, r: r });
-                                            return [2 /*return*/, r];
-                                    }
-                                });
-                            }); };
-                            sendrecv = function (srargs) { return __awaiter(void 0, void 0, void 0, function () {
-                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, value, toks, funcName, dhead, _a, _svs, msg, _b, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, _loop_1, state_1;
-                                return __generator(this, function (_c) {
-                                    switch (_c.label) {
-                                        case 0:
-                                            funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt, sim_p = srargs.sim_p;
-                                            isCtor = (funcNum === 0);
-                                            doRecv = function (didSend, waitIfNotPresent) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                                                switch (_a.label) {
-                                                    case 0: return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
-                                                    case 1: return [2 /*return*/, _a.sent()];
-                                                }
-                                            }); }); };
-                                            if (!!onlyIf) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, doRecv(false, true)];
-                                        case 1: return [2 /*return*/, _c.sent()];
-                                        case 2:
-                                            value = pay[0], toks = pay[1];
-                                            void (toks); // <-- rely on simulation because of ordering
-                                            funcName = "m" + funcNum;
-                                            dhead = label + ": " + label + " sendrecv " + funcName + " " + timeoutAt;
-                                            (0, shared_impl_1.debug)(dhead, '--- START');
-                                            _a = (0, shared_impl_1.argsSplit)(args, evt_cnt), _svs = _a[0], msg = _a[1];
-                                            _b = (0, shared_impl_1.argsSplit)(tys, evt_cnt), _svs_tys = _b[0], msg_tys = _b[1];
-                                            void (_svs);
-                                            void (_svs_tys);
-                                            fake_res = {
-                                                didSend: true,
-                                                didTimeout: false,
-                                                data: msg,
-                                                time: (0, shared_user_1.bigNumberify)(0),
-                                                secs: (0, shared_user_1.bigNumberify)(0),
-                                                value: value,
-                                                from: pks,
-                                                getOutput: (function (o_mode, o_lab, o_ctc) { return __awaiter(void 0, void 0, void 0, function () {
-                                                    return __generator(this, function (_a) {
-                                                        void (o_mode);
-                                                        void (o_lab);
-                                                        void (o_ctc);
-                                                        throw Error("Algorand does not support remote calls, and Reach should not have generated a call to this function");
-                                                    });
-                                                }); })
-                                            };
-                                            return [4 /*yield*/, sim_p(fake_res)];
-                                        case 3:
-                                            sim_r = _c.sent();
-                                            (0, shared_impl_1.debug)(dhead, '--- SIMULATE', sim_r);
-                                            if (isCtor) {
-                                                msg.unshift(exports.T_Address.canonicalize(escrowAddr));
-                                                msg_tys.unshift(exports.T_Address);
-                                                sim_r.txns.unshift({
-                                                    kind: 'to',
-                                                    amt: exports.minimumBalance,
-                                                    tok: undefined
-                                                });
-                                            }
-                                            isHalt = sim_r.isHalt;
-                                            mapRefs = sim_r.mapRefs;
-                                            mapAccts = [];
-                                            mapRefs.forEach(function (caddr) {
-                                                var addr = cbr2algo_addr(caddr);
-                                                if ((0, exports.addressEq)(thisAcc.addr, addr)) {
-                                                    return;
-                                                }
-                                                var addrIdx = mapAccts.findIndex(function (other) { return (0, exports.addressEq)(other, addr); });
-                                                var present = addrIdx !== -1;
-                                                if (present) {
-                                                    return;
-                                                }
-                                                mapAccts.push(addr);
-                                            });
-                                            if (mapAccts.length > MaxAppTxnAccounts) {
-                                                throw Error("Application references too many local state cells in one step. Reach should catch this problem statically.");
-                                            }
-                                            (0, shared_impl_1.debug)(dhead, 'MAP', { mapAccts: mapAccts });
-                                            if (!hasMaps) return [3 /*break*/, 5];
-                                            return [4 /*yield*/, ensureOptIn()];
-                                        case 4:
-                                            _c.sent();
-                                            _c.label = 5;
-                                        case 5:
-                                            mapAcctsReal = (mapAccts.length === 0) ? undefined : mapAccts;
-                                            _loop_1 = function () {
-                                                var params, _d, _e, extraFees, txnExtraTxns, sim_i, processSimTxn, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, _f, _g;
-                                                return __generator(this, function (_h) {
-                                                    switch (_h.label) {
-                                                        case 0: return [4 /*yield*/, getTxnParams()];
-                                                        case 1:
-                                                            params = _h.sent();
-                                                            // We add one, because the firstRound field is actually the current
-                                                            // round, which we couldn't possibly be in, because it already
-                                                            // happened.
-                                                            (0, shared_impl_1.debug)(dhead, '--- TIMECHECK', { params: params, timeoutAt: timeoutAt });
-                                                            return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, params.firstRound + 1)];
-                                                        case 2:
-                                                            if (_h.sent()) {
-                                                                (0, shared_impl_1.debug)(dhead, '--- FAIL/TIMEOUT');
-                                                                return [2 /*return*/, { value: { didTimeout: true } }];
-                                                            }
-                                                            _d = !soloSend;
-                                                            if (!_d) return [3 /*break*/, 4];
-                                                            return [4 /*yield*/, canIWin(lct)];
-                                                        case 3:
-                                                            _d = !(_h.sent());
-                                                            _h.label = 4;
-                                                        case 4:
-                                                            if (!_d) return [3 /*break*/, 6];
-                                                            (0, shared_impl_1.debug)(dhead, "CANNOT WIN");
-                                                            _e = {};
-                                                            return [4 /*yield*/, doRecv(false, false)];
-                                                        case 5: return [2 /*return*/, (_e.value = _h.sent(), _e)];
-                                                        case 6:
-                                                            (0, shared_impl_1.debug)(dhead, '--- ASSEMBLE w/', params);
-                                                            extraFees = 0;
-                                                            txnExtraTxns = [];
-                                                            sim_i = 0;
-                                                            processSimTxn = function (t) {
-                                                                var escrow = true;
-                                                                var txn;
-                                                                if (t.kind === 'tokenNew') {
-                                                                    processSimTxn({
-                                                                        kind: 'to',
-                                                                        amt: exports.minimumBalance,
-                                                                        tok: undefined
-                                                                    });
-                                                                    var zaddr = undefined;
-                                                                    var ap = (0, shared_impl_1.bigNumberToBigInt)(t.p);
-                                                                    (0, shared_impl_1.debug)("tokenNew", t.p, ap);
-                                                                    txn = algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(escrowAddr, NOTE_Reach_tag(sim_i++), ap, 6, false, escrowAddr, zaddr, zaddr, zaddr, t.s, t.n, t.u, t.m, params);
-                                                                }
-                                                                else if (t.kind === 'tokenBurn') {
-                                                                    // There's no burning on Algorand
-                                                                    return;
-                                                                }
-                                                                else if (t.kind === 'tokenDestroy') {
-                                                                    txn = algosdk_1["default"].makeAssetDestroyTxnWithSuggestedParams(escrowAddr, NOTE_Reach_tag(sim_i++), (0, shared_user_1.bigNumberToNumber)(t.tok), params);
-                                                                    // XXX We could get the minimum balance back after
-                                                                }
-                                                                else {
-                                                                    var tok = t.tok;
-                                                                    var always = false;
-                                                                    var amt = (0, shared_user_1.bigNumberify)(0);
-                                                                    var from = escrowAddr;
-                                                                    var to = escrowAddr;
-                                                                    var closeTo = undefined;
-                                                                    if (t.kind === 'from') {
-                                                                        from = escrowAddr;
-                                                                        // @ts-ignore
-                                                                        to = cbr2algo_addr(t.to);
-                                                                        amt = t.amt;
-                                                                    }
-                                                                    else if (t.kind === 'init') {
-                                                                        processSimTxn({
-                                                                            kind: 'to',
-                                                                            amt: exports.minimumBalance,
-                                                                            tok: undefined
-                                                                        });
-                                                                        from = escrowAddr;
-                                                                        to = escrowAddr;
-                                                                        always = true;
-                                                                        amt = t.amt;
-                                                                    }
-                                                                    else if (t.kind === 'halt') {
-                                                                        from = escrowAddr;
-                                                                        to = Deployer;
-                                                                        closeTo = Deployer;
-                                                                        always = true;
-                                                                    }
-                                                                    else if (t.kind === 'to') {
-                                                                        from = thisAcc.addr;
-                                                                        to = escrowAddr;
-                                                                        amt = t.amt;
-                                                                        escrow = false;
-                                                                    }
-                                                                    else {
-                                                                        (0, exports.assert)(false, 'sim txn kind');
-                                                                    }
-                                                                    if (!always && amt.eq(0)) {
-                                                                        return;
-                                                                    }
-                                                                    txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
-                                                                }
-                                                                extraFees += txn.fee;
-                                                                txn.fee = 0;
-                                                                txnExtraTxns.push({ txn: txn, escrow: escrow });
-                                                            };
-                                                            sim_r.txns.forEach(processSimTxn);
-                                                            (0, shared_impl_1.debug)(dhead, 'txnExtraTxns', txnExtraTxns);
-                                                            (0, shared_impl_1.debug)(dhead, '--- extraFee =', extraFees);
-                                                            actual_args = [lct, msg];
-                                                            actual_tys = [exports.T_UInt, (0, exports.T_Tuple)(msg_tys)];
-                                                            (0, shared_impl_1.debug)(dhead, '--- ARGS =', actual_args);
-                                                            safe_args = actual_args.map(
-                                                            // @ts-ignore
-                                                            function (m, i) { return actual_tys[i].toNet(m); });
-                                                            safe_args.unshift(new Uint8Array([funcNum]));
-                                                            safe_args.forEach(function (x) {
-                                                                if (!(x instanceof Uint8Array)) {
-                                                                    // The types say this is impossible now,
-                                                                    // but we'll leave it in for a while just in case...
-                                                                    throw Error("expect safe program argument, got " + JSON.stringify(x));
-                                                                }
-                                                            });
-                                                            (0, shared_impl_1.debug)(dhead, '--- PREPARE:', safe_args.map(ui8h));
-                                                            whichAppl = isHalt ?
-                                                                // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
-                                                                algosdk_1["default"].makeApplicationDeleteTxn :
-                                                                algosdk_1["default"].makeApplicationNoOpTxn;
-                                                            txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args, mapAcctsReal, undefined, undefined, NOTE_Reach);
-                                                            txnAppl.fee += extraFees;
-                                                            rtxns = __spreadArray(__spreadArray([], txnExtraTxns, true), [{ txn: txnAppl, escrow: false }], false);
-                                                            (0, shared_impl_1.debug)(dhead, "assigning", { rtxns: rtxns });
-                                                            algosdk_1["default"].assignGroupID(rtxns.map(function (x) { return x.txn; }));
-                                                            wtxns = rtxns.map(function (pwt) {
-                                                                var txn = pwt.txn, escrow = pwt.escrow;
-                                                                if (escrow) {
-                                                                    var stxn = algosdk_1["default"].signLogicSigTransactionObject(txn, escrow_prog);
-                                                                    return {
-                                                                        txn: encodeUnsignedTransaction(txn),
-                                                                        signers: [],
-                                                                        stxn: Buffer.from(stxn.blob).toString('base64')
-                                                                    };
-                                                                }
-                                                                else {
-                                                                    return toWTxn(txn);
-                                                                }
-                                                            });
-                                                            (0, shared_impl_1.debug)(dhead, 'signing', { wtxns: wtxns });
-                                                            res = void 0;
-                                                            _h.label = 7;
-                                                        case 7:
-                                                            _h.trys.push([7, 9, , 12]);
-                                                            return [4 /*yield*/, signSendAndConfirm(thisAcc, wtxns)];
-                                                        case 8:
-                                                            res = _h.sent();
-                                                            // XXX we should inspect res and if we failed because we didn't get picked out of the queue, then we shouldn't error, but should retry and let the timeout logic happen.
-                                                            (0, shared_impl_1.debug)(dhead, '--- SUCCESS:', res);
-                                                            return [3 /*break*/, 12];
-                                                        case 9:
-                                                            e_8 = _h.sent();
-                                                            if (e_8.type === 'sendRawTransaction') {
-                                                                (0, shared_impl_1.debug)(dhead, '--- FAIL:', format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e));
-                                                            }
-                                                            else {
-                                                                (0, shared_impl_1.debug)(dhead, '--- FAIL:', e_8);
-                                                            }
-                                                            if (!!soloSend) return [3 /*break*/, 11];
-                                                            // If there is no soloSend, then someone else "won", so let's
-                                                            // listen for their message
-                                                            (0, shared_impl_1.debug)(dhead, 'LOST');
-                                                            _f = {};
-                                                            return [4 /*yield*/, doRecv(false, false)];
-                                                        case 10: return [2 /*return*/, (_f.value = _h.sent(), _f)];
-                                                        case 11:
-                                                            if (timeoutAt) {
-                                                                return [2 /*return*/, "continue"];
-                                                            }
-                                                            else {
-                                                                // Otherwise, something bad is happening
-                                                                throw Error(dhead + " --- ABORT");
-                                                            }
-                                                            return [3 /*break*/, 12];
-                                                        case 12:
-                                                            _g = {};
-                                                            return [4 /*yield*/, doRecv(true, false)];
-                                                        case 13: return [2 /*return*/, (_g.value = _h.sent(), _g)];
-                                                    }
-                                                });
-                                            };
-                                            _c.label = 6;
-                                        case 6:
-                                            if (!true) return [3 /*break*/, 8];
-                                            return [5 /*yield**/, _loop_1()];
-                                        case 7:
-                                            state_1 = _c.sent();
-                                            if (typeof state_1 === "object")
-                                                return [2 /*return*/, state_1.value];
-                                            return [3 /*break*/, 6];
-                                        case 8: return [2 /*return*/];
-                                    }
-                                });
-                            }); };
-                            recv = function (rargs) { return __awaiter(void 0, void 0, void 0, function () {
-                                var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, indexer, isCtor, fromBlock_summand, funcName, dhead, _loop_2, state_2;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0:
-                                            funcNum = rargs.funcNum, out_tys = rargs.out_tys, didSend = rargs.didSend, waitIfNotPresent = rargs.waitIfNotPresent, timeoutAt = rargs.timeoutAt;
-                                            return [4 /*yield*/, getIndexer()];
-                                        case 1:
-                                            indexer = _a.sent();
-                                            isCtor = (funcNum == 0);
-                                            fromBlock_summand = isCtor ? 0 : 1;
-                                            funcName = "m" + funcNum;
-                                            dhead = label + ": " + label + " recv " + funcName + " " + timeoutAt;
-                                            (0, shared_impl_1.debug)(dhead, '--- START');
-                                            _loop_2 = function () {
-                                                var correctStep, res, currentRound, txn, theRound, theSecs, all_txns, get_all_txns, ctc_args_all, argMsg, ctc_args_s, msgTy, ctc_args, shouldBeEscrow, fromAddr, from, oldLastRound, tokenNews, getOutput;
-                                                return __generator(this, function (_b) {
-                                                    switch (_b.label) {
-                                                        case 0:
-                                                            correctStep = makeIsMethod(funcNum);
-                                                            return [4 /*yield*/, eventCache.query(dhead, ApplicationID, { minRound: realLastRound + fromBlock_summand, timeoutAt: timeoutAt }, correctStep)];
-                                                        case 1:
-                                                            res = _b.sent();
-                                                            (0, shared_impl_1.debug)("EventCache res: ", res);
-                                                            if (!!res.succ) return [3 /*break*/, 7];
-                                                            currentRound = res.round;
-                                                            return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, currentRound)];
-                                                        case 2:
-                                                            if (_b.sent()) {
-                                                                (0, shared_impl_1.debug)(dhead, '--- RECVD timeout', { timeoutAt: timeoutAt, currentRound: currentRound });
-                                                                return [2 /*return*/, { value: { didTimeout: true } }];
-                                                            }
-                                                            if (!waitIfNotPresent) return [3 /*break*/, 4];
-                                                            return [4 /*yield*/, (0, exports.waitUntilTime)((0, shared_user_1.bigNumberify)(currentRound + 1))];
-                                                        case 3:
-                                                            _b.sent();
-                                                            return [3 /*break*/, 6];
-                                                        case 4: return [4 /*yield*/, indexer_statusAfterBlock(currentRound + 1)];
-                                                        case 5:
-                                                            _b.sent();
-                                                            _b.label = 6;
-                                                        case 6: return [2 /*return*/, "continue"];
-                                                        case 7:
-                                                            txn = res.txn;
-                                                            (0, shared_impl_1.debug)(dhead, '--- txn =', txn);
-                                                            theRound = txn['confirmed-round'];
-                                                            return [4 /*yield*/, getTimeSecs((0, shared_user_1.bigNumberify)(theRound - 1))];
-                                                        case 8:
-                                                            theSecs = _b.sent();
-                                                            all_txns = undefined;
-                                                            get_all_txns = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                                                var all_query, all_res, same_group, all_txns_raw, group_order;
-                                                                return __generator(this, function (_a) {
-                                                                    switch (_a.label) {
-                                                                        case 0:
-                                                                            if (all_txns) {
-                                                                                return [2 /*return*/];
-                                                                            }
-                                                                            all_query = indexer.searchForTransactions()
-                                                                                .txType('acfg')
-                                                                                .assetID(0)
-                                                                                .round(theRound);
-                                                                            return [4 /*yield*/, doQuery_(dhead, all_query)];
-                                                                        case 1:
-                                                                            all_res = _a.sent();
-                                                                            same_group = (function (x) { return x.group === txn.group && x['asset-config-transaction']['asset-id'] === 0; });
-                                                                            all_txns_raw = all_res.transactions.filter(same_group);
-                                                                            group_order = (function (x, y) { return x['intra-round-offset'] - y['intra-round-offset']; });
-                                                                            all_txns = all_txns_raw.sort(group_order);
-                                                                            (0, shared_impl_1.debug)(dhead, 'all_txns', all_txns);
-                                                                            return [2 /*return*/];
-                                                                    }
-                                                                });
-                                                            }); };
-                                                            ctc_args_all = txn['application-transaction']['application-args'];
-                                                            (0, shared_impl_1.debug)(dhead, { ctc_args_all: ctc_args_all });
-                                                            argMsg = 2;
-                                                            ctc_args_s = ctc_args_all[argMsg];
-                                                            (0, shared_impl_1.debug)(dhead, '--- out_tys =', out_tys);
-                                                            if (isCtor) {
-                                                                out_tys.unshift(exports.T_Address);
-                                                                (0, shared_impl_1.debug)(dhead, 'ctor, adding address', { out_tys: out_tys });
-                                                            }
-                                                            msgTy = (0, exports.T_Tuple)(out_tys);
-                                                            ctc_args = msgTy.fromNet(reNetify(ctc_args_s));
-                                                            (0, shared_impl_1.debug)(dhead, { ctc_args: ctc_args });
-                                                            if (isCtor) {
-                                                                shouldBeEscrow = ctc_args.shift();
-                                                                (0, shared_impl_1.debug)(dhead, "dropped escrow addr", { shouldBeEscrow: shouldBeEscrow, escrowAddr: escrowAddr, ctc_args: ctc_args });
-                                                            }
-                                                            fromAddr = txn['sender'];
-                                                            from = exports.T_Address.canonicalize({ addr: fromAddr });
-                                                            (0, shared_impl_1.debug)(dhead, '--- from =', from, '=', fromAddr);
-                                                            oldLastRound = realLastRound;
-                                                            realLastRound = theRound;
-                                                            (0, shared_impl_1.debug)(dhead, '--- RECVD updating round from', oldLastRound, 'to', realLastRound);
-                                                            tokenNews = 0;
-                                                            getOutput = function (o_mode, o_lab, o_ctc) { return __awaiter(void 0, void 0, void 0, function () {
-                                                                var tn_txn;
-                                                                return __generator(this, function (_a) {
-                                                                    switch (_a.label) {
-                                                                        case 0:
-                                                                            if (!(o_mode === 'tokenNew')) return [3 /*break*/, 2];
-                                                                            return [4 /*yield*/, get_all_txns()];
-                                                                        case 1:
-                                                                            _a.sent();
-                                                                            tn_txn = all_txns[tokenNews++];
-                                                                            (0, shared_impl_1.debug)(dhead, "tn_txn", tn_txn);
-                                                                            return [2 /*return*/, tn_txn['created-asset-index']];
-                                                                        case 2:
-                                                                            void (o_lab);
-                                                                            void (o_ctc);
-                                                                            throw Error("Algorand does not support remote calls");
-                                                                    }
-                                                                });
-                                                            }); };
-                                                            if (isCtor) {
-                                                                ctorRan.notify();
-                                                            }
-                                                            return [2 /*return*/, { value: {
-                                                                        didSend: didSend,
-                                                                        didTimeout: false,
-                                                                        data: ctc_args,
-                                                                        time: (0, shared_user_1.bigNumberify)(realLastRound),
-                                                                        secs: (0, shared_user_1.bigNumberify)(theSecs),
-                                                                        from: from,
-                                                                        getOutput: getOutput
-                                                                    } }];
-                                                    }
-                                                });
-                                            };
-                                            _a.label = 2;
-                                        case 2:
-                                            if (!true) return [3 /*break*/, 4];
-                                            return [5 /*yield**/, _loop_2()];
-                                        case 3:
-                                            state_2 = _a.sent();
-                                            if (typeof state_2 === "object")
-                                                return [2 /*return*/, state_2.value];
-                                            return [3 /*break*/, 2];
-                                        case 4: return [2 /*return*/];
-                                    }
-                                });
-                            }); };
-                            readStateBytes = function (prefix, key, src) {
-                                (0, shared_impl_1.debug)({ prefix: prefix, key: key });
-                                var ik = base64ify(new Uint8Array(key));
-                                (0, shared_impl_1.debug)({ ik: ik });
-                                var ste = src.find(function (x) { return x.key === ik; });
-                                (0, shared_impl_1.debug)({ ste: ste });
-                                if (ste === undefined) {
-                                    return [];
-                                }
-                                ;
-                                var st = ste.value;
-                                (0, shared_impl_1.debug)({ st: st });
-                                if (st.bytes === undefined) {
-                                    return [];
-                                }
-                                ;
-                                var bsi = base64ToUI8A(st.bytes);
-                                (0, shared_impl_1.debug)({ bsi: bsi });
-                                return bsi;
-                            };
-                            recoverSplitBytes = function (prefix, size, howMany, src) {
-                                var bs = new Uint8Array(size);
-                                var offset = 0;
-                                for (var i = 0; i < howMany; i++) {
-                                    var bsi = readStateBytes(prefix, [i], src);
-                                    if (bsi.length == 0) {
-                                        return undefined;
-                                    }
-                                    bs.set(bsi, offset);
-                                    offset += bsi.length;
-                                }
-                                return bs;
-                            };
-                            viewlib = {
-                                viewMapRef: function (mapi, a) { return __awaiter(void 0, void 0, void 0, function () {
-                                    var ls, mbs, md, mr;
+                                }); }); };
+                                doOptIn = function () { return __awaiter(void 0, void 0, void 0, function () {
+                                    var _a, _b, _c, _d, _e, _f, _g;
+                                    return __generator(this, function (_h) {
+                                        switch (_h.label) {
+                                            case 0:
+                                                (0, shared_impl_1.debug)("doOptIn");
+                                                _a = sign_and_send_sync;
+                                                _b = ['ApplicationOptIn',
+                                                    thisAcc];
+                                                _c = toWTxn;
+                                                _e = (_d = algosdk_1["default"]).makeApplicationOptInTxn;
+                                                _f = [thisAcc.addr];
+                                                return [4 /*yield*/, getTxnParams()];
+                                            case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_h.sent(), ApplicationID,
+                                                            undefined, undefined, undefined, undefined,
+                                                            NOTE_Reach]))])]))];
+                                            case 2:
+                                                _h.sent();
+                                                _g = exports.assert;
+                                                return [4 /*yield*/, didOptIn()];
+                                            case 3:
+                                                _g.apply(void 0, [_h.sent(), "didOptIn after doOptIn"]);
+                                                return [2 /*return*/];
+                                        }
+                                    });
+                                }); };
+                                ensuredOptIn = false;
+                                ensureOptIn = function () { return __awaiter(void 0, void 0, void 0, function () {
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
-                                                (0, shared_impl_1.debug)('viewMapRef', { mapi: mapi, a: a });
-                                                return [4 /*yield*/, getLocalState(cbr2algo_addr(a))];
+                                                if (!!ensuredOptIn) return [3 /*break*/, 4];
+                                                return [4 /*yield*/, didOptIn()];
                                             case 1:
-                                                ls = _a.sent();
-                                                (0, exports.assert)(ls !== undefined, 'viewMapRef ls undefined');
-                                                (0, shared_impl_1.debug)('viewMapRef', { ls: ls });
-                                                mbs = recoverSplitBytes('m', mapDataSize, mapDataKeys, ls);
-                                                (0, shared_impl_1.debug)('viewMapRef', { mbs: mbs });
-                                                md = mapDataTy.fromNet(mbs);
-                                                (0, shared_impl_1.debug)('viewMapRef', { md: md });
-                                                mr = md[mapi];
-                                                (0, exports.assert)(mr !== undefined, 'viewMapRef mr undefined');
-                                                return [2 /*return*/, mr];
+                                                if (!!(_a.sent())) return [3 /*break*/, 3];
+                                                return [4 /*yield*/, doOptIn()];
+                                            case 2:
+                                                _a.sent();
+                                                _a.label = 3;
+                                            case 3:
+                                                ensuredOptIn = true;
+                                                _a.label = 4;
+                                            case 4: return [2 /*return*/];
                                         }
                                     });
-                                }); }
-                            };
-                            views_bin = bin._getViews({ reachStdlib: ALGO_compiled_1.stdlib }, viewlib);
-                            getView1 = function (vs, v, k, vim) {
-                                return function () {
-                                    var args = [];
-                                    for (var _i = 0; _i < arguments.length; _i++) {
-                                        args[_i] = arguments[_i];
-                                    }
-                                    return __awaiter(void 0, void 0, void 0, function () {
-                                        var decode, appSt, gs, vi, vtys, vvn, vty, vvs, vres, e_9;
-                                        return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                                case 0:
-                                                    (0, shared_impl_1.debug)('getView1', v, k, args);
-                                                    decode = vim.decode;
-                                                    return [4 /*yield*/, getAppState()];
-                                                case 1:
-                                                    appSt = _a.sent();
-                                                    if (!appSt) {
-                                                        return [2 /*return*/, ['None', null]];
-                                                    }
-                                                    return [4 /*yield*/, getGlobalState(appSt)];
-                                                case 2:
-                                                    gs = _a.sent();
-                                                    if (!gs) {
-                                                        return [2 /*return*/, ['None', null]];
-                                                    }
-                                                    vi = (0, shared_user_1.bigNumberToNumber)(gs[0]);
-                                                    (0, shared_impl_1.debug)({ vi: vi });
-                                                    vtys = vs[vi];
-                                                    (0, shared_impl_1.debug)({ vtys: vtys });
-                                                    if (!vtys) {
-                                                        return [2 /*return*/, ['None', null]];
-                                                    }
-                                                    vvn = recoverSplitBytes('v', stateSize, stateKeys, appSt);
-                                                    if (vvn === undefined) {
-                                                        return [2 /*return*/, ['None', null]];
-                                                    }
-                                                    vty = (0, exports.T_Tuple)(vtys);
-                                                    (0, shared_impl_1.debug)({ vty: vty });
-                                                    vvs = vty.fromNet(vvn);
-                                                    (0, shared_impl_1.debug)({ vvs: vvs });
-                                                    _a.label = 3;
-                                                case 3:
-                                                    _a.trys.push([3, 5, , 6]);
-                                                    return [4 /*yield*/, decode(vi, vvs, args)];
-                                                case 4:
-                                                    vres = _a.sent();
-                                                    (0, shared_impl_1.debug)({ vres: vres });
-                                                    return [2 /*return*/, ['Some', vres]];
-                                                case 5:
-                                                    e_9 = _a.sent();
-                                                    (0, shared_impl_1.debug)("getView1", v, k, 'error', e_9);
-                                                    return [2 /*return*/, ['None', null]];
-                                                case 6: return [2 /*return*/];
-                                            }
-                                        });
+                                }); };
+                                getAppState = function () { return __awaiter(void 0, void 0, void 0, function () {
+                                    var lab, client, appInfo, e_7, appSt;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                lab = "getAppState";
+                                                return [4 /*yield*/, getAlgodClient()];
+                                            case 1:
+                                                client = _a.sent();
+                                                _a.label = 2;
+                                            case 2:
+                                                _a.trys.push([2, 4, , 5]);
+                                                return [4 /*yield*/, client.getApplicationByID(ApplicationID)["do"]()];
+                                            case 3:
+                                                appInfo = _a.sent();
+                                                return [3 /*break*/, 5];
+                                            case 4:
+                                                e_7 = _a.sent();
+                                                (0, shared_impl_1.debug)(lab, { e: e_7 });
+                                                return [2 /*return*/, undefined];
+                                            case 5:
+                                                appSt = appInfo['params']['global-state'];
+                                                (0, shared_impl_1.debug)(lab, { appSt: appSt });
+                                                return [2 /*return*/, appSt];
+                                        }
                                     });
-                                };
-                            };
-                            getViews = (0, shared_impl_1.getViewsHelper)(views_bin, getView1);
-                            return [2 /*return*/, { getInfo: getInfo, sendrecv: sendrecv, recv: recv, waitTime: exports.waitUntilTime, waitSecs: exports.waitUntilSecs, iam: iam, selfAddress: selfAddress, getViews: getViews, stdlib: ALGO_compiled_1.stdlib }];
+                                }); };
+                                getGlobalState = function (appSt_g) { return __awaiter(void 0, void 0, void 0, function () {
+                                    var appSt, _a, gsbs, gty;
+                                    return __generator(this, function (_b) {
+                                        switch (_b.label) {
+                                            case 0:
+                                                _a = appSt_g;
+                                                if (_a) return [3 /*break*/, 2];
+                                                return [4 /*yield*/, getAppState()];
+                                            case 1:
+                                                _a = (_b.sent());
+                                                _b.label = 2;
+                                            case 2:
+                                                appSt = _a;
+                                                if (!appSt) {
+                                                    return [2 /*return*/, undefined];
+                                                }
+                                                gsbs = readStateBytes('', [], appSt);
+                                                if (!gsbs) {
+                                                    return [2 /*return*/, undefined];
+                                                }
+                                                gty = (0, exports.T_Tuple)([exports.T_UInt, exports.T_UInt, exports.T_Address]);
+                                                // @ts-ignore
+                                                return [2 /*return*/, gty.fromNet(gsbs)];
+                                        }
+                                    });
+                                }); };
+                                canIWin = function (lct) { return __awaiter(void 0, void 0, void 0, function () {
+                                    var gs, r;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                if (lct.eq(0)) {
+                                                    return [2 /*return*/, true];
+                                                }
+                                                return [4 /*yield*/, getGlobalState()];
+                                            case 1:
+                                                gs = _a.sent();
+                                                r = !gs || lct.eq(gs[1]);
+                                                (0, shared_impl_1.debug)("canIWin", { lct: lct, gs: gs, r: r });
+                                                return [2 /*return*/, r];
+                                        }
+                                    });
+                                }); };
+                                return [2 /*return*/, (_theC = { ApplicationID: ApplicationID, Deployer: Deployer, escrowAddr: escrowAddr, escrow_prog: escrow_prog, getLastRound: getLastRound, setLastRound: setLastRound, getLocalState: getLocalState, getAppState: getAppState, getGlobalState: getGlobalState, ensureOptIn: ensureOptIn, canIWin: canIWin })];
+                        }
+                    });
+                }); };
+            };
+            var getState_ = function (getC, lookup) { return __awaiter(void 0, void 0, void 0, function () {
+                var _a, getAppState, getGlobalState, appSt, gs, vvn, vi, vtys, vty, vvs;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, getC()];
+                        case 1:
+                            _a = _b.sent(), getAppState = _a.getAppState, getGlobalState = _a.getGlobalState;
+                            return [4 /*yield*/, getAppState()];
+                        case 2:
+                            appSt = _b.sent();
+                            if (!appSt) {
+                                throw Error("getState: no appSt");
+                            }
+                            return [4 /*yield*/, getGlobalState(appSt)];
+                        case 3:
+                            gs = _b.sent();
+                            if (!gs) {
+                                throw Error("getState: no gs");
+                            }
+                            vvn = recoverSplitBytes('v', stateSize, stateKeys, appSt);
+                            if (vvn === undefined) {
+                                throw Error("getState: no vvn");
+                            }
+                            vi = gs[0];
+                            vtys = lookup(vi);
+                            vty = (0, exports.T_Tuple)(vtys);
+                            vvs = vty.fromNet(vvn);
+                            return [2 /*return*/, vvs];
                     }
                 });
-            });
-        };
-        deployP = function (bin) { return __awaiter(void 0, void 0, void 0, function () {
-            var algob, stateKeys, mapDataKeys, _a, appApproval, appClear, extraPages, Deployer, createRes, _b, _c, _d, _e, _f, _g, allocRound, ApplicationID, ctcInfo, eventCache, compiled, vr;
-            return __generator(this, function (_h) {
-                switch (_h.label) {
-                    case 0:
-                        must_be_supported(bin);
-                        (0, shared_impl_1.debug)(label, 'deploy');
-                        algob = bin._Connectors.ALGO;
-                        stateKeys = algob.stateKeys, mapDataKeys = algob.mapDataKeys;
-                        return [4 /*yield*/, compileFor(bin, 0)];
-                    case 1:
-                        _a = _h.sent(), appApproval = _a.appApproval, appClear = _a.appClear;
-                        extraPages = Math.ceil((appClear.result.length + appApproval.result.length) / MaxAppProgramLen) - 1;
-                        (0, shared_impl_1.debug)("deploy", { extraPages: extraPages });
-                        Deployer = thisAcc.addr;
-                        _b = sign_and_send_sync;
-                        _c = ['ApplicationCreate',
-                            thisAcc];
-                        _d = toWTxn;
-                        _f = (_e = algosdk_1["default"]).makeApplicationCreateTxn;
-                        _g = [Deployer];
-                        return [4 /*yield*/, getTxnParams()];
-                    case 2: return [4 /*yield*/, _b.apply(void 0, _c.concat([_d.apply(void 0, [_f.apply(_e, _g.concat([_h.sent(), algosdk_1["default"].OnApplicationComplete.NoOpOC,
-                                    appApproval.result,
-                                    appClear.result,
-                                    appLocalStateNumUInt, appLocalStateNumBytes + mapDataKeys,
-                                    appGlobalStateNumUInt, appGlobalStateNumBytes + stateKeys,
-                                    undefined, undefined, undefined, undefined,
-                                    NOTE_Reach, undefined, undefined, extraPages]))])]))];
-                    case 3:
-                        createRes = _h.sent();
-                        allocRound = createRes['confirmed-round'];
-                        ApplicationID = createRes['application-index'];
-                        if (!ApplicationID) {
-                            throw Error("No application-index in " + JSON.stringify(createRes));
+            }); };
+            var _setup = function (setupArgs) {
+                var setInfo = setupArgs.setInfo, getInfo = setupArgs.getInfo;
+                var didSet = new shared_impl_1.Signal();
+                var fake_info = undefined;
+                var fake_setInfo = function (x) {
+                    fake_info = x;
+                    didSet.notify();
+                };
+                var ctorRan = new shared_impl_1.Signal();
+                ctorRan.wait().then(function () {
+                    if (fake_info !== undefined) {
+                        setInfo(fake_info);
+                    }
+                });
+                var fake_getInfo = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                if (!givenInfoP) return [3 /*break*/, 2];
+                                return [4 /*yield*/, getInfo()];
+                            case 1: return [2 /*return*/, _a.sent()];
+                            case 2: return [4 /*yield*/, didSet.wait()];
+                            case 3:
+                                _a.sent();
+                                if (fake_info === undefined) {
+                                    throw Error("impossible fake_info");
+                                }
+                                return [2 /*return*/, fake_info];
                         }
-                        (0, shared_impl_1.debug)("created", { ApplicationID: ApplicationID });
-                        ctcInfo = ApplicationID;
-                        eventCache = new EventCache();
-                        return [4 /*yield*/, compileFor(bin, ctcInfo)];
-                    case 4:
-                        compiled = _h.sent();
-                        vr = { compiled: compiled, ApplicationID: ApplicationID, startRound: allocRound, Deployer: Deployer };
-                        return [4 /*yield*/, attachP(bin, (function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                                return [2 /*return*/, ctcInfo];
-                            }); }); })(), eventCache, vr)];
-                    case 5: return [2 /*return*/, _h.sent()];
+                    });
+                }); };
+                var eventCache = new EventCache();
+                var trustedVerifyResult = undefined;
+                var getC = makeGetC(fake_getInfo, eventCache, (function () { return trustedVerifyResult; }));
+                // Returns address of a Reach contract
+                var getContractAddress = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var escrowAddr;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, getC()];
+                            case 1:
+                                escrowAddr = (_a.sent()).escrowAddr;
+                                return [2 /*return*/, exports.T_Address.canonicalize(escrowAddr)];
+                        }
+                    });
+                }); };
+                var getState = function (vibne, vtys) { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, getState_(getC, function (vibna) {
+                                    if (vibne.eq(vibna)) {
+                                        return vtys;
+                                    }
+                                    throw Error("Expected state " + vibne + ", got " + vibna);
+                                })];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    });
+                }); };
+                var sendrecv = function (srargs) { return __awaiter(void 0, void 0, void 0, function () {
+                    var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, allocRound, ApplicationID_1, ctcInfo, compiled, _h, ApplicationID, Deployer, escrowAddr, escrow_prog, ensureOptIn, canIWin, value, toks, funcName, dhead, _j, _svs, msg, _k, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, _loop_1, state_1;
+                    return __generator(this, function (_l) {
+                        switch (_l.label) {
+                            case 0:
+                                funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt, sim_p = srargs.sim_p;
+                                isCtor = (funcNum === 0);
+                                doRecv = function (didSend, waitIfNotPresent) { return __awaiter(void 0, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                if (!didSend && lct.eq(0)) {
+                                                    throw new Error("API call failed");
+                                                }
+                                                return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
+                                            case 1: return [2 /*return*/, _a.sent()];
+                                        }
+                                    });
+                                }); };
+                                if (!!onlyIf) return [3 /*break*/, 2];
+                                return [4 /*yield*/, doRecv(false, true)];
+                            case 1: return [2 /*return*/, _l.sent()];
+                            case 2:
+                                if (!isCtor) return [3 /*break*/, 7];
+                                (0, shared_impl_1.debug)(label, 'deploy');
+                                return [4 /*yield*/, compileFor(bin, 0)];
+                            case 3:
+                                _a = _l.sent(), appApproval = _a.appApproval, appClear = _a.appClear;
+                                extraPages = Math.ceil((appClear.result.length + appApproval.result.length) / MaxAppProgramLen) - 1;
+                                (0, shared_impl_1.debug)("deploy", { extraPages: extraPages });
+                                Deployer_1 = thisAcc.addr;
+                                _b = sign_and_send_sync;
+                                _c = ['ApplicationCreate',
+                                    thisAcc];
+                                _d = toWTxn;
+                                _f = (_e = algosdk_1["default"]).makeApplicationCreateTxn;
+                                _g = [Deployer_1];
+                                return [4 /*yield*/, getTxnParams()];
+                            case 4: return [4 /*yield*/, _b.apply(void 0, _c.concat([_d.apply(void 0, [_f.apply(_e, _g.concat([_l.sent(), algosdk_1["default"].OnApplicationComplete.NoOpOC,
+                                            appApproval.result,
+                                            appClear.result,
+                                            appLocalStateNumUInt, appLocalStateNumBytes + mapDataKeys,
+                                            appGlobalStateNumUInt, appGlobalStateNumBytes + stateKeys,
+                                            undefined, undefined, undefined, undefined,
+                                            NOTE_Reach, undefined, undefined, extraPages]))])]))];
+                            case 5:
+                                createRes = _l.sent();
+                                allocRound = createRes['confirmed-round'];
+                                ApplicationID_1 = createRes['application-index'];
+                                if (!ApplicationID_1) {
+                                    throw Error("No application-index in " + JSON.stringify(createRes));
+                                }
+                                (0, shared_impl_1.debug)("created", { ApplicationID: ApplicationID_1 });
+                                ctcInfo = ApplicationID_1;
+                                return [4 /*yield*/, compileFor(bin, ctcInfo)];
+                            case 6:
+                                compiled = _l.sent();
+                                trustedVerifyResult = { compiled: compiled, ApplicationID: ApplicationID_1, startRound: allocRound, Deployer: Deployer_1 };
+                                fake_setInfo(ctcInfo);
+                                _l.label = 7;
+                            case 7: return [4 /*yield*/, getC()];
+                            case 8:
+                                _h = _l.sent(), ApplicationID = _h.ApplicationID, Deployer = _h.Deployer, escrowAddr = _h.escrowAddr, escrow_prog = _h.escrow_prog, ensureOptIn = _h.ensureOptIn, canIWin = _h.canIWin;
+                                value = pay[0], toks = pay[1];
+                                void (toks); // <-- rely on simulation because of ordering
+                                funcName = "m" + funcNum;
+                                dhead = label + ": " + label + " sendrecv " + funcName + " " + timeoutAt;
+                                (0, shared_impl_1.debug)(dhead, '--- START');
+                                _j = (0, shared_impl_1.argsSplit)(args, evt_cnt), _svs = _j[0], msg = _j[1];
+                                _k = (0, shared_impl_1.argsSplit)(tys, evt_cnt), _svs_tys = _k[0], msg_tys = _k[1];
+                                void (_svs);
+                                void (_svs_tys);
+                                fake_res = {
+                                    didSend: true,
+                                    didTimeout: false,
+                                    data: msg,
+                                    time: (0, shared_user_1.bigNumberify)(0),
+                                    secs: (0, shared_user_1.bigNumberify)(0),
+                                    value: value,
+                                    from: pks,
+                                    getOutput: (function (o_mode, o_lab, o_ctc, o_val) { return __awaiter(void 0, void 0, void 0, function () {
+                                        return __generator(this, function (_a) {
+                                            void (o_mode);
+                                            void (o_lab);
+                                            void (o_ctc);
+                                            return [2 /*return*/, o_val];
+                                        });
+                                    }); })
+                                };
+                                return [4 /*yield*/, sim_p(fake_res)];
+                            case 9:
+                                sim_r = _l.sent();
+                                (0, shared_impl_1.debug)(dhead, '--- SIMULATE', sim_r);
+                                if (isCtor) {
+                                    msg.unshift(exports.T_Address.canonicalize(escrowAddr));
+                                    msg_tys.unshift(exports.T_Address);
+                                    sim_r.txns.unshift({
+                                        kind: 'to',
+                                        amt: exports.minimumBalance,
+                                        tok: undefined
+                                    });
+                                }
+                                isHalt = sim_r.isHalt;
+                                mapRefs = sim_r.mapRefs;
+                                mapAccts = [];
+                                mapRefs.forEach(function (caddr) {
+                                    var addr = cbr2algo_addr(caddr);
+                                    if ((0, exports.addressEq)(thisAcc.addr, addr)) {
+                                        return;
+                                    }
+                                    var addrIdx = mapAccts.findIndex(function (other) { return (0, exports.addressEq)(other, addr); });
+                                    var present = addrIdx !== -1;
+                                    if (present) {
+                                        return;
+                                    }
+                                    mapAccts.push(addr);
+                                });
+                                if (mapAccts.length > MaxAppTxnAccounts) {
+                                    throw Error("Application references too many local state cells in one step. Reach should catch this problem statically.");
+                                }
+                                (0, shared_impl_1.debug)(dhead, 'MAP', { mapAccts: mapAccts });
+                                if (!hasMaps) return [3 /*break*/, 11];
+                                return [4 /*yield*/, ensureOptIn()];
+                            case 10:
+                                _l.sent();
+                                _l.label = 11;
+                            case 11:
+                                mapAcctsReal = (mapAccts.length === 0) ? undefined : mapAccts;
+                                _loop_1 = function () {
+                                    var params, _m, _o, _p, extraFees, txnExtraTxns, sim_i, processSimTxn, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, _q, _r;
+                                    return __generator(this, function (_s) {
+                                        switch (_s.label) {
+                                            case 0: return [4 /*yield*/, getTxnParams()];
+                                            case 1:
+                                                params = _s.sent();
+                                                // We add one, because the firstRound field is actually the current
+                                                // round, which we couldn't possibly be in, because it already
+                                                // happened.
+                                                (0, shared_impl_1.debug)(dhead, '--- TIMECHECK', { params: params, timeoutAt: timeoutAt });
+                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, params.firstRound + 1)];
+                                            case 2:
+                                                if (!_s.sent()) return [3 /*break*/, 4];
+                                                (0, shared_impl_1.debug)(dhead, '--- FAIL/TIMEOUT');
+                                                _m = {};
+                                                return [4 /*yield*/, doRecv(false, false)];
+                                            case 3: return [2 /*return*/, (_m.value = _s.sent(), _m)];
+                                            case 4:
+                                                _o = !soloSend;
+                                                if (!_o) return [3 /*break*/, 6];
+                                                return [4 /*yield*/, canIWin(lct)];
+                                            case 5:
+                                                _o = !(_s.sent());
+                                                _s.label = 6;
+                                            case 6:
+                                                if (!_o) return [3 /*break*/, 8];
+                                                (0, shared_impl_1.debug)(dhead, "CANNOT WIN");
+                                                _p = {};
+                                                return [4 /*yield*/, doRecv(false, false)];
+                                            case 7: return [2 /*return*/, (_p.value = _s.sent(), _p)];
+                                            case 8:
+                                                (0, shared_impl_1.debug)(dhead, '--- ASSEMBLE w/', params);
+                                                extraFees = 0;
+                                                txnExtraTxns = [];
+                                                sim_i = 0;
+                                                processSimTxn = function (t) {
+                                                    var escrow = true;
+                                                    var txn;
+                                                    if (t.kind === 'tokenNew') {
+                                                        processSimTxn({
+                                                            kind: 'to',
+                                                            amt: exports.minimumBalance,
+                                                            tok: undefined
+                                                        });
+                                                        var zaddr = undefined;
+                                                        var ap = (0, shared_impl_1.bigNumberToBigInt)(t.p);
+                                                        (0, shared_impl_1.debug)("tokenNew", t.p, ap);
+                                                        var decimals = t.d !== undefined ? t.d.toNumber() : 6;
+                                                        txn = algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(escrowAddr, NOTE_Reach_tag(sim_i++), ap, decimals, false, escrowAddr, zaddr, zaddr, zaddr, t.s, t.n, t.u, t.m, params);
+                                                    }
+                                                    else if (t.kind === 'tokenBurn') {
+                                                        // There's no burning on Algorand
+                                                        return;
+                                                    }
+                                                    else if (t.kind === 'tokenDestroy') {
+                                                        txn = algosdk_1["default"].makeAssetDestroyTxnWithSuggestedParams(escrowAddr, NOTE_Reach_tag(sim_i++), (0, shared_user_1.bigNumberToNumber)(t.tok), params);
+                                                        // XXX We could get the minimum balance back after
+                                                    }
+                                                    else {
+                                                        var tok = t.tok;
+                                                        var always = false;
+                                                        var amt = (0, shared_user_1.bigNumberify)(0);
+                                                        var from = escrowAddr;
+                                                        var to = escrowAddr;
+                                                        var closeTo = undefined;
+                                                        if (t.kind === 'from') {
+                                                            from = escrowAddr;
+                                                            to = cbr2algo_addr(t.to);
+                                                            amt = t.amt;
+                                                        }
+                                                        else if (t.kind === 'init') {
+                                                            processSimTxn({
+                                                                kind: 'to',
+                                                                amt: exports.minimumBalance,
+                                                                tok: undefined
+                                                            });
+                                                            from = escrowAddr;
+                                                            to = escrowAddr;
+                                                            always = true;
+                                                            amt = t.amt;
+                                                        }
+                                                        else if (t.kind === 'halt') {
+                                                            from = escrowAddr;
+                                                            to = Deployer;
+                                                            closeTo = Deployer;
+                                                            always = true;
+                                                        }
+                                                        else if (t.kind === 'to') {
+                                                            from = thisAcc.addr;
+                                                            to = escrowAddr;
+                                                            amt = t.amt;
+                                                            escrow = false;
+                                                        }
+                                                        else {
+                                                            (0, exports.assert)(false, 'sim txn kind');
+                                                        }
+                                                        if (!always && amt.eq(0)) {
+                                                            return;
+                                                        }
+                                                        txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
+                                                    }
+                                                    extraFees += txn.fee;
+                                                    txn.fee = 0;
+                                                    txnExtraTxns.push({ txn: txn, escrow: escrow });
+                                                };
+                                                sim_r.txns.forEach(processSimTxn);
+                                                (0, shared_impl_1.debug)(dhead, 'txnExtraTxns', txnExtraTxns);
+                                                (0, shared_impl_1.debug)(dhead, '--- extraFee =', extraFees);
+                                                actual_args = [lct, msg];
+                                                actual_tys = [exports.T_UInt, (0, exports.T_Tuple)(msg_tys)];
+                                                (0, shared_impl_1.debug)(dhead, '--- ARGS =', actual_args);
+                                                safe_args = actual_args.map(
+                                                // @ts-ignore
+                                                function (m, i) { return actual_tys[i].toNet(m); });
+                                                safe_args.unshift(new Uint8Array([funcNum]));
+                                                safe_args.forEach(function (x) {
+                                                    if (!(x instanceof Uint8Array)) {
+                                                        // The types say this is impossible now,
+                                                        // but we'll leave it in for a while just in case...
+                                                        throw Error("expect safe program argument, got " + JSON.stringify(x));
+                                                    }
+                                                });
+                                                (0, shared_impl_1.debug)(dhead, '--- PREPARE:', safe_args.map(ui8h));
+                                                whichAppl = isHalt ?
+                                                    // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
+                                                    algosdk_1["default"].makeApplicationDeleteTxn :
+                                                    algosdk_1["default"].makeApplicationNoOpTxn;
+                                                txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args, mapAcctsReal, undefined, undefined, NOTE_Reach);
+                                                txnAppl.fee += extraFees;
+                                                rtxns = __spreadArray(__spreadArray([], txnExtraTxns, true), [{ txn: txnAppl, escrow: false }], false);
+                                                (0, shared_impl_1.debug)(dhead, "assigning", { rtxns: rtxns });
+                                                algosdk_1["default"].assignGroupID(rtxns.map(function (x) { return x.txn; }));
+                                                wtxns = rtxns.map(function (pwt) {
+                                                    var txn = pwt.txn, escrow = pwt.escrow;
+                                                    if (escrow) {
+                                                        var stxn = algosdk_1["default"].signLogicSigTransactionObject(txn, escrow_prog);
+                                                        return {
+                                                            txn: encodeUnsignedTransaction(txn),
+                                                            signers: [],
+                                                            stxn: Buffer.from(stxn.blob).toString('base64')
+                                                        };
+                                                    }
+                                                    else {
+                                                        return toWTxn(txn);
+                                                    }
+                                                });
+                                                (0, shared_impl_1.debug)(dhead, 'signing', { wtxns: wtxns });
+                                                res = void 0;
+                                                _s.label = 9;
+                                            case 9:
+                                                _s.trys.push([9, 11, , 14]);
+                                                return [4 /*yield*/, signSendAndConfirm(thisAcc, wtxns)];
+                                            case 10:
+                                                res = _s.sent();
+                                                (0, shared_impl_1.debug)(dhead, 'SUCCESS', res);
+                                                return [3 /*break*/, 14];
+                                            case 11:
+                                                e_8 = _s.sent();
+                                                if (e_8.type === 'sendRawTransaction') {
+                                                    (0, shared_impl_1.debug)(dhead, '--- FAIL:', format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e));
+                                                }
+                                                else {
+                                                    (0, shared_impl_1.debug)(dhead, '--- FAIL:', e_8);
+                                                }
+                                                if (!!soloSend) return [3 /*break*/, 13];
+                                                // If there is no soloSend, then someone else "won", so let's
+                                                // listen for their message
+                                                (0, shared_impl_1.debug)(dhead, 'LOST');
+                                                _q = {};
+                                                return [4 /*yield*/, doRecv(false, false)];
+                                            case 12: return [2 /*return*/, (_q.value = _s.sent(), _q)];
+                                            case 13:
+                                                if (timeoutAt) {
+                                                    // If there can be a timeout, then keep waiting for it
+                                                    (0, shared_impl_1.debug)(dhead, "CONTINUE");
+                                                    return [2 /*return*/, "continue"];
+                                                }
+                                                else {
+                                                    // Otherwise, something bad is happening
+                                                    throw Error(dhead + " --- ABORT");
+                                                }
+                                                return [3 /*break*/, 14];
+                                            case 14:
+                                                _r = {};
+                                                return [4 /*yield*/, doRecv(true, false)];
+                                            case 15: return [2 /*return*/, (_r.value = _s.sent(), _r)];
+                                        }
+                                    });
+                                };
+                                _l.label = 12;
+                            case 12:
+                                if (!true) return [3 /*break*/, 14];
+                                return [5 /*yield**/, _loop_1()];
+                            case 13:
+                                state_1 = _l.sent();
+                                if (typeof state_1 === "object")
+                                    return [2 /*return*/, state_1.value];
+                                return [3 /*break*/, 12];
+                            case 14: return [2 /*return*/];
+                        }
+                    });
+                }); };
+                var recv = function (rargs) { return __awaiter(void 0, void 0, void 0, function () {
+                    var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, fromBlock_summand, funcName, dhead, _a, ApplicationID, escrowAddr, getLastRound, setLastRound, _loop_2, state_2;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                funcNum = rargs.funcNum, out_tys = rargs.out_tys, didSend = rargs.didSend, waitIfNotPresent = rargs.waitIfNotPresent, timeoutAt = rargs.timeoutAt;
+                                isCtor = (funcNum == 0);
+                                fromBlock_summand = isCtor ? 0 : 1;
+                                funcName = "m" + funcNum;
+                                dhead = label + ": " + label + " recv " + funcName + " " + timeoutAt;
+                                (0, shared_impl_1.debug)(dhead, '--- START');
+                                return [4 /*yield*/, getC()];
+                            case 1:
+                                _a = _b.sent(), ApplicationID = _a.ApplicationID, escrowAddr = _a.escrowAddr, getLastRound = _a.getLastRound, setLastRound = _a.setLastRound;
+                                _loop_2 = function () {
+                                    var correctStep, res, currentRound, txn, theRound, theSecs, ctc_args_all, argMsg, ctc_args_s, msgTy, ctc_args, shouldBeEscrow, fromAddr, from, oldLastRound, getOutput;
+                                    return __generator(this, function (_c) {
+                                        switch (_c.label) {
+                                            case 0:
+                                                correctStep = makeIsMethod(funcNum);
+                                                return [4 /*yield*/, eventCache.query(dhead, ApplicationID, { minRound: getLastRound() + fromBlock_summand, timeoutAt: timeoutAt }, correctStep)];
+                                            case 1:
+                                                res = _c.sent();
+                                                (0, shared_impl_1.debug)("EventCache res: ", res);
+                                                if (!!res.succ) return [3 /*break*/, 7];
+                                                currentRound = res.round;
+                                                (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, currentRound: currentRound });
+                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, currentRound + 1)];
+                                            case 2:
+                                                if (_c.sent()) {
+                                                    (0, shared_impl_1.debug)(dhead, 'TIMEOUT');
+                                                    return [2 /*return*/, { value: { didTimeout: true } }];
+                                                }
+                                                if (!waitIfNotPresent) return [3 /*break*/, 4];
+                                                return [4 /*yield*/, (0, exports.waitUntilTime)((0, shared_user_1.bigNumberify)(currentRound + 1))];
+                                            case 3:
+                                                _c.sent();
+                                                return [3 /*break*/, 6];
+                                            case 4: return [4 /*yield*/, indexer_statusAfterBlock(currentRound + 1)];
+                                            case 5:
+                                                _c.sent();
+                                                _c.label = 6;
+                                            case 6: return [2 /*return*/, "continue"];
+                                            case 7:
+                                                txn = res.txn;
+                                                (0, shared_impl_1.debug)(dhead, '--- txn =', txn);
+                                                theRound = txn['confirmed-round'];
+                                                return [4 /*yield*/, getTimeSecs((0, shared_user_1.bigNumberify)(theRound - 1))];
+                                            case 8:
+                                                theSecs = _c.sent();
+                                                ctc_args_all = txn['application-transaction']['application-args'];
+                                                (0, shared_impl_1.debug)(dhead, { ctc_args_all: ctc_args_all });
+                                                argMsg = 2;
+                                                ctc_args_s = ctc_args_all[argMsg];
+                                                (0, shared_impl_1.debug)(dhead, '--- out_tys =', out_tys);
+                                                if (isCtor) {
+                                                    out_tys.unshift(exports.T_Address);
+                                                    (0, shared_impl_1.debug)(dhead, 'ctor, adding address', { out_tys: out_tys });
+                                                }
+                                                msgTy = (0, exports.T_Tuple)(out_tys);
+                                                ctc_args = msgTy.fromNet(reNetify(ctc_args_s));
+                                                (0, shared_impl_1.debug)(dhead, { ctc_args: ctc_args });
+                                                if (isCtor) {
+                                                    shouldBeEscrow = ctc_args.shift();
+                                                    (0, shared_impl_1.debug)(dhead, "dropped escrow addr", { shouldBeEscrow: shouldBeEscrow, escrowAddr: escrowAddr, ctc_args: ctc_args });
+                                                }
+                                                fromAddr = txn['sender'];
+                                                from = exports.T_Address.canonicalize({ addr: fromAddr });
+                                                (0, shared_impl_1.debug)(dhead, '--- from =', from, '=', fromAddr);
+                                                oldLastRound = getLastRound();
+                                                setLastRound(theRound);
+                                                (0, shared_impl_1.debug)(dhead, '--- RECVD updating round from', oldLastRound, 'to', getLastRound());
+                                                getOutput = function (o_mode, o_lab, o_ctc, o_val) { return __awaiter(void 0, void 0, void 0, function () {
+                                                    var f_ctc, _i, _a, l, lb, ln, ls, ld, o;
+                                                    return __generator(this, function (_b) {
+                                                        (0, shared_impl_1.debug)("getOutput", { o_mode: o_mode, o_lab: o_lab, o_ctc: o_ctc, o_val: o_val });
+                                                        f_ctc = (0, exports.T_Tuple)([exports.T_UInt, o_ctc]);
+                                                        for (_i = 0, _a = txn['logs']; _i < _a.length; _i++) {
+                                                            l = _a[_i];
+                                                            lb = reNetify(l);
+                                                            ln = exports.T_UInt.fromNet(lb);
+                                                            ls = "v" + ln;
+                                                            (0, shared_impl_1.debug)("getOutput", { l: l, lb: lb, ln: ln, ls: ls });
+                                                            if (ls === o_lab) {
+                                                                ld = f_ctc.fromNet(lb);
+                                                                o = ld[1];
+                                                                (0, shared_impl_1.debug)("getOutput", { ld: ld, o: o });
+                                                                return [2 /*return*/, o];
+                                                            }
+                                                        }
+                                                        throw Error("no log for " + o_lab);
+                                                    });
+                                                }); };
+                                                if (isCtor) {
+                                                    ctorRan.notify();
+                                                }
+                                                return [2 /*return*/, { value: {
+                                                            didSend: didSend,
+                                                            didTimeout: false,
+                                                            data: ctc_args,
+                                                            time: (0, shared_user_1.bigNumberify)(getLastRound()),
+                                                            secs: (0, shared_user_1.bigNumberify)(theSecs),
+                                                            from: from,
+                                                            getOutput: getOutput
+                                                        } }];
+                                        }
+                                    });
+                                };
+                                _b.label = 2;
+                            case 2:
+                                if (!true) return [3 /*break*/, 4];
+                                return [5 /*yield**/, _loop_2()];
+                            case 3:
+                                state_2 = _b.sent();
+                                if (typeof state_2 === "object")
+                                    return [2 /*return*/, state_2.value];
+                                return [3 /*break*/, 2];
+                            case 4: return [2 /*return*/];
+                        }
+                    });
+                }); };
+                return { getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
+            };
+            var readStateBytes = function (prefix, key, src) {
+                (0, shared_impl_1.debug)({ prefix: prefix, key: key });
+                var ik = base64ify(new Uint8Array(key));
+                (0, shared_impl_1.debug)({ ik: ik });
+                var ste = src.find(function (x) { return x.key === ik; });
+                (0, shared_impl_1.debug)({ ste: ste });
+                if (ste === undefined) {
+                    return [];
                 }
-            });
-        }); };
-        implNow = { stdlib: ALGO_compiled_1.stdlib, iam: iam, selfAddress: selfAddress };
-        attach = function (bin, ctcInfoP) {
-            (0, shared_impl_1.ensureConnectorAvailable)(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
-            return (0, shared_impl_1.deferContract)(false, attachP(bin, ctcInfoP), implNow);
-        };
-        deploy = function (bin) {
-            (0, shared_impl_1.ensureConnectorAvailable)(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
-            return (0, shared_impl_1.deferContract)(false, deployP(bin), implNow);
+                ;
+                var st = ste.value;
+                (0, shared_impl_1.debug)({ st: st });
+                if (st.bytes === undefined) {
+                    return [];
+                }
+                ;
+                var bsi = base64ToUI8A(st.bytes);
+                (0, shared_impl_1.debug)({ bsi: bsi });
+                return bsi;
+            };
+            var recoverSplitBytes = function (prefix, size, howMany, src) {
+                var bs = new Uint8Array(size);
+                var offset = 0;
+                for (var i = 0; i < howMany; i++) {
+                    var bsi = readStateBytes(prefix, [i], src);
+                    if (bsi.length == 0) {
+                        return undefined;
+                    }
+                    bs.set(bsi, offset);
+                    offset += bsi.length;
+                }
+                return bs;
+            };
+            var setupView = function (getInfo) {
+                var eventCache = new EventCache();
+                var getC = makeGetC(getInfo, eventCache, (function () { return undefined; }));
+                var viewLib = {
+                    viewMapRef: function (mapi, a) { return __awaiter(void 0, void 0, void 0, function () {
+                        var getLocalState, ls, mbs, md, mr;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, getC()];
+                                case 1:
+                                    getLocalState = (_a.sent()).getLocalState;
+                                    (0, shared_impl_1.debug)('viewMapRef', { mapi: mapi, a: a });
+                                    return [4 /*yield*/, getLocalState(cbr2algo_addr(a))];
+                                case 2:
+                                    ls = _a.sent();
+                                    (0, exports.assert)(ls !== undefined, 'viewMapRef ls undefined');
+                                    (0, shared_impl_1.debug)('viewMapRef', { ls: ls });
+                                    mbs = recoverSplitBytes('m', mapDataSize, mapDataKeys, ls);
+                                    (0, shared_impl_1.debug)('viewMapRef', { mbs: mbs });
+                                    md = mapDataTy.fromNet(mbs);
+                                    (0, shared_impl_1.debug)('viewMapRef', { md: md });
+                                    mr = md[mapi];
+                                    (0, exports.assert)(mr !== undefined, 'viewMapRef mr undefined');
+                                    return [2 /*return*/, mr];
+                            }
+                        });
+                    }); }
+                };
+                var getView1 = function (vs, v, k, vim) {
+                    return function () {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        return __awaiter(void 0, void 0, void 0, function () {
+                            var decode, vi_1, vvs, vres, e_9;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        (0, shared_impl_1.debug)('getView1', v, k, args);
+                                        decode = vim.decode;
+                                        _a.label = 1;
+                                    case 1:
+                                        _a.trys.push([1, 4, , 5]);
+                                        vi_1 = 0;
+                                        return [4 /*yield*/, getState_(getC, function (vibna) {
+                                                vi_1 = (0, shared_user_1.bigNumberToNumber)(vibna);
+                                                var vtys = vs[vi_1];
+                                                if (!vtys) {
+                                                    throw Error("no views for state " + vibna);
+                                                }
+                                                return vtys;
+                                            })];
+                                    case 2:
+                                        vvs = _a.sent();
+                                        return [4 /*yield*/, decode(vi_1, vvs, args)];
+                                    case 3:
+                                        vres = _a.sent();
+                                        (0, shared_impl_1.debug)({ vres: vres });
+                                        return [2 /*return*/, ['Some', vres]];
+                                    case 4:
+                                        e_9 = _a.sent();
+                                        (0, shared_impl_1.debug)("getView1", v, k, 'error', e_9);
+                                        return [2 /*return*/, ['None', null]];
+                                    case 5: return [2 /*return*/];
+                                }
+                            });
+                        });
+                    };
+                };
+                return { getView1: getView1, viewLib: viewLib };
+            };
+            return (0, shared_impl_1.stdContract)({ bin: bin, waitUntilTime: exports.waitUntilTime, waitUntilSecs: exports.waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: ALGO_compiled_1.stdlib, setupView: setupView, _setup: _setup, givenInfoP: givenInfoP });
         };
         ;
         tokenMetadata = function (token) { return __awaiter(void 0, void 0, void 0, function () {
-            var client, tokenRes, tokenInfo, p, name, symbol, url, metadata, supply;
+            var client, tokenRes, tokenInfo, p, name, symbol, url, metadata, supply, decimals;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1855,11 +1915,12 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         url = p(96, tokenInfo['url-b64']);
                         metadata = p(32, tokenInfo['metadata-hash']);
                         supply = (0, shared_user_1.bigNumberify)(tokenInfo['total']);
-                        return [2 /*return*/, { name: name, symbol: symbol, url: url, metadata: metadata, supply: supply }];
+                        decimals = (0, shared_user_1.bigNumberify)(tokenInfo['decimals']);
+                        return [2 /*return*/, { name: name, symbol: symbol, url: url, metadata: metadata, supply: supply, decimals: decimals }];
                 }
             });
         }); };
-        return [2 /*return*/, { deploy: deploy, attach: attach, networkAccount: networkAccount, getAddress: selfAddress, stdlib: ALGO_compiled_1.stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata }];
+        return [2 /*return*/, (0, shared_impl_1.stdAccount)({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: ALGO_compiled_1.stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })];
     });
 }); };
 exports.connectAccount = connectAccount;
@@ -1911,16 +1972,30 @@ var createAccount = function () { return __awaiter(void 0, void 0, void 0, funct
 }); };
 exports.createAccount = createAccount;
 var canFundFromFaucet = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var faucet, fbal;
+    var faucet, algodClient, txnParams, act, exp, fbal;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, (0, exports.getFaucet)()];
             case 1:
                 faucet = _a.sent();
-                (0, shared_impl_1.debug)('canFundFromFaucet');
-                return [4 /*yield*/, (0, exports.balanceOf)(faucet)];
+                return [4 /*yield*/, getAlgodClient()];
             case 2:
+                algodClient = _a.sent();
+                (0, shared_impl_1.debug)('ALGO:canFundFromFaucet: check genesis');
+                return [4 /*yield*/, algodClient.getTransactionParams()["do"]()];
+            case 3:
+                txnParams = _a.sent();
+                act = txnParams.genesisID;
+                exp = 'devnet-v1';
+                if (act !== exp) {
+                    (0, shared_impl_1.debug)("ALGO:canFundFromFaucet: expected '" + exp + "' !== actual '" + act + "'");
+                    return [2 /*return*/, false];
+                }
+                (0, shared_impl_1.debug)('ALGO:canFundFromFaucet: check balance');
+                return [4 /*yield*/, (0, exports.balanceOf)(faucet)];
+            case 4:
                 fbal = _a.sent();
+                (0, shared_impl_1.debug)("ALGO:canFundFromFaucet: faucet balance = " + formatCurrency(fbal, 4) + " " + exports.standardUnit);
                 return [2 /*return*/, (0, exports.gt)(fbal, 0)];
         }
     });
@@ -2166,22 +2241,6 @@ var appLocalStateNumUInt = 0;
 var appLocalStateNumBytes = 0;
 var appGlobalStateNumUInt = 0;
 var appGlobalStateNumBytes = 1;
-function queryCtorTxn(dhead, ApplicationID, eventCache) {
-    return __awaiter(this, void 0, void 0, function () {
-        var isCtor, icr;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    isCtor = makeIsMethod(0);
-                    return [4 /*yield*/, eventCache.query(dhead + " ctor", ApplicationID, { minRound: 0 }, isCtor)];
-                case 1:
-                    icr = _a.sent();
-                    (0, shared_impl_1.debug)({ icr: icr });
-                    return [2 /*return*/, icr];
-            }
-        });
-    });
-}
 var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         return [2 /*return*/, verifyContract_('', info, bin, new EventCache())];
@@ -2189,7 +2248,7 @@ var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, voi
 }); };
 exports.verifyContract = verifyContract;
 var verifyContract_ = function (label, info, bin, eventCache) { return __awaiter(void 0, void 0, void 0, function () {
-    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, stateKeys, dhead, chk, chkeq, fmtp, client, appInfo, err, e_10, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iar, iat, iatat, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
+    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, stateKeys, dhead, chk, chkeq, fmtp, client, appInfo, err, e_10, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iar, iat, iatat, isCtor, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, compileFor(bin, info)];
@@ -2261,9 +2320,11 @@ var verifyContract_ = function (label, info, bin, eventCache) { return __awaiter
                 (0, shared_impl_1.debug)({ iatat: iatat });
                 chkeq(iatat['approval-program'], appInfo_p['approval-program'], "ApprovalProgram unchanged since creation");
                 chkeq(iatat['clear-state-program'], appInfo_p['clear-state-program'], "ClearStateProgram unchanged since creation");
-                return [4 /*yield*/, queryCtorTxn(dhead, ApplicationID, eventCache)];
+                isCtor = makeIsMethod(0);
+                return [4 /*yield*/, eventCache.query(dhead + " ctor", ApplicationID, { minRound: 0 }, isCtor)];
             case 10:
                 icr = _b.sent();
+                (0, shared_impl_1.debug)({ icr: icr });
                 ict = icr.txn;
                 chk(ict, "Cannot query for constructor transaction");
                 (0, shared_impl_1.debug)({ ict: ict });
@@ -2291,7 +2352,7 @@ exports.formatAddress = formatAddress;
 function launchToken(accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, algod, dotxn, supply, ctxn_p, id, mint, optOut;
+        var addr, caddr, zaddr, algod, dotxn, supply, decimals, ctxn_p, id, mint, optOut;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -2332,8 +2393,9 @@ function launchToken(accCreator, name, sym, opts) {
                         });
                     };
                     supply = (opts.supply && (0, shared_user_1.bigNumberify)(opts.supply)) || (0, shared_user_1.bigNumberify)(2).pow(64).sub(1);
+                    decimals = opts.decimals !== undefined ? opts.decimals : 6;
                     return [4 /*yield*/, dotxn(function (params) {
-                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, (0, shared_impl_1.bigNumberToBigInt)(supply), 6, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
+                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, (0, shared_impl_1.bigNumberToBigInt)(supply), decimals, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
                         })];
                 case 2:
                     ctxn_p = _a.sent();

@@ -184,7 +184,7 @@ var Contract = /** @class */ (function () {
         this.deployTransaction = {
             hash: hash,
             wait: function () { return __awaiter(_this, void 0, void 0, function () {
-                var receipt;
+                var receipt, rcc;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -196,10 +196,11 @@ var Contract = /** @class */ (function () {
                         case 1:
                             receipt = _a.sent();
                             (0, shared_impl_1.debug)("cfxers:Contract.wait", "got receipt", receipt);
-                            if (self.address && self.address !== receipt.contractCreated) {
-                                throw Error("Impossible: ctc addresses don't match: " + self.address + " vs " + receipt.contractCreated);
+                            rcc = (0, CFX_util_1.address_cfxStandardize)(receipt.contractCreated);
+                            if (self.address && self.address !== rcc) {
+                                throw Error("Impossible: ctc addresses don't match: " + self.address + " vs " + rcc);
                             }
-                            self.address = self.address || receipt.contractCreated;
+                            self.address = self.address || rcc;
                             if (self.deployTransaction.hash && self.deployTransaction.hash !== receipt.transactionHash) {
                                 throw Error("Impossible: txn hashes don't match: " + self.deployTransaction.hash + " vs " + receipt.transactionHash);
                             }
