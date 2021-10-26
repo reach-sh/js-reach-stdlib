@@ -7,11 +7,14 @@ var shared_impl_1 = require("./shared_impl");
 function address_cfxStandardize(addrC) {
     (0, shared_impl_1.debug)("address_cfxStandardize", { addrC: addrC });
     var pieces = addrC.split(':');
+    //debug(`address_cfxStandardize`, pieces.length, {pieces});
     if (pieces.length === 3) {
-        return (pieces[0] + ":" + pieces[2]).toUpperCase();
+        addrC = pieces[0] + ":" + pieces[2];
     }
-    if (pieces.length !== 2)
+    else if (pieces.length !== 2) {
         throw Error("impossible: bad CFX addr: '" + addrC + "'");
+    }
+    //debug(`address_cfxStandardize`, {addrC});
     return addrC.toUpperCase();
 }
 exports.address_cfxStandardize = address_cfxStandardize;

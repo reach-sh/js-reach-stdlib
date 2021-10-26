@@ -80,15 +80,15 @@ function makeEthLike(ethLikeArgs) {
     // ...............................................
     var ethLikeCompiled = ethLikeArgs.ethLikeCompiled, ethers = ethLikeArgs.ethers, _a = ethLikeArgs.standardDigits, standardDigits = _a === void 0 ? 18 : _a, providerLib = ethLikeArgs.providerLib, isIsolatedNetwork = ethLikeArgs.isIsolatedNetwork, canGetDefaultAccount = ethLikeArgs.canGetDefaultAccount, 
     // isWindowProvider,
-    _getDefaultNetworkAccount = ethLikeArgs._getDefaultNetworkAccount, _getDefaultFaucetNetworkAccount = ethLikeArgs._getDefaultFaucetNetworkAccount, _b = ethLikeArgs._warnTxNoBlockNumber, _warnTxNoBlockNumber = _b === void 0 ? true : _b, _c = ethLikeArgs._specialFundFromFaucet, _specialFundFromFaucet = _c === void 0 ? function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+    _getDefaultNetworkAccount = ethLikeArgs._getDefaultNetworkAccount, _getDefaultFaucetNetworkAccount = ethLikeArgs._getDefaultFaucetNetworkAccount, _b = ethLikeArgs._specialFundFromFaucet, _specialFundFromFaucet = _b === void 0 ? function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
         return [2 /*return*/, null];
-    }); }); } : _c, canFundFromFaucet = ethLikeArgs.canFundFromFaucet, standardUnit = ethLikeArgs.standardUnit, atomicUnit = ethLikeArgs.atomicUnit, validQueryWindowDefault = ethLikeArgs.validQueryWindow;
-    var _d = (0, shared_impl_1.replaceableThunk)(function () { return validQueryWindowDefault; }), getValidQueryWindow = _d[0], setValidQueryWindow = _d[1];
+    }); }); } : _b, canFundFromFaucet = ethLikeArgs.canFundFromFaucet, standardUnit = ethLikeArgs.standardUnit, atomicUnit = ethLikeArgs.atomicUnit, validQueryWindowDefault = ethLikeArgs.validQueryWindow;
+    var _c = (0, shared_impl_1.replaceableThunk)(function () { return validQueryWindowDefault; }), getValidQueryWindow = _c[0], setValidQueryWindow = _c[1];
     var getProvider = providerLib.getProvider;
     var stdlib = ethLikeCompiled.stdlib;
     var T_Address = stdlib.T_Address, T_Tuple = stdlib.T_Tuple, T_UInt = stdlib.T_UInt, T_Contract = stdlib.T_Contract, addressEq = stdlib.addressEq;
     var reachStdlib = stdlib;
-    var _e = (0, shared_impl_1.replaceableThunk)(function () { return 0; }), _getQueryLowerBound = _e[0], _setQueryLowerBound = _e[1];
+    var _d = (0, shared_impl_1.replaceableThunk)(function () { return 0; }), _getQueryLowerBound = _d[0], _setQueryLowerBound = _d[1];
     function getQueryLowerBound() {
         return (0, shared_user_1.bigNumberify)(_getQueryLowerBound());
     }
@@ -159,7 +159,7 @@ function makeEthLike(ethLikeArgs) {
         var _b = (0, shared_impl_1.argsSplit)(tys, evt_cnt), _tys_svs = _b[0], tys_msg = _b[1];
         void (_args_svs);
         void (_tys_svs);
-        // @ts-ignore XXX
+        // @ts-ignore
         var arg_ty = T_Tuple([T_UInt, T_Tuple(tys_msg)]);
         return arg_ty.munge([lct, args_msg]);
     };
@@ -360,7 +360,7 @@ function makeEthLike(ethLikeArgs) {
     // ****************************************************************************
     // Common Interface Exports
     // ****************************************************************************
-    var _f = (0, shared_impl_1.makeRandom)(32), randomUInt = _f.randomUInt, hasRandom = _f.hasRandom;
+    var _e = (0, shared_impl_1.makeRandom)(32), randomUInt = _e.randomUInt, hasRandom = _e.hasRandom;
     var balanceOf = function (acc, token) {
         if (token === void 0) { token = false; }
         return __awaiter(_this, void 0, void 0, function () {
@@ -428,9 +428,7 @@ function makeEthLike(ethLikeArgs) {
                 case 3:
                     ro = _a.sent();
                     (0, shared_impl_1.debug)(__assign(__assign({}, dhead), { rt: rt, rm: rm, ro: ro, step: "post receipt" }));
-                    // ro's blockNumber might be interesting
-                    void (ro);
-                    return [2 /*return*/];
+                    return [2 /*return*/, ro];
             }
         });
     }); };
@@ -654,9 +652,7 @@ function makeEthLike(ethLikeArgs) {
                                                         case 2:
                                                             _b.trys.push([2, 4, , 6]);
                                                             return [4 /*yield*/, maybePayTok(i + 1)];
-                                                        case 3:
-                                                            _b.sent();
-                                                            return [3 /*break*/, 6];
+                                                        case 3: return [2 /*return*/, _b.sent()];
                                                         case 4:
                                                             e_2 = _b.sent();
                                                             return [4 /*yield*/, callTok(tok, zero)];
@@ -665,17 +661,13 @@ function makeEthLike(ethLikeArgs) {
                                                             throw e_2;
                                                         case 6: return [3 /*break*/, 9];
                                                         case 7: return [4 /*yield*/, actualCall()];
-                                                        case 8:
-                                                            _b.sent();
-                                                            _b.label = 9;
+                                                        case 8: return [2 /*return*/, _b.sent()];
                                                         case 9: return [2 /*return*/];
                                                     }
                                                 });
                                             }); };
                                             return [4 /*yield*/, maybePayTok(0)];
-                                        case 2:
-                                            _a.sent();
-                                            return [2 /*return*/];
+                                        case 2: return [2 /*return*/, _a.sent()];
                                     }
                                 });
                             }); };
@@ -732,7 +724,7 @@ function makeEthLike(ethLikeArgs) {
                                 });
                             }); };
                             var sendrecv = function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, arg, _a, ABI, Bytecode, factory, value, toks, overrides, contract_1, deploy_r, info, creation_block, _b, _c, _d, e_4;
+                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, trustedRecv, arg, _a, ABI, Bytecode, factory, value, toks, overrides, contract_1, deploy_r, info, creation_block, _b, _c, _d, ok_r, e_4;
                                 var _this = this;
                                 return __generator(this, function (_e) {
                                     switch (_e.label) {
@@ -756,8 +748,20 @@ function makeEthLike(ethLikeArgs) {
                                         case 2:
                                             funcName = "m" + funcNum;
                                             dhead = [label, 'send', funcName, timeoutAt, 'SEND'];
+                                            trustedRecv = function (ok_r) { return __awaiter(_this, void 0, void 0, function () {
+                                                var didSend;
+                                                return __generator(this, function (_a) {
+                                                    switch (_a.label) {
+                                                        case 0:
+                                                            didSend = true;
+                                                            return [4 /*yield*/, recvFrom({ dhead: dhead, out_tys: out_tys, didSend: didSend, funcNum: funcNum, ok_r: ok_r })];
+                                                        case 1: return [2 /*return*/, _a.sent()];
+                                                    }
+                                                });
+                                            }); };
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARGS', args], false));
                                             arg = sendRecv_prepArg(lct, args, tys, evt_cnt);
+                                            shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['START', arg], false));
                                             if (!(funcNum == 0)) return [3 /*break*/, 6];
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["deploying"], false));
                                             _a = bin._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
@@ -784,10 +788,8 @@ function makeEthLike(ethLikeArgs) {
                                             (0, shared_impl_1.debug)(label, "got receipt;", creation_block);
                                             trustedVerifyResult = { creation_block: creation_block };
                                             setInfo(info);
-                                            return [4 /*yield*/, doRecv(true, false)];
-                                        case 5: 
-                                        // XXX trusted recv
-                                        return [2 /*return*/, _e.sent()];
+                                            return [4 /*yield*/, trustedRecv(deploy_r)];
+                                        case 5: return [2 /*return*/, _e.sent()];
                                         case 6: 
                                         // Make sure the ctc is available and verified (before we get into try/catch)
                                         // https://github.com/reach-sh/reach-lang/issues/134
@@ -796,10 +798,9 @@ function makeEthLike(ethLikeArgs) {
                                             // Make sure the ctc is available and verified (before we get into try/catch)
                                             // https://github.com/reach-sh/reach-lang/issues/134
                                             _e.sent();
-                                            shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['START', arg], false));
                                             _e.label = 8;
                                         case 8:
-                                            if (!true) return [3 /*break*/, 23];
+                                            if (!true) return [3 /*break*/, 25];
                                             (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { timeoutAt: timeoutAt });
                                             _b = shared_impl_1.checkTimeout;
                                             _c = [getTimeSecs, timeoutAt];
@@ -823,20 +824,27 @@ function makeEthLike(ethLikeArgs) {
                                             return [4 /*yield*/, doRecv(false, false)];
                                         case 15: return [2 /*return*/, _e.sent()];
                                         case 16:
-                                            _e.trys.push([16, 18, , 21]);
+                                            ok_r = void 0;
+                                            _e.label = 17;
+                                        case 17:
+                                            _e.trys.push([17, 19, , 20]);
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARG', arg, pay], false));
                                             return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
-                                        case 17:
-                                            _e.sent();
-                                            return [3 /*break*/, 21];
                                         case 18:
+                                            ok_r = _e.sent();
+                                            return [3 /*break*/, 20];
+                                        case 19:
                                             e_4 = _e.sent();
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["ERROR", { stack: e_4.stack }, e_4], false));
-                                            if (!!soloSend) return [3 /*break*/, 20];
+                                            ok_r = undefined;
+                                            return [3 /*break*/, 20];
+                                        case 20:
+                                            if (!!ok_r) return [3 /*break*/, 23];
+                                            if (!!soloSend) return [3 /*break*/, 22];
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["LOST"], false));
                                             return [4 /*yield*/, doRecv(false, false)];
-                                        case 19: return [2 /*return*/, _e.sent()];
-                                        case 20:
+                                        case 21: return [2 /*return*/, _e.sent()];
+                                        case 22:
                                             if (timeoutAt) {
                                                 // If there can be a timeout, then keep waiting for it
                                                 shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["CONTINUE"], false));
@@ -846,21 +854,98 @@ function makeEthLike(ethLikeArgs) {
                                                 // Otherwise, something bad is happening
                                                 throw Error(dhead + " --- ABORT");
                                             }
-                                            return [3 /*break*/, 21];
-                                        case 21:
+                                            _e.label = 23;
+                                        case 23:
                                             shared_impl_1.debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['SUCC'], false));
-                                            return [4 /*yield*/, doRecv(true, false)];
-                                        case 22: 
-                                        // XXX trusted recv
-                                        return [2 /*return*/, _e.sent()];
-                                        case 23: return [2 /*return*/];
+                                            return [4 /*yield*/, trustedRecv(ok_r)];
+                                        case 24: return [2 /*return*/, _e.sent()];
+                                        case 25: return [2 /*return*/];
                                     }
                                 });
                             }); };
-                            // https://docs.ethers.io/ethers.js/html/api-contract.html#configuring-events
-                            var recv = function (rargs) { return __awaiter(_this, void 0, void 0, function () {
-                                var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, lastBlock, ok_evt, dhead, fromBlock, _loop_1, state_1;
+                            var recvFrom = function (rfargs) { return __awaiter(_this, void 0, void 0, function () {
+                                var dhead, out_tys, didSend, funcNum, ok_r, ok_evt, theBlock, ethersC, getLog, data, theBlockBN, rawFrom, from, theSecsBN, getOutput;
                                 var _this = this;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            dhead = rfargs.dhead, out_tys = rfargs.out_tys, didSend = rfargs.didSend, funcNum = rfargs.funcNum, ok_r = rfargs.ok_r;
+                                            ok_evt = func2evt(funcNum);
+                                            theBlock = ok_r.blockNumber;
+                                            (0, shared_impl_1.debug)(dhead, "AT", theBlock);
+                                            updateLast(ok_r);
+                                            return [4 /*yield*/, getC()];
+                                        case 1:
+                                            ethersC = _a.sent();
+                                            getLog = function (l_evt, l_ctc, fiddle) { return __awaiter(_this, void 0, void 0, function () {
+                                                var l_args_abi, addr_e, _loop_1, _i, _a, l, state_1;
+                                                return __generator(this, function (_b) {
+                                                    (0, shared_impl_1.debug)(dhead, "getLog", { l_evt: l_evt, l_ctc: l_ctc });
+                                                    l_args_abi = ethersC.interface.getEvent(l_evt).inputs;
+                                                    addr_e = ethersC.address;
+                                                    _loop_1 = function (l) {
+                                                        var addr_a = l.address;
+                                                        if (!addressEq(addr_a, addr_e)) {
+                                                            (0, shared_impl_1.debug)(dhead, 'getLog', 'skip', { addr_a: addr_a, addr_e: addr_e });
+                                                            return "continue";
+                                                        }
+                                                        var _c = ethersC.interface.parseLog(l), name = _c.name, args = _c.args;
+                                                        (0, shared_impl_1.debug)(dhead, "getLog", { name: name });
+                                                        if (name === l_evt) {
+                                                            var l_edl = l_args_abi.map(function (a) { return args[a.name]; });
+                                                            var l_edp = l_edl[0];
+                                                            var l_ed = fiddle(l_edp);
+                                                            (0, shared_impl_1.debug)(dhead, "getLog", { l_edl: l_edl, l_edp: l_edp, l_ed: l_ed });
+                                                            var l_edu = l_ctc.unmunge(l_ed);
+                                                            (0, shared_impl_1.debug)(dhead, "getLog", { l_edu: l_edu });
+                                                            return { value: l_edu };
+                                                        }
+                                                    };
+                                                    for (_i = 0, _a = ok_r.logs; _i < _a.length; _i++) {
+                                                        l = _a[_i];
+                                                        state_1 = _loop_1(l);
+                                                        if (typeof state_1 === "object")
+                                                            return [2 /*return*/, state_1.value];
+                                                    }
+                                                    throw Error("no log for " + l_evt);
+                                                });
+                                            }); };
+                                            return [4 /*yield*/, getLog(ok_evt, T_Tuple(out_tys), (function (x) { return x[1]; }))];
+                                        case 2:
+                                            data = _a.sent();
+                                            (0, shared_impl_1.debug)(dhead, "OKAY", data);
+                                            theBlockBN = (0, shared_user_1.bigNumberify)(theBlock);
+                                            rawFrom = ok_r.from;
+                                            from = T_Address.canonicalize(rawFrom);
+                                            return [4 /*yield*/, getTimeSecs(theBlockBN)];
+                                        case 3:
+                                            theSecsBN = _a.sent();
+                                            getOutput = function (o_mode, o_lab, l_ctc, o_val) { return __awaiter(_this, void 0, void 0, function () {
+                                                return __generator(this, function (_a) {
+                                                    switch (_a.label) {
+                                                        case 0:
+                                                            void (o_mode);
+                                                            void (o_val);
+                                                            return [4 /*yield*/, getLog("oe_" + o_lab, l_ctc, (function (x) { return x; }))];
+                                                        case 1: return [2 /*return*/, _a.sent()];
+                                                    }
+                                                });
+                                            }); };
+                                            return [2 /*return*/, {
+                                                    data: data,
+                                                    getOutput: getOutput,
+                                                    from: from,
+                                                    didSend: didSend,
+                                                    didTimeout: false,
+                                                    time: theBlockBN,
+                                                    secs: theSecsBN
+                                                }];
+                                    }
+                                });
+                            }); };
+                            var func2evt = function (x) { return "e" + x; };
+                            var recv = function (rargs) { return __awaiter(_this, void 0, void 0, function () {
+                                var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, lastBlock, ok_evt, dhead, fromBlock, res, currentTime, ok_e, txnHash, ok_r, ok_t;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
@@ -869,137 +954,55 @@ function makeEthLike(ethLikeArgs) {
                                             return [4 /*yield*/, getLastBlock()];
                                         case 1:
                                             lastBlock = _a.sent();
-                                            ok_evt = "e" + funcNum;
+                                            ok_evt = func2evt(funcNum);
                                             dhead = { t: 'recv', label: label, ok_evt: ok_evt };
                                             (0, shared_impl_1.debug)(dhead, "START");
                                             fromBlock = lastBlock + (isCtor ? 0 : 1);
-                                            _loop_1 = function () {
-                                                var res, currentTime, ok_e, ok_r_1, ok_t, theBlock, ethersC_1, ok_args_abi, ok_args_1, ok_ed, ok_vals, data, getOutput, theBlockBN, from, theSecsBN;
-                                                return __generator(this, function (_b) {
-                                                    switch (_b.label) {
-                                                        case 0: return [4 /*yield*/, eventCache.query(dhead, getC, fromBlock, timeoutAt, ok_evt)];
-                                                        case 1:
-                                                            res = _b.sent();
-                                                            if (!!res.succ) return [3 /*break*/, 7];
-                                                            currentTime = res.block;
-                                                            (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, currentTime: currentTime });
-                                                            return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, currentTime + 1)];
-                                                        case 2:
-                                                            if (_b.sent()) {
-                                                                (0, shared_impl_1.debug)(dhead, 'TIMEOUT');
-                                                                return [2 /*return*/, { value: { didTimeout: true } }];
-                                                            }
-                                                            if (!waitIfNotPresent) return [3 /*break*/, 4];
-                                                            return [4 /*yield*/, waitUntilTime((0, shared_user_1.bigNumberify)(currentTime + 1))];
-                                                        case 3:
-                                                            _b.sent();
-                                                            return [3 /*break*/, 6];
-                                                        case 4: 
-                                                        // Ideally we'd wait until after time has advanced
-                                                        return [4 /*yield*/, await_timeout_1["default"].set(500)];
-                                                        case 5:
-                                                            // Ideally we'd wait until after time has advanced
-                                                            _b.sent();
-                                                            _b.label = 6;
-                                                        case 6: return [2 /*return*/, "continue"];
-                                                        case 7:
-                                                            ok_e = res.evt;
-                                                            (0, shared_impl_1.debug)(dhead, "OKAY");
-                                                            return [4 /*yield*/, fetchAndRejectInvalidReceiptFor(ok_e.transactionHash)];
-                                                        case 8:
-                                                            ok_r_1 = _b.sent();
-                                                            (0, shared_impl_1.debug)(dhead, 'ok_r', ok_r_1);
-                                                            return [4 /*yield*/, getProvider()];
-                                                        case 9: return [4 /*yield*/, (_b.sent()).getTransaction(ok_e.transactionHash)];
-                                                        case 10:
-                                                            ok_t = _b.sent();
-                                                            (0, shared_impl_1.debug)(dhead, 'ok_t', ok_t);
-                                                            if (ok_t.blockNumber) {
-                                                                (0, shared_backend_1.assert)(ok_t.blockNumber == ok_r_1.blockNumber, 'recept & transaction block numbers should match');
-                                                                if (ok_e.blockNumber) {
-                                                                    (0, shared_backend_1.assert)(ok_t.blockNumber == ok_e.blockNumber, 'event & transaction block numbers should match');
-                                                                }
-                                                            }
-                                                            else {
-                                                                // XXX For some reason ok_t sometimes doesn't have blockNumber
-                                                                if (_warnTxNoBlockNumber) {
-                                                                    console.log("WARNING: no blockNumber on transaction.");
-                                                                    console.log(ok_t);
-                                                                }
-                                                            }
-                                                            theBlock = ok_r_1.blockNumber;
-                                                            (0, shared_impl_1.debug)(dhead, "AT", theBlock);
-                                                            updateLast(ok_r_1);
-                                                            return [4 /*yield*/, getC()];
-                                                        case 11:
-                                                            ethersC_1 = _b.sent();
-                                                            ok_args_abi = ethersC_1.interface.getEvent(ok_evt).inputs;
-                                                            ok_args_1 = ethersC_1.interface.parseLog(ok_e).args;
-                                                            ok_ed = ok_args_abi.map(function (a) { return ok_args_1[a.name]; });
-                                                            (0, shared_impl_1.debug)(dhead, "DATA", ok_ed);
-                                                            ok_vals = ok_ed[0][1];
-                                                            (0, shared_impl_1.debug)(dhead, "MSG", ok_vals);
-                                                            data = T_Tuple(out_tys).unmunge(ok_vals);
-                                                            getOutput = function (o_mode, o_lab, l_ctc, o_val) { return __awaiter(_this, void 0, void 0, function () {
-                                                                var l_evt, l_args_abi, _loop_2, _i, _a, l, state_2;
-                                                                return __generator(this, function (_b) {
-                                                                    void (o_mode);
-                                                                    void (o_val);
-                                                                    l_evt = "oe_" + o_lab;
-                                                                    (0, shared_impl_1.debug)(dhead, "getOutput", { l_evt: l_evt, l_ctc: l_ctc });
-                                                                    l_args_abi = ethersC_1.interface.getEvent(l_evt).inputs;
-                                                                    _loop_2 = function (l) {
-                                                                        if (l.address !== ethersC_1.address) {
-                                                                            return "continue";
-                                                                        }
-                                                                        var _c = ethersC_1.interface.parseLog(l), name = _c.name, args = _c.args;
-                                                                        (0, shared_impl_1.debug)(dhead, "getOutput", { name: name });
-                                                                        if (name === l_evt) {
-                                                                            var l_edl = l_args_abi.map(function (a) { return args[a.name]; });
-                                                                            var l_ed = l_edl[0];
-                                                                            (0, shared_impl_1.debug)(dhead, "getOutput", { l_edl: l_edl, l_ed: l_ed });
-                                                                            var l_edu = l_ctc.unmunge(l_ed);
-                                                                            (0, shared_impl_1.debug)(dhead, "getOutput", { l_edu: l_edu });
-                                                                            return { value: l_edu };
-                                                                        }
-                                                                    };
-                                                                    for (_i = 0, _a = ok_r_1.logs; _i < _a.length; _i++) {
-                                                                        l = _a[_i];
-                                                                        state_2 = _loop_2(l);
-                                                                        if (typeof state_2 === "object")
-                                                                            return [2 /*return*/, state_2.value];
-                                                                    }
-                                                                    throw Error("no log for " + o_lab);
-                                                                });
-                                                            }); };
-                                                            (0, shared_impl_1.debug)(dhead, "OKAY", ok_vals);
-                                                            theBlockBN = (0, shared_user_1.bigNumberify)(theBlock);
-                                                            from = ok_t.from;
-                                                            return [4 /*yield*/, getTimeSecs(theBlockBN)];
-                                                        case 12:
-                                                            theSecsBN = _b.sent();
-                                                            return [2 /*return*/, { value: {
-                                                                        data: data,
-                                                                        getOutput: getOutput,
-                                                                        from: from,
-                                                                        didSend: didSend,
-                                                                        didTimeout: false,
-                                                                        time: theBlockBN,
-                                                                        secs: theSecsBN
-                                                                    } }];
-                                                    }
-                                                });
-                                            };
                                             _a.label = 2;
                                         case 2:
-                                            if (!true) return [3 /*break*/, 4];
-                                            return [5 /*yield**/, _loop_1()];
+                                            if (!true) return [3 /*break*/, 15];
+                                            return [4 /*yield*/, eventCache.query(dhead, getC, fromBlock, timeoutAt, ok_evt)];
                                         case 3:
-                                            state_1 = _a.sent();
-                                            if (typeof state_1 === "object")
-                                                return [2 /*return*/, state_1.value];
-                                            return [3 /*break*/, 2];
-                                        case 4: return [2 /*return*/];
+                                            res = _a.sent();
+                                            if (!!res.succ) return [3 /*break*/, 9];
+                                            currentTime = res.block;
+                                            (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, currentTime: currentTime });
+                                            return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(getTimeSecs, timeoutAt, currentTime + 1)];
+                                        case 4:
+                                            if (_a.sent()) {
+                                                (0, shared_impl_1.debug)(dhead, 'TIMEOUT');
+                                                return [2 /*return*/, { didTimeout: true }];
+                                            }
+                                            if (!waitIfNotPresent) return [3 /*break*/, 6];
+                                            return [4 /*yield*/, waitUntilTime((0, shared_user_1.bigNumberify)(currentTime + 1))];
+                                        case 5:
+                                            _a.sent();
+                                            return [3 /*break*/, 8];
+                                        case 6: 
+                                        // Ideally we'd wait until after time has advanced
+                                        return [4 /*yield*/, await_timeout_1["default"].set(500)];
+                                        case 7:
+                                            // Ideally we'd wait until after time has advanced
+                                            _a.sent();
+                                            _a.label = 8;
+                                        case 8: return [3 /*break*/, 2];
+                                        case 9:
+                                            ok_e = res.evt;
+                                            (0, shared_impl_1.debug)(dhead, "OKAY");
+                                            txnHash = ok_e.transactionHash;
+                                            return [4 /*yield*/, fetchAndRejectInvalidReceiptFor(txnHash)];
+                                        case 10:
+                                            ok_r = _a.sent();
+                                            (0, shared_impl_1.debug)(dhead, 'ok_r', ok_r);
+                                            return [4 /*yield*/, getProvider()];
+                                        case 11: return [4 /*yield*/, (_a.sent()).getTransaction(txnHash)];
+                                        case 12:
+                                            ok_t = _a.sent();
+                                            (0, shared_impl_1.debug)(dhead, 'ok_t', ok_t);
+                                            return [4 /*yield*/, recvFrom({ dhead: dhead, out_tys: out_tys, didSend: didSend, funcNum: funcNum, ok_r: ok_r })];
+                                        case 13: return [2 /*return*/, _a.sent()];
+                                        case 14: return [3 /*break*/, 2];
+                                        case 15: return [2 /*return*/];
                                     }
                                 });
                             }); };
@@ -1177,7 +1180,7 @@ function makeEthLike(ethLikeArgs) {
     }); };
     // TODO: Should users be able to access this directly?
     // TODO: define a faucet on Ropsten & other testnets?
-    var _g = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(_this, void 0, void 0, function () {
+    var _f = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(_this, void 0, void 0, function () {
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1188,7 +1191,7 @@ function makeEthLike(ethLikeArgs) {
                 case 2: return [2 /*return*/, _b.sent()];
             }
         });
-    }); }), getFaucet = _g[0], setFaucet = _g[1];
+    }); }), getFaucet = _f[0], setFaucet = _f[1];
     var createAccount = function () { return __awaiter(_this, void 0, void 0, function () {
         var provider, networkAccount;
         return __generator(this, function (_a) {

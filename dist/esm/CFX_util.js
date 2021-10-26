@@ -4,11 +4,14 @@ import { debug } from './shared_impl';
 export function address_cfxStandardize(addrC) {
     debug("address_cfxStandardize", { addrC: addrC });
     var pieces = addrC.split(':');
+    //debug(`address_cfxStandardize`, pieces.length, {pieces});
     if (pieces.length === 3) {
-        return (pieces[0] + ":" + pieces[2]).toUpperCase();
+        addrC = pieces[0] + ":" + pieces[2];
     }
-    if (pieces.length !== 2)
+    else if (pieces.length !== 2) {
         throw Error("impossible: bad CFX addr: '" + addrC + "'");
+    }
+    //debug(`address_cfxStandardize`, {addrC});
     return addrC.toUpperCase();
 }
 // mimicking cfxsdk.address.encodeCfxAddress

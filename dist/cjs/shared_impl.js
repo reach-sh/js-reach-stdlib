@@ -290,6 +290,7 @@ var makeDigest = function (mode, prep) { return function (t, v) {
     // debug('digest(', args, ') => internal(', hexlify(kekCat), ')');
     var f = mode === 'keccak256' ? ethers_1.ethers.utils.keccak256 : ethers_1.ethers.utils.sha256;
     var r = f(kekCat);
+    (0, exports.debug)('digest', { mode: mode, prep: prep, t: t, v: v, kekCat: kekCat, f: f, r: r });
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
 }; };

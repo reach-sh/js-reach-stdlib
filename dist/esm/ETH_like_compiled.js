@@ -226,6 +226,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     }; };
     var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
     var addressEq = mkAddressEq(T_Address);
+    var digestEq = shared_backend.eq;
     var T_Token = T_Address;
     var tokenEq = addressEq;
     var typeDefs = {
@@ -245,7 +246,9 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var arith = makeArith(UInt_max);
     var emptyContractInfo = "0x00000000000000000000000000000000";
-    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
+    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, 
+        // @ts-ignore
+        digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
     // ...............................................
     // It's the same as stdlib, but with convenient access to
     // stdlib and typeDefs as bundles of bindings

@@ -683,7 +683,7 @@ function _retryingSendTxn(provider, txnOrig) {
                             switch (_a.label) {
                               case 0:
                                 _a.trys.push([0, 2, , 4]);
-                                return [4 /*yield*/ , transactionHashP_1.executed(1000, 60 * 1000)];
+                                return [4 /*yield*/ , transactionHashP_1.confirmed({ delta: 1000, timeout: 60 * 1000 })];
                               case 1:
                                 r = _a.sent();
                                 debug("_retryingSendTxn receipt good", r);

@@ -15,6 +15,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
     UInt_max: ethers.BigNumber;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
+    digestEq: (x: unknown, y: unknown) => boolean;
     tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: AnyETH_Ty, a: unknown) => string;
     emptyContractInfo: string | number;
@@ -39,7 +40,6 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     le: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     lt: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     bytesEq: (s1: string, s2: string) => boolean;
-    digestEq: (d1: string, d2: string) => boolean;
     add: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     sub: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     mod: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;

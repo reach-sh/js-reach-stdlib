@@ -30,7 +30,6 @@ export interface Stdlib_Backend_Shared_User {
     le: (n1: num, n2: num) => boolean;
     lt: (n1: num, n2: num) => boolean;
     bytesEq: (s1: string, s2: string) => boolean;
-    digestEq: (d1: string, d2: string) => boolean;
 }
 export interface Stdlib_Backend_Shared extends Stdlib_Backend_Shared_User {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
@@ -57,6 +56,7 @@ export interface Arith {
 export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared, Arith, TypeDefs {
     UInt_max: BigNumber;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
+    digestEq: (x: unknown, y: unknown) => boolean;
     tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: Ty, a: unknown) => string;
     emptyContractInfo: (number | string);

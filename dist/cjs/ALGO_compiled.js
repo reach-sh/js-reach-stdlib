@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -55,7 +55,7 @@ exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize
             throw new Error("toNet: " + bv + " is out of range [0, " + exports.UInt_max + "]");
         }
     }, fromNet: function (nv) {
-        // debug(`fromNet: UInt`);
+        // debug(`fromNet: UInt`, nv);
         // if (getDEBUG()) console.log(nv);
         return ethers_1.ethers.BigNumber.from(nv.slice(0, 8));
     } });
@@ -66,8 +66,12 @@ var stringyNet = function (len) { return ({
 }); };
 /** @description For hex strings representing bytes */
 var bytestringyNet = function (len) { return ({
-    toNet: function (bv) { return (ethers_1.ethers.utils.arrayify(bv)); },
-    fromNet: function (nv) { return (ethers_1.ethers.utils.hexlify(nv.slice(0, len))); }
+    toNet: function (bv) {
+        return ethers_1.ethers.utils.arrayify(bv);
+    },
+    fromNet: function (nv) {
+        return ethers_1.ethers.utils.hexlify(nv.slice(0, len));
+    }
 }); };
 var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len) })); };
 exports.T_Bytes = T_Bytes;
@@ -117,6 +121,7 @@ var T_Tuple = function (cos) { return (__assign(__assign({}, CBR.BT_Tuple(cos)),
     }, 
     // TODO: share more code w/ T_Array.fromNet
     fromNet: function (nv) {
+        //debug(`Tuple.fromNet`, cos.map((x) => x.name), nv);
         var chunks = new Array(cos.length).fill(null);
         var rest = nv;
         for (var i in cos) {
@@ -200,6 +205,7 @@ var T_Data = function (coMap) {
 };
 exports.T_Data = T_Data;
 exports.addressEq = (0, shared_impl_1.mkAddressEq)(exports.T_Address);
+exports.digestEq = shared_backend.bytesEq;
 var T_Token = exports.T_UInt;
 var tokenEq = function (x, y) {
     return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
@@ -222,5 +228,5 @@ exports.typeDefs = {
 };
 exports.emptyContractInfo = 0;
 var arith = (0, shared_impl_1.makeArith)(exports.UInt_max);
-exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
+exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, digestEq: exports.digestEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

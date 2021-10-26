@@ -82,11 +82,11 @@ function attachBlockNumbers(conflux, xs) {
         return __generator(this, function(_a) {
           switch (_a.label) {
             case 0:
-              debug("actuallyLookup", "block by hash query", blockHash);
+              debug("actuallyLookup", { blockHash: blockHash });
               return [4 /*yield*/ , conflux.getBlockByHash(blockHash)];
             case 1:
               block = _a.sent();
-              debug("actuallyLookup", "block by hash result", blockHash, block);
+              debug("actuallyLookup", { blockHash: blockHash }, 'res', block);
               // @ts-ignore // XXX requires an update to js-conflux-sdk types
               return [2 /*return*/ , parseInt(block.blockNumber)];
           }
@@ -294,7 +294,7 @@ var Provider = /** @class */ (function() {
   };
   Provider.prototype.getLogs = function(opts) {
     return __awaiter(this, void 0, void 0, function() {
-      var logs;
+      var logs, alogs;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -309,7 +309,9 @@ var Provider = /** @class */ (function() {
             debug("getLogs", "result", logs);
             return [4 /*yield*/ , attachBlockNumbers(this.conflux, logs)];
           case 2:
-            return [2 /*return*/ , _a.sent()];
+            alogs = _a.sent();
+            debug("getLogs", "aresult", alogs);
+            return [2 /*return*/ , alogs];
         }
       });
     });

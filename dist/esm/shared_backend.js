@@ -57,7 +57,6 @@ export var bytesConcat = function (x, y) {
     // forceHex(x).concat(forceHex(y).slice(2));
     return x.concat(y);
 };
-export var digestEq = bytesEq;
 export var eq = function (a, b) { return bigNumberify(a).eq(bigNumberify(b)); };
 export var ge = function (a, b) { return bigNumberify(a).gte(bigNumberify(b)); };
 export var gt = function (a, b) { return bigNumberify(a).gt(bigNumberify(b)); };

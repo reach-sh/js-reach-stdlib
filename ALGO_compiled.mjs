@@ -33,7 +33,7 @@ export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), {
     }
   },
   fromNet: function(nv) {
-    // debug(`fromNet: UInt`);
+    // debug(`fromNet: UInt`, nv);
     // if (getDEBUG()) console.log(nv);
     return ethers.BigNumber.from(nv.slice(0, 8));
   }
@@ -48,8 +48,12 @@ var stringyNet = function(len) {
 /** @description For hex strings representing bytes */
 var bytestringyNet = function(len) {
   return ({
-    toNet: function(bv) { return (ethers.utils.arrayify(bv)); },
-    fromNet: function(nv) { return (ethers.utils.hexlify(nv.slice(0, len))); }
+    toNet: function(bv) {
+      return ethers.utils.arrayify(bv);
+    },
+    fromNet: function(nv) {
+      return ethers.utils.hexlify(nv.slice(0, len));
+    }
   });
 };
 export var T_Bytes = function(len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: bigNumberToNumber(len) })); };
@@ -108,6 +112,7 @@ export var T_Tuple = function(cos) {
     },
     // TODO: share more code w/ T_Array.fromNet
     fromNet: function(nv) {
+      //debug(`Tuple.fromNet`, cos.map((x) => x.name), nv);
       var chunks = new Array(cos.length).fill(null);
       var rest = nv;
       for (var i in cos) {
@@ -207,6 +212,7 @@ export var T_Data = function(coMap) {
   });
 };
 export var addressEq = mkAddressEq(T_Address);
+export var digestEq = shared_backend.bytesEq;
 var T_Token = T_UInt;
 export var tokenEq = function(x, y) {
   return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
@@ -228,5 +234,5 @@ export var typeDefs = {
 };
 export var emptyContractInfo = 0;
 var arith = makeArith(UInt_max);
-export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
+export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

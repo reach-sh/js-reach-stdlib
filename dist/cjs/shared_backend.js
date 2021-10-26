@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.digestEq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -66,7 +66,6 @@ var bytesConcat = function (x, y) {
     return x.concat(y);
 };
 exports.bytesConcat = bytesConcat;
-exports.digestEq = exports.bytesEq;
 var eq = function (a, b) { return (0, CBR_1.bigNumberify)(a).eq((0, CBR_1.bigNumberify)(b)); };
 exports.eq = eq;
 var ge = function (a, b) { return (0, CBR_1.bigNumberify)(a).gte((0, CBR_1.bigNumberify)(b)); };

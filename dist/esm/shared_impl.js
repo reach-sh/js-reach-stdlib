@@ -264,6 +264,7 @@ export var makeDigest = function (mode, prep) { return function (t, v) {
     // debug('digest(', args, ') => internal(', hexlify(kekCat), ')');
     var f = mode === 'keccak256' ? ethers.utils.keccak256 : ethers.utils.sha256;
     var r = f(kekCat);
+    debug('digest', { mode: mode, prep: prep, t: t, v: v, kekCat: kekCat, f: f, r: r });
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
 }; };
