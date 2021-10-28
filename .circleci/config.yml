@@ -1,0 +1,40 @@
+version: 2.1
+orbs:
+  jq: "circleci/jq@2.2.0"
+  shellcheck: "circleci/shellcheck@2.2.0"
+  slack: "circleci/slack@4.3.3"
+
+executors:
+  real:
+    machine:
+      image: "ubuntu-2004:202107-02"
+    resource_class: "small"
+    environment:
+      LC_ALL: "en_US.UTF-8"
+      PATH: "/home/circleci/.local/bin:/usr/local/bin:/usr/bin:/bin:/sbin"
+
+jobs:
+  "refresh":
+    executor: real
+    steps:
+    - checkout
+    - run: |
+        make refresh
+  "bump-version-and-publish":
+    executor: real
+    steps:
+    - checkout
+    - run: |
+        make bump-version-and-publish
+  "finalize-patch":
+    executor: real
+    steps:
+    - checkout
+    - run: |
+        make finalize-patch
+
+workflows:
+  build:
+    jobs:
+    - "refresh"
+    - "build-and-push-repo"
