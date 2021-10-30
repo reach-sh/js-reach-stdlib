@@ -39,7 +39,14 @@ function extractMode(x) {
     }
     (0, shim_1.updateProcessEnv)(x);
     var g = shim_1.process.env['REACH_CONNECTOR_MODE'];
-    return g || 'ETH';
+    if (!g) {
+        console.log("WARNING: `REACH_CONNECTOR_MODE` defaulting behavior is deprecated as of"
+            + " version 0.1.6; please update your code to set this value explicitly.");
+        return 'ETH';
+    }
+    else {
+        return g;
+    }
 }
 ;
 // The connectorMode arg is optional;

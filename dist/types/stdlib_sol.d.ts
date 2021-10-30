@@ -1,10 +1,10 @@
 declare const _default: {
     contracts: {
-        "stdlib.sol:Context": {
+        "sol/stdlib.sol:Context": {
             abi: never[];
             bin: string;
         };
-        "stdlib.sol:ERC20": {
+        "sol/stdlib.sol:ERC20": {
             abi: ({
                 inputs: {
                     internalType: string;
@@ -46,7 +46,7 @@ declare const _default: {
             })[];
             bin: string;
         };
-        "stdlib.sol:IERC20": {
+        "sol/stdlib.sol:IERC20": {
             abi: ({
                 anonymous: boolean;
                 inputs: {
@@ -77,7 +77,7 @@ declare const _default: {
             })[];
             bin: string;
         };
-        "stdlib.sol:IERC20Metadata": {
+        "sol/stdlib.sol:IERC20Metadata": {
             abi: ({
                 anonymous: boolean;
                 inputs: {
@@ -108,7 +108,7 @@ declare const _default: {
             })[];
             bin: string;
         };
-        "stdlib.sol:ReachToken": {
+        "sol/stdlib.sol:ReachToken": {
             abi: ({
                 inputs: {
                     internalType: string;
@@ -150,7 +150,7 @@ declare const _default: {
             })[];
             bin: string;
         };
-        "stdlib.sol:Stdlib": {
+        "sol/stdlib.sol:Stdlib": {
             abi: never[];
             bin: string;
         };

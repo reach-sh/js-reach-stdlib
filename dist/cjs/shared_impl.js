@@ -169,6 +169,8 @@ var stdContract = function (stdContractArgs) {
     }));
     var apis = (0, exports.objectMap)(bin._APIs, (function (an, am) {
         return (0, exports.objectMap)(am, (function (afn, ab) {
+            var bp = an + "_" + afn;
+            delete participants[bp];
             var bl = an + "." + afn;
             return function () {
                 var args = [];

@@ -657,21 +657,53 @@ var indexer_statusAfterBlock = function (round) { return __awaiter(void 0, void 
 }); };
 ;
 var makeProviderByWallet = function (wallet) { return __awaiter(void 0, void 0, void 0, function () {
-    var enabled, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork;
+    var walletOpts, enabledNetwork, enabledAccounts, enabled, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 (0, shared_impl_1.debug)("making provider with wallet");
-                return [4 /*yield*/, wallet.enable({ 'network': shim_1.process.env['ALGO_NETWORK'] })];
+                walletOpts = { 'network': shim_1.process.env['ALGO_NETWORK'] };
+                if (!(wallet.enableNetwork === undefined && wallet.enableAccounts === undefined)) return [3 /*break*/, 2];
+                return [4 /*yield*/, wallet.enable(walletOpts)];
             case 1:
                 enabled = _a.sent();
-                return [4 /*yield*/, wallet.getAlgodv2()];
+                enabledNetwork = enabled;
+                enabledAccounts = enabled;
+                return [3 /*break*/, 5];
             case 2:
+                if (!(wallet.enableNetwork === undefined || wallet.enableAccounts === undefined)) return [3 /*break*/, 3];
+                throw new Error('must have enableNetwork AND enableAccounts OR neither');
+            case 3: return [4 /*yield*/, wallet.enableNetwork(walletOpts)];
+            case 4:
+                enabledNetwork = _a.sent();
+                _a.label = 5;
+            case 5:
+                void enabledNetwork;
+                return [4 /*yield*/, wallet.getAlgodv2()];
+            case 6:
                 algodClient = _a.sent();
                 return [4 /*yield*/, wallet.getIndexer()];
-            case 3:
+            case 7:
                 indexer = _a.sent();
-                getDefaultAddress = function () { return enabled.accounts[0]; };
+                getDefaultAddress = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                if (!(enabledAccounts === undefined)) return [3 /*break*/, 2];
+                                if (wallet.enableAccounts === undefined) {
+                                    throw new Error('impossible: no wallet.enableAccounts');
+                                }
+                                return [4 /*yield*/, wallet.enableAccounts(walletOpts)];
+                            case 1:
+                                enabledAccounts = _a.sent();
+                                if (enabledAccounts === undefined) {
+                                    throw new Error('Could not enable accounts');
+                                }
+                                _a.label = 2;
+                            case 2: return [2 /*return*/, enabledAccounts.accounts[0]];
+                        }
+                    });
+                }); };
                 signAndPostTxns = wallet.signAndPostTxns;
                 isIsolatedNetwork = (0, shared_impl_1.truthyEnv)(shim_1.process.env['REACH_ISOLATED_NETWORK']);
                 return [2 /*return*/, { algodClient: algodClient, indexer: indexer, getDefaultAddress: getDefaultAddress, isIsolatedNetwork: isIsolatedNetwork, signAndPostTxns: signAndPostTxns }];
@@ -686,8 +718,8 @@ var setWalletFallback = function (wf) {
 exports.setWalletFallback = setWalletFallback;
 var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
     var p = undefined;
-    var enable = function (eopts) { return __awaiter(void 0, void 0, void 0, function () {
-        var base, baseEnv, addr;
+    var enableNetwork = function (eopts) { return __awaiter(void 0, void 0, void 0, function () {
+        var base, baseEnv;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -707,10 +739,31 @@ var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
                 case 3: return [4 /*yield*/, makeProviderByEnv(baseEnv)];
                 case 4:
                     p = _a.sent();
+                    return [2 /*return*/, {}];
+            }
+        });
+    }); };
+    var enableAccounts = function (eopts) { return __awaiter(void 0, void 0, void 0, function () {
+        var addr;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    void (eopts);
                     return [4 /*yield*/, getAddr()];
-                case 5:
+                case 1:
                     addr = _a.sent();
                     return [2 /*return*/, { accounts: [addr] }];
+            }
+        });
+    }); };
+    var enable = function (eopts) { return __awaiter(void 0, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, enableNetwork(eopts)];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, enableAccounts(eopts)];
+                case 2: return [2 /*return*/, _a.sent()];
             }
         });
     }); };
@@ -779,7 +832,7 @@ var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
             }
         });
     }); };
-    return { enable: enable, getAlgodv2: getAlgodv2, getIndexer: getIndexer, signAndPostTxns: signAndPostTxns };
+    return { enable: enable, enableNetwork: enableNetwork, enableAccounts: enableAccounts, getAlgodv2: getAlgodv2, getIndexer: getIndexer, signAndPostTxns: signAndPostTxns };
 };
 var walletFallback_mnemonic = function (opts) { return function () {
     (0, shared_impl_1.debug)("using mnemonic wallet fallback");
@@ -920,9 +973,11 @@ function makeProviderByEnv(env) {
                     indexer = _a.sent();
                     isIsolatedNetwork = (0, shared_impl_1.truthyEnv)(fullEnv.REACH_ISOLATED_NETWORK);
                     lab = "Providers created by environment";
-                    getDefaultAddress = function () {
-                        throw new Error(lab + " do not have default addresses");
-                    };
+                    getDefaultAddress = function () { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            throw new Error(lab + " do not have default addresses");
+                        });
+                    }); };
                     signAndPostTxns = function (txns, opts) { return __awaiter(_this, void 0, void 0, function () {
                         var stxns, bs;
                         return __generator(this, function (_a) {
@@ -2162,10 +2217,11 @@ function getDefaultAccount() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, (0, exports.getProvider)()];
-                case 1:
-                    addr = (_a.sent()).getDefaultAddress();
+                case 1: return [4 /*yield*/, (_a.sent()).getDefaultAddress()];
+                case 2:
+                    addr = _a.sent();
                     return [4 /*yield*/, (0, exports.connectAccount)({ addr: addr })];
-                case 2: return [2 /*return*/, _a.sent()];
+                case 3: return [2 /*return*/, _a.sent()];
             }
         });
     });
@@ -2215,20 +2271,34 @@ var getNetworkTime = function () { return __awaiter(void 0, void 0, void 0, func
 }); };
 exports.getNetworkTime = getNetworkTime;
 var getTimeSecs = function (now_bn) { return __awaiter(void 0, void 0, void 0, function () {
-    var now, client, binfo;
+    var now, client, binfo, e_10, indexer, info;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 now = (0, shared_user_1.bigNumberToNumber)(now_bn);
-                return [4 /*yield*/, getAlgodClient()];
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 4, , 7]);
+                return [4 /*yield*/, getAlgodClient()];
+            case 2:
                 client = _a.sent();
                 return [4 /*yield*/, client.block(now)["do"]()];
-            case 2:
+            case 3:
                 binfo = _a.sent();
-                // XXX it is possible that this will not work because the block is old
-                (0, shared_impl_1.debug)("getTimeSecs", "block", binfo);
+                (0, shared_impl_1.debug)("getTimeSecs", "node", binfo);
                 return [2 /*return*/, (0, shared_user_1.bigNumberify)(binfo.block.ts)];
+            case 4:
+                e_10 = _a.sent();
+                (0, shared_impl_1.debug)("getTimeSecs", "node failed", e_10);
+                return [4 /*yield*/, getIndexer()];
+            case 5:
+                indexer = _a.sent();
+                return [4 /*yield*/, indexer.lookupBlock(now)["do"]()];
+            case 6:
+                info = _a.sent();
+                (0, shared_impl_1.debug)("getTimeSecs", "indexer", info);
+                return [2 /*return*/, (0, shared_user_1.bigNumberify)(info['timestamp'])];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
@@ -2302,7 +2372,7 @@ var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, voi
 }); };
 exports.verifyContract = verifyContract;
 var verifyContract_ = function (label, info, bin, eventCache) { return __awaiter(void 0, void 0, void 0, function () {
-    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, stateKeys, dhead, chk, chkeq, fmtp, client, appInfo, err, e_10, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iar, iat, iatat, isCtor, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
+    var compiled, ApplicationID, appApproval, appClear, _a, mapDataKeys, stateKeys, dhead, chk, chkeq, fmtp, client, appInfo, err, e_11, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, indexer, ilq, ilr, appInfo_i, allocRound, iar, iat, iatat, isCtor, icr, ict, ctorRound, ictat, aescrow_b64, aescrow_ui8, aescrow_cbr, aescrow_algo;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, compileFor(bin, info)];
@@ -2333,8 +2403,8 @@ var verifyContract_ = function (label, info, bin, eventCache) { return __awaiter
                 appInfo = _b.sent();
                 return [3 /*break*/, 6];
             case 5:
-                e_10 = _b.sent();
-                err = e_10;
+                e_11 = _b.sent();
+                err = e_11;
                 return [3 /*break*/, 6];
             case 6:
                 if (appInfo === undefined) {

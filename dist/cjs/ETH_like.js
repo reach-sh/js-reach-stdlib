@@ -70,7 +70,7 @@ var stdlib_sol_1 = __importDefault(require("./stdlib_sol"));
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
 var reachBackendVersion = 5;
-var reachEthBackendVersion = 4;
+var reachEthBackendVersion = 5;
 // ****************************************************************************
 // Helpers
 // ****************************************************************************
@@ -395,8 +395,8 @@ function makeEthLike(ethLikeArgs) {
             });
         });
     };
-    var ReachToken_ABI = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"]["abi"];
-    var ERC20_ABI = stdlib_sol_1["default"]["contracts"]["stdlib.sol:IERC20"]["abi"];
+    var ReachToken_ABI = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:ReachToken"]["abi"];
+    var ERC20_ABI = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:IERC20"]["abi"];
     var balanceOf_token = function (networkAccount, address, tok) { return __awaiter(_this, void 0, void 0, function () {
         var tokCtc, _a;
         return __generator(this, function (_b) {
@@ -1357,10 +1357,11 @@ function makeEthLike(ethLikeArgs) {
         });
     }); };
     var verifyContract_ = function (ctcInfo, backend, eventCache, label) { return __awaiter(_this, void 0, void 0, function () {
-        var dhead, _a, ABI, Bytecode, address, iface, chk, chkeq, provider, now, lookupLog, e0log, creation_block, dt, e0p, ctorArg, actual, expected;
+        var dhead, _a, ABI, Bytecode, address, iface, chk, creation_block, tmpAccount, ctc, creation_time, e_8, chkeq, provider, now, lookupLog, e0log, dt, e0p, ctorArg, actual, expected;
         var _this = this;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     dhead = ['verifyContract', label];
                     (0, shared_impl_1.debug)(dhead, { ctcInfo: ctcInfo });
@@ -1373,17 +1374,36 @@ function makeEthLike(ethLikeArgs) {
                             throw Error("verifyContract failed: " + msg);
                         }
                     };
+                    creation_block = 0;
+                    _c.label = 1;
+                case 1:
+                    _c.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, newTestAccount(0)];
+                case 2:
+                    tmpAccount = _c.sent();
+                    ctc = new ethers.Contract(address, ABI, tmpAccount.networkAccount);
+                    return [4 /*yield*/, ctc["_reachCreationTime"]()];
+                case 3:
+                    creation_time = _c.sent();
+                    (0, shared_impl_1.debug)("verifyContract creation_time:", creation_time, ":", typeof creation_time, "(" + ((_b = creation_time === null || creation_time === void 0 ? void 0 : creation_time.constructor) === null || _b === void 0 ? void 0 : _b.name) + ")");
+                    creation_block = (0, shared_user_1.bigNumberify)(creation_time.toString()).toNumber();
+                    return [3 /*break*/, 5];
+                case 4:
+                    e_8 = _c.sent();
+                    chk(false, "The contract is not a Reach contract: " + e_8);
+                    return [3 /*break*/, 5];
+                case 5:
                     chkeq = function (a, e, msg) {
                         var as = JSON.stringify(a);
                         var es = JSON.stringify(e);
                         chk(as === es, msg + ": expected " + es + ", got " + as);
                     };
                     return [4 /*yield*/, getProvider()];
-                case 1:
-                    provider = _b.sent();
+                case 6:
+                    provider = _c.sent();
                     return [4 /*yield*/, getNetworkTimeNumber()];
-                case 2:
-                    now = _b.sent();
+                case 7:
+                    now = _c.sent();
                     lookupLog = function (event) { return __awaiter(_this, void 0, void 0, function () {
                         var res;
                         return __generator(this, function (_a) {
@@ -1393,7 +1413,7 @@ function makeEthLike(ethLikeArgs) {
                                     _a.label = 1;
                                 case 1:
                                     if (!(eventCache.currentBlock <= now)) return [3 /*break*/, 3];
-                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, 0, ['time', (0, shared_user_1.bigNumberify)(now)], event)];
+                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, creation_block, ['time', (0, shared_user_1.bigNumberify)(now)], event)];
                                 case 2:
                                     res = _a.sent();
                                     if (!res.succ) {
@@ -1407,13 +1427,12 @@ function makeEthLike(ethLikeArgs) {
                         });
                     }); };
                     return [4 /*yield*/, lookupLog('e0')];
-                case 3:
-                    e0log = _b.sent();
-                    creation_block = e0log.blockNumber;
+                case 8:
+                    e0log = _c.sent();
                     (0, shared_impl_1.debug)(dhead, "checking code...");
                     return [4 /*yield*/, provider.getTransaction(e0log.transactionHash)];
-                case 4:
-                    dt = _b.sent();
+                case 9:
+                    dt = _c.sent();
                     (0, shared_impl_1.debug)(dhead, 'dt', dt);
                     e0p = iface.parseLog(e0log);
                     (0, shared_impl_1.debug)(dhead, { e0p: e0p });
@@ -1486,7 +1505,7 @@ function makeEthLike(ethLikeArgs) {
                     case 0:
                         (0, shared_impl_1.debug)("Launching token, " + name + " (" + sym + ")");
                         addr = function (acc) { return acc.networkAccount.address; };
-                        remoteCtc = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"];
+                        remoteCtc = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:ReachToken"];
                         remoteABI = remoteCtc["abi"];
                         remoteBytecode = remoteCtc["bin"];
                         factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);

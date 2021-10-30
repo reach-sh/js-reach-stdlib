@@ -189,6 +189,8 @@ export var stdContract = function(stdContractArgs) {
   }));
   var apis = objectMap(bin._APIs, (function(an, am) {
     return objectMap(am, (function(afn, ab) {
+      var bp = an + "_" + afn;
+      delete participants[bp];
       var bl = an + "." + afn;
       return function() {
         var args = [];

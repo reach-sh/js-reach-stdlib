@@ -173,6 +173,7 @@ var Contract = /** @class */ (function () {
     function Contract(address, abi, wallet, receiptP, hash) {
         var _this = this;
         this.address = address || undefined;
+        var blacklist = Object.keys(this).filter(function (s) { return s[0] === '_'; });
         this._abi = (typeof abi === 'string') ? JSON.parse(abi) : abi;
         this._wallet = wallet;
         this._receiptP = receiptP;
@@ -214,7 +215,7 @@ var Contract = /** @class */ (function () {
         for (var _i = 0, _a = this._abi; _i < _a.length; _i++) {
             var item = _a[_i];
             if (item.type === 'function') {
-                if (item.name[0] !== '_' && item.name !== 'address' && item.name !== 'deployTransaction' && item.name !== 'interface') {
+                if (!blacklist.includes(item.name) && item.name !== 'address' && item.name !== 'deployTransaction' && item.name !== 'interface') {
                     this[item.name] = this._makeHandler(item);
                 }
             }
