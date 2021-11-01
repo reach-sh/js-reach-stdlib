@@ -1567,11 +1567,10 @@ export function makeEthLike(ethLikeArgs) {
   };
   var verifyContract_ = function(ctcInfo, backend, eventCache, label) {
     return __awaiter(_this, void 0, void 0, function() {
-      var dhead, _a, ABI, Bytecode, address, iface, chk, creation_block, tmpAccount, ctc, creation_time, e_8, chkeq, provider, now, lookupLog, e0log, dt, e0p, ctorArg, actual, expected;
+      var dhead, _a, ABI, Bytecode, address, iface, chk, creation_block, tmpAccount, ctc, creation_time_raw, creation_time, e_8, chkeq, provider, now, lookupLog, e0log, dt, e0p, ctorArg, actual, expected;
       var _this = this;
-      var _b;
-      return __generator(this, function(_c) {
-        switch (_c.label) {
+      return __generator(this, function(_b) {
+        switch (_b.label) {
           case 0:
             dhead = ['verifyContract', label];
             debug(dhead, { ctcInfo: ctcInfo });
@@ -1585,21 +1584,21 @@ export function makeEthLike(ethLikeArgs) {
               }
             };
             creation_block = 0;
-            _c.label = 1;
+            _b.label = 1;
           case 1:
-            _c.trys.push([1, 4, , 5]);
+            _b.trys.push([1, 4, , 5]);
             return [4 /*yield*/ , newTestAccount(0)];
           case 2:
-            tmpAccount = _c.sent();
+            tmpAccount = _b.sent();
             ctc = new ethers.Contract(address, ABI, tmpAccount.networkAccount);
             return [4 /*yield*/ , ctc["_reachCreationTime"]()];
           case 3:
-            creation_time = _c.sent();
-            debug("verifyContract creation_time:", creation_time, ":", typeof creation_time, "(" + ((_b = creation_time === null || creation_time === void 0 ? void 0 : creation_time.constructor) === null || _b === void 0 ? void 0 : _b.name) + ")");
-            creation_block = bigNumberify(creation_time.toString()).toNumber();
+            creation_time_raw = _b.sent();
+            creation_time = T_UInt.unmunge(creation_time_raw);
+            creation_block = bigNumberify(creation_time).toNumber();
             return [3 /*break*/ , 5];
           case 4:
-            e_8 = _c.sent();
+            e_8 = _b.sent();
             chk(false, "The contract is not a Reach contract: " + e_8);
             return [3 /*break*/ , 5];
           case 5:
@@ -1610,10 +1609,10 @@ export function makeEthLike(ethLikeArgs) {
             };
             return [4 /*yield*/ , getProvider()];
           case 6:
-            provider = _c.sent();
+            provider = _b.sent();
             return [4 /*yield*/ , getNetworkTimeNumber()];
           case 7:
-            now = _c.sent();
+            now = _b.sent();
             lookupLog = function(event) {
               return __awaiter(_this, void 0, void 0, function() {
                 var res;
@@ -1640,11 +1639,11 @@ export function makeEthLike(ethLikeArgs) {
             };
             return [4 /*yield*/ , lookupLog('e0')];
           case 8:
-            e0log = _c.sent();
+            e0log = _b.sent();
             debug(dhead, "checking code...");
             return [4 /*yield*/ , provider.getTransaction(e0log.transactionHash)];
           case 9:
-            dt = _c.sent();
+            dt = _b.sent();
             debug(dhead, 'dt', dt);
             e0p = iface.parseLog(e0log);
             debug(dhead, { e0p: e0p });

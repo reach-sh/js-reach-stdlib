@@ -35,7 +35,11 @@ export var BT_UInt = function (max) { return ({
     name: 'UInt',
     canonicalize: function (uv) {
         try {
-            return checkedBigNumberify('stdlib:CBR:BT_UInt', max, uv);
+            // Note: going through toString handles a lot of numeric representations
+            // that BigNumber doesn't handle automatically.
+            // @ts-ignore
+            var uvs = typeof (uv === null || uv === void 0 ? void 0 : uv.toString) == 'function' ? uv.toString() : uv;
+            return checkedBigNumberify('stdlib:CBR:BT_UInt', max, uvs);
         }
         catch (e) {
             if (typeof (uv) === 'string') {
