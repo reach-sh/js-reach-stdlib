@@ -5,7 +5,7 @@ git diff --exit-code || (printf '\n\n\nGit repo is not clean; please commit firs
 
 IMAGE=reachsh/stdlib:latest
 HASH="$(docker run --entrypoint /bin/sh "$IMAGE" -c 'echo $REACH_GIT_HASH')"
-if [ "$(echo "$HASH" | wc -c)" = "       9" ]; then
+if [ "$(echo "$HASH" | wc -c)" = "9" ]; then
   :
 else
   set +x
@@ -24,11 +24,11 @@ docker run --entrypoint /bin/sh --volume "$(pwd):/cwd" "$IMAGE" \
   # -c 'cp /stdlib/*.mjs /stdlib/package.json /stdlib/*.d.ts /cwd/'
 
 
+sudo chown $(whoami) -R ./* 
 # rm tester.mjs ETH-test.mjs
 rm ./version.mo.d.ts ./version.mo.mjs
 
-git diff package.json
-git checkout -- package.json
+#Print it's content
 
 set +x
 echo
@@ -39,4 +39,9 @@ echo
 echo git add .
 echo git commit -m "'refresh -> reach-sh/reach-lang@$HASH'"
 echo '!!!!!!!!!!!!!!!!'
-echo
+
+git add .
+git config user.name "circleci"
+git config user.email "circleci@reach.com"
+
+git commit -m "'refresh -> reach-sh/reach-lang@$HASH'"
