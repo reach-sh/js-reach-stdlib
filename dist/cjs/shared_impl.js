@@ -108,6 +108,9 @@ var debug = function () {
     }
 };
 exports.debug = debug;
+var isUntaggedView = function (x) {
+    return 'ty' in x && 'decode' in x;
+};
 var stdContract = function (stdContractArgs) {
     var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
@@ -157,9 +160,11 @@ var stdContract = function (stdContractArgs) {
     var _b = setupView(getInfo), viewLib = _b.viewLib, getView1 = _b.getView1;
     var views_bin = bin._getViews({ reachStdlib: stdlib }, viewLib);
     var views = (0, exports.objectMap)(views_bin.infos, (function (v, vm) {
-        return (0, exports.objectMap)(vm, (function (k, vi) {
-            return getView1(views_bin.views, v, k, vi);
-        }));
+        return isUntaggedView(vm)
+            ? getView1(views_bin.views, v, undefined, vm)
+            : (0, exports.objectMap)(vm, (function (k, vi) {
+                return getView1(views_bin.views, v, k, vi);
+            }));
     }));
     var participants = (0, exports.objectMap)(bin._Participants, (function (pn, p) {
         void (pn);
@@ -168,10 +173,13 @@ var stdContract = function (stdContractArgs) {
         });
     }));
     var apis = (0, exports.objectMap)(bin._APIs, (function (an, am) {
-        return (0, exports.objectMap)(am, (function (afn, ab) {
-            var bp = an + "_" + afn;
+        var f = function (afn, ab) {
+            var mk = function (sep) {
+                return (afn === undefined) ? "" + an : "" + an + sep + afn;
+            };
+            var bp = mk("_");
             delete participants[bp];
-            var bl = an + "." + afn;
+            var bl = mk(".");
             return function () {
                 var args = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
@@ -206,7 +214,10 @@ var stdContract = function (stdContractArgs) {
                 });
                 return p;
             };
-        }));
+        };
+        return (typeof am === 'object')
+            ? (0, exports.objectMap)(am, f)
+            : f(undefined, am);
     }));
     return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");

@@ -2,7 +2,7 @@ import ethers from 'ethers';
 import { checkedBigNumberify } from './shared_backend.mjs';
 var BigNumber = ethers.BigNumber;
 export var bigNumberify = function(x) {
-  var xp = typeof x === 'number' ? BigInt(x) : x;
+  var xp = typeof x === 'number' ? x.toString() : x;
   return BigNumber.from(xp);
 };
 export var bigNumberToNumber = function(x) {
@@ -38,8 +38,13 @@ export var BT_UInt = function(max) {
       try {
         // Note: going through toString handles a lot of numeric representations
         // that BigNumber doesn't handle automatically.
-        // @ts-ignore
-        var uvs = typeof(uv === null || uv === void 0 ? void 0 : uv.toString) == 'function' ? uv.toString() : uv;
+        var uvs =
+          // @ts-ignore
+          (uv === null || uv === void 0 ? void 0 : uv.type) === 'BigNumber' ? uv :
+          // @ts-ignore
+          typeof(uv === null || uv === void 0 ? void 0 : uv.toString) === 'function' ? uv.toString() :
+          /* else */
+          uv;
         return checkedBigNumberify('stdlib:CBR:BT_UInt', max, uvs);
       } catch (e) {
         if (typeof(uv) === 'string') {

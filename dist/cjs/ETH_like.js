@@ -1035,7 +1035,7 @@ function makeEthLike(ethLikeArgs) {
                                         args[_i] = arguments[_i];
                                     }
                                     return __awaiter(_this, void 0, void 0, function () {
-                                        var ty, ethersC, vkn, val, e_5;
+                                        var ty, ethersC, vnv, vkn, val, e_5;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -1044,7 +1044,8 @@ function makeEthLike(ethLikeArgs) {
                                                     return [4 /*yield*/, getC()];
                                                 case 1:
                                                     ethersC = _a.sent();
-                                                    vkn = views_namesm[v][k];
+                                                    vnv = views_namesm[v];
+                                                    vkn = (typeof vnv === 'string') ? vnv : vnv[k];
                                                     (0, shared_impl_1.debug)(label, 'getView1', v, k, 'args', args, vkn, ty);
                                                     _a.label = 2;
                                                 case 2:

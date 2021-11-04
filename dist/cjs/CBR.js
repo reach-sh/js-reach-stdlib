@@ -5,7 +5,7 @@ var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
 var BigNumber = ethers_1.ethers.BigNumber;
 var bigNumberify = function (x) {
-    var xp = typeof x === 'number' ? BigInt(x) : x;
+    var xp = typeof x === 'number' ? x.toString() : x;
     return BigNumber.from(xp);
 };
 exports.bigNumberify = bigNumberify;
@@ -43,8 +43,12 @@ var BT_UInt = function (max) { return ({
         try {
             // Note: going through toString handles a lot of numeric representations
             // that BigNumber doesn't handle automatically.
+            var uvs = 
             // @ts-ignore
-            var uvs = typeof (uv === null || uv === void 0 ? void 0 : uv.toString) == 'function' ? uv.toString() : uv;
+            (uv === null || uv === void 0 ? void 0 : uv.type) === 'BigNumber' ? uv :
+                // @ts-ignore
+                typeof (uv === null || uv === void 0 ? void 0 : uv.toString) === 'function' ? uv.toString() :
+                    /* else */ uv;
             return (0, shared_backend_1.checkedBigNumberify)('stdlib:CBR:BT_UInt', max, uvs);
         }
         catch (e) {

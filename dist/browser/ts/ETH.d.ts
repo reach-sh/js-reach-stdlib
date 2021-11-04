@@ -15,7 +15,7 @@ export declare const getQueryLowerBound: () => ethImpl.ethers.BigNumber, setQuer
             ABI: string;
             Bytecode: string;
             views: {
-                [viewn: string]: {
+                [viewn: string]: string | {
                     [keyn: string]: string;
                 };
             };
