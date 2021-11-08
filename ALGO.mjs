@@ -1936,7 +1936,7 @@ export var connectAccount = function(networkAccount) {
                               return [2 /*return*/ , "continue"];
                             } else {
                               // Otherwise, something bad is happening
-                              throw Error(dhead + " --- ABORT");
+                              throw Error(label + " failed to call " + funcName + ": " + e_8);
                             }
                             return [3 /*break*/ , 14];
                           case 14:

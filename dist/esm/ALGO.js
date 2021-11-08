@@ -1717,7 +1717,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 }
                                                 else {
                                                     // Otherwise, something bad is happening
-                                                    throw Error(dhead + " --- ABORT");
+                                                    throw Error(label + " failed to call " + funcName + ": " + e_8);
                                                 }
                                                 return [3 /*break*/, 14];
                                             case 14:

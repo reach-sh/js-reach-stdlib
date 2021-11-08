@@ -927,7 +927,7 @@ export function makeEthLike(ethLikeArgs) {
                           _e.sent();
                           _e.label = 8;
                         case 8:
-                          if (!true) return [3 /*break*/ , 25];
+                          if (!true) return [3 /*break*/ , 24];
                           debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt });
                           _b = checkTimeout;
                           _c = [getTimeSecs, timeoutAt];
@@ -957,40 +957,36 @@ export function makeEthLike(ethLikeArgs) {
                           ok_r = void 0;
                           _e.label = 17;
                         case 17:
-                          _e.trys.push([17, 19, , 20]);
+                          _e.trys.push([17, 19, , 22]);
                           debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARG', arg, pay], false));
                           return [4 /*yield*/ , callC(dhead, funcName, arg, pay)];
                         case 18:
                           ok_r = _e.sent();
-                          return [3 /*break*/ , 20];
+                          return [3 /*break*/ , 22];
                         case 19:
                           e_4 = _e.sent();
                           debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["ERROR", { stack: e_4.stack }, e_4], false));
-                          ok_r = undefined;
-                          return [3 /*break*/ , 20];
-                        case 20:
-                          if (!!ok_r) return [3 /*break*/ , 23];
-                          if (!!soloSend) return [3 /*break*/ , 22];
+                          if (!!soloSend) return [3 /*break*/ , 21];
                           debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["LOST"], false));
                           return [4 /*yield*/ , doRecv(false, false)];
-                        case 21:
+                        case 20:
                           return [2 /*return*/ , _e.sent()];
-                        case 22:
+                        case 21:
                           if (timeoutAt) {
                             // If there can be a timeout, then keep waiting for it
                             debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["CONTINUE"], false));
                             return [3 /*break*/ , 8];
                           } else {
                             // Otherwise, something bad is happening
-                            throw Error(dhead + " --- ABORT");
+                            throw Error(label + " failed to call " + funcName + ": " + e_4);
                           }
-                          _e.label = 23;
-                        case 23:
+                          return [3 /*break*/ , 22];
+                        case 22:
                           debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['SUCC'], false));
                           return [4 /*yield*/ , trustedRecv(ok_r)];
-                        case 24:
+                        case 23:
                           return [2 /*return*/ , _e.sent()];
-                        case 25:
+                        case 24:
                           return [2 /*return*/ ];
                       }
                     });
@@ -1600,7 +1596,7 @@ export function makeEthLike(ethLikeArgs) {
             return [3 /*break*/ , 5];
           case 4:
             e_8 = _b.sent();
-            chk(false, "The contract is not a Reach contract: " + e_8);
+            chk(false, "Failed to call the '_reachCreationTime' method on the contract " + address + " during contract bytecode verification. This could mean that there is a general network fault, or it could mean that the given address is not a Reach contract and does not provide this function. The internal error we caught is: " + e_8);
             return [3 /*break*/ , 5];
           case 5:
             chkeq = function(a, e, msg) {
