@@ -420,7 +420,7 @@ var BrowserWallet = /** @class */ (function () {
     // Call await cp.enable() before this
     function BrowserWallet(cp, address, provider) {
         this.cp = cp;
-        this.address = address;
+        this.address = address_cfxStandardize(address);
         this.provider = provider; // XXX just use cp?
     }
     BrowserWallet.prototype.connect = function (provider) {
@@ -435,7 +435,6 @@ var BrowserWallet = /** @class */ (function () {
             throw Error("Wallet has no Provider, please call .connect()");
         }
     };
-    // XXX canonicalize?
     BrowserWallet.prototype.getAddress = function () { return this.address; };
     BrowserWallet.prototype.sendTransaction = function (txnOrig) {
         return __awaiter(this, void 0, void 0, function () {
