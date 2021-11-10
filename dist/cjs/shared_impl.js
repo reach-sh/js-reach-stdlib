@@ -66,9 +66,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.None = exports.Some = exports.isSome = exports.isNone = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
+var await_timeout_1 = __importDefault(require("await-timeout"));
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
 var util_1 = __importDefault(require("util"));
@@ -464,6 +465,63 @@ var Signal = /** @class */ (function () {
 }());
 exports.Signal = Signal;
 ;
+var Lock = /** @class */ (function () {
+    function Lock() {
+        this.locked = false;
+    }
+    Lock.prototype.acquire = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var x;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        x = 1;
+                        _a.label = 1;
+                    case 1:
+                        if (!this.locked) return [3 /*break*/, 3];
+                        return [4 /*yield*/, await_timeout_1["default"].set(Math.min(512, x))];
+                    case 2:
+                        _a.sent();
+                        x = x * 2;
+                        return [3 /*break*/, 1];
+                    case 3:
+                        this.locked = true;
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Lock.prototype.release = function () {
+        this.locked = false;
+    };
+    Lock.prototype.runWith = function (f) {
+        return __awaiter(this, void 0, void 0, function () {
+            var r, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.acquire()];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, f()];
+                    case 3:
+                        r = _a.sent();
+                        this.release();
+                        return [2 /*return*/, r];
+                    case 4:
+                        e_1 = _a.sent();
+                        this.release();
+                        throw e_1;
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return Lock;
+}());
+exports.Lock = Lock;
 function isNone(m) {
     return m.length === 0;
 }

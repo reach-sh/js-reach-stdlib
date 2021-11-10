@@ -74,7 +74,7 @@ import Timeout from 'await-timeout';
 import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { stdContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, } from './shared_impl.mjs';
+import { stdContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, Lock, } from './shared_impl.mjs';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
 import { addressFromHex, stdlib, typeDefs, } from './ALGO_compiled.mjs';
@@ -959,13 +959,27 @@ var walletFallback_MyAlgoWallet = function(MyAlgoConnect, opts) {
     debug("using MyAlgoWallet wallet fallback");
     // @ts-ignore
     var mac = new MyAlgoConnect();
+    // MyAlgoConnect uses a global popup object for managing, so we need to
+    // guarantee there is only one in flight at a time.
+    var lock = new Lock();
     var getAddr = function() {
       return __awaiter(void 0, void 0, void 0, function() {
         var accts;
         return __generator(this, function(_a) {
           switch (_a.label) {
             case 0:
-              return [4 /*yield*/ , mac.connect({ shouldSelectOneAccount: true })];
+              return [4 /*yield*/ , lock.runWith(function() {
+                return __awaiter(void 0, void 0, void 0, function() {
+                  return __generator(this, function(_a) {
+                    switch (_a.label) {
+                      case 0:
+                        return [4 /*yield*/ , mac.connect({ shouldSelectOneAccount: true })];
+                      case 1:
+                        return [2 /*return*/ , _a.sent()];
+                    }
+                  });
+                });
+              })];
             case 1:
               accts = _a.sent();
               return [2 /*return*/ , accts[0].address];
@@ -980,7 +994,18 @@ var walletFallback_MyAlgoWallet = function(MyAlgoConnect, opts) {
           switch (_a.label) {
             case 0:
               debug("MAW signTransaction ->", txns);
-              return [4 /*yield*/ , mac.signTransaction(txns)];
+              return [4 /*yield*/ , lock.runWith(function() {
+                return __awaiter(void 0, void 0, void 0, function() {
+                  return __generator(this, function(_a) {
+                    switch (_a.label) {
+                      case 0:
+                        return [4 /*yield*/ , mac.signTransaction(txns)];
+                      case 1:
+                        return [2 /*return*/ , _a.sent()];
+                    }
+                  });
+                });
+              })];
             case 1:
               stxns = _a.sent();
               debug("MAW signTransaction <-", stxns);

@@ -1414,6 +1414,7 @@ export function makeEthLike(ethLikeArgs) {
             return [4 /*yield*/ , getAddr(acc)];
           case 2:
             to = _a.sent();
+            if (!bigNumberify(0).lt(startingBalance)) return [3 /*break*/ , 6];
             _a.label = 3;
           case 3:
             _a.trys.push([3, 5, , 6]);
@@ -1422,13 +1423,13 @@ export function makeEthLike(ethLikeArgs) {
           case 4:
             _a.sent();
             debug('newTestAccount got transfer:', to);
-            return [2 /*return*/ , acc];
+            return [3 /*break*/ , 6];
           case 5:
             e_7 = _a.sent();
             console.log("newTestAccount: Trouble with account " + to);
             throw e_7;
           case 6:
-            return [2 /*return*/ ];
+            return [2 /*return*/ , acc];
         }
       });
     });
@@ -1584,7 +1585,7 @@ export function makeEthLike(ethLikeArgs) {
             _b.label = 1;
           case 1:
             _b.trys.push([1, 4, , 5]);
-            return [4 /*yield*/ , newTestAccount(0)];
+            return [4 /*yield*/ , createAccount()];
           case 2:
             tmpAccount = _b.sent();
             ctc = new ethers.Contract(address, ABI, tmpAccount.networkAccount);

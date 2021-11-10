@@ -858,11 +858,21 @@ var walletFallback_MyAlgoWallet = function (MyAlgoConnect, opts) { return functi
     (0, shared_impl_1.debug)("using MyAlgoWallet wallet fallback");
     // @ts-ignore
     var mac = new MyAlgoConnect();
+    // MyAlgoConnect uses a global popup object for managing, so we need to
+    // guarantee there is only one in flight at a time.
+    var lock = new shared_impl_1.Lock();
     var getAddr = function () { return __awaiter(void 0, void 0, void 0, function () {
         var accts;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, mac.connect({ shouldSelectOneAccount: true })];
+                case 0: return [4 /*yield*/, lock.runWith(function () { return __awaiter(void 0, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, mac.connect({ shouldSelectOneAccount: true })];
+                                case 1: return [2 /*return*/, _a.sent()];
+                            }
+                        });
+                    }); })];
                 case 1:
                     accts = _a.sent();
                     return [2 /*return*/, accts[0].address];
@@ -875,7 +885,14 @@ var walletFallback_MyAlgoWallet = function (MyAlgoConnect, opts) { return functi
             switch (_a.label) {
                 case 0:
                     (0, shared_impl_1.debug)("MAW signTransaction ->", txns);
-                    return [4 /*yield*/, mac.signTransaction(txns)];
+                    return [4 /*yield*/, lock.runWith(function () { return __awaiter(void 0, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, mac.signTransaction(txns)];
+                                    case 1: return [2 /*return*/, _a.sent()];
+                                }
+                            });
+                        }); })];
                 case 1:
                     stxns = _a.sent();
                     (0, shared_impl_1.debug)("MAW signTransaction <-", stxns);

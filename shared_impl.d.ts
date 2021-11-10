@@ -257,6 +257,13 @@ export declare class Signal {
     wait(): Promise<boolean>;
     notify(): void;
 }
+export declare class Lock {
+    locked: boolean;
+    constructor();
+    acquire(): Promise<void>;
+    release(): void;
+    runWith<X>(f: (() => Promise<X>)): Promise<X>;
+}
 export declare type Some<T> = [T];
 export declare type None = [];
 export declare type Maybe<T> = None | Some<T>;
