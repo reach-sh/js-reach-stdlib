@@ -15,7 +15,7 @@ declare type Backend = IBackend<AnyETH_Ty> & {
             ABI: string;
             Bytecode: string;
             views: {
-                [viewn: string]: {
+                [viewn: string]: string | {
                     [keyn: string]: string;
                 };
             };

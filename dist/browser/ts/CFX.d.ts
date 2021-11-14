@@ -14,7 +14,7 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
             ABI: string;
             Bytecode: string;
             views: {
-                [viewn: string]: {
+                [viewn: string]: string | {
                     [keyn: string]: string;
                 };
             };

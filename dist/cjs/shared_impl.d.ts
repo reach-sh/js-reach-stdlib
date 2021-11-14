@@ -16,12 +16,13 @@ export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
 export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
     [viewi: number]: Array<ConnectorTy>;
 };
+export declare type TaggedBackendView<ConnectorTy extends AnyBackendTy> = {
+    [keyn: string]: IBackendViewInfo<ConnectorTy>;
+};
 export declare type IBackendViews<ConnectorTy extends AnyBackendTy> = {
     views: IBackendViewsInfo<ConnectorTy>;
     infos: {
-        [viewn: string]: {
-            [keyn: string]: IBackendViewInfo<ConnectorTy>;
-        };
+        [viewn: string]: TaggedBackendView<ConnectorTy> | IBackendViewInfo<ConnectorTy>;
     };
 };
 export declare type IBackendMaps<ConnectorTy extends AnyBackendTy> = {
@@ -38,7 +39,7 @@ export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
         [n: string]: any;
     };
     _APIs: {
-        [n: string]: {
+        [n: string]: any | {
             [n: string]: any;
         };
     };
@@ -100,7 +101,7 @@ export declare type ViewFunMap = {
     [key: string]: ViewVal;
 };
 export declare type ViewMap = {
-    [key: string]: ViewFunMap;
+    [key: string]: ViewVal | ViewFunMap;
 };
 export declare type APIMap = ViewMap;
 export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
@@ -140,7 +141,7 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
 };
 export declare type ISetupView<ContractInfo, ConnectorTy extends AnyBackendTy> = (getInfo: (() => Promise<ContractInfo>)) => {
     viewLib: IViewLib;
-    getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string, vi: IBackendViewInfo<ConnectorTy>) => ViewVal);
+    getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string | undefined, vi: IBackendViewInfo<ConnectorTy>) => ViewVal);
 };
 export declare const stdContract: <ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {

@@ -70,7 +70,7 @@ var stdlib_sol_1 = __importDefault(require("./stdlib_sol"));
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
 var reachBackendVersion = 5;
-var reachEthBackendVersion = 4;
+var reachEthBackendVersion = 5;
 // ****************************************************************************
 // Helpers
 // ****************************************************************************
@@ -395,8 +395,8 @@ function makeEthLike(ethLikeArgs) {
             });
         });
     };
-    var ReachToken_ABI = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"]["abi"];
-    var ERC20_ABI = stdlib_sol_1["default"]["contracts"]["stdlib.sol:IERC20"]["abi"];
+    var ReachToken_ABI = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:ReachToken"]["abi"];
+    var ERC20_ABI = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:IERC20"]["abi"];
     var balanceOf_token = function (networkAccount, address, tok) { return __awaiter(_this, void 0, void 0, function () {
         var tokCtc, _a;
         return __generator(this, function (_b) {
@@ -1035,7 +1035,7 @@ function makeEthLike(ethLikeArgs) {
                                         args[_i] = arguments[_i];
                                     }
                                     return __awaiter(_this, void 0, void 0, function () {
-                                        var ty, ethersC, vkn, val, e_5;
+                                        var ty, ethersC, vnv, vkn, val, e_5;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -1044,7 +1044,8 @@ function makeEthLike(ethLikeArgs) {
                                                     return [4 /*yield*/, getC()];
                                                 case 1:
                                                     ethersC = _a.sent();
-                                                    vkn = views_namesm[v][k];
+                                                    vnv = views_namesm[v];
+                                                    vkn = (typeof vnv === 'string') ? vnv : vnv[k];
                                                     (0, shared_impl_1.debug)(label, 'getView1', v, k, 'args', args, vkn, ty);
                                                     _a.label = 2;
                                                 case 2:
@@ -1357,7 +1358,7 @@ function makeEthLike(ethLikeArgs) {
         });
     }); };
     var verifyContract_ = function (ctcInfo, backend, eventCache, label) { return __awaiter(_this, void 0, void 0, function () {
-        var dhead, _a, ABI, Bytecode, address, iface, chk, chkeq, provider, now, lookupLog, e0log, creation_block, dt, e0p, ctorArg, actual, expected;
+        var dhead, _a, ABI, Bytecode, address, iface, chk, creation_block, tmpAccount, ctc, creation_time_raw, creation_time, e_8, chkeq, provider, now, lookupLog, e0log, dt, e0p, ctorArg, actual, expected;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1373,16 +1374,35 @@ function makeEthLike(ethLikeArgs) {
                             throw Error("verifyContract failed: " + msg);
                         }
                     };
+                    creation_block = 0;
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, newTestAccount(0)];
+                case 2:
+                    tmpAccount = _b.sent();
+                    ctc = new ethers.Contract(address, ABI, tmpAccount.networkAccount);
+                    return [4 /*yield*/, ctc["_reachCreationTime"]()];
+                case 3:
+                    creation_time_raw = _b.sent();
+                    creation_time = T_UInt.unmunge(creation_time_raw);
+                    creation_block = (0, shared_user_1.bigNumberify)(creation_time).toNumber();
+                    return [3 /*break*/, 5];
+                case 4:
+                    e_8 = _b.sent();
+                    chk(false, "The contract is not a Reach contract: " + e_8);
+                    return [3 /*break*/, 5];
+                case 5:
                     chkeq = function (a, e, msg) {
                         var as = JSON.stringify(a);
                         var es = JSON.stringify(e);
                         chk(as === es, msg + ": expected " + es + ", got " + as);
                     };
                     return [4 /*yield*/, getProvider()];
-                case 1:
+                case 6:
                     provider = _b.sent();
                     return [4 /*yield*/, getNetworkTimeNumber()];
-                case 2:
+                case 7:
                     now = _b.sent();
                     lookupLog = function (event) { return __awaiter(_this, void 0, void 0, function () {
                         var res;
@@ -1393,7 +1413,7 @@ function makeEthLike(ethLikeArgs) {
                                     _a.label = 1;
                                 case 1:
                                     if (!(eventCache.currentBlock <= now)) return [3 /*break*/, 3];
-                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, 0, ['time', (0, shared_user_1.bigNumberify)(now)], event)];
+                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, creation_block, ['time', (0, shared_user_1.bigNumberify)(now)], event)];
                                 case 2:
                                     res = _a.sent();
                                     if (!res.succ) {
@@ -1407,12 +1427,11 @@ function makeEthLike(ethLikeArgs) {
                         });
                     }); };
                     return [4 /*yield*/, lookupLog('e0')];
-                case 3:
+                case 8:
                     e0log = _b.sent();
-                    creation_block = e0log.blockNumber;
                     (0, shared_impl_1.debug)(dhead, "checking code...");
                     return [4 /*yield*/, provider.getTransaction(e0log.transactionHash)];
-                case 4:
+                case 9:
                     dt = _b.sent();
                     (0, shared_impl_1.debug)(dhead, 'dt', dt);
                     e0p = iface.parseLog(e0log);
@@ -1486,7 +1505,7 @@ function makeEthLike(ethLikeArgs) {
                     case 0:
                         (0, shared_impl_1.debug)("Launching token, " + name + " (" + sym + ")");
                         addr = function (acc) { return acc.networkAccount.address; };
-                        remoteCtc = stdlib_sol_1["default"]["contracts"]["stdlib.sol:ReachToken"];
+                        remoteCtc = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:ReachToken"];
                         remoteABI = remoteCtc["abi"];
                         remoteBytecode = remoteCtc["bin"];
                         factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);
