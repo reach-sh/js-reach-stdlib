@@ -117,6 +117,26 @@ export var debug = function() {
 var isUntaggedView = function(x) {
   return 'ty' in x && 'decode' in x;
 };
+export var stdVerifyContract = function(stdArgs, doVerify) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var getTrustedVerifyResult, setTrustedVerifyResult, r;
+    return __generator(this, function(_a) {
+      switch (_a.label) {
+        case 0:
+          getTrustedVerifyResult = stdArgs.getTrustedVerifyResult, setTrustedVerifyResult = stdArgs.setTrustedVerifyResult;
+          r = getTrustedVerifyResult();
+          if (r) {
+            return [2 /*return*/ , r];
+          }
+          return [4 /*yield*/ , doVerify()];
+        case 1:
+          r = _a.sent();
+          setTrustedVerifyResult(r);
+          return [2 /*return*/ , r];
+      }
+    });
+  });
+};
 export var stdContract = function(stdContractArgs) {
   var bin = stdContractArgs.bin,
     waitUntilTime = stdContractArgs.waitUntilTime,
@@ -156,8 +176,13 @@ export var stdContract = function(stdContractArgs) {
     })(),
     setInfo = _a.setInfo,
     getInfo = _a.getInfo;
+  var trustedVerifyResult = undefined;
+  var getTrustedVerifyResult = function() { return trustedVerifyResult; };
+  var setTrustedVerifyResult = function(x) { trustedVerifyResult = x; };
+  var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
+  var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
   var _initialize = function() {
-    var _a = _setup({ setInfo: setInfo, getInfo: getInfo }),
+    var _a = _setup(setupArgs),
       getContractAddress = _a.getContractAddress,
       sendrecv = _a.sendrecv,
       recv = _a.recv,
@@ -176,7 +201,7 @@ export var stdContract = function(stdContractArgs) {
     };
   };
   var ctcC = { _initialize: _initialize };
-  var _b = setupView(getInfo),
+  var _b = setupView(viewArgs),
     viewLib = _b.viewLib,
     getView1 = _b.getView1;
   var views_bin = bin._getViews({ reachStdlib: stdlib }, viewLib);
@@ -436,6 +461,7 @@ export var make_waitUntilX = function(label, getCurrent, step) {
             _a.label = 2;
           case 2:
             if (!current.lt(target)) return [3 /*break*/ , 4];
+            debug('waitUntilX', { label: label, current: current, target: target });
             return [4 /*yield*/ , step(current.add(1))];
           case 3:
             current = _a.sent();
@@ -449,9 +475,9 @@ export var make_waitUntilX = function(label, getCurrent, step) {
     });
   };
 };
-export var checkTimeout = function(getTimeSecs, timeoutAt, nowTimeN) {
+export var checkTimeout = function(runningIsolated, getTimeSecs, timeoutAt, nowTimeN) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var mode, val, nowTime, nowSecs;
+    var mode, val, nowTime, nowSecs, e_1, nowSecs;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -464,13 +490,29 @@ export var checkTimeout = function(getTimeSecs, timeoutAt, nowTimeN) {
           if (!(mode === 'time')) return [3 /*break*/ , 1];
           return [2 /*return*/ , val.lte(nowTime)];
         case 1:
-          if (!(mode === 'secs')) return [3 /*break*/ , 3];
-          return [4 /*yield*/ , getTimeSecs(nowTime)];
+          if (!(mode === 'secs')) return [3 /*break*/ , 6];
+          _a.label = 2;
         case 2:
+          _a.trys.push([2, 4, , 5]);
+          return [4 /*yield*/ , getTimeSecs(nowTime)];
+        case 3:
           nowSecs = _a.sent();
           return [2 /*return*/ , val.lte(nowSecs)];
-        case 3:
+        case 4:
+          e_1 = _a.sent();
+          debug('checkTimeout', 'err', "" + e_1);
+          if (runningIsolated()) {
+            nowSecs = Math.floor(Date.now() / 1000);
+            debug('checkTimeout', 'isolated', val.toString(), nowSecs);
+            return [2 /*return*/ , val.lt(nowSecs - 1)];
+          }
+          return [2 /*return*/ , false];
+        case 5:
+          return [3 /*break*/ , 7];
+        case 6:
           throw new Error("invalid TimeArg mode");
+        case 7:
+          return [2 /*return*/ ];
       }
     });
   });
@@ -517,7 +559,7 @@ var Lock = /** @class */ (function() {
   };
   Lock.prototype.runWith = function(f) {
     return __awaiter(this, void 0, void 0, function() {
-      var r, e_1;
+      var r, e_2;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -533,9 +575,9 @@ var Lock = /** @class */ (function() {
             this.release();
             return [2 /*return*/ , r];
           case 4:
-            e_1 = _a.sent();
+            e_2 = _a.sent();
             this.release();
-            throw e_1;
+            throw e_2;
           case 5:
             return [2 /*return*/ ];
         }

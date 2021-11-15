@@ -32,6 +32,9 @@ declare type NetworkAccount = {
 declare type ContractInfo = Address;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
 export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> | any;
+declare type VerifyResult = {
+    creation_block: number;
+};
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
 };
@@ -62,9 +65,7 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
     getNetworkSecs: () => Promise<BigNumber>;
     waitUntilSecs: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
-    verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<{
-        creation_block: number;
-    }>;
+    verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<VerifyResult>;
     standardUnit: string;
     atomicUnit: string;
     parseCurrency: (amt: CurrencyAmount) => BigNumber;

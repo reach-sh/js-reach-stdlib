@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -51,7 +62,7 @@ import Timeout from 'await-timeout';
 import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { stdContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, Lock, } from './shared_impl';
+import { stdContract, stdVerifyContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, Lock, } from './shared_impl';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user';
 import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, } from './ALGO_compiled';
@@ -516,7 +527,8 @@ var EventCache = /** @class */ (function () {
     }
     EventCache.prototype.query = function (dhead, ApplicationID, roundInfo, pred) {
         return __awaiter(this, void 0, void 0, function () {
-            var minRound, timeoutAt, specRound, h, maxRound, maxSecs, filterRound, filterFn, initPtxns, txn_1, indexer, query, res, ptxns, txn;
+            var minRound, timeoutAt, specRound, h, maxRound, maxSecs, filterRound, filterFn, initPtxns, txn_1, failed, indexer, query, res, ptxns, txn;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -526,7 +538,12 @@ var EventCache = /** @class */ (function () {
                         maxSecs = h('secs');
                         debug(dhead, "EventCache.query", { ApplicationID: ApplicationID, minRound: minRound, specRound: specRound, timeoutAt: timeoutAt, maxRound: maxRound, maxSecs: maxSecs }, this.currentRound);
                         filterRound = minRound !== null && minRound !== void 0 ? minRound : specRound;
-                        this.cache = this.cache.filter(function (x) { return x['confirmed-round'] >= filterRound; });
+                        this.cache = this.cache.filter(function (txn) {
+                            var notTooOld = txn['confirmed-round'] >= filterRound;
+                            var emptyOptIn = ((txn['application-transaction']['on-completion'] === 'optin')
+                                && (txn['application-transaction']['application-args'].length == 0));
+                            return notTooOld && (!emptyOptIn);
+                        });
                         filterFn = function (x) { return pred(x)
                             && (maxRound ? x['confirmed-round'] <= maxRound : true)
                             && (maxSecs ? x['round-time'] <= maxSecs : true)
@@ -537,7 +554,13 @@ var EventCache = /** @class */ (function () {
                             txn_1 = chooseMinRoundTxn(initPtxns);
                             return [2 /*return*/, { succ: true, txn: txn_1 }];
                         }
-                        debug("Transaction not in Event Cache. Querying network...");
+                        debug("transaction not in event cache");
+                        failed = function () { return ({ succ: false, round: _this.currentRound }); };
+                        if (this.cache.length != 0) {
+                            debug("cache not empty, contains some other message from future, not querying...", this.cache);
+                            return [2 /*return*/, failed()];
+                        }
+                        debug("querying network...");
                         return [4 /*yield*/, getIndexer()];
                     case 1:
                         indexer = _a.sent();
@@ -561,7 +584,7 @@ var EventCache = /** @class */ (function () {
                                 : chooseMaxRoundTxn(res.transactions)['confirmed-round'];
                         ptxns = this.cache.filter(filterFn);
                         if (ptxns.length == 0) {
-                            return [2 /*return*/, { succ: false, round: this.currentRound }];
+                            return [2 /*return*/, failed()];
                         }
                         txn = chooseMinRoundTxn(ptxns);
                         return [2 /*return*/, { succ: true, txn: txn }];
@@ -611,27 +634,37 @@ function waitAlgodClientFromEnv(env) {
 // something decent. This function is allowed to "fail" by not really waiting
 // until the round
 var indexer_statusAfterBlock = function (round) { return __awaiter(void 0, void 0, void 0, function () {
-    var client, now;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, getAlgodClient()];
+    var client, now, tries, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                debug('indexer_statusAfterBlock', { round: round });
+                return [4 /*yield*/, getAlgodClient()];
             case 1:
-                client = _a.sent();
+                client = _b.sent();
                 now = bigNumberify(0);
-                _a.label = 2;
-            case 2: return [4 /*yield*/, getNetworkTime()];
+                tries = 0;
+                _b.label = 2;
+            case 2:
+                _a = (tries++ < 10);
+                if (!_a) return [3 /*break*/, 4];
+                return [4 /*yield*/, getNetworkTime()];
             case 3:
-                if (!(now = _a.sent()).lt(round)) return [3 /*break*/, 6];
-                return [4 /*yield*/, client.statusAfterBlock(round)];
+                _a = (now = _b.sent()).lt(round);
+                _b.label = 4;
             case 4:
-                _a.sent();
+                if (!_a) return [3 /*break*/, 7];
+                debug('indexer_statusAfterBlock', { round: round, now: now });
+                return [4 /*yield*/, client.statusAfterBlock(round)];
+            case 5:
+                _b.sent();
                 // XXX Get the indexer to index one and wait
                 return [4 /*yield*/, Timeout.set(500)];
-            case 5:
+            case 6:
                 // XXX Get the indexer to index one and wait
-                _a.sent();
+                _b.sent();
                 return [3 /*break*/, 2];
-            case 6: return [2 /*return*/, now];
+            case 7: return [2 /*return*/, now];
         }
     });
 }); };
@@ -1144,27 +1177,30 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
             // This is a bunch of Nones
             mapDataTy.fromNet(emptyMapDataTy.toNet(emptyMapDataTy.canonicalize('')));
             debug({ emptyMapData: emptyMapData });
-            var makeGetC = function (fake_getInfo, eventCache, getTrustedVerifyResult) {
+            var makeGetC = function (setupViewArgs, eventCache) {
+                var fake_getInfo = setupViewArgs.getInfo;
                 var _theC = undefined;
                 return function () { return __awaiter(void 0, void 0, void 0, function () {
-                    var ctcInfo, _a, compiled, ApplicationID, startRound, Deployer, _b, realLastRound, getLastRound, setLastRound, escrowAddr, escrow_prog, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin;
-                    return __generator(this, function (_c) {
-                        switch (_c.label) {
+                    var ctcInfo, _a, compiled, ApplicationID, startRound, Deployer, realLastRound, getLastRound, setLastRound, escrowAddr, escrow_prog, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin, isin, isIsolatedNetwork;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
                             case 0:
                                 if (_theC) {
                                     return [2 /*return*/, _theC];
                                 }
                                 return [4 /*yield*/, fake_getInfo()];
                             case 1:
-                                ctcInfo = _c.sent();
-                                _b = getTrustedVerifyResult();
-                                if (_b) return [3 /*break*/, 3];
-                                return [4 /*yield*/, verifyContract_(label, ctcInfo, bin, eventCache)];
+                                ctcInfo = _b.sent();
+                                return [4 /*yield*/, stdVerifyContract(setupViewArgs, (function () { return __awaiter(void 0, void 0, void 0, function () {
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                                case 0: return [4 /*yield*/, verifyContract_(label, ctcInfo, bin, eventCache)];
+                                                case 1: return [2 /*return*/, _a.sent()];
+                                            }
+                                        });
+                                    }); }))];
                             case 2:
-                                _b = (_c.sent());
-                                _c.label = 3;
-                            case 3:
-                                _a = _b, compiled = _a.compiled, ApplicationID = _a.ApplicationID, startRound = _a.startRound, Deployer = _a.Deployer;
+                                _a = _b.sent(), compiled = _a.compiled, ApplicationID = _a.ApplicationID, startRound = _a.startRound, Deployer = _a.Deployer;
                                 debug(label, 'getC', { ApplicationID: ApplicationID, startRound: startRound });
                                 realLastRound = startRound;
                                 getLastRound = function () { return realLastRound; };
@@ -1310,7 +1346,11 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                         }
                                     });
                                 }); };
-                                return [2 /*return*/, (_theC = { ApplicationID: ApplicationID, Deployer: Deployer, escrowAddr: escrowAddr, escrow_prog: escrow_prog, getLastRound: getLastRound, setLastRound: setLastRound, getLocalState: getLocalState, getAppState: getAppState, getGlobalState: getGlobalState, ensureOptIn: ensureOptIn, canIWin: canIWin })];
+                                return [4 /*yield*/, getProvider()];
+                            case 3:
+                                isin = (_b.sent()).isIsolatedNetwork;
+                                isIsolatedNetwork = function () { return isin; };
+                                return [2 /*return*/, (_theC = { ApplicationID: ApplicationID, Deployer: Deployer, escrowAddr: escrowAddr, escrow_prog: escrow_prog, getLastRound: getLastRound, setLastRound: setLastRound, getLocalState: getLocalState, getAppState: getAppState, getGlobalState: getGlobalState, ensureOptIn: ensureOptIn, canIWin: canIWin, isIsolatedNetwork: isIsolatedNetwork })];
                         }
                     });
                 }); };
@@ -1347,7 +1387,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                 });
             }); };
             var _setup = function (setupArgs) {
-                var setInfo = setupArgs.setInfo, getInfo = setupArgs.getInfo;
+                var setInfo = setupArgs.setInfo, getInfo = setupArgs.getInfo, setTrustedVerifyResult = setupArgs.setTrustedVerifyResult;
                 var didSet = new Signal();
                 var fake_info = undefined;
                 var fake_setInfo = function (x) {
@@ -1378,8 +1418,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); };
                 var eventCache = new EventCache();
-                var trustedVerifyResult = undefined;
-                var getC = makeGetC(fake_getInfo, eventCache, (function () { return trustedVerifyResult; }));
+                var fake_setupArgs = __assign(__assign({}, setupArgs), { getInfo: fake_getInfo });
+                var getC = makeGetC(fake_setupArgs, eventCache);
                 // Returns address of a Reach contract
                 var getContractAddress = function () { return __awaiter(void 0, void 0, void 0, function () {
                     var escrowAddr;
@@ -1406,7 +1446,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); };
                 var sendrecv = function (srargs) { return __awaiter(void 0, void 0, void 0, function () {
-                    var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, allocRound, ApplicationID_1, ctcInfo, compiled, _h, ApplicationID, Deployer, escrowAddr, escrow_prog, ensureOptIn, canIWin, value, toks, _j, _svs, msg, _k, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, _loop_1, state_1;
+                    var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, allocRound, ApplicationID_1, ctcInfo, compiled, _h, ApplicationID, Deployer, escrowAddr, escrow_prog, ensureOptIn, canIWin, isIsolatedNetwork, value, toks, _j, _svs, msg, _k, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, mapAccts, mapAcctsReal, _loop_1, state_1;
                     return __generator(this, function (_l) {
                         switch (_l.label) {
                             case 0:
@@ -1486,12 +1526,17 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 return [4 /*yield*/, compileFor(bin, ctcInfo)];
                             case 6:
                                 compiled = _l.sent();
-                                trustedVerifyResult = { compiled: compiled, ApplicationID: ApplicationID_1, startRound: allocRound, Deployer: Deployer_1 };
+                                // We are adding one to the allocRound because we want querying to
+                                // start at the first place it possibly could, which is going to
+                                // eliminate the allocation from the event cache.
+                                // Once we make it so the allocation event is actually needed, then
+                                // we will modify this.
+                                setTrustedVerifyResult({ compiled: compiled, ApplicationID: ApplicationID_1, startRound: allocRound + 1, Deployer: Deployer_1 });
                                 fake_setInfo(ctcInfo);
                                 _l.label = 7;
                             case 7: return [4 /*yield*/, getC()];
                             case 8:
-                                _h = _l.sent(), ApplicationID = _h.ApplicationID, Deployer = _h.Deployer, escrowAddr = _h.escrowAddr, escrow_prog = _h.escrow_prog, ensureOptIn = _h.ensureOptIn, canIWin = _h.canIWin;
+                                _h = _l.sent(), ApplicationID = _h.ApplicationID, Deployer = _h.Deployer, escrowAddr = _h.escrowAddr, escrow_prog = _h.escrow_prog, ensureOptIn = _h.ensureOptIn, canIWin = _h.canIWin, isIsolatedNetwork = _h.isIsolatedNetwork;
                                 value = pay[0], toks = pay[1];
                                 void (toks); // <-- rely on simulation because of ordering
                                 debug(dhead, '--- START');
@@ -1566,7 +1611,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 // round, which we couldn't possibly be in, because it already
                                                 // happened.
                                                 debug(dhead, '--- TIMECHECK', { params: params, timeoutAt: timeoutAt });
-                                                return [4 /*yield*/, checkTimeout(getTimeSecs, timeoutAt, params.firstRound + 1)];
+                                                return [4 /*yield*/, checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, params.firstRound + 1)];
                                             case 2:
                                                 if (!_s.sent()) return [3 /*break*/, 4];
                                                 debug(dhead, '--- FAIL/TIMEOUT');
@@ -1829,7 +1874,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); };
                 var recv = function (rargs) { return __awaiter(void 0, void 0, void 0, function () {
-                    var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, fromBlock_summand, funcName, dhead, _a, ApplicationID, getLastRound, correctStep, res, currentRound, txn;
+                    var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, fromBlock_summand, funcName, dhead, _a, ApplicationID, getLastRound, isIsolatedNetwork, correctStep, minRound, res, currentRound, txn;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
@@ -1841,19 +1886,20 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 debug(dhead, '--- START');
                                 return [4 /*yield*/, getC()];
                             case 1:
-                                _a = _b.sent(), ApplicationID = _a.ApplicationID, getLastRound = _a.getLastRound;
+                                _a = _b.sent(), ApplicationID = _a.ApplicationID, getLastRound = _a.getLastRound, isIsolatedNetwork = _a.isIsolatedNetwork;
                                 _b.label = 2;
                             case 2:
                                 if (!true) return [3 /*break*/, 11];
                                 correctStep = makeIsMethod(funcNum);
-                                return [4 /*yield*/, eventCache.query(dhead, ApplicationID, { minRound: getLastRound() + fromBlock_summand, timeoutAt: timeoutAt }, correctStep)];
+                                minRound = getLastRound() + fromBlock_summand;
+                                return [4 /*yield*/, eventCache.query(dhead, ApplicationID, { minRound: minRound, timeoutAt: timeoutAt }, correctStep)];
                             case 3:
                                 res = _b.sent();
                                 debug("EventCache res: ", res);
                                 if (!!res.succ) return [3 /*break*/, 9];
                                 currentRound = res.round;
-                                debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, currentRound: currentRound });
-                                return [4 /*yield*/, checkTimeout(getTimeSecs, timeoutAt, currentRound + 1)];
+                                debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, minRound: minRound, currentRound: currentRound });
+                                return [4 /*yield*/, checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, currentRound + 1)];
                             case 4:
                                 if (_b.sent()) {
                                     debug(dhead, 'TIMEOUT');
@@ -1915,9 +1961,9 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                 }
                 return bs;
             };
-            var setupView = function (getInfo) {
+            var setupView = function (setupViewArgs) {
                 var eventCache = new EventCache();
-                var getC = makeGetC(getInfo, eventCache, (function () { return undefined; }));
+                var getC = makeGetC(setupViewArgs, eventCache);
                 var viewLib = {
                     viewMapRef: function (mapi, a) { return __awaiter(void 0, void 0, void 0, function () {
                         var getLocalState, ls, mbs, md, mr;
