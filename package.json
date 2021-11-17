@@ -1,6 +1,6 @@
 {
   "name": "@reach-sh/stdlib",
-  "version": "0.1.6-rc.9",
+  "version": "0.1.6",
   "description": "Standard library for Reach Platform",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
