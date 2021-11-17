@@ -116,16 +116,19 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
 };
-export declare type ISetupArgs<ContractInfo> = {
+export declare type ISetupArgs<ContractInfo, VerifyResult> = {
     setInfo: (info: ContractInfo) => void;
     getInfo: () => Promise<ContractInfo>;
+    setTrustedVerifyResult: (vr: VerifyResult) => void;
+    getTrustedVerifyResult: () => (VerifyResult | undefined);
 };
+export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractAddress" | "sendrecv" | "recv" | "getState")>;
-export declare type IStdContractArgs<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
-    setupView: ISetupView<ContractInfo, ConnectorTy>;
+    setupView: ISetupView<ContractInfo, VerifyResult, ConnectorTy>;
     givenInfoP: (Promise<ContractInfo> | undefined);
-    _setup: (args: ISetupArgs<ContractInfo>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
+    _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
 } & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
@@ -139,11 +142,12 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
     a: APIMap;
     _initialize: () => IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>;
 };
-export declare type ISetupView<ContractInfo, ConnectorTy extends AnyBackendTy> = (getInfo: (() => Promise<ContractInfo>)) => {
+export declare type ISetupView<ContractInfo, VerifyResult, ConnectorTy extends AnyBackendTy> = (args: ISetupViewArgs<ContractInfo, VerifyResult>) => {
     viewLib: IViewLib;
     getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string | undefined, vi: IBackendViewInfo<ConnectorTy>) => ViewVal);
 };
-export declare const stdContract: <ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
+export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pick<ISetupViewArgs<ContractInfo, VerifyResult>, "setTrustedVerifyResult" | "getTrustedVerifyResult">, doVerify: () => Promise<VerifyResult>) => Promise<VerifyResult>;
+export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
     deploy: (bin: Backend) => Contract;
@@ -249,13 +253,20 @@ export declare const argMax: (xs: any[], f: (_: any) => any) => any;
 export declare const argMin: (xs: any[], f: (_: any) => any) => any;
 export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => (k: number, bal: any) => Promise<X[]>;
 export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-export declare const checkTimeout: (getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
+export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
 export declare class Signal {
     p: Promise<boolean>;
     r: (a: boolean) => void;
     constructor();
     wait(): Promise<boolean>;
     notify(): void;
+}
+export declare class Lock {
+    locked: boolean;
+    constructor();
+    acquire(): Promise<void>;
+    release(): void;
+    runWith<X>(f: (() => Promise<X>)): Promise<X>;
 }
 export declare type Some<T> = [T];
 export declare type None = [];

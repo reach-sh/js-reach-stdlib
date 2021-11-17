@@ -66,9 +66,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.None = exports.Some = exports.isSome = exports.isNone = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
+var await_timeout_1 = __importDefault(require("await-timeout"));
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
 var util_1 = __importDefault(require("util"));
@@ -111,6 +112,25 @@ exports.debug = debug;
 var isUntaggedView = function (x) {
     return 'ty' in x && 'decode' in x;
 };
+var stdVerifyContract = function (stdArgs, doVerify) { return __awaiter(void 0, void 0, void 0, function () {
+    var getTrustedVerifyResult, setTrustedVerifyResult, r;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                getTrustedVerifyResult = stdArgs.getTrustedVerifyResult, setTrustedVerifyResult = stdArgs.setTrustedVerifyResult;
+                r = getTrustedVerifyResult();
+                if (r) {
+                    return [2 /*return*/, r];
+                }
+                return [4 /*yield*/, doVerify()];
+            case 1:
+                r = _a.sent();
+                setTrustedVerifyResult(r);
+                return [2 /*return*/, r];
+        }
+    });
+}); };
+exports.stdVerifyContract = stdVerifyContract;
 var stdContract = function (stdContractArgs) {
     var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
@@ -141,8 +161,13 @@ var stdContract = function (stdContractArgs) {
             };
         }
     })(), setInfo = _a.setInfo, getInfo = _a.getInfo;
+    var trustedVerifyResult = undefined;
+    var getTrustedVerifyResult = function () { return trustedVerifyResult; };
+    var setTrustedVerifyResult = function (x) { trustedVerifyResult = x; };
+    var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
+    var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup({ setInfo: setInfo, getInfo: getInfo }), getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
+        var _a = _setup(setupArgs), getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -157,7 +182,7 @@ var stdContract = function (stdContractArgs) {
         };
     };
     var ctcC = { _initialize: _initialize };
-    var _b = setupView(getInfo), viewLib = _b.viewLib, getView1 = _b.getView1;
+    var _b = setupView(viewArgs), viewLib = _b.viewLib, getView1 = _b.getView1;
     var views_bin = bin._getViews({ reachStdlib: stdlib }, viewLib);
     var views = (0, exports.objectMap)(views_bin.infos, (function (v, vm) {
         return isUntaggedView(vm)
@@ -416,6 +441,7 @@ var make_waitUntilX = function (label, getCurrent, step) { return function (targ
                 _a.label = 2;
             case 2:
                 if (!current.lt(target)) return [3 /*break*/, 4];
+                (0, exports.debug)('waitUntilX', { label: label, current: current, target: target });
                 return [4 /*yield*/, step(current.add(1))];
             case 3:
                 current = _a.sent();
@@ -428,8 +454,8 @@ var make_waitUntilX = function (label, getCurrent, step) { return function (targ
     });
 }); }; };
 exports.make_waitUntilX = make_waitUntilX;
-var checkTimeout = function (getTimeSecs, timeoutAt, nowTimeN) { return __awaiter(void 0, void 0, void 0, function () {
-    var mode, val, nowTime, nowSecs;
+var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, nowTimeN) { return __awaiter(void 0, void 0, void 0, function () {
+    var mode, val, nowTime, nowSecs, e_1, nowSecs;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -442,12 +468,26 @@ var checkTimeout = function (getTimeSecs, timeoutAt, nowTimeN) { return __awaite
                 if (!(mode === 'time')) return [3 /*break*/, 1];
                 return [2 /*return*/, val.lte(nowTime)];
             case 1:
-                if (!(mode === 'secs')) return [3 /*break*/, 3];
-                return [4 /*yield*/, getTimeSecs(nowTime)];
+                if (!(mode === 'secs')) return [3 /*break*/, 6];
+                _a.label = 2;
             case 2:
+                _a.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, getTimeSecs(nowTime)];
+            case 3:
                 nowSecs = _a.sent();
                 return [2 /*return*/, val.lte(nowSecs)];
-            case 3: throw new Error("invalid TimeArg mode");
+            case 4:
+                e_1 = _a.sent();
+                (0, exports.debug)('checkTimeout', 'err', "" + e_1);
+                if (runningIsolated()) {
+                    nowSecs = Math.floor(Date.now() / 1000);
+                    (0, exports.debug)('checkTimeout', 'isolated', val.toString(), nowSecs);
+                    return [2 /*return*/, val.lt(nowSecs - 1)];
+                }
+                return [2 /*return*/, false];
+            case 5: return [3 /*break*/, 7];
+            case 6: throw new Error("invalid TimeArg mode");
+            case 7: return [2 /*return*/];
         }
     });
 }); };
@@ -464,6 +504,63 @@ var Signal = /** @class */ (function () {
 }());
 exports.Signal = Signal;
 ;
+var Lock = /** @class */ (function () {
+    function Lock() {
+        this.locked = false;
+    }
+    Lock.prototype.acquire = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var x;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        x = 1;
+                        _a.label = 1;
+                    case 1:
+                        if (!this.locked) return [3 /*break*/, 3];
+                        return [4 /*yield*/, await_timeout_1["default"].set(Math.min(512, x))];
+                    case 2:
+                        _a.sent();
+                        x = x * 2;
+                        return [3 /*break*/, 1];
+                    case 3:
+                        this.locked = true;
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Lock.prototype.release = function () {
+        this.locked = false;
+    };
+    Lock.prototype.runWith = function (f) {
+        return __awaiter(this, void 0, void 0, function () {
+            var r, e_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.acquire()];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, f()];
+                    case 3:
+                        r = _a.sent();
+                        this.release();
+                        return [2 /*return*/, r];
+                    case 4:
+                        e_2 = _a.sent();
+                        this.release();
+                        throw e_2;
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return Lock;
+}());
+exports.Lock = Lock;
 function isNone(m) {
     return m.length === 0;
 }

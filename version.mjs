@@ -1,2 +1,2 @@
-export var VERSION = '0.0.4-rc.5';
+export var VERSION = '0.0.4-rc.6';
 //# sourceMappingURL=version.js.map

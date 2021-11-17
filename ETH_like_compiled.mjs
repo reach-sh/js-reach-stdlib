@@ -63,8 +63,37 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       return x;
     }
   }
+
+  function splitToChunks(arr, chunkSize) {
+    var cs = [];
+    for (var i = 0; i < Math.ceil(arr.length / chunkSize); i++) {
+      cs.push(arr.slice(i * chunkSize, (i + 1) * chunkSize));
+    }
+    return cs;
+  };
   var T_Bytes = function(len) {
-    var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: function(bv) { return Array.from(ethers.utils.toUtf8Bytes(bv)); }, unmunge: function(nv) { return me.canonicalize(hexToString(ethers.utils.hexlify(unBigInt(nv)))); }, paramType: "uint8[" + len + "]" });
+    var me = __assign(__assign({}, CBR.BT_Bytes(len)), {
+      defaultValue: ''.padEnd(len, '\0'),
+      munge: (function(bv) {
+        return splitToChunks(Array.from(ethers.utils.toUtf8Bytes(bv)), 32);
+      }),
+      unmunge: (function(nvs) {
+        var nvs_s = nvs.map(function(nv) { return hexToString(ethers.utils.hexlify(unBigInt(nv))); });
+        var nvss = "".concat.apply("", nvs_s);
+        // debug(me.name, nvs, nvss);
+        return me.canonicalize(nvss);
+      }),
+      paramType: (function() {
+        var n = len;
+        var fs = [];
+        while (0 < n) {
+          var ell = Math.min(32, n);
+          fs.push("bytes" + ell);
+          n = n - ell;
+        }
+        return "tuple(" + fs.join(',') + ")";
+      })()
+    });
     return me;
   };
   var T_Digest = __assign(__assign({}, CBR.BT_Digest), {

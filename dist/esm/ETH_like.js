@@ -57,7 +57,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
 import { assert, } from './shared_backend';
-import { replaceableThunk, debug, stdContract, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, } from './shared_impl';
+import { replaceableThunk, debug, stdContract, stdVerifyContract, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
 // Note: if you want your programs to exit fail
@@ -284,6 +284,11 @@ export function makeEthLike(ethLikeArgs) {
                             }
                             debug(dhead, lab, "not in cache");
                             failed = function () { return ({ succ: false, block: _this.currentBlock }); };
+                            if (this.cache.length != 0) {
+                                debug("cache not empty, contains some other message from future, not querying...", this.cache);
+                                return [2 /*return*/, failed()];
+                            }
+                            // If no results, then contact network
                             debug(dhead, lab, "querying");
                             leftOver = this.lastQueryTime + 1000 - Date.now();
                             if (!(leftOver > 0)) return [3 /*break*/, 3];
@@ -527,27 +532,31 @@ export function makeEthLike(ethLikeArgs) {
                     getStorageLimit = function () { return storageLimit; };
                     contract = function (bin, givenInfoP) {
                         ensureConnectorAvailable(bin, 'ETH', reachBackendVersion, reachEthBackendVersion);
-                        var makeGetC = function (getInfo, eventCache, informCreationBlock, getTrustedVerifyResult) {
+                        var makeGetC = function (setupViewArgs, eventCache, informCreationBlock) {
+                            var getInfo = setupViewArgs.getInfo;
                             var _ethersC = null;
                             return function () { return __awaiter(_this, void 0, void 0, function () {
-                                var info, creation_block, _a, address, ABI;
-                                return __generator(this, function (_b) {
-                                    switch (_b.label) {
+                                var info, creation_block, address, ABI;
+                                var _this = this;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
                                         case 0:
                                             if (_ethersC) {
                                                 return [2 /*return*/, _ethersC];
                                             }
                                             return [4 /*yield*/, getInfo()];
                                         case 1:
-                                            info = _b.sent();
-                                            _a = getTrustedVerifyResult();
-                                            if (_a) return [3 /*break*/, 3];
-                                            return [4 /*yield*/, verifyContract_(info, bin, eventCache, label)];
+                                            info = _a.sent();
+                                            return [4 /*yield*/, stdVerifyContract(setupViewArgs, (function () { return __awaiter(_this, void 0, void 0, function () {
+                                                    return __generator(this, function (_a) {
+                                                        switch (_a.label) {
+                                                            case 0: return [4 /*yield*/, verifyContract_(info, bin, eventCache, label)];
+                                                            case 1: return [2 /*return*/, _a.sent()];
+                                                        }
+                                                    });
+                                                }); }))];
                                         case 2:
-                                            _a = (_b.sent());
-                                            _b.label = 3;
-                                        case 3:
-                                            creation_block = (_a).creation_block;
+                                            creation_block = (_a.sent()).creation_block;
                                             informCreationBlock(creation_block);
                                             address = info;
                                             debug(label, "contract verified");
@@ -558,7 +567,7 @@ export function makeEthLike(ethLikeArgs) {
                             }); };
                         };
                         var _setup = function (setupArgs) {
-                            var setInfo = setupArgs.setInfo, getInfo = setupArgs.getInfo;
+                            var setInfo = setupArgs.setInfo, getInfo = setupArgs.getInfo, setTrustedVerifyResult = setupArgs.setTrustedVerifyResult;
                             var eventCache = new EventCache();
                             // Attached state
                             var _a = (function () {
@@ -596,8 +605,7 @@ export function makeEthLike(ethLikeArgs) {
                                 }
                                 setLastBlock(o.blockNumber);
                             };
-                            var trustedVerifyResult = undefined;
-                            var getC = makeGetC(getInfo, eventCache, setLastBlock, (function () { return trustedVerifyResult; }));
+                            var getC = makeGetC(setupArgs, eventCache, setLastBlock);
                             var callC = function (dhead, funcName, arg, pay) { return __awaiter(_this, void 0, void 0, function () {
                                 var value, toks, ethersC, zero, actualCall, callTok, maybePayTok;
                                 var _this = this;
@@ -780,7 +788,7 @@ export function makeEthLike(ethLikeArgs) {
                                             debug(label, "deploying factory; done:", info);
                                             creation_block = deploy_r.blockNumber;
                                             debug(label, "got receipt;", creation_block);
-                                            trustedVerifyResult = { creation_block: creation_block };
+                                            setTrustedVerifyResult({ creation_block: creation_block });
                                             setInfo(info);
                                             return [4 /*yield*/, trustedRecv(deploy_r)];
                                         case 5: return [2 /*return*/, _e.sent()];
@@ -794,10 +802,10 @@ export function makeEthLike(ethLikeArgs) {
                                             _e.sent();
                                             _e.label = 8;
                                         case 8:
-                                            if (!true) return [3 /*break*/, 25];
+                                            if (!true) return [3 /*break*/, 24];
                                             debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt });
                                             _b = checkTimeout;
-                                            _c = [getTimeSecs, timeoutAt];
+                                            _c = [isIsolatedNetwork, getTimeSecs, timeoutAt];
                                             return [4 /*yield*/, getNetworkTimeNumber()];
                                         case 9: return [4 /*yield*/, _b.apply(void 0, _c.concat([(_e.sent()) + 1]))];
                                         case 10:
@@ -821,24 +829,20 @@ export function makeEthLike(ethLikeArgs) {
                                             ok_r = void 0;
                                             _e.label = 17;
                                         case 17:
-                                            _e.trys.push([17, 19, , 20]);
+                                            _e.trys.push([17, 19, , 22]);
                                             debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['ARG', arg, pay], false));
                                             return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
                                         case 18:
                                             ok_r = _e.sent();
-                                            return [3 /*break*/, 20];
+                                            return [3 /*break*/, 22];
                                         case 19:
                                             e_4 = _e.sent();
                                             debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["ERROR", { stack: e_4.stack }, e_4], false));
-                                            ok_r = undefined;
-                                            return [3 /*break*/, 20];
-                                        case 20:
-                                            if (!!ok_r) return [3 /*break*/, 23];
-                                            if (!!soloSend) return [3 /*break*/, 22];
+                                            if (!!soloSend) return [3 /*break*/, 21];
                                             debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["LOST"], false));
                                             return [4 /*yield*/, doRecv(false, false)];
-                                        case 21: return [2 /*return*/, _e.sent()];
-                                        case 22:
+                                        case 20: return [2 /*return*/, _e.sent()];
+                                        case 21:
                                             if (timeoutAt) {
                                                 // If there can be a timeout, then keep waiting for it
                                                 debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ["CONTINUE"], false));
@@ -846,14 +850,14 @@ export function makeEthLike(ethLikeArgs) {
                                             }
                                             else {
                                                 // Otherwise, something bad is happening
-                                                throw Error(dhead + " --- ABORT");
+                                                throw Error(label + " failed to call " + funcName + ": " + e_4);
                                             }
-                                            _e.label = 23;
-                                        case 23:
+                                            return [3 /*break*/, 22];
+                                        case 22:
                                             debug.apply(void 0, __spreadArray(__spreadArray([], dhead, false), ['SUCC'], false));
                                             return [4 /*yield*/, trustedRecv(ok_r)];
-                                        case 24: return [2 /*return*/, _e.sent()];
-                                        case 25: return [2 /*return*/];
+                                        case 23: return [2 /*return*/, _e.sent()];
+                                        case 24: return [2 /*return*/];
                                     }
                                 });
                             }); };
@@ -961,7 +965,7 @@ export function makeEthLike(ethLikeArgs) {
                                             if (!!res.succ) return [3 /*break*/, 9];
                                             currentTime = res.block;
                                             debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, currentTime: currentTime });
-                                            return [4 /*yield*/, checkTimeout(getTimeSecs, timeoutAt, currentTime + 1)];
+                                            return [4 /*yield*/, checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, currentTime + 1)];
                                         case 4:
                                             if (_a.sent()) {
                                                 debug(dhead, 'TIMEOUT');
@@ -1004,9 +1008,9 @@ export function makeEthLike(ethLikeArgs) {
                             var getContractAddress = getInfo;
                             return { getContractAddress: getContractAddress, sendrecv: sendrecv, recv: recv, getState: getState };
                         };
-                        var setupView = function (getInfo) {
+                        var setupView = function (setupViewArgs) {
                             var eventCache = new EventCache();
-                            var getC = makeGetC(getInfo, eventCache, (function (cb) { void (cb); }), (function () { return undefined; }));
+                            var getC = makeGetC(setupViewArgs, eventCache, (function (cb) { void (cb); }));
                             var viewLib = {
                                 viewMapRef: function () {
                                     var args = [];
@@ -1235,6 +1239,7 @@ export function makeEthLike(ethLikeArgs) {
                     return [4 /*yield*/, getAddr(acc)];
                 case 2:
                     to = _a.sent();
+                    if (!bigNumberify(0).lt(startingBalance)) return [3 /*break*/, 6];
                     _a.label = 3;
                 case 3:
                     _a.trys.push([3, 5, , 6]);
@@ -1243,12 +1248,12 @@ export function makeEthLike(ethLikeArgs) {
                 case 4:
                     _a.sent();
                     debug('newTestAccount got transfer:', to);
-                    return [2 /*return*/, acc];
+                    return [3 /*break*/, 6];
                 case 5:
                     e_7 = _a.sent();
                     console.log("newTestAccount: Trouble with account " + to);
                     throw e_7;
-                case 6: return [2 /*return*/];
+                case 6: return [2 /*return*/, acc];
             }
         });
     }); };
@@ -1343,6 +1348,9 @@ export function makeEthLike(ethLikeArgs) {
             }
         });
     }); };
+    // Check the contract info and the associated deployed bytecode;
+    // Verify that:
+    // * it matches the bytecode you are expecting.
     var verifyContract = function (ctcInfo, backend) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -1372,7 +1380,7 @@ export function makeEthLike(ethLikeArgs) {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 4, , 5]);
-                    return [4 /*yield*/, newTestAccount(0)];
+                    return [4 /*yield*/, createAccount()];
                 case 2:
                     tmpAccount = _b.sent();
                     ctc = new ethers.Contract(address, ABI, tmpAccount.networkAccount);
@@ -1384,7 +1392,7 @@ export function makeEthLike(ethLikeArgs) {
                     return [3 /*break*/, 5];
                 case 4:
                     e_8 = _b.sent();
-                    chk(false, "The contract is not a Reach contract: " + e_8);
+                    chk(false, "Failed to call the '_reachCreationTime' method on the contract " + address + " during contract bytecode verification. This could mean that there is a general network fault, or it could mean that the given address is not a Reach contract and does not provide this function. The internal error we caught is: " + e_8);
                     return [3 /*break*/, 5];
                 case 5:
                     chkeq = function (a, e, msg) {

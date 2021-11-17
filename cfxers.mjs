@@ -154,19 +154,20 @@ function prepForConfluxPortal(txnOrig) {
 }
 var addEstimates = function(cfx, txn) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var f, gas, storage, est, est_err, e_1, g, h;
+    var numy, f, gas, storage, est, est_err, e_1, g, h, gasu;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
-          debug("addEstimates", txn);
+          debug("addEstimates 1: start:", txn);
+          numy = function(n) { return BigInt((n === null || n === void 0 ? void 0 : n.toString()) || '0'); };
           f = function(xf) {
             var x = txn[xf];
             delete txn[xf];
-            return (x === undefined ? 0 : x);
+            return numy(x);
           };
           gas = f("gas");
           storage = f("storageLimit");
-          debug("addEstimates", { gas: gas, storage: storage });
+          debug("addEstimates 2:  orig:", { gas: gas, storage: storage });
           est = undefined;
           est_err = undefined;
           _a.label = 1;
@@ -181,23 +182,28 @@ var addEstimates = function(cfx, txn) {
           est_err = e_1;
           return [3 /*break*/ , 4];
         case 4:
-          debug("addEstimates", { est: est, est_err: est_err });
+          debug("addEstimates 3:   est:", { est: est, est_err: est_err });
           if (est) {
             g = function(x, y) { return ((y > x) ? y : x); };
-            gas = g(gas, est.gasUsed);
-            storage = g(storage, est.storageCollateralized);
+            gas = g(gas, numy(est === null || est === void 0 ? void 0 : est.gasUsed));
+            storage = g(storage, numy(est === null || est === void 0 ? void 0 : est.storageCollateralized));
           }
-          debug("addEstimates", { gas: gas, storage: storage });
-          if (storage === undefined || storage === 0) {
-            storage = 2048;
+          debug("addEstimates 4: eused:", { gas: gas, storage: storage });
+          if (storage === undefined || storage === numy(0)) {
+            storage = numy(2048);
           }
-          debug("addEstimates", { gas: gas, storage: storage });
-          h = function(x, y) { return format.big(x).times(y).toFixed(0); };
+          debug("addEstimates 5:  non0:", { gas: gas, storage: storage });
+          h = function(x, y) { return numy(format.big(x).times(y).toFixed(0)); };
           gas = h(gas, cfx.defaultGasRatio);
           storage = h(storage, cfx.defaultStorageRatio);
-          debug("addEstimates", { gas: gas, storage: storage });
-          txn.gas = gas;
-          txn.storageLimit = storage;
+          debug("addEstimates 6: ratio:", { gas: gas, storage: storage });
+          gasu = gas;
+          if (gas === numy('0')) {
+            gasu = undefined;
+          }
+          debug("addEstimates 7:   und:", { gasu: gasu, storage: storage });
+          txn.gas = gasu === null || gasu === void 0 ? void 0 : gasu.toString();
+          txn.storageLimit = storage.toString();
           return [2 /*return*/ , txn];
       }
     });
@@ -450,7 +456,7 @@ var BrowserWallet = /** @class */ (function() {
   // Call await cp.enable() before this
   function BrowserWallet(cp, address, provider) {
     this.cp = cp;
-    this.address = address;
+    this.address = address_cfxStandardize(address);
     this.provider = provider; // XXX just use cp?
   }
   BrowserWallet.prototype.connect = function(provider) {
@@ -465,7 +471,6 @@ var BrowserWallet = /** @class */ (function() {
       throw Error("Wallet has no Provider, please call .connect()");
     }
   };
-  // XXX canonicalize?
   BrowserWallet.prototype.getAddress = function() { return this.address; };
   BrowserWallet.prototype.sendTransaction = function(txnOrig) {
     return __awaiter(this, void 0, void 0, function() {
