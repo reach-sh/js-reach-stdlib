@@ -689,6 +689,7 @@ export function makeEthLike(ethLikeArgs) {
                                             }
                                             codec = real_ethers.utils.defaultAbiCoder;
                                             res = codec.decode(tys.map(function (x) { return x.paramType; }), vsbs);
+                                            debug("getState", res);
                                             // @ts-ignore
                                             return [2 /*return*/, res];
                                     }
