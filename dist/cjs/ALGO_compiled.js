@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -84,10 +84,24 @@ var addressFromHex = function (hexAddr) {
     return algosdk_1["default"].encodeAddress(Buffer.from(hexAddr.slice(2), 'hex'));
 };
 exports.addressFromHex = addressFromHex;
-function addressUnwrapper(x) {
+var extractAddrM = function (x) {
     var addr = x && x.networkAccount && x.networkAccount.addr
         || x && x.addr
         || typeof x === 'string' && x;
+    (0, shared_impl_1.debug)("extractAddrM", { x: x, addr: addr });
+    return addr;
+};
+var extractAddr = function (x) {
+    var a = extractAddrM(x);
+    (0, shared_impl_1.debug)("extractAddr", { x: x, a: a });
+    if (a === false) {
+        throw Error("Expected address, got " + x);
+    }
+    return a;
+};
+exports.extractAddr = extractAddr;
+function addressUnwrapper(x) {
+    var addr = extractAddrM(x);
     return !addr ? x
         : addr.slice(0, 2) === '0x' ? addr
             : (0, exports.addressToHex)(addr);

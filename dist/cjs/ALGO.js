@@ -86,7 +86,7 @@ var ALGO_compiled_1 = require("./ALGO_compiled");
 var shim_1 = require("./shim");
 exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq;
 __exportStar(require("./shared_user"), exports);
-var reachBackendVersion = 5;
+var reachBackendVersion = 6;
 var reachAlgoBackendVersion = 6;
 // Helpers
 // Parse CBR into Public Key
@@ -1117,7 +1117,7 @@ var transfer = function (from, to, value, token, tag) {
             switch (_a.label) {
                 case 0:
                     sender = from.networkAccount;
-                    receiver = to.networkAccount.addr;
+                    receiver = (0, ALGO_compiled_1.extractAddr)(to);
                     valuebn = (0, shared_user_1.bigNumberify)(value);
                     return [4 /*yield*/, getTxnParams()];
                 case 1:
@@ -1446,6 +1446,17 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                             case 1:
                                 ctcAddr = (_a.sent()).ctcAddr;
                                 return [2 /*return*/, exports.T_Address.canonicalize(ctcAddr)];
+                        }
+                    });
+                }); };
+                var getContractInfo = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var ApplicationID;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, getC()];
+                            case 1:
+                                ApplicationID = (_a.sent()).ApplicationID;
+                                return [2 /*return*/, ApplicationID];
                         }
                     });
                 }); };
@@ -1831,7 +1842,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                 _a = _b.sent(), getLastRound = _a.getLastRound, setLastRound = _a.setLastRound;
                                 (0, shared_impl_1.debug)(dhead, '--- txn =', txn);
                                 theRound = txn['confirmed-round'];
-                                return [4 /*yield*/, getTimeSecs((0, shared_user_1.bigNumberify)(theRound - 0))];
+                                return [4 /*yield*/, (0, shared_impl_1.retryLoop)([dhead, 'getTimeSecs'], function () { return getTimeSecs((0, shared_user_1.bigNumberify)(theRound - 0)); })];
                             case 2:
                                 theSecs = _b.sent();
                                 ctc_args_all = txn['application-args'];
@@ -1934,7 +1945,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         }
                     });
                 }); };
-                return { getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
+                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
             };
             var readStateBytes = function (prefix, key, src) {
                 (0, shared_impl_1.debug)({ prefix: prefix, key: key });
@@ -1997,7 +2008,8 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         });
                     }); }
                 };
-                var getView1 = function (vs, v, k, vim) {
+                var getView1 = function (vs, v, k, vim, isSafe) {
+                    if (isSafe === void 0) { isSafe = true; }
                     return function () {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
@@ -2028,11 +2040,17 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                     case 3:
                                         vres = _a.sent();
                                         (0, shared_impl_1.debug)({ vres: vres });
-                                        return [2 /*return*/, ['Some', vres]];
+                                        return [2 /*return*/, isSafe ? ['Some', vres] : vres];
                                     case 4:
                                         e_9 = _a.sent();
                                         (0, shared_impl_1.debug)("getView1", v, k, 'error', e_9);
-                                        return [2 /*return*/, ['None', null]];
+                                        if (isSafe) {
+                                            return [2 /*return*/, ['None', null]];
+                                        }
+                                        else {
+                                            throw Error("View " + v + "." + k + " is not set.");
+                                        }
+                                        return [3 /*break*/, 5];
                                     case 5: return [2 /*return*/];
                                 }
                             });
@@ -2091,18 +2109,15 @@ exports.connectAccount = connectAccount;
 var balanceOf = function (acc, token) {
     if (token === void 0) { token = false; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var networkAccount, client, info, _i, _a, ai;
+        var addr, client, info, _i, _a, ai;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    networkAccount = acc.networkAccount;
-                    if (!networkAccount) {
-                        throw Error("acc.networkAccount missing. Got: " + acc);
-                    }
+                    addr = (0, ALGO_compiled_1.extractAddr)(acc);
                     return [4 /*yield*/, getAlgodClient()];
                 case 1:
                     client = _b.sent();
-                    return [4 /*yield*/, client.accountInformation(networkAccount.addr)["do"]()];
+                    return [4 /*yield*/, client.accountInformation(addr)["do"]()];
                 case 2:
                     info = _b.sent();
                     (0, shared_impl_1.debug)("balanceOf", info);

@@ -66,7 +66,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -135,7 +135,7 @@ var stdContract = function (stdContractArgs) {
     var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
-            throw Error("Cannot set info(" + JSON.stringify(info) + ") when acc.contract called with contract info");
+            throw Error("Cannot set info(" + JSON.stringify(info) + ") (i.e. deploy) when acc.contract called with contract info");
             return;
         };
         if (givenInfoP !== undefined) {
@@ -167,14 +167,14 @@ var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
         return {
             selfAddress: selfAddress,
             iam: iam,
             stdlib: stdlib,
             waitUntilTime: waitUntilTime,
             waitUntilSecs: waitUntilSecs,
-            getInfo: getInfo,
+            getContractInfo: getContractInfo,
             getContractAddress: getContractAddress,
             sendrecv: sendrecv,
             recv: recv,
@@ -184,70 +184,87 @@ var stdContract = function (stdContractArgs) {
     var ctcC = { _initialize: _initialize };
     var _b = setupView(viewArgs), viewLib = _b.viewLib, getView1 = _b.getView1;
     var views_bin = bin._getViews({ reachStdlib: stdlib }, viewLib);
-    var views = (0, exports.objectMap)(views_bin.infos, (function (v, vm) {
-        return isUntaggedView(vm)
-            ? getView1(views_bin.views, v, undefined, vm)
-            : (0, exports.objectMap)(vm, (function (k, vi) {
-                return getView1(views_bin.views, v, k, vi);
-            }));
-    }));
+    var mkViews = function (isSafe) {
+        return (0, exports.objectMap)(views_bin.infos, (function (v, vm) {
+            return isUntaggedView(vm)
+                ? getView1(views_bin.views, v, undefined, vm, isSafe)
+                : (0, exports.objectMap)(vm, (function (k, vi) {
+                    return getView1(views_bin.views, v, k, vi, isSafe);
+                }));
+        }));
+    };
+    var views = mkViews(true);
+    var unsafeViews = mkViews(false);
     var participants = (0, exports.objectMap)(bin._Participants, (function (pn, p) {
         void (pn);
         return (function (io) {
             return p(ctcC, io);
         });
     }));
-    var apis = (0, exports.objectMap)(bin._APIs, (function (an, am) {
-        var f = function (afn, ab) {
-            var mk = function (sep) {
-                return (afn === undefined) ? "" + an : "" + an + sep + afn;
-            };
-            var bp = mk("_");
-            delete participants[bp];
-            var bl = mk(".");
-            return function () {
-                var args = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    args[_i] = arguments[_i];
-                }
-                var terminal = { terminated: bl };
-                var theResolve;
-                var theReject;
-                var p = new Promise(function (resolve, reject) {
-                    theResolve = resolve;
-                    theReject = reject;
-                });
-                ab(ctcC, {
-                    "in": (function () {
-                        (0, exports.debug)(bl + ": in", args);
-                        return args;
-                    }),
-                    "out": (function (oargs, res) {
-                        (0, exports.debug)(bl + ": out", oargs, res);
-                        theResolve(res);
-                        throw terminal;
-                    })
-                })["catch"](function (err) {
-                    if (Object.is(err, terminal)) {
-                        (0, exports.debug)(bl + ": done");
+    var mkApis = function (isSafe) {
+        if (isSafe === void 0) { isSafe = false; }
+        return (0, exports.objectMap)(bin._APIs, (function (an, am) {
+            var f = function (afn, ab) {
+                var mk = function (sep) {
+                    return (afn === undefined) ? "" + an : "" + an + sep + afn;
+                };
+                var bp = mk("_");
+                delete participants[bp];
+                var bl = mk(".");
+                return function () {
+                    var args = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        args[_i] = arguments[_i];
                     }
-                    else {
-                        theReject(new Error(bl + " errored with " + err));
-                    }
-                }).then(function (res) {
-                    theReject(new Error(bl + " returned with " + JSON.stringify(res)));
-                });
-                return p;
+                    var terminal = { terminated: bl };
+                    var theResolve;
+                    var theReject;
+                    var p = new Promise(function (resolve, reject) {
+                        theResolve = resolve;
+                        theReject = reject;
+                    });
+                    var fail = function (err) {
+                        if (isSafe) {
+                            theResolve(['None', null]);
+                        }
+                        else {
+                            theReject(err);
+                        }
+                    };
+                    ab(ctcC, {
+                        "in": (function () {
+                            (0, exports.debug)(bl + ": in", args);
+                            return args;
+                        }),
+                        "out": (function (oargs, res) {
+                            (0, exports.debug)(bl + ": out", oargs, res);
+                            theResolve(isSafe ? ['Some', res] : res);
+                            throw terminal;
+                        })
+                    })["catch"](function (err) {
+                        if (Object.is(err, terminal)) {
+                            (0, exports.debug)(bl + ": done");
+                        }
+                        else {
+                            fail(new Error(bl + " errored with " + err));
+                        }
+                    }).then(function (res) {
+                        fail(new Error(bl + " returned with " + JSON.stringify(res)));
+                    });
+                    return p;
+                };
             };
-        };
-        return (typeof am === 'object')
-            ? (0, exports.objectMap)(am, f)
-            : f(undefined, am);
-    }));
+            return (typeof am === 'object')
+                ? (0, exports.objectMap)(am, f)
+                : f(undefined, am);
+        }));
+    };
+    var apis = mkApis(false);
+    var safeApis = mkApis(true);
     return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
-        }, apis: apis, a: apis });
+        }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis });
 };
 exports.stdContract = stdContract;
 var stdAccount = function (orig) {
@@ -572,4 +589,29 @@ exports.isSome = isSome;
 var Some = function (m) { return [m]; };
 exports.Some = Some;
 exports.None = [];
+var retryLoop = function (lab, f) { return __awaiter(void 0, void 0, void 0, function () {
+    var retries, e_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                retries = 0;
+                _a.label = 1;
+            case 1:
+                if (!true) return [3 /*break*/, 6];
+                _a.label = 2;
+            case 2:
+                _a.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, f()];
+            case 3: return [2 /*return*/, _a.sent()];
+            case 4:
+                e_3 = _a.sent();
+                console.log("retryLoop", { lab: lab, retries: retries, e: e_3 });
+                retries++;
+                return [3 /*break*/, 5];
+            case 5: return [3 /*break*/, 1];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.retryLoop = retryLoop;
 //# sourceMappingURL=shared_impl.js.map

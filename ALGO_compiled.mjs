@@ -64,11 +64,24 @@ export var addressToHex = function(x) {
 export var addressFromHex = function(hexAddr) {
   return algosdk.encodeAddress(Buffer.from(hexAddr.slice(2), 'hex'));
 };
-
-function addressUnwrapper(x) {
+var extractAddrM = function(x) {
   var addr = x && x.networkAccount && x.networkAccount.addr ||
     x && x.addr ||
     typeof x === 'string' && x;
+  debug("extractAddrM", { x: x, addr: addr });
+  return addr;
+};
+export var extractAddr = function(x) {
+  var a = extractAddrM(x);
+  debug("extractAddr", { x: x, a: a });
+  if (a === false) {
+    throw Error("Expected address, got " + x);
+  }
+  return a;
+};
+
+function addressUnwrapper(x) {
+  var addr = extractAddrM(x);
   return !addr ? x :
     addr.slice(0, 2) === '0x' ? addr :
     addressToHex(addr);

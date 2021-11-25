@@ -87,11 +87,14 @@ import ETHstdlib from './stdlib_sol.mjs';
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 5;
+var reachBackendVersion = 6;
 var reachEthBackendVersion = 5;
 // ****************************************************************************
 // Helpers
 // ****************************************************************************
+var reachPublish = function(m) { return "_reach_m" + m; };
+var reachEvent = function(e) { return "_reach_e" + e; };
+var reachOutputEvent = function(e) { return "_reach_oe_" + e; };
 // TODO: add return type once types are in place
 export function makeEthLike(ethLikeArgs) {
   var _this = this;
@@ -146,6 +149,9 @@ export function makeEthLike(ethLikeArgs) {
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
+            if (typeof acc === 'string') {
+              return [2 /*return*/ , acc];
+            }
             if (!acc.networkAccount)
               throw Error("Expected acc.networkAccount");
             // TODO better type design here
@@ -883,7 +889,7 @@ export function makeEthLike(ethLikeArgs) {
                         case 1:
                           return [2 /*return*/ , _e.sent()];
                         case 2:
-                          funcName = "m" + funcNum;
+                          funcName = reachPublish(funcNum);
                           dhead = [label, 'send', funcName, timeoutAt, 'SEND'];
                           trustedRecv = function(ok_r) {
                             return __awaiter(_this, void 0, void 0, function() {
@@ -1014,7 +1020,7 @@ export function makeEthLike(ethLikeArgs) {
                       switch (_a.label) {
                         case 0:
                           dhead = rfargs.dhead, out_tys = rfargs.out_tys, didSend = rfargs.didSend, funcNum = rfargs.funcNum, ok_r = rfargs.ok_r;
-                          ok_evt = func2evt(funcNum);
+                          ok_evt = reachEvent(funcNum);
                           theBlock = ok_r.blockNumber;
                           debug(dhead, "AT", theBlock);
                           updateLast(ok_r);
@@ -1075,7 +1081,7 @@ export function makeEthLike(ethLikeArgs) {
                                   case 0:
                                     void(o_mode);
                                     void(o_val);
-                                    return [4 /*yield*/ , getLog("oe_" + o_lab, l_ctc, (function(x) { return x; }))];
+                                    return [4 /*yield*/ , getLog(reachOutputEvent(o_lab), l_ctc, (function(x) { return x; }))];
                                   case 1:
                                     return [2 /*return*/ , _a.sent()];
                                 }
@@ -1095,7 +1101,6 @@ export function makeEthLike(ethLikeArgs) {
                     });
                   });
                 };
-                var func2evt = function(x) { return "e" + x; };
                 var recv = function(rargs) {
                   return __awaiter(_this, void 0, void 0, function() {
                     var funcNum, out_tys, didSend, waitIfNotPresent, timeoutAt, isCtor, lastBlock, ok_evt, dhead, fromBlock, res, currentTime, ok_e, txnHash, ok_r, ok_t;
@@ -1107,7 +1112,7 @@ export function makeEthLike(ethLikeArgs) {
                           return [4 /*yield*/ , getLastBlock()];
                         case 1:
                           lastBlock = _a.sent();
-                          ok_evt = func2evt(funcNum);
+                          ok_evt = reachEvent(funcNum);
                           dhead = { t: 'recv', label: label, ok_evt: ok_evt };
                           debug(dhead, "START");
                           fromBlock = lastBlock + (isCtor ? 0 : 1);
@@ -1167,7 +1172,8 @@ export function makeEthLike(ethLikeArgs) {
                 };
                 // Returns address of a Reach contract
                 var getContractAddress = getInfo;
-                return { getContractAddress: getContractAddress, sendrecv: sendrecv, recv: recv, getState: getState };
+                var getContractInfo = getInfo;
+                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, sendrecv: sendrecv, recv: recv, getState: getState };
               };
               var setupView = function(setupViewArgs) {
                 var eventCache = new EventCache();
@@ -1187,14 +1193,15 @@ export function makeEthLike(ethLikeArgs) {
                   }
                 };
                 var views_namesm = bin._Connectors.ETH.views;
-                var getView1 = function(vs, v, k, vim) {
+                var getView1 = function(vs, v, k, vim, isSafe) {
+                  if (isSafe === void 0) { isSafe = true; }
                   return function() {
                     var args = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
                       args[_i] = arguments[_i];
                     }
                     return __awaiter(_this, void 0, void 0, function() {
-                      var ty, ethersC, vnv, vkn, val, e_5;
+                      var ty, ethersC, vnv, vkn, val, uv, e_5;
                       return __generator(this, function(_a) {
                         switch (_a.label) {
                           case 0:
@@ -1213,11 +1220,17 @@ export function makeEthLike(ethLikeArgs) {
                           case 3:
                             val = _a.sent();
                             debug(label, 'getView1', v, k, 'val', val);
-                            return [2 /*return*/ , ['Some', ty.unmunge(val)]];
+                            uv = ty.unmunge(val);
+                            return [2 /*return*/ , isSafe ? ['Some', uv] : uv];
                           case 4:
                             e_5 = _a.sent();
                             debug(label, 'getView1', v, k, 'error', e_5);
-                            return [2 /*return*/ , ['None', null]];
+                            if (isSafe) {
+                              return [2 /*return*/ , ['None', null]];
+                            } else {
+                              throw Error("View " + v + "." + k + " is not set.");
+                            }
+                            return [3 /*break*/ , 5];
                           case 5:
                             return [2 /*return*/ ];
                         }
@@ -1652,7 +1665,7 @@ export function makeEthLike(ethLikeArgs) {
                 });
               });
             };
-            return [4 /*yield*/ , lookupLog('e0')];
+            return [4 /*yield*/ , lookupLog(reachEvent(0))];
           case 8:
             e0log = _b.sent();
             debug(dhead, "checking code...");

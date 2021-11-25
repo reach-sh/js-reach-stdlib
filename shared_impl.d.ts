@@ -105,7 +105,7 @@ export declare type ViewMap = {
 };
 export declare type APIMap = ViewMap;
 export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
-    getInfo: () => Promise<ContractInfo>;
+    getContractInfo: () => Promise<ContractInfo>;
     getContractAddress: () => Promise<CBR_Address>;
     waitUntilTime: (v: BigNumber) => Promise<BigNumber>;
     waitUntilSecs: (v: BigNumber) => Promise<BigNumber>;
@@ -123,13 +123,13 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
     getTrustedVerifyResult: () => (VerifyResult | undefined);
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractAddress" | "sendrecv" | "recv" | "getState")>;
+export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
     setupView: ISetupView<ContractInfo, VerifyResult, ConnectorTy>;
     givenInfoP: (Promise<ContractInfo> | undefined);
     _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
-} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
+} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     getViews: () => ViewMap;
@@ -138,13 +138,15 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
     p: ParticipantMap;
     views: ViewMap;
     v: ViewMap;
+    unsafeViews: ViewMap;
     apis: APIMap;
     a: APIMap;
+    safeApis: APIMap;
     _initialize: () => IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>;
 };
 export declare type ISetupView<ContractInfo, VerifyResult, ConnectorTy extends AnyBackendTy> = (args: ISetupViewArgs<ContractInfo, VerifyResult>) => {
     viewLib: IViewLib;
-    getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string | undefined, vi: IBackendViewInfo<ConnectorTy>) => ViewVal);
+    getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string | undefined, vi: IBackendViewInfo<ConnectorTy>, isSafe: boolean) => ViewVal);
 };
 export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pick<ISetupViewArgs<ContractInfo, VerifyResult>, "setTrustedVerifyResult" | "getTrustedVerifyResult">, doVerify: () => Promise<VerifyResult>) => Promise<VerifyResult>;
 export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
@@ -275,4 +277,5 @@ export declare function isNone<T>(m: Maybe<T>): m is None;
 export declare function isSome<T>(m: Maybe<T>): m is Some<T>;
 export declare const Some: <T>(m: T) => Some<T>;
 export declare const None: None;
+export declare const retryLoop: <T>(lab: any, f: () => Promise<T>) => Promise<T>;
 //# sourceMappingURL=shared_impl.d.ts.map

@@ -86,10 +86,10 @@ import Timeout from 'await-timeout';
 import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { stdContract, stdVerifyContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, Lock, } from './shared_impl.mjs';
+import { stdContract, stdVerifyContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, argMax, argMin, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Signal, Lock, retryLoop, } from './shared_impl.mjs';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
-import { addressFromHex, stdlib, typeDefs, } from './ALGO_compiled.mjs';
+import { addressFromHex, stdlib, typeDefs, extractAddr, } from './ALGO_compiled.mjs';
 import { window, process } from './shim.mjs';
 export var add = stdlib.add,
   sub = stdlib.sub,
@@ -107,7 +107,7 @@ export var add = stdlib.add,
   bytesEq = stdlib.bytesEq,
   digestEq = stdlib.digestEq;
 export * from './shared_user.mjs';
-var reachBackendVersion = 5;
+var reachBackendVersion = 6;
 var reachAlgoBackendVersion = 6;
 // Helpers
 // Parse CBR into Public Key
@@ -1260,7 +1260,7 @@ export var transfer = function(from, to, value, token, tag) {
       switch (_a.label) {
         case 0:
           sender = from.networkAccount;
-          receiver = to.networkAccount.addr;
+          receiver = extractAddr(to);
           valuebn = bigNumberify(value);
           return [4 /*yield*/ , getTxnParams()];
         case 1:
@@ -1636,6 +1636,20 @@ export var connectAccount = function(networkAccount) {
                   case 1:
                     ctcAddr = (_a.sent()).ctcAddr;
                     return [2 /*return*/ , T_Address.canonicalize(ctcAddr)];
+                }
+              });
+            });
+          };
+          var getContractInfo = function() {
+            return __awaiter(void 0, void 0, void 0, function() {
+              var ApplicationID;
+              return __generator(this, function(_a) {
+                switch (_a.label) {
+                  case 0:
+                    return [4 /*yield*/ , getC()];
+                  case 1:
+                    ApplicationID = (_a.sent()).ApplicationID;
+                    return [2 /*return*/ , ApplicationID];
                 }
               });
             });
@@ -2040,7 +2054,7 @@ export var connectAccount = function(networkAccount) {
                     _a = _b.sent(), getLastRound = _a.getLastRound, setLastRound = _a.setLastRound;
                     debug(dhead, '--- txn =', txn);
                     theRound = txn['confirmed-round'];
-                    return [4 /*yield*/ , getTimeSecs(bigNumberify(theRound - 0))];
+                    return [4 /*yield*/ , retryLoop([dhead, 'getTimeSecs'], function() { return getTimeSecs(bigNumberify(theRound - 0)); })];
                   case 2:
                     theSecs = _b.sent();
                     ctc_args_all = txn['application-args'];
@@ -2152,7 +2166,7 @@ export var connectAccount = function(networkAccount) {
               });
             });
           };
-          return { getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
+          return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
         };
         var readStateBytes = function(prefix, key, src) {
           debug({ prefix: prefix, key: key });
@@ -2216,7 +2230,8 @@ export var connectAccount = function(networkAccount) {
               });
             }
           };
-          var getView1 = function(vs, v, k, vim) {
+          var getView1 = function(vs, v, k, vim, isSafe) {
+            if (isSafe === void 0) { isSafe = true; }
             return function() {
               var args = [];
               for (var _i = 0; _i < arguments.length; _i++) {
@@ -2247,11 +2262,16 @@ export var connectAccount = function(networkAccount) {
                     case 3:
                       vres = _a.sent();
                       debug({ vres: vres });
-                      return [2 /*return*/ , ['Some', vres]];
+                      return [2 /*return*/ , isSafe ? ['Some', vres] : vres];
                     case 4:
                       e_9 = _a.sent();
                       debug("getView1", v, k, 'error', e_9);
-                      return [2 /*return*/ , ['None', null]];
+                      if (isSafe) {
+                        return [2 /*return*/ , ['None', null]];
+                      } else {
+                        throw Error("View " + v + "." + k + " is not set.");
+                      }
+                      return [3 /*break*/ , 5];
                     case 5:
                       return [2 /*return*/ ];
                   }
@@ -2311,18 +2331,15 @@ export var connectAccount = function(networkAccount) {
 export var balanceOf = function(acc, token) {
   if (token === void 0) { token = false; }
   return __awaiter(void 0, void 0, void 0, function() {
-    var networkAccount, client, info, _i, _a, ai;
+    var addr, client, info, _i, _a, ai;
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
-          networkAccount = acc.networkAccount;
-          if (!networkAccount) {
-            throw Error("acc.networkAccount missing. Got: " + acc);
-          }
+          addr = extractAddr(acc);
           return [4 /*yield*/ , getAlgodClient()];
         case 1:
           client = _b.sent();
-          return [4 /*yield*/ , client.accountInformation(networkAccount.addr)["do"]()];
+          return [4 /*yield*/ , client.accountInformation(addr)["do"]()];
         case 2:
           info = _b.sent();
           debug("balanceOf", info);
