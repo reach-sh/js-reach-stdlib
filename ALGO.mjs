@@ -1186,12 +1186,12 @@ export function setProviderByEnv(env) {
 
 function randlabsProviderEnv(net) {
   var prefix = net === 'MainNet' ? '' : net.toLowerCase() + ".";
-  var RANDLABS_BASE = "https://" + prefix + "algoexplorerapi.io";
+  var RANDLABS_BASE = prefix + "algoexplorerapi.io";
   return {
-    ALGO_SERVER: RANDLABS_BASE,
+    ALGO_SERVER: "https://" + RANDLABS_BASE,
     ALGO_PORT: '',
     ALGO_TOKEN: '',
-    ALGO_INDEXER_SERVER: RANDLABS_BASE + "/idx2",
+    ALGO_INDEXER_SERVER: "https://algoindexer." + RANDLABS_BASE,
     ALGO_INDEXER_PORT: '',
     ALGO_INDEXER_TOKEN: '',
     REACH_ISOLATED_NETWORK: 'no'
