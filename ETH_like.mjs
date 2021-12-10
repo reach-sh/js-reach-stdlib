@@ -579,16 +579,7 @@ export function makeEthLike(ethLikeArgs) {
         // @ts-ignore
         return this;
       }
-
-      function tokenAccept(token) {
-        return __awaiter(this, void 0, void 0, function() {
-          return __generator(this, function(_a) {
-            debug("tokenAccept: Unnecessary on ETHlike", token);
-            return [2 /*return*/ ];
-          });
-        });
-      }
-      var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenMetadata;
+      var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokenAccept, tokenMetadata;
       var _this = this;
       return __generator(this, function(_b) {
         switch (_b.label) {
@@ -998,7 +989,7 @@ export function makeEthLike(ethLikeArgs) {
                             return [3 /*break*/ , 8];
                           } else {
                             // Otherwise, something bad is happening
-                            throw Error(label + " failed to call " + funcName + ": " + e_4);
+                            throw Error(label + " failed to call " + funcName + ": " + JSON.stringify(e_4));
                           }
                           return [3 /*break*/ , 22];
                         case 22:
@@ -1241,7 +1232,23 @@ export function makeEthLike(ethLikeArgs) {
                 return { getView1: getView1, viewLib: viewLib };
               };
               return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, _setup: _setup, givenInfoP: givenInfoP });
-            };;;
+            };;
+            tokenAccepted = function(token) {
+              return __awaiter(_this, void 0, void 0, function() {
+                return __generator(this, function(_a) {
+                  debug("tokenAccepted: Unnecessary on ETHlike", token);
+                  return [2 /*return*/ , true];
+                });
+              });
+            };
+            tokenAccept = function(token) {
+              return __awaiter(_this, void 0, void 0, function() {
+                return __generator(this, function(_a) {
+                  debug("tokenAccept: Unnecessary on ETHlike", token);
+                  return [2 /*return*/ ];
+                });
+              });
+            };
             tokenMetadata = function(token) {
               return __awaiter(_this, void 0, void 0, function() {
                 var tokCtc, md, go;
@@ -1305,7 +1312,7 @@ export function makeEthLike(ethLikeArgs) {
                 });
               });
             };
-            return [2 /*return*/ , __assign(__assign({}, stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })), { setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit })];
+            return [2 /*return*/ , __assign(__assign({}, stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })), { setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit })];
         }
       });
     });

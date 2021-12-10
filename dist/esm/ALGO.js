@@ -1123,23 +1123,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
         // @ts-ignore
         return this;
     }
-    function tokenAccept(token) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        debug("tokenAccept", token);
-                        // @ts-ignore
-                        return [4 /*yield*/, transfer(this, this, 0, token)];
-                    case 1:
-                        // @ts-ignore
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    }
-    var thisAcc, label, pks, selfAddress, iam, contract, tokenMetadata;
+    var thisAcc, label, pks, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata;
     return __generator(this, function (_a) {
         thisAcc = networkAccount;
         label = thisAcc.addr.substring(2, 6);
@@ -1581,7 +1565,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                             case 10:
                                 mapRefs = sim_r.mapRefs;
                                 _loop_1 = function () {
-                                    var params, _l, _m, _o, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, _p, _q;
+                                    var params, _l, _m, _o, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, _p, _q;
                                     return __generator(this, function (_r) {
                                         switch (_r.label) {
                                             case 0: return [4 /*yield*/, getTxnParams()];
@@ -1760,12 +1744,9 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 return [3 /*break*/, 14];
                                             case 11:
                                                 e_8 = _r.sent();
-                                                if (e_8.type === 'sendRawTransaction') {
-                                                    debug(dhead, '--- FAIL:', format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e));
-                                                }
-                                                else {
-                                                    debug(dhead, '--- FAIL:', e_8);
-                                                }
+                                                es = (e_8.type === 'sendRawTransaction') ?
+                                                    format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e) : e_8;
+                                                debug(dhead, '--- FAIL:', es);
                                                 if (!!soloSend) return [3 /*break*/, 13];
                                                 // If there is no soloSend, then someone else "won", so let's
                                                 // listen for their message
@@ -1781,7 +1762,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 }
                                                 else {
                                                     // Otherwise, something bad is happening
-                                                    throw Error(label + " failed to call " + funcName + ": " + e_8);
+                                                    throw Error(label + " failed to call " + funcName + ": " + JSON.stringify(es));
                                                 }
                                                 return [3 /*break*/, 14];
                                             case 14:
@@ -2035,7 +2016,37 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
             };
             return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, _setup: _setup, givenInfoP: givenInfoP });
         };
-        ;
+        me_na = { networkAccount: networkAccount };
+        tokenAccepted = function (token) { return __awaiter(void 0, void 0, void 0, function () {
+            var r;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        debug("tokenAccepted", token);
+                        return [4 /*yield*/, balanceOfM(me_na, token)];
+                    case 1:
+                        r = _a.sent();
+                        return [2 /*return*/, (r !== false)];
+                }
+            });
+        }); };
+        tokenAccept = function (token) { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, tokenAccepted(token)];
+                    case 1:
+                        if (!!(_a.sent())) return [3 /*break*/, 3];
+                        debug("tokenAccept", token);
+                        // @ts-ignore
+                        return [4 /*yield*/, transfer(me_na, me_na, 0, token)];
+                    case 2:
+                        // @ts-ignore
+                        _a.sent();
+                        _a.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
         tokenMetadata = function (token) { return __awaiter(void 0, void 0, void 0, function () {
             var client, tokenRes, tokenInfo, p_t, p, name, symbol, url, metadata, supply, decimals;
             return __generator(this, function (_a) {
@@ -2076,10 +2087,10 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                 }
             });
         }); };
-        return [2 /*return*/, stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })];
+        return [2 /*return*/, stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })];
     });
 }); };
-export var balanceOf = function (acc, token) {
+var balanceOfM = function (acc, token) {
     if (token === void 0) { token = false; }
     return __awaiter(void 0, void 0, void 0, function () {
         var addr, client, info, _i, _a, ai;
@@ -2104,9 +2115,26 @@ export var balanceOf = function (acc, token) {
                                 return [2 /*return*/, ai['amount']];
                             }
                         }
-                        return [2 /*return*/, bigNumberify(0)];
+                        return [2 /*return*/, false];
                     }
                     return [2 /*return*/];
+            }
+        });
+    });
+};
+export var balanceOf = function (acc, token) {
+    if (token === void 0) { token = false; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var r;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, balanceOfM(acc, token)];
+                case 1:
+                    r = _a.sent();
+                    if (r === false) {
+                        return [2 /*return*/, bigNumberify(0)];
+                    }
+                    return [2 /*return*/, r];
             }
         });
     });

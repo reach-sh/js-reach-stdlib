@@ -194,7 +194,9 @@ export var mkStdlibProxy = function (lib) { return __awaiter(void 0, void 0, voi
                 return [2 /*return*/, lib.balanceOf(account.id(id))];
             }); }); }, transfer: function (from, to, bal) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                 return [2 /*return*/, lib.transfer(account.id(from), account.id(to), bal)];
-            }); }); } });
+            }); }); }, assert: function (x) {
+                return lib.assert(x) || null;
+            } });
         return [2 /*return*/, {
                 account: account,
                 rpc_stdlib: rpc_stdlib
@@ -202,7 +204,7 @@ export var mkStdlibProxy = function (lib) { return __awaiter(void 0, void 0, voi
     });
 }); };
 export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, function () {
-    var real_stdlib, _a, account, rpc_stdlib, contract, kont, app, route_backend, rpc_acc, rpc_ctc, safely, mkRPC, _loop_1, b, do_kont, mkForget, fetchOrFail, opts, passphrase;
+    var real_stdlib, _a, account, rpc_stdlib, contract, kont, app, route_backend, rpc_acc, rpc_ctc, safely, mkRPC, userDefinedField, mkUserDefined, _loop_1, b, do_kont, mkForget, fetchOrFail, opts, passphrase;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, loadStdlib()];
@@ -276,11 +278,14 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0: return [4 /*yield*/, (_a = account.id(id)).setGasLimit.apply(_a, args)];
-                                    case 1: return [2 /*return*/, _b.sent()];
+                                    case 1: return [2 /*return*/, (_b.sent()) || null];
                                 }
                             });
                         });
-                    }
+                    },
+                    setDebugLabel: function (id, l) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, account.id(id).setDebugLabel(l) || null];
+                    }); }); }
                 };
                 rpc_ctc = {
                     getInfo: function (id) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
@@ -329,8 +334,8 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                                 switch (_a.label) {
                                     case 0:
                                         args = req.body;
-                                        lab = "RPC " + olab + "/" + k + " " + JSON.stringify(args);
-                                        debug("" + lab);
+                                        lab = "RPC /" + olab + "/" + k + " " + JSON.stringify(args);
+                                        debug(lab);
                                         return [4 /*yield*/, obj[k].apply(obj, args)];
                                     case 1:
                                         ans = _a.sent();
@@ -346,13 +351,90 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                     }
                     return router;
                 };
+                userDefinedField = function (a, m) {
+                    return a && a.hasOwnProperty && a.hasOwnProperty(m) && a[m] || null;
+                };
+                mkUserDefined = function (olab, prop, k, unsafe) {
+                    var router = express.Router();
+                    router.post(/^\/(.*)/, safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a, id, args, lab, a, e_2;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    if (!Array.isArray(req.body))
+                                        throw new Error("Expected an array but received: " + req.body);
+                                    _a = req.body, id = _a[0], args = _a.slice(1);
+                                    lab = "RPC " + olab + req.path + " " + JSON.stringify(req.body);
+                                    debug(lab);
+                                    _b.label = 1;
+                                case 1:
+                                    _b.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, req.path.split('/')
+                                            .filter(function (a) { return a !== ''; })
+                                            .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args)];
+                                case 2:
+                                    a = _b.sent();
+                                    debug(lab + " ==> " + JSON.stringify(a));
+                                    return [2 /*return*/, res.json(a)];
+                                case 3:
+                                    e_2 = _b.sent();
+                                    if (unsafe) {
+                                        debug(lab + " ==> " + JSON.stringify(e_2));
+                                        return [2 /*return*/, res.status(404).json({})];
+                                    }
+                                    else {
+                                        debug(lab + " ==> " + JSON.stringify(null));
+                                        return [2 /*return*/, res.json(null)];
+                                    }
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); }));
+                    return router;
+                };
+                route_backend.post(/^\/getExports\/(.*)/, safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                    var args, lab, b, _a, _b, _c, a, _d;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
+                            case 0:
+                                args = req.body;
+                                if (!Array.isArray(args))
+                                    throw new Error("Expected an array but received: " + args);
+                                lab = "RPC /backend" + req.path + (args.length > 0 ? ' ' + JSON.stringify(args) : '');
+                                debug(lab);
+                                _b = (_a = req.path.split('/')
+                                    .filter(function (a) { return a !== ''; })
+                                    .slice(1)) // drop `getExports` path root
+                                    .reduce;
+                                _c = [userDefinedField];
+                                return [4 /*yield*/, backend.getExports(real_stdlib)];
+                            case 1: return [4 /*yield*/, _b.apply(_a, _c.concat([_e.sent()]))];
+                            case 2:
+                                b = _e.sent();
+                                if (!(typeof b === 'function')) return [3 /*break*/, 4];
+                                return [4 /*yield*/, b.apply(void 0, args)];
+                            case 3:
+                                _d = _e.sent();
+                                return [3 /*break*/, 5];
+                            case 4:
+                                _d = b;
+                                _e.label = 5;
+                            case 5:
+                                a = _d;
+                                debug(lab + " ==> " + JSON.stringify(a));
+                                res.json(a);
+                                return [2 /*return*/];
+                        }
+                    });
+                }); }));
                 _loop_1 = function (b) {
                     route_backend.post("/" + b, safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
                         var lab, _a, cid, vals, meths, ctc, kid, io, _loop_3, m, ans, new_res;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
-                                    lab = "RPC backend/" + b;
+                                    lab = "RPC /backend/" + b;
                                     debug(lab + " IN");
                                     _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
                                     ctc = contract.id(cid);
@@ -428,6 +510,10 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                 app.use("/acc", mkRPC('acc', rpc_acc));
                 app.use("/ctc", mkRPC('ctc', rpc_ctc));
                 app.use("/backend", route_backend);
+                // NOTE: since `getViews()` is deprecated we deliberately skip it here
+                app.use("/ctc/v", mkUserDefined('/ctc/v', 'v', contract, false));
+                app.use("/ctc/views", mkUserDefined('/ctc/views', 'views', contract, false));
+                app.use("/ctc/unsafeViews", mkUserDefined('/ctc/unsafeViews', 'unsafeViews', contract, true));
                 app.post("/kont", do_kont);
                 // Note: successful `/backend/<p>` requests automatically `forget` their
                 // continuation ID before yielding a "Done" response; likewise with requests

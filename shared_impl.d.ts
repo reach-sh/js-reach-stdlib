@@ -159,6 +159,7 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     getAddress: () => string;
     setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
     tokenAccept: (token: Token) => Promise<void>;
+    tokenAccepted: (token: Token) => Promise<boolean>;
     tokenMetadata: (token: Token) => Promise<any>;
 };
 export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
