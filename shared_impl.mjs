@@ -145,6 +145,7 @@ export var stdContract = function(stdContractArgs) {
     iam = stdContractArgs.iam,
     stdlib = stdContractArgs.stdlib,
     setupView = stdContractArgs.setupView,
+    setupEvents = stdContractArgs.setupEvents,
     _setup = stdContractArgs._setup,
     givenInfoP = stdContractArgs.givenInfoP;
   var _a = (function() {
@@ -281,6 +282,16 @@ export var stdContract = function(stdContractArgs) {
   };
   var apis = mkApis(false);
   var safeApis = mkApis(true);
+  var eventMap = bin._getEvents({ reachStdlib: stdlib });
+  var createEventStream = setupEvents(viewArgs).createEventStream;
+  var events = objectMap(eventMap, (function(k, v) {
+    return Array.isArray(v) // untagged
+      ?
+      createEventStream(k, v) :
+      objectMap(v, (function(kp, vp) {
+        return createEventStream(k + "_" + kp, vp);
+      }));
+  }));
   return __assign(__assign({}, ctcC), {
     getInfo: getInfo,
     getContractAddress: (function() { return _initialize().getContractAddress(); }),
@@ -295,7 +306,9 @@ export var stdContract = function(stdContractArgs) {
     unsafeViews: unsafeViews,
     apis: apis,
     a: apis,
-    safeApis: safeApis
+    safeApis: safeApis,
+    e: events,
+    events: events
   });
 };
 export var stdAccount = function(orig) {

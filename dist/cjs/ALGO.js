@@ -84,6 +84,7 @@ var shared_user_1 = require("./shared_user");
 var waitPort_1 = __importDefault(require("./waitPort"));
 var ALGO_compiled_1 = require("./ALGO_compiled");
 var shim_1 = require("./shim");
+var js_sha512_1 = require("js-sha512");
 exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq;
 __exportStar(require("./shared_user"), exports);
 var reachBackendVersion = 6;
@@ -535,14 +536,15 @@ var EventCache = /** @class */ (function () {
         this.currentRound = _getQueryLowerBound();
         this.cache = [];
     }
-    EventCache.prototype.query = function (dhead, ApplicationID, roundInfo, pred) {
+    EventCache.prototype.query = function (dhead, ApplicationID, queryInfo, pred, choose) {
+        if (choose === void 0) { choose = chooseMinRoundTxn; }
         return __awaiter(this, void 0, void 0, function () {
-            var minRound, timeoutAt, specRound, h, maxRound, maxSecs, filterRound, filterFn, initPtxns, txn_1, failed, indexer, query, res, ptxns, txn;
+            var minRound, timeoutAt, specRound, _a, isEventStream, h, maxRound, maxSecs, filterRound, filterFn, initPtxns, txn_1, failed, indexer, query, res, ptxns, txn;
             var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        minRound = roundInfo.minRound, timeoutAt = roundInfo.timeoutAt, specRound = roundInfo.specRound;
+                        minRound = queryInfo.minRound, timeoutAt = queryInfo.timeoutAt, specRound = queryInfo.specRound, _a = queryInfo.isEventStream, isEventStream = _a === void 0 ? false : _a;
                         h = function (mode) { return timeoutAt && timeoutAt[0] === mode ? (0, shared_user_1.bigNumberToNumber)(timeoutAt[1]) : undefined; };
                         maxRound = h('time');
                         maxSecs = h('secs');
@@ -561,19 +563,19 @@ var EventCache = /** @class */ (function () {
                         initPtxns = this.cache.filter(filterFn);
                         if (initPtxns.length != 0) {
                             (0, shared_impl_1.debug)("Found transaction in Event Cache");
-                            txn_1 = chooseMinRoundTxn(initPtxns);
+                            txn_1 = choose(initPtxns);
                             return [2 /*return*/, { succ: true, txn: txn_1 }];
                         }
                         (0, shared_impl_1.debug)("transaction not in event cache");
                         failed = function () { return ({ succ: false, round: _this.currentRound }); };
-                        if (this.cache.length != 0) {
+                        if (this.cache.length != 0 && !isEventStream) {
                             (0, shared_impl_1.debug)("cache not empty, contains some other message from future, not querying...", this.cache);
                             return [2 /*return*/, failed()];
                         }
                         (0, shared_impl_1.debug)("querying network...");
                         return [4 /*yield*/, getIndexer()];
                     case 1:
-                        indexer = _a.sent();
+                        indexer = _b.sent();
                         query = indexer.searchForTransactions()
                             .applicationID(ApplicationID)
                             .txType('appl');
@@ -585,7 +587,7 @@ var EventCache = /** @class */ (function () {
                         }
                         return [4 /*yield*/, doQuery_(dhead, query)];
                     case 2:
-                        res = _a.sent();
+                        res = _b.sent();
                         this.cache = res.transactions;
                         // Update current round
                         this.currentRound =
@@ -596,7 +598,7 @@ var EventCache = /** @class */ (function () {
                         if (ptxns.length == 0) {
                             return [2 /*return*/, failed()];
                         }
-                        txn = chooseMinRoundTxn(ptxns);
+                        txn = choose(ptxns);
                         return [2 /*return*/, { succ: true, txn: txn }];
                 }
             });
@@ -1177,7 +1179,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
             // This is a bunch of Nones
             mapDataTy.fromNet(emptyMapDataTy.toNet(emptyMapDataTy.canonicalize('')));
             (0, shared_impl_1.debug)({ emptyMapData: emptyMapData });
-            var makeGetC = function (setupViewArgs, eventCache) {
+            var makeGetC = function (setupViewArgs, eventCache, informCreationBlock) {
                 var fake_getInfo = setupViewArgs.getInfo;
                 var _theC = undefined;
                 return function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -1202,6 +1204,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                             case 2:
                                 _a = _b.sent(), ApplicationID = _a.ApplicationID, Deployer = _a.Deployer, startRound = _a.startRound;
                                 (0, shared_impl_1.debug)(label, 'getC', { ApplicationID: ApplicationID, startRound: startRound });
+                                informCreationBlock(startRound);
                                 ctcAddr = algosdk_1["default"].getApplicationAddress(ApplicationID);
                                 (0, shared_impl_1.debug)(label, 'getC', { ctcAddr: ctcAddr });
                                 realLastRound = startRound;
@@ -1420,7 +1423,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                 }); };
                 var eventCache = new EventCache();
                 var fake_setupArgs = __assign(__assign({}, setupArgs), { getInfo: fake_getInfo });
-                var getC = makeGetC(fake_setupArgs, eventCache);
+                var getC = makeGetC(fake_setupArgs, eventCache, function () { });
                 // Returns address of a Reach contract
                 var getContractAddress = function () { return __awaiter(void 0, void 0, void 0, function () {
                     var ctcAddr;
@@ -1963,7 +1966,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
             };
             var setupView = function (setupViewArgs) {
                 var eventCache = new EventCache();
-                var getC = makeGetC(setupViewArgs, eventCache);
+                var getC = makeGetC(setupViewArgs, eventCache, function () { });
                 var viewLib = {
                     viewMapRef: function (mapi, a) { return __awaiter(void 0, void 0, void 0, function () {
                         var getLocalState, ls, mbs, md, mr;
@@ -2040,7 +2043,113 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                 };
                 return { getView1: getView1, viewLib: viewLib };
             };
-            return (0, shared_impl_1.stdContract)({ bin: bin, waitUntilTime: exports.waitUntilTime, waitUntilSecs: exports.waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: ALGO_compiled_1.stdlib, setupView: setupView, _setup: _setup, givenInfoP: givenInfoP });
+            var setupEvents = function (a) {
+                var eventCache = new EventCache();
+                var time = (0, shared_user_1.bigNumberify)(0);
+                var getC = makeGetC(a, eventCache, function (cb) {
+                    time = (0, shared_user_1.bigNumberify)(cb);
+                });
+                var createEventStream = function (event, tys) {
+                    var logIndex = {};
+                    var sig = event + "(" + tys.map(function (ty) { return ty.netName; }).join(',') + ")";
+                    (0, shared_impl_1.debug)("createEventStream signature", sig);
+                    var hashPrefix = (0, js_sha512_1.sha512_256)(sig).substring(0, 4);
+                    var base64Hash = replaceAll(base64ify(hashPrefix), '=', '');
+                    (0, shared_impl_1.debug)("createEventStream hash", base64Hash);
+                    var lastLog = undefined;
+                    var seek = function (t) {
+                        (0, shared_impl_1.debug)("EventStream::seek", t);
+                        time = t;
+                        logIndex[time.toNumber()] = 0;
+                    };
+                    var next = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var dhead, ApplicationID, pred, res, round, logIdx, logs, log, parsedLog, blockTime;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    dhead = "EventStream::next";
+                                    return [4 /*yield*/, getC()];
+                                case 1:
+                                    ApplicationID = (_a.sent()).ApplicationID;
+                                    pred = function (txn) {
+                                        var round = txn['confirmed-round'];
+                                        var logIdx = logIndex[round] || 0;
+                                        var logs = (txn['logs'] || []).slice(logIdx);
+                                        var good = logs.some(function (log) { return log.startsWith(base64Hash); });
+                                        return good;
+                                    };
+                                    res = { succ: false, round: 0 };
+                                    _a.label = 2;
+                                case 2:
+                                    if (!!res.succ) return [3 /*break*/, 6];
+                                    return [4 /*yield*/, eventCache.query(dhead, ApplicationID, { minRound: time.toNumber(), isEventStream: true }, pred)];
+                                case 3:
+                                    res = _a.sent();
+                                    if (!!res.succ) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, await_timeout_1["default"].set(5000)];
+                                case 4:
+                                    _a.sent();
+                                    _a.label = 5;
+                                case 5: return [3 /*break*/, 2];
+                                case 6:
+                                    round = res.txn['confirmed-round'];
+                                    logIdx = logIndex[round] || 0;
+                                    logs = res.txn.logs.slice(logIdx);
+                                    log = logs.find(function (l, idx) {
+                                        var matches = l.startsWith(base64Hash);
+                                        if (matches) {
+                                            logIndex[round] = logIdx + idx + 1;
+                                        }
+                                        return matches;
+                                    });
+                                    parsedLog = (0, exports.T_Tuple)([(0, exports.T_Bytes)(4)].concat(tys)).fromNet(reNetify(log));
+                                    blockTime = (0, shared_user_1.bigNumberify)(round);
+                                    time = blockTime;
+                                    (0, shared_impl_1.debug)(dhead + " parsed log", parsedLog, blockTime);
+                                    parsedLog.shift(); // Remove tag
+                                    lastLog = { when: blockTime, what: parsedLog };
+                                    return [2 /*return*/, lastLog];
+                            }
+                        });
+                    }); };
+                    var seekNow = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, (0, exports.getNetworkTime)()];
+                                case 1:
+                                    time = _a.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    var lastTime = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var dhead;
+                        return __generator(this, function (_a) {
+                            dhead = "EventStream::lastTime";
+                            (0, shared_impl_1.debug)(dhead, time);
+                            return [2 /*return*/, lastLog === null || lastLog === void 0 ? void 0 : lastLog.when];
+                        });
+                    }); };
+                    var monitor = function (onEvent) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    if (!true) return [3 /*break*/, 2];
+                                    _a = onEvent;
+                                    return [4 /*yield*/, next()];
+                                case 1:
+                                    _a.apply(void 0, [_b.sent()]);
+                                    return [3 /*break*/, 0];
+                                case 2: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    return { lastTime: lastTime, seek: seek, seekNow: seekNow, monitor: monitor, next: next };
+                };
+                return { createEventStream: createEventStream };
+            };
+            return (0, shared_impl_1.stdContract)({ bin: bin, waitUntilTime: exports.waitUntilTime, waitUntilSecs: exports.waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: ALGO_compiled_1.stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
         };
         me_na = { networkAccount: networkAccount };
         tokenAccepted = function (token) { return __awaiter(void 0, void 0, void 0, function () {

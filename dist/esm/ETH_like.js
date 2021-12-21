@@ -166,6 +166,14 @@ export function makeEthLike(ethLikeArgs) {
     // ****************************************************************************
     // Event Cache
     // ****************************************************************************
+    var getMinBlockWithLogIndex = function (logIndex) { return function (allLogs) {
+        var logs = allLogs.filter(function (log) { return log.logIndex > (logIndex[log.blockNumber] || 0); });
+        return logs.reduce(function (acc, x) {
+            return (x.blockNumber == acc.blockNumber)
+                ? (x.logIndex > (logIndex[x.blockNumber] || 0) && x.logIndex < acc.logIndex ? x : acc)
+                : (x.blockNumber.toString() < acc.blockNumber.toString() ? x : acc);
+        }, logs[0]);
+    }; };
     var getMinBlock = function (logs) {
         return logs.reduce(function (acc, x) {
             return (x.blockNumber == acc.blockNumber)
@@ -196,7 +204,8 @@ export function makeEthLike(ethLikeArgs) {
                 this.theAddress = address;
             }
         };
-        EventCache.prototype.query = function (dhead, getC, fromBlock, timeoutAt, evt) {
+        EventCache.prototype.query = function (dhead, getC, evt, queryInfo, f) {
+            if (f === void 0) { f = getMinBlock; }
             return __awaiter(this, void 0, void 0, function () {
                 var ethersC;
                 return __generator(this, function (_a) {
@@ -204,13 +213,14 @@ export function makeEthLike(ethLikeArgs) {
                         case 0: return [4 /*yield*/, getC()];
                         case 1:
                             ethersC = _a.sent();
-                            return [4 /*yield*/, this.queryContract(dhead, ethersC.address, ethersC.interface, fromBlock, timeoutAt, evt)];
+                            return [4 /*yield*/, this.queryContract(dhead, ethersC.address, ethersC.interface, evt, queryInfo, f)];
                         case 2: return [2 /*return*/, _a.sent()];
                     }
                 });
             });
         };
-        EventCache.prototype.queryContract = function (dhead, address, iface, fromBlock, timeoutAt, evt) {
+        EventCache.prototype.queryContract = function (dhead, address, iface, evt, queryInfo, f) {
+            if (f === void 0) { f = getMinBlock; }
             return __awaiter(this, void 0, void 0, function () {
                 var topic;
                 return __generator(this, function (_a) {
@@ -218,21 +228,22 @@ export function makeEthLike(ethLikeArgs) {
                         case 0:
                             topic = iface.getEventTopic(evt);
                             this.checkAddress(address);
-                            return [4 /*yield*/, this.query_(dhead, fromBlock, timeoutAt, topic)];
+                            return [4 /*yield*/, this.query_(dhead, topic, queryInfo, f)];
                         case 1: return [2 /*return*/, _a.sent()];
                     }
                 });
             });
         };
-        EventCache.prototype.query_ = function (dhead, fromBlock, timeoutAt, topic) {
+        EventCache.prototype.query_ = function (dhead, topic, queryInfo, f) {
             return __awaiter(this, void 0, void 0, function () {
-                var lab, h, maxTime, maxSecs, showCache, searchLogs, initLogs, failed, leftOver, provider, fromBlock_act, currentTime, validQueryWindow, toBlock, res, e_1, foundLogs;
+                var lab, fromBlock, timeoutAt, _a, isEventStream, h, maxTime, maxSecs, showCache, searchLogs, initLogs, evt, failed, leftOver, provider, fromBlock_act, currentTime, validQueryWindow, toBlock, res, e_1, foundLogs, evt;
                 var _this = this;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
                         case 0:
                             lab = "EventCache.query";
-                            debug(dhead, lab, { fromBlock: fromBlock, timeoutAt: timeoutAt, topic: topic });
+                            fromBlock = queryInfo.fromBlock, timeoutAt = queryInfo.timeoutAt, _a = queryInfo.isEventStream, isEventStream = _a === void 0 ? false : _a;
+                            debug(dhead, lab, { fromBlock: fromBlock, timeoutAt: timeoutAt, isEventStream: isEventStream, topic: topic });
                             h = function (mode) { return timeoutAt && timeoutAt[0] === mode ? bigNumberToNumber(timeoutAt[1]) : undefined; };
                             maxTime = h('time');
                             maxSecs = h('secs');
@@ -283,14 +294,17 @@ export function makeEthLike(ethLikeArgs) {
                             }); };
                             return [4 /*yield*/, searchLogs(this.cache)];
                         case 1:
-                            initLogs = _a.sent();
+                            initLogs = _b.sent();
                             if (initLogs.length > 0) {
                                 debug(dhead, lab, "in cache");
-                                return [2 /*return*/, { succ: true, evt: getMinBlock(initLogs) }];
+                                evt = f(initLogs);
+                                if (evt !== undefined) {
+                                    return [2 /*return*/, { succ: true, evt: evt }];
+                                }
                             }
                             debug(dhead, lab, "not in cache");
                             failed = function () { return ({ succ: false, block: _this.currentBlock }); };
-                            if (this.cache.length != 0) {
+                            if (this.cache.length != 0 && !isEventStream) {
                                 debug("cache not empty, contains some other message from future, not querying...", this.cache);
                                 return [2 /*return*/, failed()];
                             }
@@ -301,17 +315,17 @@ export function makeEthLike(ethLikeArgs) {
                             debug(dhead, lab, "waiting...", leftOver);
                             return [4 /*yield*/, Timeout.set(leftOver)];
                         case 2:
-                            _a.sent();
-                            _a.label = 3;
+                            _b.sent();
+                            _b.label = 3;
                         case 3:
                             this.lastQueryTime = Date.now();
                             return [4 /*yield*/, getProvider()];
                         case 4:
-                            provider = _a.sent();
+                            provider = _b.sent();
                             fromBlock_act = Math.max(fromBlock, this.currentBlock);
                             return [4 /*yield*/, getNetworkTimeNumber()];
                         case 5:
-                            currentTime = _a.sent();
+                            currentTime = _b.sent();
                             debug(dhead, lab, { fromBlock_act: fromBlock_act, currentTime: currentTime });
                             if (fromBlock_act > currentTime) {
                                 debug(dhead, lab, "no contact, from block in future");
@@ -324,19 +338,19 @@ export function makeEthLike(ethLikeArgs) {
                             debug(dhead, lab, { fromBlock_act: fromBlock_act, currentTime: currentTime, toBlock: toBlock });
                             assert(fromBlock <= toBlock, "from <= to");
                             res = [];
-                            _a.label = 6;
+                            _b.label = 6;
                         case 6:
-                            _a.trys.push([6, 8, , 9]);
+                            _b.trys.push([6, 8, , 9]);
                             return [4 /*yield*/, provider.getLogs({
                                     fromBlock: fromBlock_act,
                                     toBlock: toBlock,
                                     address: this.theAddress
                                 })];
                         case 7:
-                            res = _a.sent();
+                            res = _b.sent();
                             return [3 /*break*/, 9];
                         case 8:
-                            e_1 = _a.sent();
+                            e_1 = _b.sent();
                             debug(dhead, lab, 'getLogs err', e_1);
                             return [2 /*return*/, failed()];
                         case 9:
@@ -349,10 +363,13 @@ export function makeEthLike(ethLikeArgs) {
                             debug(dhead, lab, 'got network', this.currentBlock);
                             return [4 /*yield*/, searchLogs(this.cache)];
                         case 10:
-                            foundLogs = _a.sent();
+                            foundLogs = _b.sent();
                             if (foundLogs.length > 0) {
                                 debug(dhead, lab, "in network");
-                                return [2 /*return*/, { succ: true, evt: getMinBlock(foundLogs) }];
+                                evt = f(foundLogs);
+                                if (evt !== undefined) {
+                                    return [2 /*return*/, { succ: true, evt: evt }];
+                                }
                             }
                             debug(dhead, lab, "not in network");
                             return [2 /*return*/, failed()];
@@ -957,7 +974,7 @@ export function makeEthLike(ethLikeArgs) {
                                             _a.label = 2;
                                         case 2:
                                             if (!true) return [3 /*break*/, 15];
-                                            return [4 /*yield*/, eventCache.query(dhead, getC, fromBlock, timeoutAt, ok_evt)];
+                                            return [4 /*yield*/, eventCache.query(dhead, getC, ok_evt, { fromBlock: fromBlock, timeoutAt: timeoutAt })];
                                         case 3:
                                             res = _a.sent();
                                             if (!!res.succ) return [3 /*break*/, 9];
@@ -1072,7 +1089,95 @@ export function makeEthLike(ethLikeArgs) {
                             };
                             return { getView1: getView1, viewLib: viewLib };
                         };
-                        return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, _setup: _setup, givenInfoP: givenInfoP });
+                        var setupEvents = function (setupArgs) {
+                            var eventCache = new EventCache(); // shared across getEvents
+                            var time = bigNumberify(0);
+                            var getC = makeGetC(setupArgs, eventCache, function (cb) {
+                                time = bigNumberify(cb);
+                            });
+                            var createEventStream = function (event, tys) {
+                                void tys;
+                                var logIndex = {};
+                                var lastLog = undefined;
+                                var seek = function (t) {
+                                    debug("EventStream::seek", t);
+                                    time = t;
+                                    logIndex[time.toNumber()] = 0;
+                                };
+                                var next = function () { return __awaiter(_this, void 0, void 0, function () {
+                                    var dhead, ctc, res, evt, blockTime, blockLogIdx, args, thisArgs;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                dhead = "EventStream::next";
+                                                debug(dhead, time);
+                                                return [4 /*yield*/, getC()];
+                                            case 1:
+                                                ctc = _a.sent();
+                                                res = { succ: false, block: 0 };
+                                                _a.label = 2;
+                                            case 2:
+                                                if (!!res.succ) return [3 /*break*/, 6];
+                                                return [4 /*yield*/, eventCache.query(dhead, getC, event, { fromBlock: time.toNumber(), isEventStream: true }, getMinBlockWithLogIndex(logIndex))];
+                                            case 3:
+                                                res = _a.sent();
+                                                if (!!res.succ) return [3 /*break*/, 5];
+                                                return [4 /*yield*/, Timeout.set(5000)];
+                                            case 4:
+                                                _a.sent();
+                                                _a.label = 5;
+                                            case 5: return [3 /*break*/, 2];
+                                            case 6:
+                                                evt = res.evt;
+                                                blockTime = bigNumberify(evt.blockNumber);
+                                                blockLogIdx = evt.logIndex;
+                                                logIndex[blockTime.toNumber()] = blockLogIdx;
+                                                args = ctc.interface.parseLog(evt).args;
+                                                thisArgs = tys.map(function (ty, i) { return ty.unmunge(args[i]); });
+                                                debug(dhead + " parsed log", thisArgs, blockTime);
+                                                lastLog = { when: blockTime, what: thisArgs };
+                                                return [2 /*return*/, lastLog];
+                                        }
+                                    });
+                                }); };
+                                var seekNow = function () { return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, getNetworkTime()];
+                                            case 1:
+                                                time = _a.sent();
+                                                return [2 /*return*/];
+                                        }
+                                    });
+                                }); };
+                                var lastTime = function () { return __awaiter(_this, void 0, void 0, function () {
+                                    var dhead;
+                                    return __generator(this, function (_a) {
+                                        dhead = "EventStream::lastTime";
+                                        debug(dhead, time);
+                                        return [2 /*return*/, lastLog === null || lastLog === void 0 ? void 0 : lastLog.when];
+                                    });
+                                }); };
+                                var monitor = function (onEvent) { return __awaiter(_this, void 0, void 0, function () {
+                                    var _a;
+                                    return __generator(this, function (_b) {
+                                        switch (_b.label) {
+                                            case 0:
+                                                if (!true) return [3 /*break*/, 2];
+                                                _a = onEvent;
+                                                return [4 /*yield*/, next()];
+                                            case 1:
+                                                _a.apply(void 0, [_b.sent()]);
+                                                return [3 /*break*/, 0];
+                                            case 2: return [2 /*return*/];
+                                        }
+                                    });
+                                }); };
+                                return { lastTime: lastTime, seek: seek, seekNow: seekNow, monitor: monitor, next: next };
+                            };
+                            return { createEventStream: createEventStream };
+                        };
+                        return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
                     };
                     ;
                     tokenAccepted = function (token) { return __awaiter(_this, void 0, void 0, function () {
@@ -1433,7 +1538,7 @@ export function makeEthLike(ethLikeArgs) {
                                     _a.label = 1;
                                 case 1:
                                     if (!(eventCache.currentBlock <= now)) return [3 /*break*/, 3];
-                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, creation_block, ['time', bigNumberify(now)], event)];
+                                    return [4 /*yield*/, eventCache.queryContract(dhead, address, iface, event, { fromBlock: creation_block, timeoutAt: ['time', bigNumberify(now)] })];
                                 case 2:
                                     res = _a.sent();
                                     if (!res.succ) {

@@ -12,6 +12,7 @@ export declare type ALGO_Ty<BV extends CBR_Val> = {
     netSize: number;
     toNet(bv: BV): NV;
     fromNet(nv: NV): BV;
+    netName: string;
 };
 export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;

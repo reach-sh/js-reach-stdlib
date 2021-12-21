@@ -132,7 +132,7 @@ var stdVerifyContract = function (stdArgs, doVerify) { return __awaiter(void 0, 
 }); };
 exports.stdVerifyContract = stdVerifyContract;
 var stdContract = function (stdContractArgs) {
-    var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
             throw Error("Cannot set info(" + JSON.stringify(info) + ") (i.e. deploy) when acc.contract called with contract info");
@@ -261,10 +261,19 @@ var stdContract = function (stdContractArgs) {
     };
     var apis = mkApis(false);
     var safeApis = mkApis(true);
+    var eventMap = bin._getEvents({ reachStdlib: stdlib });
+    var createEventStream = setupEvents(viewArgs).createEventStream;
+    var events = (0, exports.objectMap)(eventMap, (function (k, v) {
+        return Array.isArray(v) // untagged
+            ? createEventStream(k, v)
+            : (0, exports.objectMap)(v, (function (kp, vp) {
+                return createEventStream(k + "_" + kp, vp);
+            }));
+    }));
     return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
-        }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis });
+        }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, e: events, events: events });
 };
 exports.stdContract = stdContract;
 var stdAccount = function (orig) {

@@ -144,87 +144,130 @@ var mkKont = function () {
     };
 };
 exports.mkKont = mkKont;
-var mkStdlibProxy = function (lib) { return __awaiter(void 0, void 0, void 0, function () {
-    var account, rpc_stdlib;
+var mkStdlibProxy = function (lib, ks) { return __awaiter(void 0, void 0, void 0, function () {
+    var account, token;
     return __generator(this, function (_a) {
-        account = (0, exports.mkKont)();
-        rpc_stdlib = __assign(__assign({}, lib), { newTestAccount: function (bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.newTestAccount(bal)];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, newTestAccounts: function (num, bal) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, lib.newTestAccounts(num, bal)];
-                    case 1: return [2 /*return*/, (_a.sent()).map(account.track)];
-                }
-            }); }); }, getDefaultAccount: function () { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.getDefaultAccount()];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, newAccountFromSecret: function (s) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.newAccountFromSecret(s)];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, newAccountFromMnemonic: function (s) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.newAccountFromMnemonic(s)];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, createAccount: function () { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.createAccount()];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, fundFromFaucet: function (id, bal) {
-                return lib.fundFromFaucet(account.id(id), bal);
-            }, connectAccount: function (id) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = account).track;
-                        return [4 /*yield*/, lib.connectAccount(account.id(id).networkAccount)];
-                    case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
-                }
-            }); }); }, balanceOf: function (id) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                return [2 /*return*/, lib.balanceOf(account.id(id))];
-            }); }); }, transfer: function (from, to, bal) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                return [2 /*return*/, lib.transfer(account.id(from), account.id(to), bal)];
-            }); }); }, assert: function (x) {
-                return lib.assert(x) || null;
-            } });
-        return [2 /*return*/, {
-                account: account,
-                rpc_stdlib: rpc_stdlib
-            }];
+        account = ks.account, token = ks.token;
+        return [2 /*return*/, __assign(__assign({}, lib), { newTestAccount: function (bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.newTestAccount(bal)];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, newTestAccounts: function (num, bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = Promise).all;
+                            return [4 /*yield*/, lib.newTestAccounts(num, bal)];
+                        case 1: return [2 /*return*/, _b.apply(_a, [(_c.sent()).map(account.track)])];
+                    }
+                }); }); }, getDefaultAccount: function () { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.getDefaultAccount()];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, newAccountFromSecret: function (s) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.newAccountFromSecret(s)];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, newAccountFromMnemonic: function (s) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.newAccountFromMnemonic(s)];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, createAccount: function () { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.createAccount()];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, fundFromFaucet: function (id, bal) {
+                    return lib.fundFromFaucet(account.id(id), bal);
+                }, connectAccount: function (id) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            _b = (_a = account).track;
+                            return [4 /*yield*/, lib.connectAccount(account.id(id).networkAccount)];
+                        case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
+                    }
+                }); }); }, balanceOf: function (id, token) { return __awaiter(void 0, void 0, void 0, function () {
+                    var t;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                t = token === undefined ? undefined
+                                    : token.id ? token.id // From `launchToken`
+                                        : token;
+                                return [4 /*yield*/, lib.balanceOf(account.id(id), t)];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    });
+                }); }, transfer: function (from, to, bal) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                    return [2 /*return*/, lib.transfer(account.id(from), account.id(to), bal)];
+                }); }); }, assert: function (x) {
+                    return lib.assert(x);
+                }, 
+                // As of 2021-12-08 `launchToken` isn't officially documented
+                // These are unlike `Token` values but we'll track them together, with the
+                // intention that functions like `tokenAccept` should accept either
+                launchToken: function (id, name, sym, opts) {
+                    if (opts === void 0) { opts = {}; }
+                    return __awaiter(void 0, void 0, void 0, function () {
+                        var t;
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, lib.launchToken(account.id(id), name, sym, opts)];
+                                case 1:
+                                    t = _b.sent();
+                                    _a = {};
+                                    return [4 /*yield*/, token.track(t)];
+                                case 2: return [2 /*return*/, (_a.kid = _b.sent(), _a.token = t, _a)];
+                            }
+                        });
+                    });
+                }, setQueryLowerBound: function (nt) {
+                    return lib.setQueryLowerBound(lib.bigNumberify(nt));
+                } })];
     });
 }); };
 exports.mkStdlibProxy = mkStdlibProxy;
 var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, function () {
-    var real_stdlib, _a, account, rpc_stdlib, contract, kont, app, route_backend, rpc_acc, rpc_ctc, safely, mkRPC, userDefinedField, mkUserDefined, _loop_1, b, do_kont, mkForget, fetchOrFail, opts, passphrase;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0: return [4 /*yield*/, (0, loader_1.loadStdlib)()];
-            case 1:
-                real_stdlib = _b.sent();
-                return [4 /*yield*/, (0, exports.mkStdlibProxy)(real_stdlib)];
-            case 2:
-                _a = _b.sent(), account = _a.account, rpc_stdlib = _a.rpc_stdlib;
+    var account, contract, token, kont, real_stdlib, rpc_stdlib, app, route_backend, reBigNumberify, rpc_acc, rpc_ctc, rpc_launchToken, safely, mkRPC, userDefinedField, mkUserDefined, ctcPs, _loop_1, b, do_kont, mkForget, p, fetchOrFail, opts, passphrase;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                account = (0, exports.mkKont)();
                 contract = (0, exports.mkKont)();
+                token = (0, exports.mkKont)();
                 kont = (0, exports.mkKont)();
+                return [4 /*yield*/, (0, loader_1.loadStdlib)()];
+            case 1:
+                real_stdlib = _a.sent();
+                return [4 /*yield*/, (0, exports.mkStdlibProxy)(real_stdlib, { account: account, token: token })];
+            case 2:
+                rpc_stdlib = _a.sent();
                 app = (0, express_1["default"])();
                 route_backend = express_1["default"].Router();
+                reBigNumberify = function (n) {
+                    return n && n.hex && n.type && n.type === 'BigNumber'
+                        ? (function () { try {
+                            return real_stdlib.bigNumberify(n);
+                        }
+                        catch (e) {
+                            return n;
+                        } })()
+                        : n;
+                };
                 rpc_acc = {
                     contract: function (id) {
                         var args = [];
@@ -286,18 +329,50 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0: return [4 /*yield*/, (_a = account.id(id)).setGasLimit.apply(_a, args)];
-                                    case 1: return [2 /*return*/, (_b.sent()) || null];
+                                    case 1: return [2 /*return*/, _b.sent()];
                                 }
                             });
                         });
                     },
                     setDebugLabel: function (id, l) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, account.id(id).setDebugLabel(l) || null];
-                    }); }); }
+                        return [2 /*return*/, account.id(id).setDebugLabel(l)];
+                    }); }); },
+                    tokenAccept: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () {
+                        var t;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    t = token.id(tok);
+                                    return [4 /*yield*/, account.id(acc).tokenAccept(t.id ? t.id : t)];
+                                case 1:
+                                    _a.sent();
+                                    return [2 /*return*/, null];
+                            }
+                        });
+                    }); },
+                    tokenAccepted: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () {
+                        var t;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    t = token.id(tok);
+                                    return [4 /*yield*/, account.id(acc).tokenAccepted(t.id ? t.id : t)];
+                                case 1: return [2 /*return*/, _a.sent()];
+                            }
+                        });
+                    }); }
                 };
                 rpc_ctc = {
                     getInfo: function (id) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
                         return [2 /*return*/, contract.id(id).getInfo()];
+                    }); }); }
+                };
+                rpc_launchToken = {
+                    mint: function (kid, accTo, amt) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, token.id(kid).mint(account.id(accTo), real_stdlib.bigNumberify(amt))];
+                    }); }); },
+                    optOut: function (kid, accFrom, accTo) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, token.id(kid).optOut(account.id(accFrom), accTo ? account.id(accTo) : undefined)];
                     }); }); }
                 };
                 safely = function (f) { return function (req, res) { return (function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -337,7 +412,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                     var router = express_1["default"].Router();
                     var _loop_2 = function (k) {
                         router.post("/" + k, safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                            var args, lab, ans;
+                            var args, lab, ans, ret;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -347,8 +422,9 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                         return [4 /*yield*/, obj[k].apply(obj, args)];
                                     case 1:
                                         ans = _a.sent();
-                                        (0, shared_impl_1.debug)(lab + " ==> " + JSON.stringify(ans));
-                                        res.json(ans);
+                                        ret = ans === undefined ? null : ans;
+                                        (0, shared_impl_1.debug)(lab + " ==> " + JSON.stringify(ret));
+                                        res.json(ret);
                                         return [2 /*return*/];
                                 }
                             });
@@ -379,7 +455,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     _b.trys.push([1, 3, , 4]);
                                     return [4 /*yield*/, req.path.split('/')
                                             .filter(function (a) { return a !== ''; })
-                                            .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args)];
+                                            .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args.map(reBigNumberify))];
                                 case 2:
                                     a = _b.sent();
                                     (0, shared_impl_1.debug)(lab + " ==> " + JSON.stringify(a));
@@ -436,13 +512,13 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                         }
                     });
                 }); }));
+                ctcPs = {};
                 _loop_1 = function (b) {
-                    route_backend.post("/" + b, safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                        var lab, _a, cid, vals, meths, ctc, kid, io, _loop_3, m, ans, new_res;
+                    var h = function (lab) { return safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a, cid, vals, meths, ctc, kid, io, _loop_3, m, ans, new_res;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
-                                    lab = "RPC /backend/" + b;
                                     (0, shared_impl_1.debug)(lab + " IN");
                                     _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
                                     ctc = contract.id(cid);
@@ -452,8 +528,8 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     lab = lab + " " + cid + " " + kid;
                                     (0, shared_impl_1.debug)(lab + " START " + JSON.stringify(req.body));
                                     io = __assign({}, vals);
-                                    if (io["stdlib.hasRandom"]) {
-                                        delete io["stdlib.hasRandom"];
+                                    if (io['stdlib.hasRandom']) {
+                                        delete io['stdlib.hasRandom'];
                                         io = __assign(__assign({}, real_stdlib.hasRandom), io);
                                     }
                                     _loop_3 = function (m) {
@@ -484,7 +560,10 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     return [2 /*return*/];
                             }
                         });
-                    }); }));
+                    }); }); };
+                    route_backend.post("/" + b, h("RPC /backend/" + b));
+                    ctcPs["/ctc/p/" + b] = h("RPC /ctc/p/" + b);
+                    ctcPs["/ctc/participants/" + b] = h("RPC /ctc/participants/" + b);
                 };
                 for (b in backend) {
                     _loop_1(b);
@@ -517,17 +596,26 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                 app.use("/stdlib", mkRPC('stdlib', rpc_stdlib));
                 app.use("/acc", mkRPC('acc', rpc_acc));
                 app.use("/ctc", mkRPC('ctc', rpc_ctc));
+                app.use("/launchToken", mkRPC('launchToken', rpc_launchToken));
                 app.use("/backend", route_backend);
                 // NOTE: since `getViews()` is deprecated we deliberately skip it here
                 app.use("/ctc/v", mkUserDefined('/ctc/v', 'v', contract, false));
                 app.use("/ctc/views", mkUserDefined('/ctc/views', 'views', contract, false));
                 app.use("/ctc/unsafeViews", mkUserDefined('/ctc/unsafeViews', 'unsafeViews', contract, true));
+                app.use("/ctc/a", mkUserDefined('/ctc/a', 'a', contract, true));
+                app.use("/ctc/apis", mkUserDefined('/ctc/apis', 'apis', contract, true));
+                app.use("/ctc/safeApis", mkUserDefined('/ctc/safeApis', 'safeApis', contract, false));
+                // NOTE: it's important these are deferred in order to preserve middleware precedence
+                for (p in ctcPs) {
+                    app.use(p, ctcPs[p]);
+                }
                 app.post("/kont", do_kont);
-                // Note: successful `/backend/<p>` requests automatically `forget` their
-                // continuation ID before yielding a "Done" response; likewise with requests
-                // to `/kont` due to their relationship with `/backend/<p>`
+                // NOTE: successful `/backend/<participant>` requests automatically `forget`
+                // their continuation ID before yielding a "Done" response; likewise with
+                // requests to `/kont` due to their relationship with `/backend/<participant>`
                 app.post("/forget/acc", mkForget(account));
                 app.post("/forget/ctc", mkForget(contract));
+                app.post("/forget/token", mkForget(token));
                 app.post("/stop", safely(function (_, res) { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         res.json(true);

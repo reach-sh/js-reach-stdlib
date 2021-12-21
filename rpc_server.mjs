@@ -166,12 +166,12 @@ export var mkKont = function() {
     was: was
   };
 };
-export var mkStdlibProxy = function(lib) {
+export var mkStdlibProxy = function(lib, ks) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var account, rpc_stdlib;
+    var account, token;
     return __generator(this, function(_a) {
-      account = mkKont();
-      rpc_stdlib = __assign(__assign({}, lib), {
+      account = ks.account, token = ks.token;
+      return [2 /*return*/ , __assign(__assign({}, lib), {
         newTestAccount: function(bal) {
           return __awaiter(void 0, void 0, void 0, function() {
             var _a, _b;
@@ -188,12 +188,14 @@ export var mkStdlibProxy = function(lib) {
         },
         newTestAccounts: function(num, bal) {
           return __awaiter(void 0, void 0, void 0, function() {
-            return __generator(this, function(_a) {
-              switch (_a.label) {
+            var _a, _b;
+            return __generator(this, function(_c) {
+              switch (_c.label) {
                 case 0:
+                  _b = (_a = Promise).all;
                   return [4 /*yield*/ , lib.newTestAccounts(num, bal)];
                 case 1:
-                  return [2 /*return*/ , (_a.sent()).map(account.track)];
+                  return [2 /*return*/ , _b.apply(_a, [(_c.sent()).map(account.track)])];
               }
             });
           });
@@ -271,10 +273,20 @@ export var mkStdlibProxy = function(lib) {
             });
           });
         },
-        balanceOf: function(id) {
+        balanceOf: function(id, token) {
           return __awaiter(void 0, void 0, void 0, function() {
+            var t;
             return __generator(this, function(_a) {
-              return [2 /*return*/ , lib.balanceOf(account.id(id))];
+              switch (_a.label) {
+                case 0:
+                  t = token === undefined ? undefined :
+                    token.id ? token.id // From `launchToken`
+                    :
+                    token;
+                  return [4 /*yield*/ , lib.balanceOf(account.id(id), t)];
+                case 1:
+                  return [2 /*return*/ , _a.sent()];
+              }
             });
           });
         },
@@ -286,32 +298,66 @@ export var mkStdlibProxy = function(lib) {
           });
         },
         assert: function(x) {
-          return lib.assert(x) || null;
+          return lib.assert(x);
+        },
+        // As of 2021-12-08 `launchToken` isn't officially documented
+        // These are unlike `Token` values but we'll track them together, with the
+        // intention that functions like `tokenAccept` should accept either
+        launchToken: function(id, name, sym, opts) {
+          if (opts === void 0) { opts = {}; }
+          return __awaiter(void 0, void 0, void 0, function() {
+            var t;
+            var _a;
+            return __generator(this, function(_b) {
+              switch (_b.label) {
+                case 0:
+                  return [4 /*yield*/ , lib.launchToken(account.id(id), name, sym, opts)];
+                case 1:
+                  t = _b.sent();
+                  _a = {};
+                  return [4 /*yield*/ , token.track(t)];
+                case 2:
+                  return [2 /*return*/ , (_a.kid = _b.sent(), _a.token = t, _a)];
+              }
+            });
+          });
+        },
+        setQueryLowerBound: function(nt) {
+          return lib.setQueryLowerBound(lib.bigNumberify(nt));
         }
-      });
-      return [2 /*return*/ , {
-        account: account,
-        rpc_stdlib: rpc_stdlib
-      }];
+      })];
     });
   });
 };
 export var serveRpc = function(backend) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var real_stdlib, _a, account, rpc_stdlib, contract, kont, app, route_backend, rpc_acc, rpc_ctc, safely, mkRPC, userDefinedField, mkUserDefined, _loop_1, b, do_kont, mkForget, fetchOrFail, opts, passphrase;
-    return __generator(this, function(_b) {
-      switch (_b.label) {
+    var account, contract, token, kont, real_stdlib, rpc_stdlib, app, route_backend, reBigNumberify, rpc_acc, rpc_ctc, rpc_launchToken, safely, mkRPC, userDefinedField, mkUserDefined, ctcPs, _loop_1, b, do_kont, mkForget, p, fetchOrFail, opts, passphrase;
+    return __generator(this, function(_a) {
+      switch (_a.label) {
         case 0:
+          account = mkKont();
+          contract = mkKont();
+          token = mkKont();
+          kont = mkKont();
           return [4 /*yield*/ , loadStdlib()];
         case 1:
-          real_stdlib = _b.sent();
-          return [4 /*yield*/ , mkStdlibProxy(real_stdlib)];
+          real_stdlib = _a.sent();
+          return [4 /*yield*/ , mkStdlibProxy(real_stdlib, { account: account, token: token })];
         case 2:
-          _a = _b.sent(), account = _a.account, rpc_stdlib = _a.rpc_stdlib;
-          contract = mkKont();
-          kont = mkKont();
+          rpc_stdlib = _a.sent();
           app = express();
           route_backend = express.Router();
+          reBigNumberify = function(n) {
+            return n && n.hex && n.type && n.type === 'BigNumber' ?
+              (function() {
+                try {
+                  return real_stdlib.bigNumberify(n);
+                } catch (e) {
+                  return n;
+                }
+              })() :
+              n;
+          };
           rpc_acc = {
             contract: function(id) {
               var args = [];
@@ -389,7 +435,7 @@ export var serveRpc = function(backend) {
                     case 0:
                       return [4 /*yield*/ , (_a = account.id(id)).setGasLimit.apply(_a, args)];
                     case 1:
-                      return [2 /*return*/ , (_b.sent()) || null];
+                      return [2 /*return*/ , _b.sent()];
                   }
                 });
               });
@@ -397,7 +443,36 @@ export var serveRpc = function(backend) {
             setDebugLabel: function(id, l) {
               return __awaiter(void 0, void 0, void 0, function() {
                 return __generator(this, function(_a) {
-                  return [2 /*return*/ , account.id(id).setDebugLabel(l) || null];
+                  return [2 /*return*/ , account.id(id).setDebugLabel(l)];
+                });
+              });
+            },
+            tokenAccept: function(acc, tok) {
+              return __awaiter(void 0, void 0, void 0, function() {
+                var t;
+                return __generator(this, function(_a) {
+                  switch (_a.label) {
+                    case 0:
+                      t = token.id(tok);
+                      return [4 /*yield*/ , account.id(acc).tokenAccept(t.id ? t.id : t)];
+                    case 1:
+                      _a.sent();
+                      return [2 /*return*/ , null];
+                  }
+                });
+              });
+            },
+            tokenAccepted: function(acc, tok) {
+              return __awaiter(void 0, void 0, void 0, function() {
+                var t;
+                return __generator(this, function(_a) {
+                  switch (_a.label) {
+                    case 0:
+                      t = token.id(tok);
+                      return [4 /*yield*/ , account.id(acc).tokenAccepted(t.id ? t.id : t)];
+                    case 1:
+                      return [2 /*return*/ , _a.sent()];
+                  }
                 });
               });
             }
@@ -407,6 +482,22 @@ export var serveRpc = function(backend) {
               return __awaiter(void 0, void 0, void 0, function() {
                 return __generator(this, function(_a) {
                   return [2 /*return*/ , contract.id(id).getInfo()];
+                });
+              });
+            }
+          };
+          rpc_launchToken = {
+            mint: function(kid, accTo, amt) {
+              return __awaiter(void 0, void 0, void 0, function() {
+                return __generator(this, function(_a) {
+                  return [2 /*return*/ , token.id(kid).mint(account.id(accTo), real_stdlib.bigNumberify(amt))];
+                });
+              });
+            },
+            optOut: function(kid, accFrom, accTo) {
+              return __awaiter(void 0, void 0, void 0, function() {
+                return __generator(this, function(_a) {
+                  return [2 /*return*/ , token.id(kid).optOut(account.id(accFrom), accTo ? account.id(accTo) : undefined)];
                 });
               });
             }
@@ -455,7 +546,7 @@ export var serveRpc = function(backend) {
             var _loop_2 = function(k) {
               router.post("/" + k, safely(function(req, res) {
                 return __awaiter(void 0, void 0, void 0, function() {
-                  var args, lab, ans;
+                  var args, lab, ans, ret;
                   return __generator(this, function(_a) {
                     switch (_a.label) {
                       case 0:
@@ -465,8 +556,9 @@ export var serveRpc = function(backend) {
                         return [4 /*yield*/ , obj[k].apply(obj, args)];
                       case 1:
                         ans = _a.sent();
-                        debug(lab + " ==> " + JSON.stringify(ans));
-                        res.json(ans);
+                        ret = ans === undefined ? null : ans;
+                        debug(lab + " ==> " + JSON.stringify(ret));
+                        res.json(ret);
                         return [2 /*return*/ ];
                     }
                   });
@@ -499,7 +591,7 @@ export var serveRpc = function(backend) {
                       _b.trys.push([1, 3, , 4]);
                       return [4 /*yield*/ , req.path.split('/')
                         .filter(function(a) { return a !== ''; })
-                        .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args)
+                        .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args.map(reBigNumberify))
                       ];
                     case 2:
                       a = _b.sent();
@@ -561,57 +653,62 @@ export var serveRpc = function(backend) {
               });
             });
           }));
+          ctcPs = {};
           _loop_1 = function(b) {
-            route_backend.post("/" + b, safely(function(req, res) {
-              return __awaiter(void 0, void 0, void 0, function() {
-                var lab, _a, cid, vals, meths, ctc, kid, io, _loop_3, m, ans, new_res;
-                return __generator(this, function(_b) {
-                  switch (_b.label) {
-                    case 0:
-                      lab = "RPC /backend/" + b;
-                      debug(lab + " IN");
-                      _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
-                      ctc = contract.id(cid);
-                      return [4 /*yield*/ , kont.track(res)];
-                    case 1:
-                      kid = _b.sent();
-                      lab = lab + " " + cid + " " + kid;
-                      debug(lab + " START " + JSON.stringify(req.body));
-                      io = __assign({}, vals);
-                      if (io["stdlib.hasRandom"]) {
-                        delete io["stdlib.hasRandom"];
-                        io = __assign(__assign({}, real_stdlib.hasRandom), io);
-                      }
-                      _loop_3 = function(m) {
-                        io[m] = function() {
-                          var args = [];
-                          for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i] = arguments[_i];
-                          }
-                          return new Promise(function(resolve, reject) {
-                            debug(lab + " IO " + m + " " + JSON.stringify(args));
-                            var old_res = kont.id(kid);
-                            kont.replace(kid, { resolve: resolve, reject: reject });
-                            old_res.json({ t: "Kont", kid: kid, m: m, args: args });
-                          });
+            var h = function(lab) {
+              return safely(function(req, res) {
+                return __awaiter(void 0, void 0, void 0, function() {
+                  var _a, cid, vals, meths, ctc, kid, io, _loop_3, m, ans, new_res;
+                  return __generator(this, function(_b) {
+                    switch (_b.label) {
+                      case 0:
+                        debug(lab + " IN");
+                        _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
+                        ctc = contract.id(cid);
+                        return [4 /*yield*/ , kont.track(res)];
+                      case 1:
+                        kid = _b.sent();
+                        lab = lab + " " + cid + " " + kid;
+                        debug(lab + " START " + JSON.stringify(req.body));
+                        io = __assign({}, vals);
+                        if (io['stdlib.hasRandom']) {
+                          delete io['stdlib.hasRandom'];
+                          io = __assign(__assign({}, real_stdlib.hasRandom), io);
+                        }
+                        _loop_3 = function(m) {
+                          io[m] = function() {
+                            var args = [];
+                            for (var _i = 0; _i < arguments.length; _i++) {
+                              args[_i] = arguments[_i];
+                            }
+                            return new Promise(function(resolve, reject) {
+                              debug(lab + " IO " + m + " " + JSON.stringify(args));
+                              var old_res = kont.id(kid);
+                              kont.replace(kid, { resolve: resolve, reject: reject });
+                              old_res.json({ t: "Kont", kid: kid, m: m, args: args });
+                            });
+                          };
                         };
-                      };
-                      for (m in meths) {
-                        _loop_3(m);
-                      }
-                      return [4 /*yield*/ , backend[b](ctc, io)];
-                    case 2:
-                      ans = _b.sent();
-                      debug(lab + " END " + JSON.stringify(ans));
-                      new_res = kont.id(kid);
-                      kont.forget(kid);
-                      debug(lab + " DONE");
-                      new_res.json({ t: "Done", ans: ans });
-                      return [2 /*return*/ ];
-                  }
+                        for (m in meths) {
+                          _loop_3(m);
+                        }
+                        return [4 /*yield*/ , backend[b](ctc, io)];
+                      case 2:
+                        ans = _b.sent();
+                        debug(lab + " END " + JSON.stringify(ans));
+                        new_res = kont.id(kid);
+                        kont.forget(kid);
+                        debug(lab + " DONE");
+                        new_res.json({ t: "Done", ans: ans });
+                        return [2 /*return*/ ];
+                    }
+                  });
                 });
               });
-            }));
+            };
+            route_backend.post("/" + b, h("RPC /backend/" + b));
+            ctcPs["/ctc/p/" + b] = h("RPC /ctc/p/" + b);
+            ctcPs["/ctc/participants/" + b] = h("RPC /ctc/participants/" + b);
           };
           for (b in backend) {
             _loop_1(b);
@@ -650,17 +747,26 @@ export var serveRpc = function(backend) {
           app.use("/stdlib", mkRPC('stdlib', rpc_stdlib));
           app.use("/acc", mkRPC('acc', rpc_acc));
           app.use("/ctc", mkRPC('ctc', rpc_ctc));
+          app.use("/launchToken", mkRPC('launchToken', rpc_launchToken));
           app.use("/backend", route_backend);
           // NOTE: since `getViews()` is deprecated we deliberately skip it here
           app.use("/ctc/v", mkUserDefined('/ctc/v', 'v', contract, false));
           app.use("/ctc/views", mkUserDefined('/ctc/views', 'views', contract, false));
           app.use("/ctc/unsafeViews", mkUserDefined('/ctc/unsafeViews', 'unsafeViews', contract, true));
+          app.use("/ctc/a", mkUserDefined('/ctc/a', 'a', contract, true));
+          app.use("/ctc/apis", mkUserDefined('/ctc/apis', 'apis', contract, true));
+          app.use("/ctc/safeApis", mkUserDefined('/ctc/safeApis', 'safeApis', contract, false));
+          // NOTE: it's important these are deferred in order to preserve middleware precedence
+          for (p in ctcPs) {
+            app.use(p, ctcPs[p]);
+          }
           app.post("/kont", do_kont);
-          // Note: successful `/backend/<p>` requests automatically `forget` their
-          // continuation ID before yielding a "Done" response; likewise with requests
-          // to `/kont` due to their relationship with `/backend/<p>`
+          // NOTE: successful `/backend/<participant>` requests automatically `forget`
+          // their continuation ID before yielding a "Done" response; likewise with
+          // requests to `/kont` due to their relationship with `/backend/<participant>`
           app.post("/forget/acc", mkForget(account));
           app.post("/forget/ctc", mkForget(contract));
+          app.post("/forget/token", mkForget(token));
           app.post("/stop", safely(function(_, res) {
             return __awaiter(void 0, void 0, void 0, function() {
               return __generator(this, function(_a) {
