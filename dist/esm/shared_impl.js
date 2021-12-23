@@ -148,7 +148,7 @@ export var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState, apiMapRef = _a.apiMapRef;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -159,7 +159,8 @@ export var stdContract = function (stdContractArgs) {
             getContractAddress: getContractAddress,
             sendrecv: sendrecv,
             recv: recv,
-            getState: getState
+            getState: getState,
+            apiMapRef: apiMapRef
         };
     };
     var ctcC = { _initialize: _initialize };
@@ -212,6 +213,7 @@ export var stdContract = function (stdContractArgs) {
                             theReject(err);
                         }
                     };
+                    debug(bl + ": start", args);
                     ab(ctcC, {
                         "in": (function () {
                             debug(bl + ": in", args);
@@ -254,7 +256,7 @@ export var stdContract = function (stdContractArgs) {
     return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
-        }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, e: events, events: events });
+        }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
 };
 export var stdAccount = function (orig) {
     return __assign(__assign({}, orig), { deploy: function (bin) {

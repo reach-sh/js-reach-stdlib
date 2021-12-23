@@ -18,7 +18,16 @@ export interface EthLikeCompiled extends Stdlib_Impl_Shared {
     stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
     typeDefs: TypeDefs;
 }
-export interface EthersLikeSigner {
+interface EthersLikeNetworkAccountIsh {
+    address?: any;
+    getAddress?: any;
+    getBalance?: any;
+    sendTransaction?: any;
+    _mnemonic?: () => {
+        phrase: string;
+    };
+}
+export interface EthersLikeSigner extends EthersLikeNetworkAccountIsh {
     isSigner(...arg: any): boolean;
 }
 export interface EthersLikeContractFactory {
@@ -47,7 +56,7 @@ export interface EthersLike {
     Signer: EthersLikeSigner;
     providers: EthersLikeProviders;
 }
-export interface EthersLikeWallet {
+export interface EthersLikeWallet extends EthersLikeNetworkAccountIsh {
     connect(...args: any): this;
 }
 export interface EthersLikeWalletClass {
@@ -75,4 +84,5 @@ export interface EthLikeArgs {
 export interface EthLikeCompiledArgs {
     T_Address: ETH_Ty<string, string>;
 }
+export {};
 //# sourceMappingURL=ETH_like_interfaces.d.ts.map

@@ -188,7 +188,8 @@ export var stdContract = function(stdContractArgs) {
       getContractAddress = _a.getContractAddress,
       sendrecv = _a.sendrecv,
       recv = _a.recv,
-      getState = _a.getState;
+      getState = _a.getState,
+      apiMapRef = _a.apiMapRef;
     return {
       selfAddress: selfAddress,
       iam: iam,
@@ -199,7 +200,8 @@ export var stdContract = function(stdContractArgs) {
       getContractAddress: getContractAddress,
       sendrecv: sendrecv,
       recv: recv,
-      getState: getState
+      getState: getState,
+      apiMapRef: apiMapRef
     };
   };
   var ctcC = { _initialize: _initialize };
@@ -253,6 +255,7 @@ export var stdContract = function(stdContractArgs) {
               theReject(err);
             }
           };
+          debug(bl + ": start", args);
           ab(ctcC, {
             "in": (function() {
               debug(bl + ": in", args);
@@ -307,8 +310,8 @@ export var stdContract = function(stdContractArgs) {
     apis: apis,
     a: apis,
     safeApis: safeApis,
-    e: events,
-    events: events
+    events: events,
+    e: events
   });
 };
 export var stdAccount = function(orig) {

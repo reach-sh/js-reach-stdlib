@@ -42,6 +42,7 @@ export var getQueryLowerBound = ethLike.getQueryLowerBound,
   minimumBalance = ethLike.minimumBalance,
   formatCurrency = ethLike.formatCurrency,
   formatAddress = ethLike.formatAddress,
+  unsafeGetMnemonic = ethLike.unsafeGetMnemonic,
   launchToken = ethLike.launchToken,
   reachStdlib = ethLike.reachStdlib;
 export var add = reachStdlib.add,

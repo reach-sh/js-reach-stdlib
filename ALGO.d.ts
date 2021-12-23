@@ -143,6 +143,7 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  * @returns the address formatted as a base32-encoded string with checksum
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
+export declare function unsafeGetMnemonic(acc: NetworkAccount | Account): string;
 export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: any): Promise<{
     name: string;
     sym: string;

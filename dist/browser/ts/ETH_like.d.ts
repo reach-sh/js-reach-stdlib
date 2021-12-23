@@ -28,23 +28,33 @@ declare type NetworkAccount = {
     getAddress?: () => Promise<Address>;
     sendTransaction?: (...xs: any) => any;
     getBalance?: (...xs: any) => any;
+    _mnemonic?: () => {
+        phrase: string;
+    };
 } | EthersLikeWallet | EthersLikeSigner;
 declare type ContractInfo = Address;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
-export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> | any;
+export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> & {
+    setGasLimit?: (ngl: any) => void;
+    getGasLimit?: any;
+    setStorageLimit?: any;
+    getStorageLimit?: any;
+};
 declare type VerifyResult = {
     creation_block: number;
 };
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
+    getGasLimit?: any;
+    getStorageLimit?: any;
 };
 export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     getQueryLowerBound: () => real_ethers.BigNumber;
     setQueryLowerBound: (x: BigNumber | number) => void;
     getValidQueryWindow: () => number | true;
     setValidQueryWindow: (val: number | true) => void;
-    getFaucet: () => Promise<any>;
-    setFaucet: (val: Promise<any>) => void;
+    getFaucet: () => Promise<Account>;
+    setFaucet: (val: Promise<Account>) => void;
     randomUInt: () => real_ethers.BigNumber;
     hasRandom: {
         random: () => real_ethers.BigNumber;
@@ -55,11 +65,11 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     newAccountFromSecret: (secret: string) => Promise<Account>;
     newAccountFromMnemonic: (phrase: string) => Promise<Account>;
     getDefaultAccount: () => Promise<Account>;
-    createAccount: () => Promise<any>;
+    createAccount: () => Promise<Account>;
     canFundFromFaucet: () => Promise<boolean>;
     fundFromFaucet: (account: AccountTransferable, value: any) => Promise<any>;
     newTestAccount: (startingBalance: any) => Promise<Account>;
-    newTestAccounts: (k: number, bal: any) => Promise<any[]>;
+    newTestAccounts: (k: number, bal: any) => Promise<Account[]>;
     getNetworkTime: () => Promise<BigNumber>;
     waitUntilTime: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
     wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
@@ -72,6 +82,7 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
+    unsafeGetMnemonic: (acc: Account | NetworkAccount) => string;
     launchToken: (accCreator: Account, name: string, sym: string, opts?: any) => Promise<{
         name: string;
         sym: string;

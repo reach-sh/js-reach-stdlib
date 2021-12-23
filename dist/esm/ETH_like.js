@@ -63,8 +63,8 @@ import ETHstdlib from './stdlib_sol';
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 6;
-var reachEthBackendVersion = 5;
+var reachBackendVersion = 7;
+var reachEthBackendVersion = 6;
 // ****************************************************************************
 // Helpers
 // ****************************************************************************
@@ -688,8 +688,18 @@ export function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); };
+                            var codec = real_ethers.utils.defaultAbiCoder;
+                            var decodeEm = function (ty, bs) {
+                                var dhead = [label, 'decodeEm'];
+                                debug(dhead, ty, bs);
+                                var de = codec.decode([ty.paramType], bs)[0];
+                                debug(dhead, de);
+                                var un = ty.unmunge(de);
+                                debug(dhead, un);
+                                return un;
+                            };
                             var getState = function (vibne, tys) { return __awaiter(_this, void 0, void 0, function () {
-                                var ethersC, _a, vibna, vsbs, codec, res;
+                                var ethersC, _a, vibna, vsbs, ty, res;
                                 return __generator(this, function (_b) {
                                     switch (_b.label) {
                                         case 0: return [4 /*yield*/, getC()];
@@ -702,14 +712,37 @@ export function makeEthLike(ethLikeArgs) {
                                             if (!vibne.eq(vibna)) {
                                                 throw Error("expected state " + vibne + ", got " + vibna);
                                             }
-                                            codec = real_ethers.utils.defaultAbiCoder;
-                                            res = codec.decode(tys.map(function (x) { return x.paramType; }), vsbs);
+                                            ty = T_Tuple(tys);
+                                            res = decodeEm(ty, vsbs);
                                             debug("getState", res);
                                             // @ts-ignore
                                             return [2 /*return*/, res];
                                     }
                                 });
                             }); };
+                            var apiMapRef = function (i, ty) { return function (f) { return __awaiter(_this, void 0, void 0, function () {
+                                var dhead, ethersC, mf, mfv, res;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            dhead = [label, 'apiMapRef'];
+                                            debug(dhead, { i: i, ty: ty, f: f });
+                                            return [4 /*yield*/, getC()];
+                                        case 1:
+                                            ethersC = _a.sent();
+                                            mf = "_reachMap" + i + "Ref";
+                                            debug(dhead, mf);
+                                            return [4 /*yield*/, ethersC[mf](f)];
+                                        case 2:
+                                            mfv = _a.sent();
+                                            debug(dhead, { mfv: mfv });
+                                            res = ty.unmunge(mfv);
+                                            debug(dhead, res);
+                                            // @ts-ignore
+                                            return [2 /*return*/, res];
+                                    }
+                                });
+                            }); }; };
                             var canIWin = function (lct) { return __awaiter(_this, void 0, void 0, function () {
                                 var ethersC, ret, val, e_3;
                                 return __generator(this, function (_a) {
@@ -1022,7 +1055,7 @@ export function makeEthLike(ethLikeArgs) {
                             // Returns address of a Reach contract
                             var getContractAddress = getInfo;
                             var getContractInfo = getInfo;
-                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, sendrecv: sendrecv, recv: recv, getState: getState };
+                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
                         };
                         var setupView = function (setupViewArgs) {
                             var eventCache = new EventCache();
@@ -1674,9 +1707,19 @@ export function makeEthLike(ethLikeArgs) {
         });
     }
     ;
+    function unsafeGetMnemonic(acc) {
+        // @ts-ignore
+        var networkAccount = acc.networkAccount | acc;
+        if (networkAccount._mnemonic) {
+            return networkAccount._mnemonic().phrase;
+        }
+        else {
+            throw Error("unsafeGetMnemonic: Secret key not accessible for account");
+        }
+    }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, launchToken: launchToken, reachStdlib: reachStdlib });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map

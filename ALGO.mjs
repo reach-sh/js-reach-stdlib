@@ -108,7 +108,7 @@ export var add = stdlib.add,
   bytesEq = stdlib.bytesEq,
   digestEq = stdlib.digestEq;
 export * from './shared_user.mjs';
-var reachBackendVersion = 6;
+var reachBackendVersion = 7;
 var reachAlgoBackendVersion = 6;
 // Helpers
 // Parse CBR into Public Key
@@ -1333,10 +1333,11 @@ export var connectAccount = function(networkAccount) {
           var _theC = undefined;
           return function() {
             return __awaiter(void 0, void 0, void 0, function() {
-              var ctcInfo, _a, ApplicationID, Deployer, startRound, ctcAddr, realLastRound, getLastRound, setLastRound, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin, isin, isIsolatedNetwork;
+              var ctcInfo, _a, ApplicationID, Deployer, startRound, ctcAddr, realLastRound, getLastRound, setLastRound, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin, isin, isIsolatedNetwork, viewMapRef;
               return __generator(this, function(_b) {
                 switch (_b.label) {
                   case 0:
+                    debug(label, 'getC');
                     if (_theC) {
                       return [2 /*return*/ , _theC];
                     }
@@ -1530,7 +1531,32 @@ export var connectAccount = function(networkAccount) {
                   case 3:
                     isin = (_b.sent()).isIsolatedNetwork;
                     isIsolatedNetwork = function() { return isin; };
-                    return [2 /*return*/ , (_theC = { ApplicationID: ApplicationID, ctcAddr: ctcAddr, Deployer: Deployer, getLastRound: getLastRound, setLastRound: setLastRound, getLocalState: getLocalState, getAppState: getAppState, getGlobalState: getGlobalState, ensureOptIn: ensureOptIn, canIWin: canIWin, isIsolatedNetwork: isIsolatedNetwork })];
+                    viewMapRef = function(mapi, a) {
+                      return __awaiter(void 0, void 0, void 0, function() {
+                        var ls, mbs, md, mr;
+                        return __generator(this, function(_a) {
+                          switch (_a.label) {
+                            case 0:
+                              debug('viewMapRef', { mapi: mapi, a: a });
+                              return [4 /*yield*/ , getLocalState(cbr2algo_addr(a))];
+                            case 1:
+                              ls = _a.sent();
+                              if (ls === undefined) {
+                                return [2 /*return*/ , ['None', null]];
+                              }
+                              debug('viewMapRef', { ls: ls });
+                              mbs = recoverSplitBytes('m', mapDataSize, mapDataKeys, ls);
+                              debug('viewMapRef', { mbs: mbs });
+                              md = mapDataTy.fromNet(mbs);
+                              debug('viewMapRef', { md: md });
+                              mr = md[mapi];
+                              assert(mr !== undefined, 'viewMapRef mr undefined');
+                              return [2 /*return*/ , mr];
+                          }
+                        });
+                      });
+                    };
+                    return [2 /*return*/ , (_theC = { ApplicationID: ApplicationID, ctcAddr: ctcAddr, Deployer: Deployer, getLastRound: getLastRound, setLastRound: setLastRound, getAppState: getAppState, getGlobalState: getGlobalState, ensureOptIn: ensureOptIn, canIWin: canIWin, isIsolatedNetwork: isIsolatedNetwork, viewMapRef: viewMapRef })];
                 }
               });
             });
@@ -1571,15 +1597,16 @@ export var connectAccount = function(networkAccount) {
             });
           });
         };
+        var didSet = new Signal();
+        var fake_info = undefined;
         var _setup = function(setupArgs) {
           var setInfo = setupArgs.setInfo,
             getInfo = setupArgs.getInfo,
             setTrustedVerifyResult = setupArgs.setTrustedVerifyResult;
-          var didSet = new Signal();
-          var fake_info = undefined;
           var fake_setInfo = function(x) {
             fake_info = x;
             didSet.notify();
+            debug(label, 'fake_setInfo', 'notified');
           };
           var ctorRan = new Signal();
           ctorRan.wait().then(function() {
@@ -1597,9 +1624,11 @@ export var connectAccount = function(networkAccount) {
                   case 1:
                     return [2 /*return*/ , _a.sent()];
                   case 2:
+                    debug(label, 'fake_getInfo', 'wait');
                     return [4 /*yield*/ , didSet.wait()];
                   case 3:
                     _a.sent();
+                    debug(label, 'fake_getInfo', 'notified');
                     if (fake_info === undefined) {
                       throw Error("impossible fake_info");
                     }
@@ -1645,6 +1674,7 @@ export var connectAccount = function(networkAccount) {
               return __generator(this, function(_a) {
                 switch (_a.label) {
                   case 0:
+                    debug('getState');
                     return [4 /*yield*/ , getState_(getC, function(vibna) {
                       if (vibne.eq(vibna)) {
                         return vtys;
@@ -1656,6 +1686,25 @@ export var connectAccount = function(networkAccount) {
                 }
               });
             });
+          };
+          var apiMapRef = function(i, ty) {
+            return function(f) {
+              return __awaiter(void 0, void 0, void 0, function() {
+                var viewMapRef;
+                return __generator(this, function(_a) {
+                  switch (_a.label) {
+                    case 0:
+                      void(ty);
+                      return [4 /*yield*/ , getC()];
+                    case 1:
+                      viewMapRef = (_a.sent()).viewMapRef;
+                      return [4 /*yield*/ , viewMapRef(i, f)];
+                    case 2:
+                      return [2 /*return*/ , _a.sent()];
+                  }
+                });
+              });
+            };
           };
           var sendrecv = function(srargs) {
             return __awaiter(void 0, void 0, void 0, function() {
@@ -2150,7 +2199,7 @@ export var connectAccount = function(networkAccount) {
               });
             });
           };
-          return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv };
+          return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getState: getState, sendrecv: sendrecv, recv: recv, apiMapRef: apiMapRef };
         };
         var readStateBytes = function(prefix, key, src) {
           debug({ prefix: prefix, key: key });
@@ -2189,26 +2238,16 @@ export var connectAccount = function(networkAccount) {
           var viewLib = {
             viewMapRef: function(mapi, a) {
               return __awaiter(void 0, void 0, void 0, function() {
-                var getLocalState, ls, mbs, md, mr;
+                var viewMapRef;
                 return __generator(this, function(_a) {
                   switch (_a.label) {
                     case 0:
                       return [4 /*yield*/ , getC()];
                     case 1:
-                      getLocalState = (_a.sent()).getLocalState;
-                      debug('viewMapRef', { mapi: mapi, a: a });
-                      return [4 /*yield*/ , getLocalState(cbr2algo_addr(a))];
+                      viewMapRef = (_a.sent()).viewMapRef;
+                      return [4 /*yield*/ , viewMapRef(mapi, a)];
                     case 2:
-                      ls = _a.sent();
-                      assert(ls !== undefined, 'viewMapRef ls undefined');
-                      debug('viewMapRef', { ls: ls });
-                      mbs = recoverSplitBytes('m', mapDataSize, mapDataKeys, ls);
-                      debug('viewMapRef', { mbs: mbs });
-                      md = mapDataTy.fromNet(mbs);
-                      debug('viewMapRef', { md: md });
-                      mr = md[mapi];
-                      assert(mr !== undefined, 'viewMapRef mr undefined');
-                      return [2 /*return*/ , mr];
+                      return [2 /*return*/ , _a.sent()];
                   }
                 });
               });
@@ -2953,6 +2992,14 @@ var verifyContract_ = function(label, info, bin, eventCache) {
  */
 export function formatAddress(acc) {
   return addressFromHex(T_Address.canonicalize(acc));
+}
+export function unsafeGetMnemonic(acc) {
+  // @ts-ignore
+  var networkAccount = acc.networkAccount || acc;
+  if (!networkAccount.sk) {
+    throw Error("unsafeGetMnemonic: Secret key not accessible for account");
+  }
+  return algosdk.secretKeyToMnemonic(networkAccount.sk);
 }
 export function launchToken(accCreator, name, sym, opts) {
   if (opts === void 0) { opts = {}; }

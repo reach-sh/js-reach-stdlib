@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { CBR_Address } from './CBR';
 import { num, AnyBackendTy } from './shared_backend';
+import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
 export declare const bigNumberToBigInt: (x: BigNumber) => bigint;
 declare type BigNumber = ethers.BigNumber;
@@ -121,6 +122,7 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
+    apiMapRef: (i: number, ty: ConnectorTy) => MapRefT<any>;
 };
 export declare type ISetupArgs<ContractInfo, VerifyResult> = {
     setInfo: (info: ContractInfo) => void;
@@ -130,14 +132,14 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
+export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
     setupView: ISetupView<ContractInfo, VerifyResult, ConnectorTy>;
     setupEvents: ISetupEvent<ContractInfo, VerifyResult>;
     givenInfoP: (Promise<ContractInfo> | undefined);
     _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
-} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState")>;
+} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     getViews: () => ViewMap;

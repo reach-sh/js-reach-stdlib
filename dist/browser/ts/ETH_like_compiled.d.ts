@@ -22,18 +22,18 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     checkedBigNumberify: (at: string, max: ethers.BigNumber, n: any) => ethers.BigNumber;
     protect: (t: any, v: unknown, ai?: string | undefined) => unknown;
     Array_zip: <A, B>(a1: A[], a2: B[]) => [A, B][];
-    mapRef: <A_1>(m: {
-        [key: string]: A_1;
-    }, f: string) => shared_backend.MaybeRep<A_1>;
-    simMapRef: (sim_r: unknown, mapi: number, f: string) => shared_backend.MaybeRep<unknown>;
-    simMapSet: (sim_r: unknown, mapi: number, f: string, v: unknown) => unknown;
-    simMapDupe: (sim_r: unknown, mapi: number, mapo: unknown) => void;
+    newMap: <A_1>(opts: shared_backend.MapOpts<A_1>) => shared_backend.LinearMap<A_1>;
+    mapRef: <A_2>(m: shared_backend.LinearMap<A_2>, f: string) => Promise<shared_backend.MaybeRep<A_2>>;
+    mapSet: <A_3>(m: shared_backend.LinearMap<A_3>, f: string, v: A_3) => Promise<void>;
+    simMapRef: <A_4>(sim_r: unknown, mapi: number, f: string) => Promise<shared_backend.MaybeRep<A_4>>;
+    simMapSet: <A_5>(sim_r: unknown, mapi: number, f: string, v: A_5) => Promise<void>;
+    simMapDupe: <A_6>(sim_r: unknown, mapi: number, mapo: shared_backend.LinearMap<A_6>) => void;
     simTokenNew: any;
     simTokenBurn: any;
     simTokenDestroy: any;
     bytesConcat: (b1: string, b2: string) => string;
     assert: (b: boolean, message: string) => void;
-    Array_set: <A_2>(arr: A_2[], idx: number, val: A_2) => A_2[];
+    Array_set: <A_7>(arr: A_7[], idx: number, val: A_7) => A_7[];
     eq: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     ge: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     gt: (n1: shared_backend.num, n2: shared_backend.num) => boolean;

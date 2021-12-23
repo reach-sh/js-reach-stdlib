@@ -1,4 +1,4 @@
-import type { num, MaybeRep } from './shared_backend';
+import type { num, MaybeRep, MapOpts, LinearMap } from './shared_backend';
 import type { BigNumber } from 'ethers';
 declare type Ty = any;
 export interface TypeDefs {
@@ -35,12 +35,12 @@ export interface Stdlib_Backend_Shared extends Stdlib_Backend_Shared_User {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
     protect: (t: any, v: unknown, ai?: string) => unknown;
     Array_zip: <A, B>(a1: A[], a2: B[]) => [A, B][];
-    mapRef: <A>(m: {
-        [key: string]: A;
-    }, f: string) => MaybeRep<A>;
-    simMapRef: (sim_r: unknown, mapi: number, f: string) => MaybeRep<unknown>;
-    simMapSet: (sim_r: unknown, mapi: number, f: string, v: unknown) => unknown;
-    simMapDupe: (sim_r: unknown, mapi: number, mapo: unknown) => void;
+    newMap: <A>(opts: MapOpts<A>) => LinearMap<A>;
+    mapRef: <A>(m: LinearMap<A>, f: string) => Promise<MaybeRep<A>>;
+    mapSet: <A>(m: LinearMap<A>, f: string, v: A) => Promise<void>;
+    simMapRef: <A>(sim_r: unknown, mapi: number, f: string) => Promise<MaybeRep<A>>;
+    simMapSet: <A>(sim_r: unknown, mapi: number, f: string, v: A) => Promise<void>;
+    simMapDupe: <A>(sim_r: unknown, mapi: number, mapo: LinearMap<A>) => void;
     simTokenNew: any;
     simTokenBurn: any;
     simTokenDestroy: any;
@@ -150,7 +150,8 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     parseCurrency: (amtDesc: any) => BigNumber;
     minimumBalance: BigNumber;
     formatCurrency: (amt: BigNumber, decimals: number) => string;
-    formatAddress: (addr: string) => string;
+    formatAddress: (acc: Acc | string) => string;
+    unsafeGetMnemonic: (acc: Acc) => string;
     launchToken: (acc: Acc, name: string, sym: string, opts?: any) => any;
     reachStdlib: Stdlib_Backend<Ty>;
 }
