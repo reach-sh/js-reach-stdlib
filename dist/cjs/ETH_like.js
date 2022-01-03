@@ -1530,7 +1530,7 @@ function makeEthLike(ethLikeArgs) {
                     dhead = ['verifyContract', label];
                     (0, shared_impl_1.debug)(dhead, { ctcInfo: ctcInfo });
                     _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
-                    address = T_Contract.canonicalize(ctcInfo);
+                    address = (0, shared_backend_1.protect)(T_Contract, ctcInfo);
                     iface = new ethers_1.ethers.utils.Interface(ABI);
                     (0, shared_impl_1.debug)(dhead, { address: address });
                     chk = function (p, msg) {

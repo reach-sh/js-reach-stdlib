@@ -69,8 +69,7 @@ export function protect(ctc, v, ai) {
         return ctc.canonicalize(v);
     }
     catch (e) {
-        console.log("Protect failed: expected ", ctc.name, " but got ", v, " ", ai);
-        throw e;
+        throw Error("Protect failed: expected " + ctc.name + " but got " + v + "; " + JSON.stringify(ai) + ":\n" + JSON.stringify(e));
     }
 }
 ;

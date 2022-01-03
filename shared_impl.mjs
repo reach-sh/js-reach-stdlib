@@ -163,7 +163,7 @@ export var stdContract = function(stdContractArgs) {
         var _infoP_1 = new Promise(function(resolve) {
           _setInfo = function(info) {
             if (beenSet_1) {
-              throw Error("Cannot set info(" + JSON.stringify(info) + ") twice");
+              throw Error("Cannot set info(" + JSON.stringify(info) + "), i.e. deploy, twice");
             }
             resolve(info);
             beenSet_1 = true;

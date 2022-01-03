@@ -18,11 +18,6 @@ declare type RecvTxn = {
     'sender': Address;
     'logs': Array<string>;
 };
-declare type CompileResultBytes = {
-    src: String;
-    result: Uint8Array;
-    hash: Address;
-};
 declare type NetworkAccount = {
     addr: Address;
     sk?: SecretKey;
@@ -33,6 +28,7 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
             version: number;
             appApproval: string;
             appClear: string;
+            extraPages: number;
             stateSize: number;
             stateKeys: number;
             mapDataSize: number;
@@ -40,10 +36,6 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
             unsupported: Array<string>;
         };
     };
-};
-declare type CompiledBackend = {
-    appApproval: CompileResultBytes;
-    appClear: CompileResultBytes;
 };
 declare type ContractInfo = number;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
@@ -99,23 +91,21 @@ export declare const standardUnit = "ALGO";
 export declare const atomicUnit = "\u03BCALGO";
 /**
  * @description  Parse currency by network
- * @param amt  value in the {@link standardUnit} for the network.
- * @returns  the amount in the {@link atomicUnit} of the network.
+ * @param amt  value in the {@link standardUnit} for the token.
+ * @returns  the amount in the {@link atomicUnit} of the token.
  * @example  parseCurrency(100).toString() // => '100000000'
+ * @example  parseCurrency(100, 3).toString() // => '100000'
  */
-export declare function parseCurrency(amt: CurrencyAmount): BigNumber;
+export declare function parseCurrency(amt: CurrencyAmount, decimals?: number): BigNumber;
 export declare const minimumBalance: BigNumber;
 /**
  * @description  Format currency by network
- * @param amt  the amount in the {@link atomicUnit} of the network.
- * @param decimals  up to how many decimal places to display in the {@link standardUnit}.
- *   Trailing zeros will be omitted. Excess decimal places will be truncated (not rounded).
- *   This argument defaults to maximum precision.
- * @returns  a string representation of that amount in the {@link standardUnit} for that network.
- * @example  formatCurrency(bigNumberify('100000000')); // => '100'
- * @example  formatCurrency(bigNumberify('9999998799987000')); // => '9999998799.987'
  */
 export declare function formatCurrency(amt: any, decimals?: number): string;
+/**
+ * @description  Format currency based on token decimals
+ */
+export declare function formatWithDecimals(amt: any, decimals: number): string;
 export declare function getDefaultAccount(): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated
@@ -131,7 +121,6 @@ export declare const waitUntilTime: (target: ethers.BigNumber, onProgress?: OnPr
 export declare const waitUntilSecs: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 declare type VerifyResult = {
-    compiled: CompiledBackend;
     ApplicationID: number;
     Deployer: Address;
     startRound: number;

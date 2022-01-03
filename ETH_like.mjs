@@ -80,7 +80,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
 };
 import Timeout from 'await-timeout';
 import real_ethers from 'ethers';
-import { assert, } from './shared_backend.mjs';
+import { assert, protect, } from './shared_backend.mjs';
 import { replaceableThunk, debug, stdContract, stdVerifyContract, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, } from './shared_impl.mjs';
 import { bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
@@ -1765,7 +1765,7 @@ export function makeEthLike(ethLikeArgs) {
             dhead = ['verifyContract', label];
             debug(dhead, { ctcInfo: ctcInfo });
             _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
-            address = T_Contract.canonicalize(ctcInfo);
+            address = protect(T_Contract, ctcInfo);
             iface = new real_ethers.utils.Interface(ABI);
             debug(dhead, { address: address });
             chk = function(p, msg) {
