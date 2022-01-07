@@ -8,6 +8,10 @@ AnyETH_Ty, Token } from './ETH_like_compiled';
 import type { EthersLikeSigner, EthersLikeWallet, EthLikeArgs } from './ETH_like_interfaces';
 import type { // =>
 Stdlib_Backend } from './interfaces';
+import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
+export { setQueryLowerBound, getQueryLowerBound };
+declare type TransactionResponse = real_ethers.providers.TransactionResponse;
+declare type TransactionReceipt = real_ethers.providers.TransactionReceipt;
 declare type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
         ETH: {
@@ -26,7 +30,7 @@ declare type Address = string;
 declare type NetworkAccount = {
     address?: Address;
     getAddress?: () => Promise<Address>;
-    sendTransaction?: (...xs: any) => any;
+    sendTransaction?: (...xs: any) => Promise<TransactionResponse>;
     getBalance?: (...xs: any) => any;
     _mnemonic?: () => {
         phrase: string;
@@ -41,7 +45,7 @@ export declare type Account = IAccount<NetworkAccount, Backend, Contract, Contra
     getStorageLimit?: any;
 };
 declare type VerifyResult = {
-    creation_block: number;
+    creationBlock: BigNumber;
 };
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
@@ -49,8 +53,8 @@ declare type AccountTransferable = Account | {
     getStorageLimit?: any;
 };
 export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
-    getQueryLowerBound: () => real_ethers.BigNumber;
-    setQueryLowerBound: (x: BigNumber | number) => void;
+    getQueryLowerBound: typeof getQueryLowerBound;
+    setQueryLowerBound: typeof setQueryLowerBound;
     getValidQueryWindow: () => number | true;
     setValidQueryWindow: (val: number | true) => void;
     getFaucet: () => Promise<Account>;
@@ -59,8 +63,8 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     hasRandom: {
         random: () => real_ethers.BigNumber;
     };
-    balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
-    transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<any>;
+    balanceOf: (acc: Account | Address, token?: Token | false) => Promise<BigNumber>;
+    transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: string) => Promise<Account>;
     newAccountFromMnemonic: (phrase: string) => Promise<Account>;
@@ -101,5 +105,4 @@ export declare function makeEthLike(ethLikeArgs: EthLikeArgs): {
     stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
     typeDefs: import("./interfaces").TypeDefs;
 };
-export {};
 //# sourceMappingURL=ETH_like.d.ts.map

@@ -1,4 +1,20 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 exports.__esModule = true;
 exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
@@ -174,13 +190,13 @@ exports.BV_Tuple = BV_Tuple;
 var BT_Struct = function (ctcs) {
     return {
         name: "Struct([" + ctcs.map(function (_a) {
-            var k = _a[0], ctc = _a[1];
+            var _b = __read(_a, 2), k = _b[0], ctc = _b[1];
             return " [" + k + ", " + ctc.name + "] ";
         }) + "])",
         canonicalize: function (arg) {
             var obj = {};
             ctcs.forEach(function (_a, i) {
-                var k = _a[0], ctc = _a[1];
+                var _b = __read(_a, 2), k = _b[0], ctc = _b[1];
                 obj[k] = ctc.canonicalize(Array.isArray(arg) ? arg[i] : arg[k]);
             });
             return obj;

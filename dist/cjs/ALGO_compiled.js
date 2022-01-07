@@ -29,6 +29,31 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -88,12 +113,12 @@ var extractAddrM = function (x) {
     var addr = x && x.networkAccount && x.networkAccount.addr
         || x && x.addr
         || typeof x === 'string' && x;
-    (0, shared_impl_1.debug)("extractAddrM", { x: x, addr: addr });
+    //debug(`extractAddrM`, {x, addr});
     return addr;
 };
 var extractAddr = function (x) {
     var a = extractAddrM(x);
-    (0, shared_impl_1.debug)("extractAddr", { x: x, a: a });
+    //debug(`extractAddr`, {x, a});
     if (a === false) {
         throw Error("Expected address, got " + x);
     }
@@ -148,7 +173,7 @@ var T_Tuple = function (cos) { return (__assign(__assign({}, CBR.BT_Tuple(cos)),
 exports.T_Tuple = T_Tuple;
 var T_Struct = function (cos) { return (__assign(__assign({}, CBR.BT_Struct(cos)), { netSize: (cos.reduce(function (acc, co) { return acc + co[1].netSize; }, 0)), toNet: function (bv) {
         var val = cos.map(function (_a) {
-            var k = _a[0], co = _a[1];
+            var _b = __read(_a, 2), k = _b[0], co = _b[1];
             return co.toNet(bv[k]);
         });
         return ethers_1.ethers.utils.concat(val);
@@ -158,7 +183,7 @@ var T_Struct = function (cos) { return (__assign(__assign({}, CBR.BT_Struct(cos)
         var obj = {};
         var rest = nv;
         for (var i in cos) {
-            var _a = cos[i], k = _a[0], co = _a[1];
+            var _a = __read(cos[i], 2), k = _a[0], co = _a[1];
             obj[k] = co.fromNet(rest.slice(0, co.netSize));
             rest = rest.slice(co.netSize);
         }
@@ -195,11 +220,11 @@ exports.T_Object = T_Object;
 // up to the size of the largest variant
 var T_Data = function (coMap) {
     var cos = Object.values(coMap);
-    var valSize = Math.max.apply(Math, cos.map(function (co) { return co.netSize; }));
+    var valSize = Math.max.apply(Math, __spreadArray([], __read(cos.map(function (co) { return co.netSize; })), false));
     var netSize = valSize + 1;
     var _a = (0, shared_impl_1.labelMaps)(coMap), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
     return __assign(__assign({}, CBR.BT_Data(coMap)), { netSize: netSize, toNet: function (_a) {
-            var label = _a[0], val = _a[1];
+            var _b = __read(_a, 2), label = _b[0], val = _b[1];
             var i = labelMap[label];
             var lab_nv = new Uint8Array([i]);
             var val_co = coMap[label];

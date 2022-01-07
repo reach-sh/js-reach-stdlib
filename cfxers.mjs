@@ -68,22 +68,346 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
+var __values = (this && this.__values) || function(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator,
+    m = s && o[s],
+    i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+    next: function() {
+      if (o && i >= o.length) o = void 0;
+      return { value: o && o[i++], done: !o };
+    }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
+// This file immitates the ethers.js API
 import cfxsdk from 'js-conflux-sdk';
+import Timeout from 'await-timeout';
 var format = cfxsdk.format;
 import ethers from 'ethers';
-import * as providers from './cfxers_providers.mjs';
 var BigNumber = ethers.BigNumber,
   utils = ethers.utils;
-export { BigNumber, utils, providers };
-import { address_cfxStandardize } from './CFX_util.mjs';
-import Timeout from 'await-timeout';
+export { BigNumber, utils };
+import { address_cfxStandardize, defaultEpochTag } from './CFX_util.mjs';
 import { debug } from './shared_impl.mjs';
-// XXX Convenience export, may want to rethink
-export { cfxsdk };
-// This file immitates the ethers.js API
-var waitMs = 25;
+import { T_Address } from './CFX_compiled_impl.mjs';
+var attachBlockNumbers = function(conflux, xs) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var actuallyLookup, cache, lookup, attachBlockNumber, out, _a, _b, _i, i, _c, _d;
+    return __generator(this, function(_e) {
+      switch (_e.label) {
+        case 0:
+          actuallyLookup = function(blockHash) {
+            return __awaiter(void 0, void 0, void 0, function() {
+              var block;
+              return __generator(this, function(_a) {
+                switch (_a.label) {
+                  case 0:
+                    debug("actuallyLookup", { blockHash: blockHash });
+                    return [4 /*yield*/ , conflux.getBlockByHash(blockHash)];
+                  case 1:
+                    block = _a.sent();
+                    debug("actuallyLookup", { blockHash: blockHash }, 'res', block);
+                    // @ts-ignore // XXX requires an update to js-conflux-sdk types
+                    return [2 /*return*/ , parseInt(block.blockNumber)];
+                }
+              });
+            });
+          };
+          cache = {};
+          lookup = function(blockHash) {
+            return __awaiter(void 0, void 0, void 0, function() {
+              var _a, _b;
+              return __generator(this, function(_c) {
+                switch (_c.label) {
+                  case 0:
+                    if (!!(blockHash in cache)) return [3 /*break*/ , 2];
+                    _a = cache;
+                    _b = blockHash;
+                    return [4 /*yield*/ , actuallyLookup(blockHash)];
+                  case 1:
+                    _a[_b] = _c.sent();
+                    _c.label = 2;
+                  case 2:
+                    return [2 /*return*/ , cache[blockHash]];
+                }
+              });
+            });
+          };
+          attachBlockNumber = function(x) {
+            return __awaiter(void 0, void 0, void 0, function() {
+              var blockHash, blockNumber;
+              return __generator(this, function(_a) {
+                switch (_a.label) {
+                  case 0:
+                    if (!x.blockNumber) return [3 /*break*/ , 1];
+                    return [2 /*return*/ , x];
+                  case 1:
+                    if (!x.blockHash) return [3 /*break*/ , 3];
+                    blockHash = x.blockHash;
+                    return [4 /*yield*/ , lookup(blockHash)];
+                  case 2:
+                    blockNumber = _a.sent();
+                    return [2 /*return*/ , __assign(__assign({}, x), { blockNumber: blockNumber })];
+                  case 3:
+                    throw Error("No blockNumber or blockHash on log: " + Object.keys(x));
+                }
+              });
+            });
+          };
+          out = [];
+          _a = [];
+          for (_b in xs)
+            _a.push(_b);
+          _i = 0;
+          _e.label = 1;
+        case 1:
+          if (!(_i < _a.length)) return [3 /*break*/ , 4];
+          i = _a[_i];
+          _c = out;
+          _d = i;
+          return [4 /*yield*/ , attachBlockNumber(xs[i])];
+        case 2:
+          _c[_d] = _e.sent();
+          _e.label = 3;
+        case 3:
+          _i++;
+          return [3 /*break*/ , 1];
+        case 4:
+          return [2 /*return*/ , out];
+      }
+    });
+  });
+};
+var ethifyOkReceipt = function(receipt) {
+  if (receipt.outcomeStatus !== 0) {
+    throw Error("Receipt outcomeStatus is nonzero: " + receipt.outcomeStatus);
+  }
+  return __assign({ status: 'ok' }, receipt);
+};
+var ethifyTxn = function(txn) {
+  if (txn.status !== 0) {
+    throw Error("Txn status is not 0: " + txn.status);
+  }
+  // It would appear that no eth-ification is actully necessary at this moment.
+  // It might be nice to have blockNumber on here,
+  // but it's not required.
+  // Accomplishing that would require another API call...
+  return txn;
+};
+export var providers;
+(function(providers) {
+  // XXX bi: BigInt
+  var bi2bn = function(bi) {
+    return ethers.BigNumber.from(bi.toString());
+  };
+  var Provider = /** @class */ (function() {
+    function Provider(conflux) {
+      this.conflux = conflux;
+    }
+    Provider.prototype.getBalance = function(address, epochNumber) {
+      return __awaiter(this, void 0, void 0, function() {
+        var _a;
+        return __generator(this, function(_b) {
+          switch (_b.label) {
+            case 0:
+              _a = bi2bn;
+              return [4 /*yield*/ , this.conflux.getBalance(address, epochNumber)];
+            case 1:
+              return [2 /*return*/ , _a.apply(void 0, [_b.sent()])];
+          }
+        });
+      });
+    };
+    Provider.prototype.getBlockNumber = function() {
+      return __awaiter(this, void 0, void 0, function() {
+        var epochNumber, block;
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              return [4 /*yield*/ , this.conflux.getEpochNumber(defaultEpochTag)];
+            case 1:
+              epochNumber = _a.sent();
+              return [4 /*yield*/ , this.conflux.getBlockByEpochNumber(epochNumber, true)];
+            case 2:
+              block = _a.sent();
+              // @ts-ignore
+              debug('getBlockNumber', epochNumber, block.epochNumber, block.blockNumber);
+              // @ts-ignore
+              return [2 /*return*/ , parseInt(block.blockNumber)];
+          }
+        });
+      });
+    };
+    Provider.prototype.getBlock = function(which) {
+      return __awaiter(this, void 0, void 0, function() {
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              debug("getBlock", which);
+              return [4 /*yield*/ , this.conflux.getBlockByBlockNumber(which, true)];
+            case 1:
+              // @ts-ignore
+              return [2 /*return*/ , _a.sent()];
+          }
+        });
+      });
+    };
+    Provider.prototype.getTransactionReceipt = function(transactionHash) {
+      return __awaiter(this, void 0, void 0, function() {
+        var r, _a, rbn;
+        return __generator(this, function(_b) {
+          switch (_b.label) {
+            case 0:
+              return [4 /*yield*/ , this.conflux.getTransactionReceipt(transactionHash)];
+            case 1:
+              r = _b.sent();
+              if (!r)
+                return [2 /*return*/ , r];
+              return [4 /*yield*/ , attachBlockNumbers(this.conflux, [r])];
+            case 2:
+              _a = __read.apply(void 0, [_b.sent(), 1]), rbn = _a[0];
+              return [2 /*return*/ , ethifyOkReceipt(rbn)];
+          }
+        });
+      });
+    };
+    Provider.prototype.getCode = function(address, defaultEpoch) {
+      if (defaultEpoch === void 0) { defaultEpoch = undefined; }
+      return __awaiter(this, void 0, void 0, function() {
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              return [4 /*yield*/ , this.conflux.getCode(address, defaultEpoch)];
+            case 1:
+              return [2 /*return*/ , _a.sent()];
+          }
+        });
+      });
+    };;
+    Provider.prototype.on = function() {
+      var argz = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        argz[_i] = arguments[_i];
+      }
+      void(argz);
+      throw Error("on not yet implemented");
+      // XXX
+    };
+    Provider.prototype.off = function() {
+      var argz = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        argz[_i] = arguments[_i];
+      }
+      void(argz);
+      throw Error("off not yet implemented");
+      // XXX
+    };
+    Provider.prototype.getLogs = function(opts) {
+      return __awaiter(this, void 0, void 0, function() {
+        var logs, alogs;
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              debug("getLogs", "opts", opts);
+              if (opts.fromBlock == 0) {
+                opts.fromBlock = 1;
+                debug("getLogs", "opts", opts);
+              }
+              return [4 /*yield*/ , this.conflux.getLogs(opts)];
+            case 1:
+              logs = _a.sent();
+              debug("getLogs", "result", logs);
+              return [4 /*yield*/ , attachBlockNumbers(this.conflux, logs)];
+            case 2:
+              alogs = _a.sent();
+              debug("getLogs", "aresult", alogs);
+              return [2 /*return*/ , alogs];
+          }
+        });
+      });
+    };
+    Provider.prototype.getTransaction = function(txnHash) {
+      return __awaiter(this, void 0, void 0, function() {
+        var _a;
+        return __generator(this, function(_b) {
+          switch (_b.label) {
+            case 0:
+              _a = ethifyTxn;
+              return [4 /*yield*/ , this.conflux.getTransactionByHash(txnHash)];
+            case 1:
+              // @ts-ignore
+              return [2 /*return*/ , _a.apply(void 0, [_b.sent()])];
+          }
+        });
+      });
+    };
+    Provider.prototype.waitForTransaction = function(txnHash) {
+      return __awaiter(this, void 0, void 0, function() {
+        var dhead, r, howMany;
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              dhead = "waitForTransaction";
+              r = undefined;
+              howMany = 0;
+              _a.label = 1;
+            case 1:
+              if (!!r) return [3 /*break*/ , 5];
+              if (!(howMany++ > 0)) return [3 /*break*/ , 3];
+              return [4 /*yield*/ , Timeout.set(500)];
+            case 2:
+              _a.sent();
+              _a.label = 3;
+            case 3:
+              debug(dhead, txnHash);
+              return [4 /*yield*/ , this.getTransactionReceipt(txnHash)];
+            case 4:
+              r = _a.sent();
+              debug(dhead, txnHash, r);
+              return [3 /*break*/ , 1];
+            case 5:
+              if (r.outcomeStatus !== 0) {
+                throw Error("Transaction failed, outcomeStatus: " + r.outcomeStatus);
+              }
+              return [2 /*return*/ , r];
+          }
+        });
+      });
+    };
+    return Provider;
+  }());
+  providers.Provider = Provider;
+})(providers || (providers = {}));;
 // Recursively stringify BigNumbers
-function unbn(arg) {
+var unbn = function(arg) {
+  var e_1, _a;
   if (!arg)
     return arg;
   if (arg._isBigNumber)
@@ -94,16 +418,21 @@ function unbn(arg) {
     return arg;
   if (Object.keys(arg).length > 0) {
     var newArg = {};
-    for (var _i = 0, _a = Object.keys(arg); _i < _a.length; _i++) {
-      var k = _a[_i];
-      newArg[k] = unbn(arg[k]);
+    try {
+      for (var _b = __values(Object.keys(arg)), _c = _b.next(); !_c.done; _c = _b.next()) {
+        var k = _c.value;
+        newArg[k] = unbn(arg[k]);
+      }
+    } catch (e_1_1) { e_1 = { error: e_1_1 }; } finally {
+      try {
+        if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+      } finally { if (e_1) throw e_1.error; }
     }
     return newArg;
   }
   return arg;
-}
-
-function booleanize(arg) {
+};
+var booleanize = function(arg) {
   if (typeof arg === 'boolean')
     return arg;
   if (typeof arg === 'number')
@@ -113,9 +442,8 @@ function booleanize(arg) {
     return booleanize(arg[0]);
   // XXX handle more stuff
   throw Error("don't know how to booleanize '" + arg + "': " + typeof arg);
-}
-
-function conform(args, tys) {
+};
+var conform = function(args, tys) {
   // XXX find a better way to do this stuff.
   args = unbn(args);
   if (Array.isArray(args)) {
@@ -124,41 +452,51 @@ function conform(args, tys) {
       throw Error("impossible: number of args (" + args.length + ") does not match number of tys (" + tys.length + ")");
     }
     for (var i in tys) {
-      if (tys[i].type === 'tuple') {
+      var ty = tys[i].type;
+      if (ty === 'tuple') {
         args[i] = conform(args[i], tys[i].components);
-      } else if (tys[i].type === 'bool') {
+      } else if (ty === 'bool') {
         args[i] = booleanize(args[i]);
+      } else if (ty === 'address') {
+        args[i] = T_Address.munge(T_Address.canonicalize(args[i]));
       } else {
         // XXX handle more stuff
-        // debug(`conform untouched:`, args[i], tys[i])
+        debug("conform untouched:", args[i], tys[i]);
       }
     }
   }
   return args;
-}
-
-function prepForConfluxPortal(txnOrig) {
+};
+var prepForConfluxPortal = function(txnOrig) {
+  var e_2, _a;
   var hexStringify = function(n) { return '0x' + BigInt(n || '0').toString(16); };
   var txn = __assign({}, txnOrig);
   // value should always be present
   txn.value = hexStringify(txnOrig.value);
-  // These fields are transformed if present
-  // TODO: is it safe just to turn all number fields into hex strings?
-  // Where is the "real" Conflux Portal source code to check this?
-  for (var _i = 0, _a = ['storageLimit', 'gas']; _i < _a.length; _i++) {
-    var field = _a[_i];
-    if (txn[field] !== undefined)
-      txn[field] = hexStringify(txnOrig[field]);
+  try {
+    // These fields are transformed if present
+    // TODO: is it safe just to turn all number fields into hex strings?
+    // Where is the "real" Conflux Portal source code to check this?
+    for (var _b = __values(['storageLimit', 'gas']), _c = _b.next(); !_c.done; _c = _b.next()) {
+      var field = _c.value;
+      if (txn[field] !== undefined)
+        txn[field] = hexStringify(txnOrig[field]);
+    }
+  } catch (e_2_1) { e_2 = { error: e_2_1 }; } finally {
+    try {
+      if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+    } finally { if (e_2) throw e_2.error; }
   }
   return txn;
-}
+};
 var addEstimates = function(cfx, txn) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var numy, f, gas, storage, est, est_err, e_1, g, h, gasu;
+    var dhead, numy, f, gas, storage, est, est_err, n, e_3, e_4, g, h, gasu;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
-          debug("addEstimates 1: start:", txn);
+          dhead = 'addEstimates';
+          debug(dhead, "1: start:", txn);
           numy = function(n) { return BigInt((n === null || n === void 0 ? void 0 : n.toString()) || '0'); };
           f = function(xf) {
             var x = txn[xf];
@@ -167,41 +505,53 @@ var addEstimates = function(cfx, txn) {
           };
           gas = f("gas");
           storage = f("storageLimit");
-          debug("addEstimates 2:  orig:", { gas: gas, storage: storage });
+          debug(dhead, "2:  orig:", { gas: gas, storage: storage });
           est = undefined;
           est_err = undefined;
           _a.label = 1;
         case 1:
           _a.trys.push([1, 3, , 4]);
-          return [4 /*yield*/ , cfx.estimateGasAndCollateral(txn)];
+          return [4 /*yield*/ , cfx.getNextNonce(txn.from)];
         case 2:
-          est = _a.sent();
+          n = _a.sent();
+          txn.nonce = n;
+          debug(dhead, "n:nonce:", { n: n });
           return [3 /*break*/ , 4];
         case 3:
-          e_1 = _a.sent();
-          est_err = e_1;
+          e_3 = _a.sent();
+          debug(dhead, "n:nonce:", { e: e_3 });
           return [3 /*break*/ , 4];
         case 4:
-          debug("addEstimates 3:   est:", { est: est, est_err: est_err });
+          _a.trys.push([4, 6, , 7]);
+          return [4 /*yield*/ , cfx.estimateGasAndCollateral(txn)];
+        case 5:
+          est = _a.sent();
+          return [3 /*break*/ , 7];
+        case 6:
+          e_4 = _a.sent();
+          est_err = e_4;
+          return [3 /*break*/ , 7];
+        case 7:
+          debug(dhead, "3:   est:", { est: est, est_err: est_err });
           if (est) {
             g = function(x, y) { return ((y > x) ? y : x); };
             gas = g(gas, numy(est === null || est === void 0 ? void 0 : est.gasUsed));
             storage = g(storage, numy(est === null || est === void 0 ? void 0 : est.storageCollateralized));
           }
-          debug("addEstimates 4: eused:", { gas: gas, storage: storage });
+          debug(dhead, "4: eused:", { gas: gas, storage: storage });
           if (storage === undefined || storage === numy(0)) {
             storage = numy(2048);
           }
-          debug("addEstimates 5:  non0:", { gas: gas, storage: storage });
+          debug(dhead, "5:  non0:", { gas: gas, storage: storage });
           h = function(x, y) { return numy(format.big(x).times(y).toFixed(0)); };
           gas = h(gas, cfx.defaultGasRatio);
           storage = h(storage, cfx.defaultStorageRatio);
-          debug("addEstimates 6: ratio:", { gas: gas, storage: storage });
+          debug(dhead, "6: ratio:", { gas: gas, storage: storage });
           gasu = gas;
           if (gas === numy('0')) {
             gasu = undefined;
           }
-          debug("addEstimates 7:   und:", { gasu: gasu, storage: storage });
+          debug(dhead, "7:   und:", { gasu: gasu, storage: storage });
           txn.gas = gasu === null || gasu === void 0 ? void 0 : gasu.toString();
           txn.storageLimit = storage.toString();
           return [2 /*return*/ , txn];
@@ -220,12 +570,8 @@ var Signer = /** @class */ (function() {
 export { Signer };
 // compare to ethers.Contract
 var Contract = /** @class */ (function() {
-  // {
-  //   getEventTopic: (name: string) => string, // ?
-  //   getEvent: (name: string) => {inputs: {name: string}[]},
-  //   parseLog: (log: Log) => {args: {[k: string]: any}},
-  // }
-  function Contract(address, abi, wallet, receiptP, hash) {
+  function Contract(address, abi, wallet, receiptP, transactionHash) {
+    var e_5, _a;
     var _this = this;
     this.address = address || undefined;
     var blacklist = Object.keys(this).filter(function(s) { return s[0] === '_'; });
@@ -239,10 +585,11 @@ var Contract = /** @class */ (function() {
     });
     var self = this;
     this.deployTransaction = {
-      hash: hash,
+      // @ts-ignore
+      transactionHash: transactionHash,
       wait: function() {
         return __awaiter(_this, void 0, void 0, function() {
-          var receipt, rcc;
+          var r, rcc, rth, dt;
           return __generator(this, function(_a) {
             switch (_a.label) {
               case 0:
@@ -252,31 +599,39 @@ var Contract = /** @class */ (function() {
                 }
                 return [4 /*yield*/ , self._receiptP];
               case 1:
-                receipt = _a.sent();
-                debug("cfxers:Contract.wait", "got receipt", receipt);
-                rcc = address_cfxStandardize(receipt.contractCreated);
+                r = _a.sent();
+                debug("cfxers:Contract.wait", "got receipt", r);
+                rcc = address_cfxStandardize(r.contractCreated);
                 if (self.address && self.address !== rcc) {
                   throw Error("Impossible: ctc addresses don't match: " + self.address + " vs " + rcc);
                 }
                 self.address = self.address || rcc;
-                if (self.deployTransaction.hash && self.deployTransaction.hash !== receipt.transactionHash) {
-                  throw Error("Impossible: txn hashes don't match: " + self.deployTransaction.hash + " vs " + receipt.transactionHash);
+                rth = r.transactionHash;
+                dt = self.deployTransaction;
+                if (dt.transactionHash && dt.transactionHash !== rth) {
+                  throw Error("Impossible: txn hashes don't match: " + dt.transactionHash + " vs " + rth);
                 }
-                self.deployTransaction.hash = self.deployTransaction.hash || receipt.transactionHash;
-                return [2 /*return*/ , providers.ethifyOkReceipt(receipt)];
+                dt.transactionHash = rth;
+                return [2 /*return*/ , ethifyOkReceipt(r)];
             }
           });
         });
       }
     };
     this.interface = new ethers.utils.Interface(this._abi);
-    for (var _i = 0, _a = this._abi; _i < _a.length; _i++) {
-      var item = _a[_i];
-      if (item.type === 'function') {
-        if (!blacklist.includes(item.name) && item.name !== 'address' && item.name !== 'deployTransaction' && item.name !== 'interface') {
-          this[item.name] = this._makeHandler(item);
+    try {
+      for (var _b = __values(this._abi), _c = _b.next(); !_c.done; _c = _b.next()) {
+        var item = _c.value;
+        if (item.type === 'function') {
+          if (!blacklist.includes(item.name) && item.name !== 'address' && item.name !== 'deployTransaction' && item.name !== 'interface') {
+            this[item.name] = this._makeHandler(item);
+          }
         }
       }
+    } catch (e_5_1) { e_5 = { error: e_5_1 }; } finally {
+      try {
+        if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+      } finally { if (e_5) throw e_5.error; }
     }
   }
   Contract.prototype._makeHandler = function(abiFn) {
@@ -297,9 +652,8 @@ var Contract = /** @class */ (function() {
         args[_i] = arguments[_i];
       }
       return __awaiter(_this, void 0, void 0, function() {
-        var txn, argsConformed, cfc, to, data, txnDat, res, transactionHash_1;
+        var txn, argsConformed, cfc, to, data;
         var _a, _b;
-        var _this = this;
         return __generator(this, function(_c) {
           switch (_c.label) {
             case 0:
@@ -317,45 +671,27 @@ var Contract = /** @class */ (function() {
               debug("cfxers:handler", fname, 'txn', { txn: txn, args: args });
               argsConformed = conform(args, inputs);
               debug("cfxers:handler", fname, 'conform', argsConformed);
-              if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/ , 4];
+              if (!(mut !== 'view' && mut !== 'pure')) return [3 /*break*/ , 3];
               debug("cfxers:handler", fname, "waitable");
-              cfc = (_a = self._contract[fname]).call.apply(_a, argsConformed);
+              cfc = (_a = self._contract[fname]).call.apply(_a, __spreadArray([], __read(argsConformed), false));
               debug("cfxers:handler", fname, "cfc", cfc);
+              to = cfc.to, data = cfc.data;
+              to = to || self.address;
+              txn = __assign(__assign({}, txn), { to: to, data: data });
               return [4 /*yield*/ , addEstimates(this._wallet.provider.conflux, txn)];
             case 1:
               // @ts-ignore
               txn = _c.sent();
-              to = cfc.to, data = cfc.data;
-              txnDat = __assign(__assign({}, txn), { to: to, data: data });
-              debug("cfxers:handler", fname, "txnDat", txnDat);
-              return [4 /*yield*/ , _wallet.sendTransaction(__assign({}, txnDat))];
+              debug("cfxers:handler", fname, "txn", txn);
+              return [4 /*yield*/ , _wallet.sendTransaction(txn)];
             case 2:
-              res = _c.sent();
-              return [4 /*yield*/ , res.wait()];
+              return [2 /*return*/ , _c.sent()];
             case 3:
-              transactionHash_1 = (_c.sent()).transactionHash;
-              // debug(`cfxers:handler`, fname, 'receipt');
-              // debug(transactionReceipt);
-              // const { transactionHash } = transactionReceipt;
-              return [2 /*return*/ , {
-                // XXX not sure what the distinction is supposed to be here
-                wait: function() {
-                  return __awaiter(_this, void 0, void 0, function() {
-                    return __generator(this, function(_a) {
-                      debug('cfxers:handler', fname, 'wait');
-                      return [2 /*return*/ , {
-                        transactionHash: transactionHash_1
-                      }];
-                    });
-                  });
-                }
-              }];
-            case 4:
               debug("cfxers:handler", fname, 'view');
-              return [4 /*yield*/ , (_b = self._contract[fname]).call.apply(_b, argsConformed)];
-            case 5:
-              // XXX in this case it doesn't return something with `wait`,
-              // it just returns the result. Weird design choice, ethers. =/
+              return [4 /*yield*/ , (_b = self._contract[fname]).call.apply(_b, __spreadArray([], __read(argsConformed), false))];
+            case 4:
+              // In this case it doesn't return something with `wait`, it just
+              // returns the result. Weird design choice, ethers. =/
               // @ts-ignore
               return [2 /*return*/ , _c.sent()];
           }
@@ -393,12 +729,12 @@ var ContractFactory = /** @class */ (function() {
             if (!wallet.provider)
               throw Error("Impossible: provider is undefined");
             conflux = wallet.provider.conflux;
-            deployTxn = this.getDeployTransaction.apply(this, args);
+            deployTxn = this.getDeployTransaction.apply(this, __spreadArray([], __read(args), false));
             resultP = wallet.sendTransaction(deployTxn);
             return [4 /*yield*/ , resultP];
           case 1:
             hash = (_b.sent()).transactionHash;
-            receiptP = waitReceipt(wallet.provider, hash);
+            receiptP = wallet.provider.waitForTransaction(hash);
             return [4 /*yield*/ , conflux.getTransactionByHash(hash)];
           case 2:
             txnRes = _b.sent();
@@ -444,7 +780,7 @@ var ContractFactory = /** @class */ (function() {
     // Note: this usage of `.call` here is because javascript is insane.
     // XXX 2021-06-07 Dan: This works for the cjs compilation target, but does it work for the other targets?
     // @ts-ignore
-    var ccc = (_a = contract.constructor).call.apply(_a, argsConformed);
+    var ccc = (_a = contract.constructor).call.apply(_a, __spreadArray([], __read(argsConformed), false));
     // debug(`cfxers:Contract.deploy`, `cfx ctc constructed`, ccc);
     var data = ccc.data;
     return __assign(__assign({}, txn), { data: data });
@@ -474,8 +810,7 @@ var BrowserWallet = /** @class */ (function() {
   BrowserWallet.prototype.getAddress = function() { return this.address; };
   BrowserWallet.prototype.sendTransaction = function(txnOrig) {
     return __awaiter(this, void 0, void 0, function() {
-      var _a, provider, from, txn, value;
-      var _this = this;
+      var _a, provider, from, txn, value, data, transactionHash;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
@@ -485,41 +820,20 @@ var BrowserWallet = /** @class */ (function() {
               throw Error("Impossible: provider is undefined");
             txn = prepForConfluxPortal(__assign(__assign({}, txnOrig), { from: from }));
             value = txn.value;
-            return [4 /*yield*/ , new Promise(function(resolve, reject) {
-              _this.cp.sendAsync({
-                method: 'cfx_sendTransaction',
-                params: [txn],
-                from: from,
-                value: value
-              }, function(err, data) {
-                if (err) {
-                  reject(err);
-                } else {
-                  var transactionHash_2 = data.result;
-                  resolve({
-                    transactionHash: transactionHash_2,
-                    wait: function() {
-                      return __awaiter(_this, void 0, void 0, function() {
-                        return __generator(this, function(_a) {
-                          switch (_a.label) {
-                            case 0:
-                              return [4 /*yield*/ , waitReceipt(provider, transactionHash_2)
-                                // XXX return the whole receipt?
-                              ];
-                            case 1:
-                              _a.sent();
-                              // XXX return the whole receipt?
-                              return [2 /*return*/ , { transactionHash: transactionHash_2 }];
-                          }
-                        });
-                      });
-                    }
-                  });
-                };
-              });
+            return [4 /*yield*/ , this.cp.sendAsync({
+              from: from,
+              value: value,
+              method: 'cfx_sendTransaction',
+              params: [txn]
             })];
           case 1:
-            return [2 /*return*/ , _b.sent()];
+            data = _b.sent();
+            debug('sendTransaction', { txn: txn, data: data });
+            transactionHash = data.result;
+            return [2 /*return*/ , {
+              transactionHash: transactionHash,
+              wait: function() { return provider.waitForTransaction(transactionHash); }
+            }];
         }
       });
     });
@@ -562,16 +876,17 @@ var Wallet = /** @class */ (function() {
   };
   Wallet.prototype.sendTransaction = function(txn) {
     return __awaiter(this, void 0, void 0, function() {
-      var from, _a;
+      var p, from, _a, dhead, howMany, _loop_1, state_1;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
             this._requireConnected();
-            if (!this.provider)
+            p = this.provider;
+            if (!p)
               throw Error("Impossible: provider is undefined");
             from = this.getAddress();
             txn = __assign(__assign({ from: from }, txn), { value: (txn.value || '0').toString() });
-            return [4 /*yield*/ , addEstimates(this.provider.conflux, txn)];
+            return [4 /*yield*/ , addEstimates(p.conflux, txn)];
           case 1:
             txn = _b.sent();
             if (!(txn.to instanceof Promise)) return [3 /*break*/ , 3];
@@ -581,7 +896,74 @@ var Wallet = /** @class */ (function() {
             _a.to = _b.sent();
             _b.label = 3;
           case 3:
-            return [2 /*return*/ , _retryingSendTxn(this.provider, txn)];
+            dhead = "retryingSendTxn";
+            howMany = 0;
+            _loop_1 = function() {
+              var txnMut, th_1, got, howMany_1, e_6, es;
+              return __generator(this, function(_c) {
+                switch (_c.label) {
+                  case 0:
+                    if (!(howMany++ > 0)) return [3 /*break*/ , 2];
+                    return [4 /*yield*/ , Timeout.set(500)];
+                  case 1:
+                    _c.sent();
+                    _c.label = 2;
+                  case 2:
+                    debug(dhead, "attempt", howMany, txn);
+                    txnMut = __assign({}, txn);
+                    _c.label = 3;
+                  case 3:
+                    _c.trys.push([3, 9, , 10]);
+                    return [4 /*yield*/ , p.conflux.sendTransaction(txnMut)];
+                  case 4:
+                    th_1 = _c.sent();
+                    debug(dhead, "sent", { txn: txn, txnMut: txnMut, th: th_1 });
+                    got = null;
+                    howMany_1 = 0;
+                    _c.label = 5;
+                  case 5:
+                    if (!!(got && got.blockHash)) return [3 /*break*/ , 8];
+                    if (howMany_1++ > 2 * 60 * 5) {
+                      throw Error(dhead + " timeout in mining " + th_1);
+                    }
+                    debug(dhead, 'get', howMany_1, th_1);
+                    return [4 /*yield*/ , Timeout.set(500)];
+                  case 6:
+                    _c.sent();
+                    return [4 /*yield*/ , p.conflux.getTransactionByHash(th_1)];
+                  case 7:
+                    got = _c.sent();
+                    return [3 /*break*/ , 5];
+                  case 8:
+                    return [2 /*return*/ , { value: __assign(__assign({}, got), { transactionHash: th_1, wait: function() { return p.waitForTransaction(th_1); } }) }];
+                  case 9:
+                    e_6 = _c.sent();
+                    es = JSON.stringify(e_6);
+                    debug(dhead, "err", { txn: txn, e: e_6, es: es });
+                    //if ( es.includes("stale nonce") || es.includes("same nonce") || es.includes('tx already exist') ) {
+                    //  debug(dhead, `nonce error`);
+                    if (e_6.code === -32077) {
+                      debug(dhead, 'catchingUp');
+                    } else {
+                      throw e_6;
+                    }
+                    return [3 /*break*/ , 10];
+                  case 10:
+                    return [2 /*return*/ ];
+                }
+              });
+            };
+            _b.label = 4;
+          case 4:
+            if (!true) return [3 /*break*/ , 6];
+            return [5 /*yield**/ , _loop_1()];
+          case 5:
+            state_1 = _b.sent();
+            if (typeof state_1 === "object")
+              return [2 /*return*/ , state_1.value];
+            return [3 /*break*/ , 4];
+          case 6:
+            return [2 /*return*/ ];
         }
       });
     });
@@ -595,210 +977,5 @@ var Wallet = /** @class */ (function() {
   };
   return Wallet;
 }());
-export { Wallet };
-// XXX This is nutty
-// Remember the last epoch that a given sender has sent
-// and don't try to send again until it is later than that epoch.
-// Note: requires addrs to be canonicalized first.
-var lastEpochSent = {};
-var epochWaitLock = {};
-// XXX implement a queue, maybe?
-function tryGetLock(obj, k) {
-  if (!obj[k]) {
-    // XXX is this actually threadsafe?
-    obj[k] = true;
-    return true;
-  }
-  return false;
-}
-
-function releaseLock(obj, k) {
-  obj[k] = false;
-}
-
-function getLastSentAt(addr) {
-  return lastEpochSent[addr] || -1;
-}
-
-function updateSentAt(addr, epoch) {
-  lastEpochSent[addr] = Math.max(getLastSentAt(addr), epoch);
-}
-// Note: this relies on epochs moving on their own
-// If there's ever a devnet where this is not the case,
-// this will need to be adjusted.
-var waitUntilSendableEpoch = function(provider, addr) {
-  return __awaiter(void 0, void 0, void 0, function() {
-    var current;
-    return __generator(this, function(_a) {
-      switch (_a.label) {
-        case 0:
-          if (!!tryGetLock(epochWaitLock, addr)) return [3 /*break*/ , 2];
-          // XXX fail after waiting too long?
-          return [4 /*yield*/ , Timeout.set(waitMs)];
-        case 1:
-          // XXX fail after waiting too long?
-          _a.sent();
-          return [3 /*break*/ , 0];
-        case 2:
-          return [4 /*yield*/ , provider.getBlockNumber()];
-        case 3:
-          if (!((current = _a.sent()) <= getLastSentAt(addr))) return [3 /*break*/ , 5];
-          return [4 /*yield*/ , Timeout.set(waitMs)];
-        case 4:
-          _a.sent();
-          return [3 /*break*/ , 2];
-        case 5:
-          updateSentAt(addr, current);
-          releaseLock(epochWaitLock, addr);
-          return [2 /*return*/ ];
-      }
-    });
-  });
-};
-
-function _retryingSendTxn(provider, txnOrig) {
-  return __awaiter(this, void 0, void 0, function() {
-    var max_tries, addr, err, txnMut, _loop_1, out_tries_1, tries, state_1;
-    var _this = this;
-    return __generator(this, function(_a) {
-      switch (_a.label) {
-        case 0:
-          max_tries = 2;
-          addr = txnOrig.from;
-          err = null;
-          txnMut = __assign({}, txnOrig);
-          _loop_1 = function(tries) {
-            var transactionHashP_1, transactionHash_3, e_2, es;
-            return __generator(this, function(_b) {
-              switch (_b.label) {
-                case 0:
-                  return [4 /*yield*/ , waitUntilSendableEpoch(provider, addr)];
-                case 1:
-                  _b.sent();
-                  if (!err) return [3 /*break*/ , 3];
-                  // XXX is this still needed?
-                  return [4 /*yield*/ , Timeout.set(waitMs)];
-                case 2:
-                  // XXX is this still needed?
-                  _b.sent();
-                  _b.label = 3;
-                case 3:
-                  _b.trys.push([3, 5, , 6]);
-                  // Note: {...txn} because conflux is going to mutate it >=[
-                  txnMut = __assign({}, txnOrig);
-                  debug("_retryingSendTxn attempt", txnOrig);
-                  transactionHashP_1 = provider.conflux.sendTransaction(txnMut);
-                  return [4 /*yield*/ , transactionHashP_1];
-                case 4:
-                  transactionHash_3 = _b.sent();
-                  debug("_retryingSendTxn sent", { txnOrig: txnOrig, txnMut: txnMut, transactionHash: transactionHash_3 });
-                  updateSentAt(addr, txnMut.epochHeight);
-                  return [2 /*return*/ , {
-                    value: {
-                      transactionHash: transactionHash_3,
-                      wait: function() {
-                        return __awaiter(_this, void 0, void 0, function() {
-                          var r, e_3, r;
-                          return __generator(this, function(_a) {
-                            switch (_a.label) {
-                              case 0:
-                                _a.trys.push([0, 2, , 4]);
-                                return [4 /*yield*/ , transactionHashP_1.confirmed({ delta: 1000, timeout: 60 * 1000 })];
-                              case 1:
-                                r = _a.sent();
-                                debug("_retryingSendTxn receipt good", r);
-                                return [2 /*return*/ , { transactionHash: transactionHash_3 }];
-                              case 2:
-                                e_3 = _a.sent();
-                                return [4 /*yield*/ , provider.conflux.getTransactionReceipt(transactionHash_3)];
-                              case 3:
-                                r = _a.sent();
-                                debug("_retryingSendTxn receipt bad", r);
-                                throw e_3;
-                              case 4:
-                                return [2 /*return*/ ];
-                            }
-                          });
-                        });
-                      }
-                    }
-                  }];
-                case 5:
-                  e_2 = _b.sent();
-                  err = e_2;
-                  es = JSON.stringify(e_2);
-                  if (es.includes("stale nonce") || es.includes("same nonce")) {
-                    debug("_retryingSendTxn: nonce error, giving more tries");
-                    tries--;
-                  }
-                  debug("_retryingSendTxn fail", {
-                    txnOrig: txnOrig,
-                    txnMut: txnMut,
-                    e: e_2,
-                    tries: tries,
-                    max_tries: max_tries
-                  });
-                  return [2 /*return*/ , (out_tries_1 = tries, "continue")];
-                case 6:
-                  out_tries_1 = tries;
-                  return [2 /*return*/ ];
-              }
-            });
-          };
-          tries = 1;
-          _a.label = 1;
-        case 1:
-          if (!(tries <= max_tries)) return [3 /*break*/ , 4];
-          return [5 /*yield**/ , _loop_1(tries)];
-        case 2:
-          state_1 = _a.sent();
-          tries = out_tries_1;
-          if (typeof state_1 === "object")
-            return [2 /*return*/ , state_1.value];
-          _a.label = 3;
-        case 3:
-          tries++;
-          return [3 /*break*/ , 1];
-        case 4:
-          if (!err)
-            throw Error("impossible: no error to throw after " + max_tries + " failed attempts.");
-          throw err;
-      }
-    });
-  });
-}
-
-function waitReceipt(provider, txnHash) {
-  return __awaiter(this, void 0, void 0, function() {
-    var maxTries, tries, r;
-    return __generator(this, function(_a) {
-      switch (_a.label) {
-        case 0:
-          maxTries = 800;
-          tries = 1;
-          _a.label = 1;
-        case 1:
-          if (!(tries <= maxTries)) return [3 /*break*/ , 5];
-          return [4 /*yield*/ , provider.getTransactionReceipt(txnHash)];
-        case 2:
-          r = _a.sent();
-          if (r) {
-            if (r.outcomeStatus !== 0) {
-              throw Error("Transaction failed, outcomeStatus: " + r.outcomeStatus);
-            }
-            return [2 /*return*/ , r];
-          }
-          return [4 /*yield*/ , Timeout.set(waitMs)];
-        case 3:
-          _a.sent();
-          _a.label = 4;
-        case 4:
-          tries++;
-          return [3 /*break*/ , 1];
-        case 5:
-          throw Error("Transaction timed out after " + maxTries * waitMs + " ms");
-      }
-    });
-  });
-}
+export { Wallet };;
 //# sourceMappingURL=cfxers.js.map

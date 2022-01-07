@@ -54,6 +54,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -64,6 +80,7 @@ exports.ethers = cfxers;
 var ethLikeCompiled = __importStar(require("./CFX_compiled"));
 exports.ethLikeCompiled = ethLikeCompiled;
 var shared_impl_1 = require("./shared_impl");
+var shared_user_1 = require("./shared_user");
 var shim_1 = require("./shim");
 var waitPort_1 = __importDefault(require("./waitPort"));
 var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
@@ -141,41 +158,43 @@ function toHexAddr(cfxAddr) {
     // @ts-ignore
     js_conflux_sdk_1["default"].address.decodeCfxAddress(cfxAddr).hexAddress).toString('hex').toLowerCase();
 }
-function _fundOnCfxTestNet(to, amt) {
-    return __awaiter(this, void 0, void 0, function () {
-        var method, _a, toHex, res, resJson;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    // XXX TestNet faucet only gives out 100 CFX at a time
-                    // Should we throw an error if amt !== 100 CFX?
-                    void (amt);
-                    method = '_fundOnCfxTestNet';
-                    if (!to.getAddress) return [3 /*break*/, 2];
-                    return [4 /*yield*/, to.getAddress()];
-                case 1:
-                    _a = _b.sent();
-                    return [3 /*break*/, 3];
-                case 2:
-                    _a = to;
-                    _b.label = 3;
-                case 3:
-                    to = _a;
-                    (0, shared_impl_1.debug)({ method: method, to: to });
-                    toHex = toHexAddr(to);
-                    (0, shared_impl_1.debug)({ method: method, message: 'requesting from testnet faucet', toHex: toHex });
-                    return [4 /*yield*/, shim_1.window.fetch("http://test-faucet.confluxnetwork.org:18088/dev/ask?address=" + toHex)];
-                case 4:
-                    res = _b.sent();
-                    return [4 /*yield*/, res.json()];
-                case 5:
-                    resJson = _b.sent();
-                    (0, shared_impl_1.debug)({ method: method, message: 'got response from testnet faucet', resJson: resJson });
-                    return [2 /*return*/];
-            }
-        });
+var makeURLFunder = function (url) { return function (to, amt) { return __awaiter(void 0, void 0, void 0, function () {
+    var dhead, _a, toHex, u, res, resJson;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                dhead = 'doURLFunder';
+                if (!to.getAddress) return [3 /*break*/, 2];
+                return [4 /*yield*/, to.getAddress()];
+            case 1:
+                _a = _b.sent();
+                return [3 /*break*/, 3];
+            case 2:
+                _a = to;
+                _b.label = 3;
+            case 3:
+                to = _a;
+                (0, shared_impl_1.debug)(dhead, to);
+                toHex = toHexAddr(to);
+                u = url + "?address=" + toHex;
+                if (amt) {
+                    u = u + "&amount=" + (0, shared_user_1.bigNumberify)(amt);
+                }
+                (0, shared_impl_1.debug)(dhead, { toHex: toHex, u: u });
+                return [4 /*yield*/, shim_1.window.fetch(u)];
+            case 4:
+                res = _b.sent();
+                return [4 /*yield*/, res.json()];
+            case 5:
+                resJson = _b.sent();
+                (0, shared_impl_1.debug)(dhead, { resJson: resJson });
+                if (!res.ok) {
+                    throw resJson;
+                }
+                return [2 /*return*/];
+        }
     });
-}
+}); }; };
 function canFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
         var netId;
@@ -189,10 +208,23 @@ function canFundFromFaucet() {
 exports.canFundFromFaucet = canFundFromFaucet;
 function _specialFundFromFaucet() {
     return __awaiter(this, void 0, void 0, function () {
+        var ni, env, k, base, coms, uri;
         return __generator(this, function (_a) {
-            (0, shared_impl_1.debug)("_specialFundFromFaucet");
-            if (ethLikeCompiled.getNetworkId() == 0x1) {
-                return [2 /*return*/, _fundOnCfxTestNet];
+            ni = ethLikeCompiled.getNetworkId();
+            (0, shared_impl_1.debug)("_specialFundFromFaucet", { ni: ni });
+            if (ni == 0x1) {
+                // XXX TestNet faucet only gives out 100 CFX at a time
+                // Should we throw an error if amt !== 100 CFX?
+                return [2 /*return*/, makeURLFunder("http://test-faucet.confluxnetwork.org:18088/dev/ask")];
+            }
+            else if (ni == 999) {
+                env = getProviderEnv();
+                k = 'CFX_NODE_URI';
+                base = k in env ? env[k] : DEFAULT_CFX_NODE_URI;
+                coms = base.split(':');
+                coms.pop();
+                uri = coms.join(':');
+                return [2 /*return*/, makeURLFunder(uri + ":1337/faucet")];
             }
             else {
                 return [2 /*return*/, null];
@@ -203,81 +235,58 @@ function _specialFundFromFaucet() {
 }
 exports._specialFundFromFaucet = _specialFundFromFaucet;
 function waitCaughtUp(provider, env) {
-    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var maxTries, waitMs, err, tries, faddr, fbal, failMsg, w, txn, t, e_1;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var w, txn, dhead, t, e_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && (0, shared_impl_1.truthyEnv)(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 2];
                     return [4 /*yield*/, (0, waitPort_1["default"])(env.CFX_NODE_URI)];
                 case 1:
-                    _b.sent();
-                    _b.label = 2;
+                    _a.sent();
+                    _a.label = 2;
                 case 2:
-                    if (!isIsolatedNetwork()) return [3 /*break*/, 12];
+                    if (!(false && isIsolatedNetwork())) return [3 /*break*/, 11];
                     // XXX this doesn't work with setFaucet; requires the default faucet to be used
                     // But we can't call getFaucet() or _getDefaultFaucetNetworkAccount() here because
                     // those (if left to defaults) call getProvider which calls this fn (waitCaughtUp).
                     // TODO: disentangle
                     if (!defaultFaucetWallet.provider)
                         defaultFaucetWallet.connect(provider);
-                    maxTries = 20;
-                    waitMs = 1000;
-                    err = null;
-                    tries = 0;
-                    _b.label = 3;
-                case 3:
-                    if (!(tries < maxTries)) return [3 /*break*/, 11];
-                    if (!err) return [3 /*break*/, 5];
-                    (0, shared_impl_1.debug)("waitCaughtUp: waiting some more", { waitMs: waitMs, tries: tries, maxTries: maxTries, err: err });
-                    return [4 /*yield*/, await_timeout_1["default"].set(waitMs)];
-                case 4:
-                    _b.sent(); // wait 1s between tries
-                    _b.label = 5;
-                case 5:
-                    _b.trys.push([5, 9, , 10]);
-                    faddr = defaultFaucetWallet.getAddress();
-                    return [4 /*yield*/, ((_a = defaultFaucetWallet.provider) === null || _a === void 0 ? void 0 : _a.conflux.getBalance(faddr))];
-                case 6:
-                    fbal = _b.sent();
-                    (0, shared_impl_1.debug)("Faucet bal", fbal);
-                    // @ts-ignore
-                    if (fbal == 0) {
-                        failMsg = "Faucet balance is 0 (" + faddr + ")";
-                        (0, shared_impl_1.debug)(failMsg);
-                        throw Error(failMsg);
-                    }
                     w = cfxers.Wallet.createRandom().connect(provider);
                     txn = { to: w.getAddress(), value: '1' };
-                    (0, shared_impl_1.debug)("sending dummy txn", txn);
+                    dhead = 'waitCaughtUp';
+                    _a.label = 3;
+                case 3:
+                    if (!true) return [3 /*break*/, 11];
+                    _a.label = 4;
+                case 4:
+                    _a.trys.push([4, 7, , 10]);
+                    (0, shared_impl_1.debug)(dhead, 'try', txn);
                     return [4 /*yield*/, defaultFaucetWallet.sendTransaction(txn)];
-                case 7:
-                    t = _b.sent();
+                case 5:
+                    t = _a.sent();
                     return [4 /*yield*/, t.wait()];
-                case 8:
-                    _b.sent();
+                case 6:
+                    _a.sent();
                     return [2 /*return*/];
-                case 9:
-                    e_1 = _b.sent();
-                    // TODO: only loop again if we detect that it's the "not caught up yet" error
-                    //   err: RPCError: Request rejected due to still in the catch up mode.
-                    //   { code: -32077 }
-                    err = e_1;
-                    return [3 /*break*/, 10];
-                case 10:
-                    tries++;
+                case 7:
+                    e_1 = _a.sent();
+                    (0, shared_impl_1.debug)(dhead, 'err', e_1);
+                    if (!(e_1.code === -32077)) return [3 /*break*/, 9];
+                    return [4 /*yield*/, await_timeout_1["default"].set(500)];
+                case 8:
+                    _a.sent();
                     return [3 /*break*/, 3];
-                case 11:
-                    if (err)
-                        throw err;
-                    _b.label = 12;
-                case 12: return [2 /*return*/];
+                case 9: return [3 /*break*/, 11];
+                case 10: return [3 /*break*/, 3];
+                case 11: return [2 /*return*/];
             }
         });
     });
 }
-var _a = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
+;
+var _a = __read((0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var fullEnv, provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -298,7 +307,7 @@ var _a = (0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void
                 return [2 /*return*/, provider];
         }
     });
-}); }), getProvider = _a[0], _setProvider = _a[1];
+}); }), 2), getProvider = _a[0], _setProvider = _a[1];
 function setProvider(provider) {
     _setProvider(provider);
     if (!_providerEnv) {
@@ -455,10 +464,10 @@ function providerEnvByName(providerName) {
     }
 }
 function cfxProviderEnv(network) {
-    var _a = network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
+    var _a = __read(network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
         : network == 'TestNet' ? ['https://portal-test.confluxrpc.com', '1'] // 0x1
             : network == 'tethys' ? ['https://portal-main.confluxrpc.com', '1029'] // 0x405
-                : throwError("network name not recognized: '" + network + "'"), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
+                : throwError("network name not recognized: '" + network + "'"), 2), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
     return {
         CFX_NODE_URI: CFX_NODE_URI,
         CFX_NETWORK_ID: CFX_NETWORK_ID,

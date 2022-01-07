@@ -68,6 +68,21 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
 var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
   if (pack || arguments.length === 2)
     for (var i = 0, l = from.length, ar; i < l; i++) {
@@ -84,7 +99,7 @@ import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import { bigNumberify, } from './CBR.mjs';
 import util from 'util';
-import { hexlify, checkedBigNumberify, bytesEq, } from './shared_backend.mjs';
+import { hexlify, checkedBigNumberify, bytesEq, assert, } from './shared_backend.mjs';
 import { process } from './shim.mjs';
 export { hexlify } from './shared_backend.mjs';
 export var bigNumberToBigInt = function(x) { return BigInt(x.toHexString()); };
@@ -111,7 +126,7 @@ export var debug = function() {
     });
     void(betterMsgs);
     // Print objects for indentation, colors, etc...
-    console.log.apply(console, __spreadArray([new Date(), "DEBUG:"], msgs, false));
+    console.log.apply(console, __spreadArray([new Date(), "DEBUG:"], __read(msgs), false));
   }
 };
 var isUntaggedView = function(x) {
@@ -186,6 +201,7 @@ export var stdContract = function(stdContractArgs) {
     var _a = _setup(setupArgs),
       getContractInfo = _a.getContractInfo,
       getContractAddress = _a.getContractAddress,
+      getBalance = _a.getBalance,
       sendrecv = _a.sendrecv,
       recv = _a.recv,
       getState = _a.getState,
@@ -198,6 +214,7 @@ export var stdContract = function(stdContractArgs) {
       waitUntilSecs: waitUntilSecs,
       getContractInfo: getContractInfo,
       getContractAddress: getContractAddress,
+      getBalance: getBalance,
       sendrecv: sendrecv,
       recv: recv,
       getState: getState,
@@ -473,9 +490,36 @@ export var argMin = function(xs, f) {
   return argHelper(xs, f, function(a, b) { return a < b; });
 };
 export var make_newTestAccounts = function(newTestAccount) {
-  return function(k, bal) {
-    return Promise.all((new Array(k)).fill(1).map(function(_) { return newTestAccount(bal); }));
+  var makeArr = function(k) { return (new Array(k)).fill(1); };
+  var parallel = function(k, bal) {
+    return Promise.all(makeArr(k).map(function(_) { return newTestAccount(bal); }));
   };
+  var serial = function(k, bal) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var arr, i, _a, _b;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
+          case 0:
+            arr = [];
+            i = 0;
+            _c.label = 1;
+          case 1:
+            if (!(i < k)) return [3 /*break*/ , 4];
+            _b = (_a = arr).push;
+            return [4 /*yield*/ , newTestAccount(bal)];
+          case 2:
+            _b.apply(_a, [_c.sent()]);
+            _c.label = 3;
+          case 3:
+            i++;
+            return [3 /*break*/ , 1];
+          case 4:
+            return [2 /*return*/ , arr];
+        }
+      });
+    });
+  };
+  return { parallel: parallel, serial: serial };
 };
 export var make_waitUntilX = function(label, getCurrent, step) {
   return function(target, onProgress) {
@@ -512,29 +556,29 @@ export var make_waitUntilX = function(label, getCurrent, step) {
 };
 export var checkTimeout = function(runningIsolated, getTimeSecs, timeoutAt, nowTimeN) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var mode, val, nowTime, nowSecs, e_1, nowSecs;
-    return __generator(this, function(_a) {
-      switch (_a.label) {
+    var _a, mode, val, nowTime, nowSecs, e_1, nowSecs;
+    return __generator(this, function(_b) {
+      switch (_b.label) {
         case 0:
           debug('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
           if (!timeoutAt) {
             return [2 /*return*/ , false];
           }
-          mode = timeoutAt[0], val = timeoutAt[1];
+          _a = __read(timeoutAt, 2), mode = _a[0], val = _a[1];
           nowTime = bigNumberify(nowTimeN);
           if (!(mode === 'time')) return [3 /*break*/ , 1];
           return [2 /*return*/ , val.lte(nowTime)];
         case 1:
           if (!(mode === 'secs')) return [3 /*break*/ , 6];
-          _a.label = 2;
+          _b.label = 2;
         case 2:
-          _a.trys.push([2, 4, , 5]);
+          _b.trys.push([2, 4, , 5]);
           return [4 /*yield*/ , getTimeSecs(nowTime)];
         case 3:
-          nowSecs = _a.sent();
+          nowSecs = _b.sent();
           return [2 /*return*/ , val.lte(nowSecs)];
         case 4:
-          e_1 = _a.sent();
+          e_1 = _b.sent();
           debug('checkTimeout', 'err', "" + e_1);
           if (runningIsolated()) {
             nowSecs = Math.floor(Date.now() / 1000);
@@ -551,6 +595,238 @@ export var checkTimeout = function(runningIsolated, getTimeSecs, timeoutAt, nowT
       }
     });
   });
+};
+var neverTrue = function(r) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    return __generator(this, function(_a) {
+      return [2 /*return*/ , (void(r), false)];
+    });
+  });
+};;;;
+export var makeEventQueue = function(ctorArgs) {
+  var raw2proc = ctorArgs.raw2proc,
+    alwaysIgnored = ctorArgs.alwaysIgnored,
+    getTxns = ctorArgs.getTxns,
+    getTxnTime = ctorArgs.getTxnTime;
+  var initArgs = undefined;
+  var ptxns = [];
+  var ctime = bigNumberify(0);
+  var customIgnore = [];
+  var isInited = function() { return initArgs !== undefined; };
+  var init = function(args) {
+    assert(initArgs === undefined, "init: must be uninitialized");
+    initArgs = args;
+  };
+  var pushIgnore = function(pred) {
+    assert(initArgs !== undefined, "pushIgnore: must be initialized");
+    customIgnore.push(pred);
+  };
+  var notIgnored = function(txn) { return (!alwaysIgnored(txn)); };
+  var peq = function(lab, didTimeout) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var dhead, updateCtime, howMany, _loop_1, state_1;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            dhead = lab + " peq";
+            updateCtime = function(ntime) {
+              if (ctime.lt(ntime)) {
+                debug(dhead, 'updating ctime', { ctime: ctime, ntime: ntime });
+                ctime = ntime;
+              }
+              return ntime;
+            };
+            if (initArgs === undefined) {
+              throw Error(dhead + ": not initialized");
+            }
+            howMany = 0;
+            _loop_1 = function() {
+              var _b, txns, gtime, r_1, cmpTxn, cis, ci, t, _c;
+              return __generator(this, function(_d) {
+                switch (_d.label) {
+                  case 0:
+                    return [4 /*yield*/ , getTxns(dhead, initArgs, ctime, howMany++)];
+                  case 1:
+                    _b = _d.sent(), txns = _b.txns, gtime = _b.gtime;
+                    if (txns.length === 0 && gtime) {
+                      updateCtime(gtime);
+                    } else {
+                      r_1 = function(x) { return updateCtime(getTxnTime(x)); };
+                      cmpTxn = function(x, y) {
+                        return r_1(x).sub(r_1(y)).toNumber();
+                      };
+                      txns.sort(cmpTxn);
+                      if (txns.length === 1) {
+                        r_1(txns[0]);
+                      }
+                      txns = txns.filter(notIgnored);
+                    }
+                    cis = customIgnore;
+                    while (txns.length > 0 && cis.length > 0) {
+                      ci = cis[0];
+                      cis.shift();
+                      t = txns[0];
+                      txns.shift();
+                      if (!ci(t)) {
+                        throw Error(dhead + " customIgnore present, " + ci + ", but top txn did not match " + JSON.stringify(t));
+                      } else {
+                        debug(dhead, "ignored", ci, t);
+                      }
+                    }
+                    _c = txns.length === 0;
+                    if (!_c) return [3 /*break*/ , 3];
+                    return [4 /*yield*/ , didTimeout(ctime)];
+                  case 2:
+                    _c = (_d.sent());
+                    _d.label = 3;
+                  case 3:
+                    if (_c) {
+                      return [2 /*return*/ , { value: { timeout: true, time: ctime } }];
+                    }
+                    ptxns = txns.map(raw2proc);
+                    return [2 /*return*/ ];
+                }
+              });
+            };
+            _a.label = 1;
+          case 1:
+            if (!(ptxns.length === 0)) return [3 /*break*/ , 3];
+            return [5 /*yield**/ , _loop_1()];
+          case 2:
+            state_1 = _a.sent();
+            if (typeof state_1 === "object")
+              return [2 /*return*/ , state_1.value];
+            return [3 /*break*/ , 1];
+          case 3:
+            return [2 /*return*/ , { timeout: false, txn: ptxns[0] }];
+        }
+      });
+    });
+  };
+  var deq = function(dhead) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var r;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/ , peq(dhead, neverTrue)];
+          case 1:
+            r = _a.sent();
+            if (r.timeout) {
+              throw Error('impossible');
+            }
+            ptxns.shift();
+            return [2 /*return*/ , r.txn];
+        }
+      });
+    });
+  };
+  return { isInited: isInited, init: init, peq: peq, deq: deq, pushIgnore: pushIgnore };
+};;
+export var makeEventStream = function(args) {
+  var eq = args.eq,
+    getTxnTime = args.getTxnTime,
+    sync = args.sync,
+    getNetworkTime = args.getNetworkTime,
+    getLogs = args.getLogs,
+    parseLog = args.parseLog;
+  var time = bigNumberify(0);
+  var logs = [];
+  var seek = function(t) {
+    assert(time.lt(t), 'seek must seek future');
+    debug("EventStream::seek", t);
+    time = t;
+    logs = [];
+  };
+  var next = function() {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var dhead, parsedLog, txn, cr, l;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/ , sync()];
+          case 1:
+            _a.sent();
+            dhead = "EventStream::next";
+            parsedLog = undefined;
+            _a.label = 2;
+          case 2:
+            if (!(parsedLog === undefined)) return [3 /*break*/ , 6];
+            _a.label = 3;
+          case 3:
+            if (!(logs.length === 0)) return [3 /*break*/ , 5];
+            return [4 /*yield*/ , eq.deq(dhead)];
+          case 4:
+            txn = _a.sent();
+            debug(dhead, { txn: txn });
+            cr = getTxnTime(txn);
+            if (cr.gte(time)) {
+              time = cr;
+              logs = getLogs(txn);
+              debug(dhead, { time: time, logs: logs });
+            }
+            return [3 /*break*/ , 3];
+          case 5:
+            l = logs[0];
+            logs.shift();
+            parsedLog = parseLog(l);
+            debug(dhead, { parsedLog: parsedLog, l: l });
+            return [3 /*break*/ , 2];
+          case 6:
+            debug(dhead, 'ret');
+            return [2 /*return*/ , { when: time, what: parsedLog }];
+        }
+      });
+    });
+  };
+  var seekNow = function() {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var _a;
+      return __generator(this, function(_b) {
+        switch (_b.label) {
+          case 0:
+            _a = seek;
+            return [4 /*yield*/ , getNetworkTime()];
+          case 1:
+            return [2 /*return*/ , _a.apply(void 0, [_b.sent()])];
+        }
+      });
+    });
+  };
+  var lastTime = function() {
+    return __awaiter(void 0, void 0, void 0, function() {
+      return __generator(this, function(_a) {
+        return [2 /*return*/ , time];
+      });
+    });
+  };
+  var monitor = function(onEvent) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var _a;
+      return __generator(this, function(_b) {
+        switch (_b.label) {
+          case 0:
+            if (!true) return [3 /*break*/ , 2];
+            _a = onEvent;
+            return [4 /*yield*/ , next()];
+          case 1:
+            _a.apply(void 0, [_b.sent()]);
+            return [3 /*break*/ , 0];
+          case 2:
+            return [2 /*return*/ ];
+        }
+      });
+    });
+  };
+  return { lastTime: lastTime, seek: seek, seekNow: seekNow, monitor: monitor, next: next };
+};
+export function getQueryLowerBound() {
+  console.log("WARNING: getQueryLowerBound() is deprecated and does nothing.");
+  return bigNumberify(0);
+};
+export function setQueryLowerBound(x) {
+  void(x);
+  console.log("WARNING: setQueryLowerBound() is deprecated and does nothing.");
 };
 var Signal = /** @class */ (function() {
   function Signal() {

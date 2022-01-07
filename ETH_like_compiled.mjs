@@ -13,6 +13,31 @@ var __assign = (this && this.__assign) || function() {
   };
   return __assign.apply(this, arguments);
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
 import ethers from 'ethers';
 import * as shared_backend from './shared_backend.mjs';
 import * as CBR from './CBR.mjs';
@@ -79,7 +104,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       }),
       unmunge: (function(nvs) {
         var nvs_s = nvs.map(function(nv) { return hexToString(ethers.utils.hexlify(unBigInt(nv))); });
-        var nvss = "".concat.apply("", nvs_s);
+        var nvss = "".concat.apply("", __spreadArray([], __read(nvs_s), false));
         // debug(me.name, nvs, nvss);
         return me.canonicalize(nvss);
       }),
@@ -158,8 +183,9 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       defaultValue: (function() {
         var obj = {};
         ctcs.forEach(function(_a) {
-          var prop = _a[0],
-            co = _a[1];
+          var _b = __read(_a, 2),
+            prop = _b[0],
+            co = _b[1];
           obj[prop] = co.defaultValue;
         });
         return obj;
@@ -169,23 +195,26 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
           return false;
         } else {
           return ctcs.map(function(_a) {
-            var k = _a[0],
-              ctc = _a[1];
+            var _b = __read(_a, 2),
+              k = _b[0],
+              ctc = _b[1];
             return ctc.munge(bv[k]);
           });
         }
       },
       unmunge: function(args) {
         return V_Struct(ctcs)(ctcs.map(function(_a, i) {
-          var k = _a[0],
-            ctc = _a[1];
+          var _b = __read(_a, 2),
+            k = _b[0],
+            ctc = _b[1];
           void(k);
           return ctc.unmunge(args[i]);
         }));
       },
       paramType: "tuple(" + ctcs.map(function(_a) {
-        var k = _a[0],
-          ctc = _a[1];
+        var _b = __read(_a, 2),
+          k = _b[0],
+          ctc = _b[1];
         void(k);
         return ctc.paramType;
       }).join(',') + ")"
@@ -260,8 +289,9 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       // vN : co[ascLabels[i]]
       //
       munge: function(_a) {
-        var label = _a[0],
-          v = _a[1];
+        var _b = __read(_a, 2),
+          label = _b[0],
+          v = _b[1];
         var i = labelMap[label];
         var vals = ascLabels.map(function(label) {
           var vco = co[label];

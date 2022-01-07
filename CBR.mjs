@@ -1,3 +1,18 @@
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
 import ethers from 'ethers';
 import { checkedBigNumberify } from './shared_backend.mjs';
 var BigNumber = ethers.BigNumber;
@@ -164,15 +179,17 @@ export var BV_Tuple = function(ctcs) {
 export var BT_Struct = function(ctcs) {
   return {
     name: "Struct([" + ctcs.map(function(_a) {
-      var k = _a[0],
-        ctc = _a[1];
+      var _b = __read(_a, 2),
+        k = _b[0],
+        ctc = _b[1];
       return " [" + k + ", " + ctc.name + "] ";
     }) + "])",
     canonicalize: function(arg) {
       var obj = {};
       ctcs.forEach(function(_a, i) {
-        var k = _a[0],
-          ctc = _a[1];
+        var _b = __read(_a, 2),
+          k = _b[0],
+          ctc = _b[1];
         obj[k] = ctc.canonicalize(Array.isArray(arg) ? arg[i] : arg[k]);
       });
       return obj;

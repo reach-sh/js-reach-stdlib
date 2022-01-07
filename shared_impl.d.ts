@@ -114,6 +114,7 @@ export declare type EventMap = {
 export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getContractInfo: () => Promise<ContractInfo>;
     getContractAddress: () => Promise<CBR_Address>;
+    getBalance: () => Promise<BigNumber>;
     waitUntilTime: (v: BigNumber) => Promise<BigNumber>;
     waitUntilSecs: (v: BigNumber) => Promise<BigNumber>;
     selfAddress: () => CBR_Address;
@@ -132,14 +133,14 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
+export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "getBalance" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
     setupView: ISetupView<ContractInfo, VerifyResult, ConnectorTy>;
     setupEvents: ISetupEvent<ContractInfo, VerifyResult>;
     givenInfoP: (Promise<ContractInfo> | undefined);
     _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
-} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
+} & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, ("getContractInfo" | "getContractAddress" | "getBalance" | "sendrecv" | "recv" | "getState" | "apiMapRef")>;
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     getViews: () => ViewMap;
@@ -287,9 +288,60 @@ export declare const ensureConnectorAvailable: (bin: any, conn: string, jsVer: n
 export declare const checkVersion: (actual: number, expected: number, label: string) => void;
 export declare const argMax: (xs: any[], f: (_: any) => any) => any;
 export declare const argMin: (xs: any[], f: (_: any) => any) => any;
-export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => (k: number, bal: any) => Promise<X[]>;
+declare type NewTestAccounts<X> = (k: number, bal: any) => Promise<Array<X>>;
+export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => {
+    parallel: NewTestAccounts<X>;
+    serial: NewTestAccounts<X>;
+};
 export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
+declare type Pred<X> = (x: X) => boolean;
+declare type AsyncPred<X> = (x: X) => Promise<boolean>;
+declare type EQPeqResult<ProcTxn> = {
+    timeout: true;
+    time: Time;
+} | {
+    timeout: false;
+    txn: ProcTxn;
+};
+export interface IEventQueue<EQInitArgs, RawTxn, ProcTxn> {
+    isInited: () => boolean;
+    init: (args: EQInitArgs) => void;
+    pushIgnore: (pred: Pred<RawTxn>) => void;
+    peq: (lab: string, didTimeout: AsyncPred<Time>) => Promise<EQPeqResult<ProcTxn>>;
+    deq: (dhead: string) => Promise<ProcTxn>;
+}
+export interface EQGetTxnsR<RawTxn> {
+    txns: Array<RawTxn>;
+    gtime: BigNumber | undefined;
+}
+export interface EQCtorArgs<EQInitArgs, RawTxn, ProcTxn> {
+    raw2proc: (t: RawTxn) => ProcTxn;
+    alwaysIgnored: Pred<RawTxn>;
+    getTxns: (dhead: string, initArgs: EQInitArgs, ctime: Time, howMany: number) => Promise<EQGetTxnsR<RawTxn>>;
+    getTxnTime: (x: RawTxn) => Time;
+}
+export declare const makeEventQueue: <EQInitArgs, RawTxn, ProcTxn>(ctorArgs: EQCtorArgs<EQInitArgs, RawTxn, ProcTxn>) => IEventQueue<EQInitArgs, RawTxn, ProcTxn>;
+export interface IMESArgs<EQInitArgs, RawTxn, ProcTxn, Log> {
+    eq: IEventQueue<EQInitArgs, RawTxn, ProcTxn>;
+    getTxnTime: (x: ProcTxn) => Time;
+    sync: () => Promise<void>;
+    getNetworkTime: () => Promise<Time>;
+    getLogs: (t: ProcTxn) => Array<Log>;
+    parseLog: (l: Log) => (any[] | undefined);
+}
+export declare const makeEventStream: <EQInitArgs, RawTxn, ProcTxn, Log>(args: IMESArgs<EQInitArgs, RawTxn, ProcTxn, Log>) => {
+    lastTime: () => Promise<ethers.BigNumber>;
+    seek: (t: Time) => void;
+    seekNow: () => Promise<void>;
+    monitor: (onEvent: (x: any) => void) => Promise<never>;
+    next: () => Promise<{
+        when: ethers.BigNumber;
+        what: any[];
+    }>;
+};
+export declare function getQueryLowerBound(): BigNumber;
+export declare function setQueryLowerBound(x: BigNumber | number): void;
 export declare class Signal {
     p: Promise<boolean>;
     r: (a: boolean) => void;

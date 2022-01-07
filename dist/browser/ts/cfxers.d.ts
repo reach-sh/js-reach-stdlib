@@ -1,9 +1,37 @@
 import cfxsdk from 'js-conflux-sdk';
 import { ethers } from 'ethers';
-import * as providers from './cfxers_providers';
 declare const BigNumber: typeof ethers.BigNumber, utils: typeof ethers.utils;
-export { BigNumber, utils, providers };
-export { cfxsdk };
+export { BigNumber, utils };
+declare type BigNumber = ethers.BigNumber;
+declare type EpochNumber = cfxsdk.EpochNumber;
+declare type Conflux = cfxsdk.Conflux;
+export declare type TransactionReceipt = any;
+export declare type Log = any;
+export declare type TransactionResponse = {
+    transactionHash: string;
+    wait: () => Promise<TransactionReceipt>;
+};
+export declare namespace providers {
+    class Provider {
+        conflux: Conflux;
+        constructor(conflux: Conflux);
+        getBalance(address: string, epochNumber?: EpochNumber): Promise<BigNumber>;
+        getBlockNumber(): Promise<number>;
+        getBlock(which: number): Promise<any>;
+        getTransactionReceipt(transactionHash: string): Promise<TransactionReceipt>;
+        getCode(address: string, defaultEpoch?: EpochNumber | undefined): Promise<string>;
+        on(...argz: any): void;
+        off(...argz: any): void;
+        getLogs(opts: {
+            fromBlock: number;
+            toBlock: number;
+            address: string;
+            topics: string[];
+        }): Promise<any[]>;
+        getTransaction(txnHash: string): Promise<any>;
+        waitForTransaction(txnHash: string): Promise<TransactionReceipt>;
+    }
+}
 export declare class Signer {
     static isSigner(x: any): any;
 }
@@ -17,15 +45,9 @@ export declare class Contract implements IContract {
     _receiptP?: Promise<any>;
     _contract: cfxsdk.Contract;
     address?: string;
-    deployTransaction: {
-        hash?: string;
-        wait: () => Promise<{
-            blockNumber: number;
-            transactionHash: string;
-        }>;
-    };
+    deployTransaction: TransactionResponse;
     interface: ethers.utils.Interface;
-    constructor(address: string | null | undefined, abi: string | any[], wallet: IWallet, receiptP?: Promise<any>, hash?: string);
+    constructor(address: string | null | undefined, abi: string | any[], wallet: IWallet, receiptP?: Promise<any>, transactionHash?: string);
     _makeHandler(abiFn: any): any;
 }
 export declare class ContractFactory {
@@ -41,12 +63,7 @@ export interface IWallet {
     provider?: providers.Provider;
     connect: (provider: providers.Provider) => this;
     getAddress(): string;
-    sendTransaction(txn: any): Promise<{
-        transactionHash: string;
-        wait: () => Promise<{
-            transactionHash: string;
-        }>;
-    }>;
+    sendTransaction(txn: any): Promise<TransactionResponse>;
 }
 export interface CP {
     enable: () => Promise<string[]>;
@@ -60,12 +77,7 @@ export declare class BrowserWallet implements IWallet {
     connect(provider: providers.Provider): this;
     _requireConnected(): void;
     getAddress(): string;
-    sendTransaction(txnOrig: any): Promise<{
-        transactionHash: string;
-        wait: () => Promise<{
-            transactionHash: string;
-        }>;
-    }>;
+    sendTransaction(txnOrig: any): Promise<TransactionResponse>;
 }
 export declare class Wallet implements IWallet {
     privateKey?: string;
@@ -75,12 +87,7 @@ export declare class Wallet implements IWallet {
     connect(provider: providers.Provider): this;
     _requireConnected(): void;
     getAddress(): string;
-    sendTransaction(txn: any): Promise<{
-        transactionHash: string;
-        wait: () => Promise<{
-            transactionHash: string;
-        }>;
-    }>;
+    sendTransaction(txn: any): Promise<TransactionResponse>;
     static createRandom(): Wallet;
     static fromMnemonic(mnemonic: string, provider?: providers.Provider): Wallet;
 }

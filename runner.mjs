@@ -56,6 +56,21 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
 var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
   if (pack || arguments.length === 2)
     for (var i = 0, l = from.length, ar; i < l; i++) {
@@ -88,7 +103,7 @@ export function run(file) {
           return [4 /*yield*/ , loadStdlib()];
         case 2:
           stdlib = _a.sent();
-          m.main.apply(m, __spreadArray([stdlib], args, false));
+          m.main.apply(m, __spreadArray([stdlib], __read(args), false));
           return [2 /*return*/ ];
       }
     });
@@ -96,10 +111,10 @@ export function run(file) {
 }
 export function main() {
   // slice off $(which node) and runner file
-  var _a = process.argv.slice(2),
+  var _a = __read(process.argv.slice(2)),
     file = _a[0],
     args = _a.slice(1);
-  run.apply(void 0, __spreadArray([file], args, false));
+  run.apply(void 0, __spreadArray([file], __read(args), false));
 }
 // TODO: only run main if running as script?
 main();

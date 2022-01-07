@@ -1,12 +1,12 @@
 export * from './CFX_compiled';
 export declare const connector = "CFX";
-export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQueryLowerBound: (x: number | import("ethers").BigNumber) => void, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
+export declare const getQueryLowerBound: typeof import("./shared_impl").getQueryLowerBound, setQueryLowerBound: typeof import("./shared_impl").setQueryLowerBound, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
     random: () => import("ethers").BigNumber;
-}, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: import("./ETH_like").Account, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: import("./ETH_like").Account | {
+}, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: string | import("./ETH_like").Account, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: import("./ETH_like").Account | {
     networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
         address?: string | undefined;
         getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => any) | undefined;
+        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
         getBalance?: ((...xs: any) => any) | undefined;
         _mnemonic?: (() => {
             phrase: string;
@@ -18,7 +18,7 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
     networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
         address?: string | undefined;
         getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => any) | undefined;
+        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
         getBalance?: ((...xs: any) => any) | undefined;
         _mnemonic?: (() => {
             phrase: string;
@@ -26,10 +26,10 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
     };
     getGasLimit?: any;
     getStorageLimit?: any;
-}, value: any, token?: string | false) => Promise<any>, connectAccount: (networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
+}, value: any, token?: string | false) => Promise<import("@ethersproject/abstract-provider").TransactionReceipt>, connectAccount: (networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
     address?: string | undefined;
     getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => any) | undefined;
+    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
     getBalance?: ((...xs: any) => any) | undefined;
     _mnemonic?: (() => {
         phrase: string;
@@ -38,7 +38,7 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
     networkAccount: import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
         address?: string | undefined;
         getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => any) | undefined;
+        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
         getBalance?: ((...xs: any) => any) | undefined;
         _mnemonic?: (() => {
             phrase: string;
@@ -60,11 +60,11 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
         };
     };
 }) => Promise<{
-    creation_block: number;
+    creationBlock: import("ethers").BigNumber;
 }>, standardUnit: string, atomicUnit: string, parseCurrency: (amt: import("./shared_impl").CurrencyAmount) => import("ethers").BigNumber, minimumBalance: import("ethers").BigNumber, formatCurrency: (amt: any, decimals?: number) => string, formatAddress: (acc: string | (import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
     address?: string | undefined;
     getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => any) | undefined;
+    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
     getBalance?: ((...xs: any) => any) | undefined;
     _mnemonic?: (() => {
         phrase: string;
@@ -72,7 +72,7 @@ export declare const getQueryLowerBound: () => import("ethers").BigNumber, setQu
 }) | import("./ETH_like").Account) => string, unsafeGetMnemonic: (acc: (import("./ETH_like_interfaces").EthersLikeSigner | import("./ETH_like_interfaces").EthersLikeWallet | {
     address?: string | undefined;
     getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => any) | undefined;
+    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
     getBalance?: ((...xs: any) => any) | undefined;
     _mnemonic?: (() => {
         phrase: string;

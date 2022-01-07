@@ -68,6 +68,21 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
     return { value: op[0] ? op[1] : void 0, done: true };
   }
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
 import ethers from 'ethers';
 import url from 'url';
 import http from 'http';
@@ -331,7 +346,7 @@ function envDefaultsETH(env) {
     }
   }
 }
-var _a = replaceableThunk(function() {
+var _a = __read(replaceableThunk(function() {
     return __awaiter(void 0, void 0, void 0, function() {
       var fullEnv;
       return __generator(this, function(_a) {
@@ -344,7 +359,7 @@ var _a = replaceableThunk(function() {
         }
       });
     });
-  }),
+  }), 2),
   getProvider = _a[0],
   _setProvider = _a[1];
 export { getProvider };

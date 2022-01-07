@@ -1,3 +1,17 @@
+var __values = (this && this.__values) || function(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator,
+    m = s && o[s],
+    i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+    next: function() {
+      if (o && i >= o.length) o = void 0;
+      return { value: o && o[i++], done: !o };
+    }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
+var e_1, _a, e_2, _b;
 import { process } from './shim.mjs';
 import { envDefault } from './shared_impl.mjs';
 // Order is significant, earlier = default for shared prefix
@@ -18,17 +32,29 @@ function isKnownConnector(s) {
   return (s === 'ETH' || s === 'ALGO' || s === 'CFX');
 }
 var connectorModeDefaults = {};
-// Populate connectorModeDefaults
-for (var _i = 0, knownConnectorModes_1 = knownConnectorModes; _i < knownConnectorModes_1.length; _i++) {
-  var knownConnectorMode = knownConnectorModes_1[_i];
-  var prefix = null;
-  for (var _a = 0, _b = knownConnectorMode.split('-'); _a < _b.length; _a++) {
-    var piece = _b[_a];
-    prefix = prefix ? prefix + "-" + piece : piece;
-    if (!connectorModeDefaults[prefix]) {
-      connectorModeDefaults[prefix] = knownConnectorMode;
+try {
+  // Populate connectorModeDefaults
+  for (var knownConnectorModes_1 = __values(knownConnectorModes), knownConnectorModes_1_1 = knownConnectorModes_1.next(); !knownConnectorModes_1_1.done; knownConnectorModes_1_1 = knownConnectorModes_1.next()) {
+    var knownConnectorMode = knownConnectorModes_1_1.value;
+    var prefix = null;
+    try {
+      for (var _c = (e_2 = void 0, __values(knownConnectorMode.split('-'))), _d = _c.next(); !_d.done; _d = _c.next()) {
+        var piece = _d.value;
+        prefix = prefix ? prefix + "-" + piece : piece;
+        if (!connectorModeDefaults[prefix]) {
+          connectorModeDefaults[prefix] = knownConnectorMode;
+        }
+      }
+    } catch (e_2_1) { e_2 = { error: e_2_1 }; } finally {
+      try {
+        if (_d && !_d.done && (_b = _c["return"])) _b.call(_c);
+      } finally { if (e_2) throw e_2.error; }
     }
   }
+} catch (e_1_1) { e_1 = { error: e_1_1 }; } finally {
+  try {
+    if (knownConnectorModes_1_1 && !knownConnectorModes_1_1.done && (_a = knownConnectorModes_1["return"])) _a.call(knownConnectorModes_1);
+  } finally { if (e_1) throw e_1.error; }
 }
 export function canonicalizeConnectorMode(connectorMode) {
   var canonicalized = connectorModeDefaults[connectorMode];

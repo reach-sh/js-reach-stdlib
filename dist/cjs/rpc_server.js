@@ -46,6 +46,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -90,7 +106,7 @@ var mkKont = function () {
     var k = {};
     var i = 0;
     var mkWas = function (m) { return function (e) {
-        return !!(e.message
+        return !!(e.message && e.message
             .substr(0, m.length)
             .match("^" + m + "$"));
     }; };
@@ -281,7 +297,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 switch (_d.label) {
                                     case 0:
                                         _b = (_a = contract).track;
-                                        return [4 /*yield*/, (_c = account.id(id)).contract.apply(_c, __spreadArray([backend], args, false))];
+                                        return [4 /*yield*/, (_c = account.id(id)).contract.apply(_c, __spreadArray([backend], __read(args), false))];
                                     case 1: return [2 /*return*/, _b.apply(_a, [_d.sent()])];
                                 }
                             });
@@ -299,7 +315,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 switch (_d.label) {
                                     case 0:
                                         _b = (_a = contract).track;
-                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], args, false))];
+                                        return [4 /*yield*/, (_c = account.id(id)).attach.apply(_c, __spreadArray([backend], __read(args), false))];
                                     case 1: return [2 /*return*/, _b.apply(_a, [_d.sent()])];
                                 }
                             });
@@ -328,7 +344,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             var _a;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
-                                    case 0: return [4 /*yield*/, (_a = account.id(id)).setGasLimit.apply(_a, args)];
+                                    case 0: return [4 /*yield*/, (_a = account.id(id)).setGasLimit.apply(_a, __spreadArray([], __read(args), false))];
                                     case 1: return [2 /*return*/, _b.sent()];
                                 }
                             });
@@ -393,8 +409,8 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             case 3:
                                 e_1 = _b.sent();
                                 (0, shared_impl_1.debug)("!! Witnessed exception triggered by " + client + ":\n  " + e_1.stack);
-                                _a = was.untracked(e_1) ? [404, String(e_1)]
-                                    : [500, 'Unspecified fault'], s = _a[0], message = _a[1];
+                                _a = __read(was.untracked(e_1) ? [404, String(e_1)]
+                                    : [500, 'Unspecified fault'], 2), s = _a[0], message = _a[1];
                                 if (!res.headersSent) {
                                     res.status(s).json({ message: message, request: req.body });
                                     (0, shared_impl_1.debug)("!! HTTP " + s + ": \"" + message + "\" response sent to client");
@@ -419,7 +435,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                         args = req.body;
                                         lab = "RPC /" + olab + "/" + k + " " + JSON.stringify(args);
                                         (0, shared_impl_1.debug)(lab);
-                                        return [4 /*yield*/, obj[k].apply(obj, args)];
+                                        return [4 /*yield*/, obj[k].apply(obj, __spreadArray([], __read(args), false))];
                                     case 1:
                                         ans = _a.sent();
                                         ret = ans === undefined ? null : ans;
@@ -447,7 +463,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 case 0:
                                     if (!Array.isArray(req.body))
                                         throw new Error("Expected an array but received: " + req.body);
-                                    _a = req.body, id = _a[0], args = _a.slice(1);
+                                    _a = __read(req.body), id = _a[0], args = _a.slice(1);
                                     lab = "RPC " + olab + req.path + " " + JSON.stringify(req.body);
                                     (0, shared_impl_1.debug)(lab);
                                     _b.label = 1;
@@ -455,7 +471,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     _b.trys.push([1, 3, , 4]);
                                     return [4 /*yield*/, req.path.split('/')
                                             .filter(function (a) { return a !== ''; })
-                                            .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, args.map(reBigNumberify))];
+                                            .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, __spreadArray([], __read(args.map(reBigNumberify)), false))];
                                 case 2:
                                     a = _b.sent();
                                     (0, shared_impl_1.debug)(lab + " ==> " + JSON.stringify(a));
@@ -497,7 +513,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             case 2:
                                 b = _e.sent();
                                 if (!(typeof b === 'function')) return [3 /*break*/, 4];
-                                return [4 /*yield*/, b.apply(void 0, args)];
+                                return [4 /*yield*/, b.apply(void 0, __spreadArray([], __read(args), false))];
                             case 3:
                                 _d = _e.sent();
                                 return [3 /*break*/, 5];
@@ -520,7 +536,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                             switch (_b.label) {
                                 case 0:
                                     (0, shared_impl_1.debug)(lab + " IN");
-                                    _a = req.body, cid = _a[0], vals = _a[1], meths = _a[2];
+                                    _a = __read(req.body, 3), cid = _a[0], vals = _a[1], meths = _a[2];
                                     ctc = contract.id(cid);
                                     return [4 /*yield*/, kont.track(res)];
                                 case 1:
@@ -573,7 +589,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                     return __generator(this, function (_c) {
                         lab = "KONT";
                         (0, shared_impl_1.debug)(lab + " IN");
-                        _a = req.body, kid = _a[0], ans = _a[1];
+                        _a = __read(req.body, 2), kid = _a[0], ans = _a[1];
                         lab = lab + " " + kid;
                         (0, shared_impl_1.debug)(lab + " ANS " + JSON.stringify(ans));
                         _b = kont.id(kid), resolve = _b.resolve, reject = _b.reject;

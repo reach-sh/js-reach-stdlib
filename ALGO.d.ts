@@ -4,9 +4,11 @@ import { ethers } from 'ethers';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
 import { CBR_Val } from './CBR';
-import { Token, ALGO_Ty } from './ALGO_compiled';
+import { Token, ALGO_Ty, addressFromHex } from './ALGO_compiled';
 export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (x: unknown, y: unknown) => boolean;
 export * from './shared_user';
+import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
+export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
 declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 declare type Address = string;
@@ -17,6 +19,8 @@ declare type RecvTxn = {
     'application-args': Array<string>;
     'sender': Address;
     'logs': Array<string>;
+    'approval-program'?: string;
+    'clear-state-program'?: string;
 };
 declare type NetworkAccount = {
     addr: Address;
@@ -40,11 +44,8 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
 declare type ContractInfo = number;
 declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
-declare const getValidQueryWindow: () => number | true;
-export { getValidQueryWindow };
+export declare function getValidQueryWindow(): number | true;
 export declare function setValidQueryWindow(n: number | true): void;
-export declare function getQueryLowerBound(): BigNumber;
-export declare function setQueryLowerBound(networkTime: BigNumber | number): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
 export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Contract: ALGO_Ty<ethers.BigNumber>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
@@ -123,7 +124,6 @@ export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefine
 declare type VerifyResult = {
     ApplicationID: number;
     Deployer: Address;
-    startRound: number;
 };
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<VerifyResult>;
 /**

@@ -10,6 +10,31 @@ var __assign = (this && this.__assign) || function() {
   };
   return __assign.apply(this, arguments);
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
 import * as shared_backend from './shared_backend.mjs';
 import { debug, labelMaps, makeDigest, mkAddressEq, makeArith, } from './shared_impl.mjs';
 import { bigNumberToNumber } from './shared_user.mjs';
@@ -69,12 +94,12 @@ var extractAddrM = function(x) {
   var addr = x && x.networkAccount && x.networkAccount.addr ||
     x && x.addr ||
     typeof x === 'string' && x;
-  debug("extractAddrM", { x: x, addr: addr });
+  //debug(`extractAddrM`, {x, addr});
   return addr;
 };
 export var extractAddr = function(x) {
   var a = extractAddrM(x);
-  debug("extractAddr", { x: x, a: a });
+  //debug(`extractAddr`, {x, a});
   if (a === false) {
     throw Error("Expected address, got " + x);
   }
@@ -146,8 +171,9 @@ export var T_Struct = function(cos) {
     netSize: (cos.reduce(function(acc, co) { return acc + co[1].netSize; }, 0)),
     toNet: function(bv) {
       var val = cos.map(function(_a) {
-        var k = _a[0],
-          co = _a[1];
+        var _b = __read(_a, 2),
+          k = _b[0],
+          co = _b[1];
         return co.toNet(bv[k]);
       });
       return ethers.utils.concat(val);
@@ -157,7 +183,7 @@ export var T_Struct = function(cos) {
       var obj = {};
       var rest = nv;
       for (var i in cos) {
-        var _a = cos[i],
+        var _a = __read(cos[i], 2),
           k = _a[0],
           co = _a[1];
         obj[k] = co.fromNet(rest.slice(0, co.netSize));
@@ -201,7 +227,7 @@ export var T_Object = function(coMap) {
 // up to the size of the largest variant
 export var T_Data = function(coMap) {
   var cos = Object.values(coMap);
-  var valSize = Math.max.apply(Math, cos.map(function(co) { return co.netSize; }));
+  var valSize = Math.max.apply(Math, __spreadArray([], __read(cos.map(function(co) { return co.netSize; })), false));
   var netSize = valSize + 1;
   var _a = labelMaps(coMap),
     ascLabels = _a.ascLabels,
@@ -209,8 +235,9 @@ export var T_Data = function(coMap) {
   return __assign(__assign({}, CBR.BT_Data(coMap)), {
     netSize: netSize,
     toNet: function(_a) {
-      var label = _a[0],
-        val = _a[1];
+      var _b = __read(_a, 2),
+        label = _b[0],
+        val = _b[1];
       var i = labelMap[label];
       var lab_nv = new Uint8Array([i]);
       var val_co = coMap[label];
