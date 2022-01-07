@@ -196,7 +196,7 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     tokenAccepted: (token: Token) => Promise<boolean>;
     tokenMetadata: (token: Token) => Promise<any>;
 };
-export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "attach" | "deploy">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };

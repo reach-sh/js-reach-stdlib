@@ -201,77 +201,21 @@ export function _specialFundFromFaucet() {
         });
     });
 }
-function waitCaughtUp(provider, env) {
-    return __awaiter(this, void 0, void 0, function () {
-        var w, txn, dhead, t, e_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && truthyEnv(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 2];
-                    return [4 /*yield*/, waitPort(env.CFX_NODE_URI)];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
-                case 2:
-                    if (!(false && isIsolatedNetwork())) return [3 /*break*/, 11];
-                    // XXX this doesn't work with setFaucet; requires the default faucet to be used
-                    // But we can't call getFaucet() or _getDefaultFaucetNetworkAccount() here because
-                    // those (if left to defaults) call getProvider which calls this fn (waitCaughtUp).
-                    // TODO: disentangle
-                    if (!defaultFaucetWallet.provider)
-                        defaultFaucetWallet.connect(provider);
-                    w = cfxers.Wallet.createRandom().connect(provider);
-                    txn = { to: w.getAddress(), value: '1' };
-                    dhead = 'waitCaughtUp';
-                    _a.label = 3;
-                case 3:
-                    if (!true) return [3 /*break*/, 11];
-                    _a.label = 4;
-                case 4:
-                    _a.trys.push([4, 7, , 10]);
-                    debug(dhead, 'try', txn);
-                    return [4 /*yield*/, defaultFaucetWallet.sendTransaction(txn)];
-                case 5:
-                    t = _a.sent();
-                    return [4 /*yield*/, t.wait()];
-                case 6:
-                    _a.sent();
-                    return [2 /*return*/];
-                case 7:
-                    e_1 = _a.sent();
-                    debug(dhead, 'err', e_1);
-                    if (!(e_1.code === -32077)) return [3 /*break*/, 9];
-                    return [4 /*yield*/, Timeout.set(500)];
-                case 8:
-                    _a.sent();
-                    return [3 /*break*/, 3];
-                case 9: return [3 /*break*/, 11];
-                case 10: return [3 /*break*/, 3];
-                case 11: return [2 /*return*/];
-            }
-        });
-    });
-}
-;
 var _a = __read(replaceableThunk(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var fullEnv, provider;
+    var env, provider;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                fullEnv = getProviderEnv();
-                return [4 /*yield*/, waitProviderFromEnv(fullEnv)];
+                env = getProviderEnv();
+                return [4 /*yield*/, waitProviderFromEnv(env)];
             case 1:
                 provider = _a.sent();
-                // XXX disentangle the places where we waitProvider vs waitCaughtUp
-                // XXX is there a better place to wait for this
-                // such that toying with things at the repl doesn't hang if no connection is available?
-                return [4 /*yield*/, waitCaughtUp(provider, fullEnv)];
+                if (!('CFX_NODE_URI' in env && env.CFX_NODE_URI && truthyEnv(env.REACH_DO_WAIT_PORT))) return [3 /*break*/, 3];
+                return [4 /*yield*/, waitPort(env.CFX_NODE_URI)];
             case 2:
-                // XXX disentangle the places where we waitProvider vs waitCaughtUp
-                // XXX is there a better place to wait for this
-                // such that toying with things at the repl doesn't hang if no connection is available?
                 _a.sent();
-                return [2 /*return*/, provider];
+                _a.label = 3;
+            case 3: return [2 /*return*/, provider];
         }
     });
 }); }), 2), getProvider = _a[0], _setProvider = _a[1];
