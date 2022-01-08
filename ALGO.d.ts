@@ -15,6 +15,8 @@ declare type Address = string;
 declare type SecretKey = Uint8Array;
 declare type RecvTxn = {
     'confirmed-round': number;
+    'created-asset-index'?: number;
+    'created-application-index'?: number;
     'application-index'?: number;
     'application-args': Array<string>;
     'sender': Address;
@@ -136,7 +138,7 @@ export declare function unsafeGetMnemonic(acc: NetworkAccount | Account): string
 export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: any): Promise<{
     name: string;
     sym: string;
-    id: any;
+    id: ethers.BigNumber;
     mint: (accTo: Account, amt: any) => Promise<void>;
     optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
 }>;

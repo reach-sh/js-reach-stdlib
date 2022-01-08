@@ -139,7 +139,9 @@ var indexerTxn2RecvTxn = function (txn) {
         'clear-state-program': ait['clear-state-program'],
         'logs': (txn['logs'] || []),
         'application-args': aargs,
-        'application-index': aidx
+        'application-index': aidx,
+        'created-application-index': txn['created-application-index'],
+        'created-asset-index': txn['created-asset-index']
     };
 };
 var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, void 0, function () {
@@ -188,9 +190,10 @@ var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, voi
                                 uToS = function (a) { return (a || []).map(function (x) { return uint8ArrayToStr(x, 'base64'); }); };
                                 return [2 /*return*/, {
                                         'confirmed-round': cr,
+                                        'created-asset-index': info['asset-index'],
                                         // @ts-ignore
                                         'logs': uToS(l),
-                                        'application-index': info['application-index'],
+                                        'created-application-index': info['application-index'],
                                         'sender': txnFromAddress(dtxn),
                                         'application-args': uToS(dtxn.appArgs)
                                     }];
@@ -220,7 +223,11 @@ var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, voi
                     });
                 }); };
                 return [4 /*yield*/, checkAlgod()];
-            case 2: return [2 /*return*/, _a.sent()];
+            case 2: 
+            // AlgoExplorer will NOT support this query, but I believe it will fail and
+            // then fall back to the Indexer, which does work, so we're keeping it in for
+            // optimization on local cases
+            return [2 /*return*/, _a.sent()];
         }
     });
 }); };
@@ -288,6 +295,7 @@ var toWTxn = function (t) {
     };
 };
 // Backend
+var stdWait = function () { return await_timeout_1["default"].set(1000); };
 var getTxnParams = function (label) { return __awaiter(void 0, void 0, void 0, function () {
     var dhead, client, params;
     return __generator(this, function (_a) {
@@ -309,7 +317,7 @@ var getTxnParams = function (label) { return __awaiter(void 0, void 0, void 0, f
                     return [2 /*return*/, params];
                 }
                 (0, shared_impl_1.debug)(dhead, "...but firstRound is 0, so let's wait and try again.");
-                return [4 /*yield*/, client.statusAfterBlock(1)["do"]()];
+                return [4 /*yield*/, stdWait()];
             case 4:
                 _a.sent();
                 return [3 /*break*/, 2];
@@ -381,32 +389,36 @@ var doQuery_ = function (dhead, query, howMany) {
     if (howMany === void 0) { howMany = 0; }
     return __awaiter(void 0, void 0, void 0, function () {
         var res, e_5;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     (0, shared_impl_1.debug)(dhead, query.query);
-                    _a.label = 1;
+                    _b.label = 1;
                 case 1:
                     if (!true) return [3 /*break*/, 7];
                     if (!(howMany > 0)) return [3 /*break*/, 3];
-                    return [4 /*yield*/, await_timeout_1["default"].set(1000)];
+                    return [4 /*yield*/, stdWait()];
                 case 2:
-                    _a.sent();
-                    _a.label = 3;
+                    _b.sent();
+                    _b.label = 3;
                 case 3:
-                    _a.trys.push([3, 5, , 6]);
+                    _b.trys.push([3, 5, , 6]);
                     return [4 /*yield*/, query["do"]()];
                 case 4:
-                    res = _a.sent();
+                    res = _b.sent();
                     (0, shared_impl_1.debug)(dhead, 'RESULT', res);
                     return [2 /*return*/, res];
                 case 5:
-                    e_5 = _a.sent();
+                    e_5 = _b.sent();
                     if ((e_5 === null || e_5 === void 0 ? void 0 : e_5.errno) === -111 || (e_5 === null || e_5 === void 0 ? void 0 : e_5.code) === "ECONNRESET") {
                         (0, shared_impl_1.debug)(dhead, 'NO CONNECTION');
                     }
                     else if (looksLikeAccountingNotInitialized(e_5)) {
                         (0, shared_impl_1.debug)(dhead, 'ACCOUNTING NOT INITIALIZED');
+                    }
+                    if ((_a = e_5 === null || e_5 === void 0 ? void 0 : e_5.response) === null || _a === void 0 ? void 0 : _a.text) {
+                        e_5 = e_5.response.text;
                     }
                     (0, shared_impl_1.debug)(dhead, 'RETRYING', { e: e_5 });
                     howMany++;
@@ -504,44 +516,6 @@ function waitAlgodClientFromEnv(env) {
         });
     });
 }
-// This function should be provided by the indexer, but it isn't so we simulate
-// something decent. This function is allowed to "fail" by not really waiting
-// until the round
-var indexer_statusAfterBlock = function (round) { return __awaiter(void 0, void 0, void 0, function () {
-    var client, now, tries, _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                (0, shared_impl_1.debug)('indexer_statusAfterBlock', { round: round });
-                return [4 /*yield*/, getAlgodClient()];
-            case 1:
-                client = _b.sent();
-                now = (0, shared_user_1.bigNumberify)(0);
-                tries = 0;
-                _b.label = 2;
-            case 2:
-                _a = (tries++ < 10);
-                if (!_a) return [3 /*break*/, 4];
-                return [4 /*yield*/, (0, exports.getNetworkTime)()];
-            case 3:
-                _a = (now = _b.sent()).lt(round);
-                _b.label = 4;
-            case 4:
-                if (!_a) return [3 /*break*/, 7];
-                (0, shared_impl_1.debug)('indexer_statusAfterBlock', { round: round, now: now });
-                return [4 /*yield*/, client.statusAfterBlock(round)];
-            case 5:
-                _b.sent();
-                // XXX Get the indexer to index one and wait
-                return [4 /*yield*/, await_timeout_1["default"].set(500)];
-            case 6:
-                // XXX Get the indexer to index one and wait
-                _b.sent();
-                return [3 /*break*/, 2];
-            case 7: return [2 /*return*/, now];
-        }
-    });
-}); };
 ;
 var makeProviderByWallet = function (wallet) { return __awaiter(void 0, void 0, void 0, function () {
     var walletOpts, enabledNetwork, enabledAccounts, enabled, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork;
@@ -1430,9 +1404,9 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                             NOTE_Reach, undefined, undefined, extraPages]))])]))];
                             case 4:
                                 createRes = _m.sent();
-                                ApplicationID_1 = createRes['application-index'];
+                                ApplicationID_1 = createRes['created-application-index'];
                                 if (!ApplicationID_1) {
-                                    throw Error("No application-index in " + JSON.stringify(createRes));
+                                    throw Error("No created-application-index in " + JSON.stringify(createRes));
                                 }
                                 (0, shared_impl_1.debug)(label, "created", { ApplicationID: ApplicationID_1 });
                                 ctcInfo = ApplicationID_1;
@@ -2131,30 +2105,28 @@ var createAccount = function () { return __awaiter(void 0, void 0, void 0, funct
 }); };
 exports.createAccount = createAccount;
 var canFundFromFaucet = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var faucet, algodClient, txnParams, act, exp, fbal;
+    var faucet, dhead, txnParams, act, exp, fbal;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, (0, exports.getFaucet)()];
             case 1:
                 faucet = _a.sent();
-                return [4 /*yield*/, getAlgodClient()];
+                dhead = 'canFundFromFaucet';
+                (0, shared_impl_1.debug)(dhead, 'check genesis');
+                return [4 /*yield*/, getTxnParams(dhead)];
             case 2:
-                algodClient = _a.sent();
-                (0, shared_impl_1.debug)('ALGO:canFundFromFaucet: check genesis');
-                return [4 /*yield*/, algodClient.getTransactionParams()["do"]()];
-            case 3:
                 txnParams = _a.sent();
                 act = txnParams.genesisID;
                 exp = 'devnet-v1';
                 if (act !== exp) {
-                    (0, shared_impl_1.debug)("ALGO:canFundFromFaucet: expected '" + exp + "' !== actual '" + act + "'");
+                    (0, shared_impl_1.debug)(dhead, "expected '" + exp + "' !== actual '" + act + "'");
                     return [2 /*return*/, false];
                 }
-                (0, shared_impl_1.debug)('ALGO:canFundFromFaucet: check balance');
+                (0, shared_impl_1.debug)(dhead, 'check balance');
                 return [4 /*yield*/, (0, exports.balanceOf)(faucet)];
-            case 4:
+            case 3:
                 fbal = _a.sent();
-                (0, shared_impl_1.debug)("ALGO:canFundFromFaucet: faucet balance = " + formatCurrency(fbal, 4) + " " + exports.standardUnit);
+                (0, shared_impl_1.debug)(dhead, "faucet balance = " + formatCurrency(fbal, 4) + " " + exports.standardUnit);
                 return [2 /*return*/, (0, exports.gt)(fbal, 0)];
         }
     });
@@ -2387,20 +2359,33 @@ var getNetworkSecs = function () { return __awaiter(void 0, void 0, void 0, func
 }); }); };
 exports.getNetworkSecs = getNetworkSecs;
 var stepTime = function (target) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a;
+    var now, _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, (0, exports.getProvider)()];
+            case 0:
+                if (!true) return [3 /*break*/, 8];
+                return [4 /*yield*/, (0, exports.getNetworkTime)()];
             case 1:
-                if (!(_b.sent()).isIsolatedNetwork) return [3 /*break*/, 4];
+                now = _b.sent();
+                (0, shared_impl_1.debug)("stepTime", { target: target, now: now });
+                if (target.lte(now)) {
+                    return [2 /*return*/, now];
+                }
+                return [4 /*yield*/, (0, exports.getProvider)()];
+            case 2:
+                if (!(_b.sent()).isIsolatedNetwork) return [3 /*break*/, 5];
                 _a = exports.fundFromFaucet;
                 return [4 /*yield*/, (0, exports.getFaucet)()];
-            case 2: return [4 /*yield*/, _a.apply(void 0, [_b.sent(), 0])];
-            case 3:
+            case 3: return [4 /*yield*/, _a.apply(void 0, [_b.sent(), 0])];
+            case 4:
                 _b.sent();
-                _b.label = 4;
-            case 4: return [4 /*yield*/, indexer_statusAfterBlock((0, shared_user_1.bigNumberToNumber)(target))];
-            case 5: return [2 /*return*/, _b.sent()];
+                return [3 /*break*/, 7];
+            case 5: return [4 /*yield*/, stdWait()];
+            case 6:
+                _b.sent();
+                _b.label = 7;
+            case 7: return [3 /*break*/, 0];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
@@ -2512,6 +2497,7 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
             case 8:
                 iat = _b.sent();
                 (0, shared_impl_1.debug)({ iat: iat });
+                chkeq(iat['created-application-index'], ApplicationID, 'app created');
                 chkeq(iat['application-index'], 0, 'app created');
                 chkeq(iat['confirmed-round'], allocRound, 'created on correct round');
                 chkeq(iat['approval-program'], appInfo_p['approval-program'], "ApprovalProgram unchanged since creation");
@@ -2541,7 +2527,7 @@ exports.unsafeGetMnemonic = unsafeGetMnemonic;
 function launchToken(accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, algod, dotxn, supply, decimals, ctxn_p, id, mint, optOut;
+        var addr, caddr, zaddr, client, dotxn, supply, decimals, ctxn_p, idn, id, mint, optOut;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -2552,7 +2538,7 @@ function launchToken(accCreator, name, sym, opts) {
                     zaddr = caddr;
                     return [4 /*yield*/, getAlgodClient()];
                 case 1:
-                    algod = _a.sent();
+                    client = _a.sent();
                     dotxn = function (mktxn, acc) {
                         if (acc === void 0) { acc = accCreator; }
                         return __awaiter(_this, void 0, void 0, function () {
@@ -2569,14 +2555,11 @@ function launchToken(accCreator, name, sym, opts) {
                                         params = _a.sent();
                                         t = mktxn(params);
                                         s = t.signTxn(sk);
-                                        return [4 /*yield*/, algod.sendRawTransaction(s)["do"]()];
+                                        return [4 /*yield*/, client.sendRawTransaction(s)["do"]()];
                                     case 2:
                                         r = (_a.sent());
                                         return [4 /*yield*/, waitForConfirmation(r.txId)];
-                                    case 3:
-                                        _a.sent();
-                                        return [4 /*yield*/, algod.pendingTransactionInformation(r.txId)["do"]()];
-                                    case 4: return [2 /*return*/, _a.sent()];
+                                    case 3: return [2 /*return*/, _a.sent()];
                                 }
                             });
                         });
@@ -2588,7 +2571,11 @@ function launchToken(accCreator, name, sym, opts) {
                         })];
                 case 2:
                     ctxn_p = _a.sent();
-                    id = ctxn_p["asset-index"];
+                    idn = ctxn_p['created-asset-index'];
+                    if (!idn) {
+                        throw Error(sym + " no asset-index!");
+                    }
+                    id = (0, shared_user_1.bigNumberify)(idn);
                     (0, shared_impl_1.debug)(sym + ": asset is " + id);
                     mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
@@ -2608,7 +2595,7 @@ function launchToken(accCreator, name, sym, opts) {
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0: return [4 /*yield*/, dotxn(function (params) {
-                                            return algosdk_1["default"].makeAssetTransferTxnWithSuggestedParams(addr(accFrom), addr(accTo), addr(accTo), undefined, 0, undefined, id, params);
+                                            return algosdk_1["default"].makeAssetTransferTxnWithSuggestedParams(addr(accFrom), addr(accTo), addr(accTo), undefined, 0, undefined, idn, params);
                                         }, accFrom)];
                                     case 1:
                                         _a.sent();
