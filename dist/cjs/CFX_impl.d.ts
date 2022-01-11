@@ -1,7 +1,7 @@
 import * as cfxers from './cfxers';
 import * as ethLikeCompiled from './CFX_compiled';
 declare type NetworkAccount = cfxers.IWallet;
-declare type Provider = cfxers.providers.Provider;
+export declare type Provider = cfxers.providers.Provider;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
 export declare function canGetDefaultAccount(): boolean;
@@ -9,7 +9,7 @@ export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
 export declare const _getDefaultFaucetNetworkAccount: () => Promise<cfxers.IWallet>;
 export declare function canFundFromFaucet(): Promise<boolean>;
 export declare function _specialFundFromFaucet(): Promise<((to: any, amt: any) => Promise<void>) | null>;
-export declare function setProvider(provider: Provider | Promise<Provider>): void;
+export declare function setProvider(provider: Promise<Provider>): void;
 export declare type WhichNetExternal = 'tethys' | 'TestNet' | 'BlockNumber';
 export declare type ProviderName = WhichNetExternal | 'MainNet' | 'TestNet' | 'LocalHost' | 'window';
 export interface ProviderByWindow {
@@ -25,12 +25,12 @@ declare type ProviderByURI = {
 };
 export declare type ProviderEnv = ProviderByURI | ProviderByWindow;
 declare function setProviderByEnv(env: any): void;
-declare function setProviderByName(providerName: ProviderName): void;
-declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
+declare function setProviderByName(pn: ProviderName): void;
+declare function providerEnvByName(pn: ProviderName): ProviderEnv;
 export { ethLikeCompiled };
 export { cfxers as ethers };
 export declare const providerLib: {
-    getProvider: () => cfxers.providers.Provider | Promise<cfxers.providers.Provider>;
+    getProvider: () => Promise<cfxers.providers.Provider>;
     setProvider: typeof setProvider;
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;

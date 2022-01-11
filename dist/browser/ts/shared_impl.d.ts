@@ -184,9 +184,31 @@ export declare type EventStream<T> = {
 };
 export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pick<ISetupViewArgs<ContractInfo, VerifyResult>, "setTrustedVerifyResult" | "getTrustedVerifyResult">, doVerify: () => Promise<VerifyResult>) => Promise<VerifyResult>;
 export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
+export declare type TokenMetadata = {
+    name: string;
+    symbol: string;
+    url: string;
+    metadata: string;
+    supply: BigNumber;
+    decimals: BigNumber;
+};
+export declare type LaunchTokenOpts = {
+    'decimals'?: number;
+    'supply'?: unknown;
+};
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
+    /**
+     * @deprecated Use
+     * [`contract`](https://docs.reach.sh/frontend/#js_contract)
+     * instead.
+     */
     deploy: (bin: Backend) => Contract;
+    /**
+     * @deprecated Use
+     * [`contract`](https://docs.reach.sh/frontend/#js_contract)
+     * instead.
+     */
     attach: (bin: Backend, ctcInfoP: Promise<ContractInfo>) => Contract;
     contract: (bin: Backend, ctcInfoP?: Promise<ContractInfo>) => Contract;
     stdlib: Object;
@@ -194,9 +216,9 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
     tokenAccept: (token: Token) => Promise<void>;
     tokenAccepted: (token: Token) => Promise<boolean>;
-    tokenMetadata: (token: Token) => Promise<any>;
+    tokenMetadata: (token: Token) => Promise<TokenMetadata>;
 };
-export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "attach" | "deploy">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };

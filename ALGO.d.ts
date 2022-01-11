@@ -2,16 +2,18 @@ export declare const connector = "ALGO";
 import algosdk from 'algosdk';
 import { ethers } from 'ethers';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
-import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract } from './shared_impl';
+import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract, LaunchTokenOpts } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty, addressFromHex } from './ALGO_compiled';
+export type { Token } from './ALGO_compiled';
 export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (x: unknown, y: unknown) => boolean;
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
 declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
-declare type Address = string;
+export declare type Ty = AnyALGO_Ty;
+export declare type Address = string;
 declare type SecretKey = Uint8Array;
 declare type RecvTxn = {
     'confirmed-round': number;
@@ -24,11 +26,11 @@ declare type RecvTxn = {
     'approval-program'?: string;
     'clear-state-program'?: string;
 };
-declare type NetworkAccount = {
+export declare type NetworkAccount = {
     addr: Address;
     sk?: SecretKey;
 };
-declare type Backend = IBackend<AnyALGO_Ty> & {
+export declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
             version: number;
@@ -43,9 +45,9 @@ declare type Backend = IBackend<AnyALGO_Ty> & {
         };
     };
 };
-declare type ContractInfo = number;
-declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
-declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+export declare type ContractInfo = number;
+export declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
+export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare function getValidQueryWindow(): number | true;
 export declare function setValidQueryWindow(n: number | true): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
@@ -57,14 +59,14 @@ export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: AL
 export declare const randomUInt: () => ethers.BigNumber, hasRandom: {
     random: () => ethers.BigNumber;
 };
-interface Provider {
+export interface Provider {
     algodClient: algosdk.Algodv2;
     indexer: algosdk.Indexer;
     getDefaultAddress: () => Promise<Address>;
     isIsolatedNetwork: boolean;
-    signAndPostTxns: (txns: WalletTransaction[], opts?: any) => Promise<any>;
+    signAndPostTxns: (txns: WalletTransaction[], opts?: object) => Promise<unknown>;
 }
-export declare const setWalletFallback: (wf: () => any) => void;
+export declare const setWalletFallback: (wf: () => unknown) => void;
 export declare const walletFallback: (opts: any) => () => ARC11_Wallet;
 export declare const getProvider: () => Promise<Provider>, setProvider: (val: Promise<Provider>) => void;
 export interface ProviderEnv {
@@ -77,16 +79,17 @@ export interface ProviderEnv {
     REACH_ISOLATED_NETWORK: string;
 }
 export declare function setProviderByEnv(env: Partial<ProviderEnv>): void;
-export declare function providerEnvByName(providerName: string): ProviderEnv;
-export declare function setProviderByName(providerName: string): void;
+export declare type ProviderName = string;
+export declare function providerEnvByName(pn: ProviderName): ProviderEnv;
+export declare function setProviderByName(pn: ProviderName): void;
 export declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
-export declare const transfer: (from: Account, to: Account, value: any, token?: Token | undefined, tag?: number | undefined) => Promise<RecvTxn>;
+export declare const transfer: (from: Account, to: Account, value: unknown, token?: Token | undefined, tag?: number | undefined) => Promise<RecvTxn>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
 export declare const canFundFromFaucet: () => Promise<boolean>;
-export declare const fundFromFaucet: (account: Account, value: any) => Promise<void>;
-export declare const newTestAccount: (startingBalance: any) => Promise<Account>;
+export declare const fundFromFaucet: (account: Account, value: unknown) => Promise<void>;
+export declare const newTestAccount: (startingBalance: unknown) => Promise<Account>;
 export declare const newTestAccounts: (k: number, bal: any) => Promise<Account[]>;
 /** @description the display name of the standard unit of currency for the network */
 export declare const standardUnit = "ALGO";
@@ -104,11 +107,11 @@ export declare const minimumBalance: BigNumber;
 /**
  * @description  Format currency by network
  */
-export declare function formatCurrency(amt: any, decimals?: number): string;
+export declare function formatCurrency(amt: unknown, decimals?: number): string;
 /**
  * @description  Format currency based on token decimals
  */
-export declare function formatWithDecimals(amt: any, decimals: number): string;
+export declare function formatWithDecimals(amt: unknown, decimals: number): string;
 export declare function getDefaultAccount(): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated
@@ -135,11 +138,11 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
 export declare function unsafeGetMnemonic(acc: NetworkAccount | Account): string;
-export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: any): Promise<{
+export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: LaunchTokenOpts): Promise<{
     name: string;
     sym: string;
     id: ethers.BigNumber;
-    mint: (accTo: Account, amt: any) => Promise<void>;
+    mint: (accTo: Account, amt: unknown) => Promise<void>;
     optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
 }>;
 export declare const reachStdlib: import("./interfaces").Stdlib_Backend_Base<ALGO_Ty<any>>;

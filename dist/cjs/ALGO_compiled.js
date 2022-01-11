@@ -110,9 +110,9 @@ var addressFromHex = function (hexAddr) {
 };
 exports.addressFromHex = addressFromHex;
 var extractAddrM = function (x) {
-    var addr = x && x.networkAccount && x.networkAccount.addr
-        || x && x.addr
-        || typeof x === 'string' && x;
+    var addr = (x && x.networkAccount && x.networkAccount.addr)
+        || (x && x.addr)
+        || (typeof x === 'string' && x);
     //debug(`extractAddrM`, {x, addr});
     return addr;
 };

@@ -11,7 +11,7 @@ ETH_Ty, AnyETH_Ty, };
 export declare type Token = CBR_Address;
 export declare type PayAmt = MkPayAmt<Token>;
 export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiledArgs): {
-    typeDefs: TypeDefs;
+    typeDefs: TypeDefs<AnyETH_Ty>;
     stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
     UInt_max: ethers.BigNumber;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
@@ -45,22 +45,22 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     mod: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     mul: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     div: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
-    T_Null: any;
-    T_Bool: any;
-    T_UInt: any;
-    T_Bytes: any;
-    T_Address: any;
-    T_Contract: any;
-    T_Digest: any;
-    T_Token: any;
+    T_Null: AnyETH_Ty;
+    T_Bool: AnyETH_Ty;
+    T_UInt: AnyETH_Ty;
+    T_Bytes: (len: number) => AnyETH_Ty;
+    T_Address: AnyETH_Ty;
+    T_Contract: AnyETH_Ty;
+    T_Digest: AnyETH_Ty;
+    T_Token: AnyETH_Ty;
     T_Object: (tyMap: {
-        [key: string]: any;
-    }) => any;
+        [key: string]: AnyETH_Ty;
+    }) => AnyETH_Ty;
     T_Data: (tyMap: {
-        [key: string]: any;
-    }) => any;
-    T_Array: (ty: any, size: number) => any;
-    T_Tuple: (tys: any[]) => any;
-    T_Struct: (nameTyPairs: [string, any][]) => any;
+        [key: string]: AnyETH_Ty;
+    }) => AnyETH_Ty;
+    T_Array: (ty: AnyETH_Ty, size: number) => AnyETH_Ty;
+    T_Tuple: (tys: AnyETH_Ty[]) => AnyETH_Ty;
+    T_Struct: (nameTyPairs: [string, AnyETH_Ty][]) => AnyETH_Ty;
 };
 //# sourceMappingURL=ETH_like_compiled.d.ts.map

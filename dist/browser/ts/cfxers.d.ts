@@ -22,12 +22,7 @@ export declare namespace providers {
         getCode(address: string, defaultEpoch?: EpochNumber | undefined): Promise<string>;
         on(...argz: any): void;
         off(...argz: any): void;
-        getLogs(opts: {
-            fromBlock: number;
-            toBlock: number;
-            address: string;
-            topics: string[];
-        }): Promise<any[]>;
+        getLogs(iopts: object): Promise<any[]>;
         getTransaction(txnHash: string): Promise<any>;
         waitForTransaction(txnHash: string): Promise<TransactionReceipt>;
     }

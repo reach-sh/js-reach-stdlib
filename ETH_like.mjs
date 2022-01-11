@@ -119,9 +119,6 @@ export { setQueryLowerBound, getQueryLowerBound };
 // node --unhandled-rejections=strict
 var reachBackendVersion = 7;
 var reachEthBackendVersion = 6;
-// ****************************************************************************
-// Helpers
-// ****************************************************************************
 var reachPublish = function(m) { return "_reach_m" + m; };
 var reachEvent = function(e) { return "_reach_e" + e; };
 var reachOutputEvent = function(e) { return "_reach_oe_" + e; };

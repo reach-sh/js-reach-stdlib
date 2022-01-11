@@ -288,14 +288,16 @@ export var providers;
             throw Error("off not yet implemented");
             // XXX
         };
-        Provider.prototype.getLogs = function (opts) {
+        Provider.prototype.getLogs = function (iopts) {
             return __awaiter(this, void 0, void 0, function () {
-                var logs, alogs;
+                var opts, logs, alogs;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
+                            opts = iopts;
+                            // {fromBlock: number, toBlock: number, address: string, topics: string[]}
                             debug("getLogs", "opts", opts);
-                            if (opts.fromBlock == 0) {
+                            if (opts.fromBlock === 0) {
                                 opts.fromBlock = 1;
                                 debug("getLogs", "opts", opts);
                             }

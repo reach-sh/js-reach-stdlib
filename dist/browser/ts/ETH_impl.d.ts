@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import * as ethLikeCompiled from './ETH_compiled';
-declare type Provider = ethers.providers.Provider;
+export declare type Provider = ethers.providers.Provider;
 declare type NetworkAccount = any;
 export interface ProviderByName {
     ETH_NET: string;
@@ -20,18 +20,18 @@ export { ethLikeCompiled };
 export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
 export declare function _getDefaultFaucetNetworkAccount(): Promise<NetworkAccount>;
 export declare function canFundFromFaucet(): Promise<boolean>;
-declare function setProviderByEnv(env: Partial<ProviderByName & ProviderByURI>): void;
-export declare function setProviderByName(providerName: ProviderName): void;
-declare function providerEnvByName(providerName: ProviderName): ProviderEnv;
+declare function setProviderByEnv(env: ProviderEnv): void;
+export declare function setProviderByName(pn: ProviderName): void;
+declare function providerEnvByName(pn: ProviderName): ProviderEnv;
 export declare function isIsolatedNetwork(): boolean;
 export declare function isWindowProvider(): boolean;
 export declare function canGetDefaultAccount(): boolean;
-declare const getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
+declare const getProvider: () => Promise<ethers.providers.Provider>;
 export { getProvider };
-export declare function setProvider(provider: Provider | Promise<Provider>): void;
+export declare function setProvider(provider: Promise<Provider>): void;
 export { ethers };
 export declare const providerLib: {
-    getProvider: () => ethers.providers.Provider | Promise<ethers.providers.Provider>;
+    getProvider: () => Promise<ethers.providers.Provider>;
     setProvider: typeof setProvider;
     setProviderByName: typeof setProviderByName;
     setProviderByEnv: typeof setProviderByEnv;

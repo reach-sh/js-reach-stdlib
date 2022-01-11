@@ -393,8 +393,8 @@ function setProviderByEnv(env) {
   setProvider(waitProviderFromEnv(fullEnv));
 }
 
-function setProviderByName(providerName) {
-  var env = providerEnvByName(providerName);
+function setProviderByName(pn) {
+  var env = providerEnvByName(pn);
   setProviderByEnv(env);
 }
 var localhostProviderEnv = {
@@ -405,8 +405,8 @@ var localhostProviderEnv = {
   REACH_ISOLATED_NETWORK: 'yes'
 };
 
-function providerEnvByName(providerName) {
-  switch (providerName) {
+function providerEnvByName(pn) {
+  switch (pn) {
     case 'LocalHost':
       return localhostProviderEnv;
     case 'window':
@@ -420,7 +420,7 @@ function providerEnvByName(providerName) {
     case 'BlockNumber':
       return cfxProviderEnv('BlockNumber'); // XXX temporary
     default:
-      throw Error("Unrecognized provider name: " + providerName);
+      throw Error("Unrecognized provider name: " + pn);
   }
 }
 

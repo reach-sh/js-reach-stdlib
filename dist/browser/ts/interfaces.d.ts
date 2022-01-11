@@ -1,11 +1,11 @@
-import type { num, MaybeRep, MapOpts, LinearMap } from './shared_backend';
+import type { num, MaybeRep, MapOpts, LinearMap, AnyBackendTy } from './shared_backend';
 import type { BigNumber } from 'ethers';
-declare type Ty = any;
-export interface TypeDefs {
+import { IAccount, LaunchTokenOpts, IContract, IBackend } from './shared_impl';
+export interface TypeDefs<Ty> {
     T_Null: Ty;
     T_Bool: Ty;
     T_UInt: Ty;
-    T_Bytes: Ty;
+    T_Bytes: (len: number) => Ty;
     T_Address: Ty;
     T_Contract: Ty;
     T_Digest: Ty;
@@ -20,7 +20,7 @@ export interface TypeDefs {
     T_Tuple: (tys: Ty[]) => Ty;
     T_Struct: (nameTyPairs: [string, Ty][]) => Ty;
 }
-export interface Stdlib_Backend_Shared_User {
+export interface Stdlib_Backend_Shared_User<Ty> {
     protect: (ty: Ty, v: unknown, m?: string) => unknown;
     assert: (b: boolean, message: string) => void;
     Array_set: <A>(arr: A[], idx: number, val: A) => A[];
@@ -31,7 +31,7 @@ export interface Stdlib_Backend_Shared_User {
     lt: (n1: num, n2: num) => boolean;
     bytesEq: (s1: string, s2: string) => boolean;
 }
-export interface Stdlib_Backend_Shared extends Stdlib_Backend_Shared_User {
+export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty> {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
     protect: (t: any, v: unknown, ai?: string) => unknown;
     Array_zip: <A, B>(a1: A[], a2: B[]) => [A, B][];
@@ -53,7 +53,7 @@ export interface Arith {
     mul: (x: num, y: num) => BigNumber;
     div: (x: num, y: num) => BigNumber;
 }
-export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared, Arith, TypeDefs {
+export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared<Ty>, Arith, TypeDefs<Ty> {
     UInt_max: BigNumber;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
     digestEq: (x: unknown, y: unknown) => boolean;
@@ -65,12 +65,9 @@ export interface Stdlib_Backend<Ty> extends Stdlib_Backend_Base<Ty> {
 }
 export interface Stdlib_Impl_Shared {
 }
-declare type Provider = any;
-declare type ProviderEnv = any;
-declare type ProviderName = any;
-export interface ProviderLib {
-    getProvider: () => Provider | Promise<Provider>;
-    setProvider: (p: Provider | Promise<Provider>) => void;
+export interface ProviderLib<Provider, ProviderEnv, ProviderName> {
+    getProvider: () => Promise<Provider>;
+    setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;
     setProviderByName: (providerName: ProviderName) => void;
     providerEnvByName: (providerName: ProviderName) => ProviderEnv;
@@ -100,88 +97,14 @@ export interface Stdlib_User_Shared {
         i: num;
     };
 }
-export interface Stdlib_User_Base extends Stdlib_Backend_Shared_User, Stdlib_User_Shared, Arith, TypeDefs {
+export interface Stdlib_User_Base<Ty> extends Stdlib_Backend_Shared_User<Ty>, Stdlib_User_Shared, Arith, TypeDefs<Ty> {
     isHex: (x: unknown) => boolean;
     bigNumberify: (n: num | string) => BigNumber;
     stringToHex: (s: string) => string;
     addressEq: (addr1: string, addr2: string) => boolean;
     digest: (t: any, a: unknown) => string;
 }
-declare type NetworkAccount = any;
-declare type Acc = {
-    /**
-     * [`attach`](https://docs.reach.sh/frontend/#js_attach)
-     * is an abbreviation of
-     * `acc.contract(bin, info)`.
-     *
-     * ```typescript
-     * acc.attach(bin, info) => ctc
-     * ```
-     *
-     * @deprecated Use
-     * [`contract`](https://docs.reach.sh/frontend/#js_contract)
-     * instead.
-     */
-    attach: (bin: any, info: any) => any;
-    /**
-     * Returns a Reach contract handle based on the
-     * `bin` argument provided with access to the
-     * account `acc`. This `bin` argument is the
-     * `index.main.mjs` module produced by the
-     * JavaScript backend.
-     *
-     * If info is provided, it must be a `Contract`
-     * value, or a `Promise` that eventually yields a
-     * `Contract` value. Typically, the deployer of a
-     * contract will not provide `info`, while users of
-     * a contract will. In an automated, single instance
-     * program, `ctc.getInfo()` is typically used to
-     * acquire `info`; while in non-automated programs,
-     * an application uses out-of-band communication,
-     * such as an external database or user input,
-     * to acquire the `info` argument.
-     *
-     * The first publishing participant will attempt to
-     * deploy a contract for an application. If `info`
-     * was provided, an error will be thrown. This
-     * deployment can only happen one time, so
-     * subsequent attempts will fail with an error.
-     *
-     * [`contract`](https://docs.reach.sh/frontend/#js_contract)
-     * does not block.
-     *
-     * ```typescript
-     * acc.contract(bin, info?) => ctc
-     * ```
-     */
-    contract: (bin: any, info?: any) => any;
-    /**
-     * [`deploy`](https://docs.reach.sh/frontend/#js_deploy)
-     * is an abbreviation of
-     * `acc.contract(bin)`.
-     *
-     * ```typescript
-     * acc.deploy(bin) => ctc
-     * ```
-     *
-     * @deprecated Use
-     * [`contract`](https://docs.reach.sh/frontend/#js_contract)
-     * instead.
-     */
-    deploy: (bin: any) => any;
-    Account?: any;
-    getAddress: any;
-    networkAccount: any;
-    setDebugLabel: any;
-    stdlib: any;
-    tokenAccept: any;
-    tokenAccepted: any;
-    tokenMetadata: any;
-};
-declare type Token = any;
-declare type CtcInfo = any;
-declare type Backend = any;
-export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
+export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, ContractInfo, Address, NetworkAccount, Ty extends AnyBackendTy, Backend extends IBackend<Ty>, Account extends IAccount<NetworkAccount, Backend, IContract<ContractInfo, Address, Token, Ty>, ContractInfo, Token>> extends Stdlib_User_Base<Ty>, ProviderLib<Provider, ProviderEnv, ProviderName> {
     getValidQueryWindow: () => number | true;
     setValidQueryWindow: (n: number | true) => void;
     getQueryLowerBound: () => BigNumber;
@@ -194,24 +117,24 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     hasConsoleLogger: {
         log: (...a: any) => void;
     };
-    balanceOf: (acc: Acc, token?: Token) => Promise<BigNumber>;
-    transfer: (from: Acc, to: Acc, val?: BigNumber, token?: Token) => Promise<unknown>;
-    connectAccount: (networkAccount: NetworkAccount) => Promise<Acc>;
-    newAccountFromSecret: (secret: string) => Promise<Acc>;
-    newAccountFromMnemonic: (phrase: string) => Promise<Acc>;
-    getDefaultAccount: () => Promise<Acc>;
-    createAccount: () => Promise<Acc>;
-    getFaucet: () => Promise<Acc>;
+    balanceOf: (acc: Account, token?: Token) => Promise<BigNumber>;
+    transfer: (from: Account, to: Account, val?: BigNumber, token?: Token) => Promise<unknown>;
+    connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
+    newAccountFromSecret: (secret: string) => Promise<Account>;
+    newAccountFromMnemonic: (phrase: string) => Promise<Account>;
+    getDefaultAccount: () => Promise<Account>;
+    createAccount: () => Promise<Account>;
+    getFaucet: () => Promise<Account>;
     canFundFromFaucet: () => Promise<boolean>;
-    fundFromFaucet: (acc: Acc, balance: BigNumber) => Promise<void>;
-    newTestAccount: (balance: BigNumber) => Promise<Acc>;
-    newTestAccounts: (num: number, balance: BigNumber) => Promise<Array<Acc>>;
+    fundFromFaucet: (acc: Account, balance: BigNumber) => Promise<void>;
+    newTestAccount: (balance: BigNumber) => Promise<Account>;
+    newTestAccounts: (num: number, balance: BigNumber) => Promise<Array<Account>>;
     getNetworkTime: () => Promise<BigNumber>;
     waitUntilTime: (time: BigNumber) => Promise<BigNumber>;
     wait: (delta: BigNumber) => Promise<BigNumber>;
     getNetworkSecs: () => Promise<BigNumber>;
     waitUntilSecs: (secs: BigNumber) => Promise<BigNumber>;
-    verifyContract: (ctcInfo: CtcInfo, backend: Backend) => Promise<any>;
+    verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<any>;
     /** @description the display name of the standard unit of currency for the network */
     standardUnit: string;
     /** @description the display name of the atomic (smallest) unit of currency for the network */
@@ -219,9 +142,9 @@ export interface Stdlib_User<Ty> extends Stdlib_User_Base, ProviderLib {
     parseCurrency: (amtDesc: any) => BigNumber;
     minimumBalance: BigNumber;
     formatCurrency: (amt: BigNumber, decimals: number) => string;
-    formatAddress: (acc: Acc | string) => string;
-    unsafeGetMnemonic: (acc: Acc) => string;
-    launchToken: (acc: Acc, name: string, sym: string, opts?: any) => any;
+    formatAddress: (acc: Account | string) => string;
+    unsafeGetMnemonic: (acc: Account) => string;
+    launchToken: (acc: Account, name: string, sym: string, opts?: LaunchTokenOpts) => any;
     reachStdlib: Stdlib_Backend<Ty>;
 }
 export {};

@@ -221,8 +221,8 @@ function setProviderByEnv(env) {
   setProviderEnv(fullEnv);
   setProvider(waitProviderFromEnv(fullEnv));
 }
-export function setProviderByName(providerName) {
-  var env = providerEnvByName(providerName);
+export function setProviderByName(pn) {
+  var env = providerEnvByName(pn);
   setProviderByEnv(env);
 }
 var localhostProviderEnv = {
@@ -249,8 +249,8 @@ function ethersProviderEnv(network) {
   };
 }
 
-function providerEnvByName(providerName) {
-  switch (providerName) {
+function providerEnvByName(pn) {
+  switch (pn) {
     case 'LocalHost':
       return localhostProviderEnv;
     case 'window':
@@ -264,7 +264,7 @@ function providerEnvByName(providerName) {
     case 'ropsten':
       return ethersProviderEnv('ropsten');
     default:
-      throw Error("Unrecognized provider name: " + providerName);
+      throw Error("Unrecognized provider name: " + pn);
   }
 }
 // Avoid using _providerEnv directly; use get/set

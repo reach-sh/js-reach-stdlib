@@ -4,5 +4,5 @@ export { unsafeAllowMultipleStdlibs } from './registry';
 export { getConnectorMode, getConnector };
 export declare function loadStdlib(connectorModeOrEnv?: string | {
     [key: string]: string;
-}): Stdlib_User<any>;
+}): Stdlib_User<any, any, any, any, any, any, any, any, any, any>;
 //# sourceMappingURL=loader.d.ts.map

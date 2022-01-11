@@ -1,83 +1,25 @@
+import * as cfxImpl from './CFX_impl';
+export type { Provider, ProviderEnv, ProviderName } from './CFX_impl';
+export type { Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Account } from './ETH_like';
 export * from './CFX_compiled';
 export declare const connector = "CFX";
-export declare const getQueryLowerBound: typeof import("./shared_impl").getQueryLowerBound, setQueryLowerBound: typeof import("./shared_impl").setQueryLowerBound, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => any, setProvider: (p: any) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
+export declare const getQueryLowerBound: typeof import("./shared_impl").getQueryLowerBound, setQueryLowerBound: typeof import("./shared_impl").setQueryLowerBound, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => Promise<cfxImpl.ethers.providers.Provider>, setProvider: (p: Promise<cfxImpl.ethers.providers.Provider>) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {
     random: () => import("ethers").BigNumber;
-}, setProviderByEnv: (env: any) => void, setProviderByName: (providerName: any) => void, providerEnvByName: (providerName: any) => any, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: string | import("./ETH_like").Account, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: import("./ETH_like").Account | {
-    networkAccount: {
-        address?: string | undefined;
-        getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-        getBalance?: ((...xs: any) => any) | undefined;
-        _mnemonic?: (() => {
-            phrase: string;
-        }) | undefined;
-    } | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner;
+}, setProviderByEnv: (env: cfxImpl.ProviderEnv) => void, setProviderByName: (providerName: cfxImpl.ProviderName) => void, providerEnvByName: (providerName: cfxImpl.ProviderName) => cfxImpl.ProviderEnv, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: string | import("./ETH_like").Account, token?: string | false) => Promise<import("ethers").BigNumber>, transfer: (from: import("./ETH_like").Account | {
+    networkAccount: import("./ETH_like").NetworkAccount;
     getGasLimit?: any;
     getStorageLimit?: any;
 }, to: import("./ETH_like").Account | {
-    networkAccount: {
-        address?: string | undefined;
-        getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-        getBalance?: ((...xs: any) => any) | undefined;
-        _mnemonic?: (() => {
-            phrase: string;
-        }) | undefined;
-    } | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner;
+    networkAccount: import("./ETH_like").NetworkAccount;
     getGasLimit?: any;
     getStorageLimit?: any;
-}, value: any, token?: string | false) => Promise<import("@ethersproject/abstract-provider").TransactionReceipt>, connectAccount: (networkAccount: {
-    address?: string | undefined;
-    getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-    getBalance?: ((...xs: any) => any) | undefined;
-    _mnemonic?: (() => {
-        phrase: string;
-    }) | undefined;
-} | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner) => Promise<import("./ETH_like").Account>, newAccountFromSecret: (secret: string) => Promise<import("./ETH_like").Account>, newAccountFromMnemonic: (phrase: string) => Promise<import("./ETH_like").Account>, getDefaultAccount: () => Promise<import("./ETH_like").Account>, getFaucet: () => Promise<import("./ETH_like").Account>, setFaucet: (val: Promise<import("./ETH_like").Account>) => void, createAccount: () => Promise<import("./ETH_like").Account>, canFundFromFaucet: () => Promise<boolean>, fundFromFaucet: (account: import("./ETH_like").Account | {
-    networkAccount: {
-        address?: string | undefined;
-        getAddress?: (() => Promise<string>) | undefined;
-        sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-        getBalance?: ((...xs: any) => any) | undefined;
-        _mnemonic?: (() => {
-            phrase: string;
-        }) | undefined;
-    } | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner;
+}, value: any, token?: string | false) => Promise<import("@ethersproject/abstract-provider").TransactionReceipt>, connectAccount: (networkAccount: import("./ETH_like").NetworkAccount) => Promise<import("./ETH_like").Account>, newAccountFromSecret: (secret: string) => Promise<import("./ETH_like").Account>, newAccountFromMnemonic: (phrase: string) => Promise<import("./ETH_like").Account>, getDefaultAccount: () => Promise<import("./ETH_like").Account>, getFaucet: () => Promise<import("./ETH_like").Account>, setFaucet: (val: Promise<import("./ETH_like").Account>) => void, createAccount: () => Promise<import("./ETH_like").Account>, canFundFromFaucet: () => Promise<boolean>, fundFromFaucet: (account: import("./ETH_like").Account | {
+    networkAccount: import("./ETH_like").NetworkAccount;
     getGasLimit?: any;
     getStorageLimit?: any;
-}, value: any) => Promise<any>, newTestAccount: (startingBalance: any) => Promise<import("./ETH_like").Account>, newTestAccounts: (k: number, bal: any) => Promise<import("./ETH_like").Account[]>, getNetworkTime: () => Promise<import("ethers").BigNumber>, waitUntilTime: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, wait: (delta: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, getNetworkSecs: () => Promise<import("ethers").BigNumber>, waitUntilSecs: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, verifyContract: (ctcInfo: string, backend: import("./shared_impl").IBackend<import("./ETH_like_interfaces").AnyETH_Ty> & {
-    _Connectors: {
-        ETH: {
-            version: number;
-            ABI: string;
-            Bytecode: string;
-            views: {
-                [viewn: string]: string | {
-                    [keyn: string]: string;
-                };
-            };
-        };
-    };
-}) => Promise<{
+}, value: any) => Promise<any>, newTestAccount: (startingBalance: any) => Promise<import("./ETH_like").Account>, newTestAccounts: (k: number, bal: any) => Promise<import("./ETH_like").Account[]>, getNetworkTime: () => Promise<import("ethers").BigNumber>, waitUntilTime: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, wait: (delta: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, getNetworkSecs: () => Promise<import("ethers").BigNumber>, waitUntilSecs: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, verifyContract: (ctcInfo: string, backend: import("./ETH_like").Backend) => Promise<{
     creationBlock: import("ethers").BigNumber;
-}>, standardUnit: string, atomicUnit: string, parseCurrency: (amt: import("./shared_impl").CurrencyAmount) => import("ethers").BigNumber, minimumBalance: import("ethers").BigNumber, formatCurrency: (amt: any, decimals?: number) => string, formatAddress: (acc: string | ({
-    address?: string | undefined;
-    getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-    getBalance?: ((...xs: any) => any) | undefined;
-    _mnemonic?: (() => {
-        phrase: string;
-    }) | undefined;
-} | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner) | import("./ETH_like").Account) => string, unsafeGetMnemonic: (acc: ({
-    address?: string | undefined;
-    getAddress?: (() => Promise<string>) | undefined;
-    sendTransaction?: ((...xs: any) => Promise<import("@ethersproject/abstract-provider").TransactionResponse>) | undefined;
-    getBalance?: ((...xs: any) => any) | undefined;
-    _mnemonic?: (() => {
-        phrase: string;
-    }) | undefined;
-} | import("./ETH_like_interfaces").EthersLikeWallet | import("./ETH_like_interfaces").EthersLikeSigner) | import("./ETH_like").Account) => string, launchToken: (accCreator: import("./ETH_like").Account, name: string, sym: string, opts?: any) => Promise<{
+}>, standardUnit: string, atomicUnit: string, parseCurrency: (amt: import("./shared_impl").CurrencyAmount) => import("ethers").BigNumber, minimumBalance: import("ethers").BigNumber, formatCurrency: (amt: any, decimals?: number) => string, formatAddress: (acc: string | import("./ETH_like").NetworkAccount | import("./ETH_like").Account) => string, unsafeGetMnemonic: (acc: import("./ETH_like").NetworkAccount | import("./ETH_like").Account) => string, launchToken: (accCreator: import("./ETH_like").Account, name: string, sym: string, opts?: any) => Promise<{
     name: string;
     sym: string;
     id: any;
