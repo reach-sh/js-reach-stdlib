@@ -86,10 +86,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.connectAccount = exports.transfer = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = void 0;
+exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
+var algosdk_2 = require("algosdk");
+__createBinding(exports, algosdk_2, "default", "algosdk");
 var ethers_1 = require("ethers");
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var buffer_1 = __importDefault(require("buffer"));
@@ -248,7 +250,7 @@ var doSignTxn = function (ts, sk) {
     return doSignTxnToB64(decodeB64Txn(ts), sk);
 };
 var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0, void 0, function () {
-    var p, e_2, N, tN, e_3;
+    var p, e_2, es, N, tN, e_3, es;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -274,7 +276,8 @@ var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0,
                 return [3 /*break*/, 5];
             case 4:
                 e_2 = _a.sent();
-                throw { type: 'signAndPost', e: e_2 };
+                es = "" + e_2;
+                throw { type: 'signAndPost', e: e_2, es: es };
             case 5:
                 N = txns.length - 1;
                 tN = decodeB64Txn(txns[N].txn);
@@ -285,11 +288,13 @@ var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0,
             case 7: return [2 /*return*/, _a.sent()]; // tN.lastRound
             case 8:
                 e_3 = _a.sent();
-                throw { type: 'waitForConfirmation', e: e_3 };
+                es = "" + e_3;
+                throw { type: 'waitForConfirmation', e: e_3, es: es };
             case 9: return [2 /*return*/];
         }
     });
 }); };
+exports.signSendAndConfirm = signSendAndConfirm;
 var encodeUnsignedTransaction = function (t) {
     return Buffer.from(algosdk_1["default"].encodeUnsignedTransaction(t)).toString('base64');
 };
@@ -299,6 +304,7 @@ var toWTxn = function (t) {
         signers: [txnFromAddress(t)]
     };
 };
+exports.toWTxn = toWTxn;
 // Backend
 var stdWait = function () { return await_timeout_1["default"].set(1000); };
 var getTxnParams = function (label) { return __awaiter(void 0, void 0, void 0, function () {
@@ -330,18 +336,24 @@ var getTxnParams = function (label) { return __awaiter(void 0, void 0, void 0, f
         }
     });
 }); };
+exports.getTxnParams = getTxnParams;
 var sign_and_send_sync = function (label, acc, txn) { return __awaiter(void 0, void 0, void 0, function () {
-    var e_4;
+    var e_4, es;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, signSendAndConfirm(acc, [txn])];
+                return [4 /*yield*/, (0, exports.signSendAndConfirm)(acc, [txn])];
             case 1: return [2 /*return*/, _a.sent()];
             case 2:
                 e_4 = _a.sent();
                 console.log(e_4);
-                throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + JSON.stringify(e_4));
+                es = JSON.stringify(e_4);
+                if (es === '{}') {
+                    es = "" + e_4;
+                }
+                ;
+                throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + es);
             case 3: return [2 /*return*/];
         }
     });
@@ -979,6 +991,7 @@ var makeTransferTxn = function (from, to, value, token, ps, closeTo, tag) {
             algosdk_1["default"].makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note, ps);
     return txn;
 };
+exports.makeTransferTxn = makeTransferTxn;
 var transfer = function (from, to, value, token, tag) {
     if (token === void 0) { token = undefined; }
     if (tag === void 0) { tag = undefined; }
@@ -990,10 +1003,10 @@ var transfer = function (from, to, value, token, tag) {
                     sender = from.networkAccount;
                     receiver = (0, ALGO_compiled_1.extractAddr)(to);
                     valuebn = (0, shared_user_1.bigNumberify)(value);
-                    return [4 /*yield*/, getTxnParams('transfer')];
+                    return [4 /*yield*/, (0, exports.getTxnParams)('transfer')];
                 case 1:
                     ps = _a.sent();
-                    txn = toWTxn(makeTransferTxn(sender.addr, receiver, valuebn, token, ps, undefined, tag));
+                    txn = (0, exports.toWTxn)((0, exports.makeTransferTxn)(sender.addr, receiver, valuebn, token, ps, undefined, tag));
                     return [4 /*yield*/, sign_and_send_sync("transfer " + JSON.stringify(from) + " " + JSON.stringify(to) + " " + valuebn, sender, txn)];
                 case 2: return [2 /*return*/, _a.sent()];
             }
@@ -1225,10 +1238,10 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 _a = sign_and_send_sync;
                                                 _b = [dhead,
                                                     thisAcc];
-                                                _c = toWTxn;
+                                                _c = exports.toWTxn;
                                                 _e = (_d = algosdk_1["default"]).makeApplicationOptInTxn;
                                                 _f = [thisAcc.addr];
-                                                return [4 /*yield*/, getTxnParams(dhead)];
+                                                return [4 /*yield*/, (0, exports.getTxnParams)(dhead)];
                                             case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_g.sent(), ApplicationID,
                                                             undefined, undefined, undefined, undefined,
                                                             NOTE_Reach]))])]))];
@@ -1451,12 +1464,13 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                             case 0:
                                 funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt, sim_p = srargs.sim_p;
                                 isCtor = (funcNum === 0);
-                                doRecv = function (didSend, waitIfNotPresent) { return __awaiter(void 0, void 0, void 0, function () {
+                                doRecv = function (didSend, waitIfNotPresent, msg) { return __awaiter(void 0, void 0, void 0, function () {
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
+                                                (0, shared_impl_1.debug)(dhead, "doRecv", msg);
                                                 if (!didSend && lct.eq(0)) {
-                                                    throw new Error("API call failed");
+                                                    throw new Error("API call failed: " + msg);
                                                 }
                                                 return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                                             case 1: return [2 /*return*/, _a.sent()];
@@ -1466,8 +1480,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                 funcName = "m" + funcNum;
                                 dhead = label + ": sendrecv " + funcName + " " + timeoutAt;
                                 if (!!onlyIf) return [3 /*break*/, 2];
-                                (0, shared_impl_1.debug)(dhead, "onlyIf false");
-                                return [4 /*yield*/, doRecv(false, true)];
+                                return [4 /*yield*/, doRecv(false, true, "onlyIf false")];
                             case 1: return [2 /*return*/, _m.sent()];
                             case 2:
                                 trustedRecv = function (txn) { return __awaiter(void 0, void 0, void 0, function () {
@@ -1492,10 +1505,10 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                 _b = sign_and_send_sync;
                                 _c = ['ApplicationCreate',
                                     thisAcc];
-                                _d = toWTxn;
+                                _d = exports.toWTxn;
                                 _f = (_e = algosdk_1["default"]).makeApplicationCreateTxn;
                                 _g = [Deployer_1];
-                                return [4 /*yield*/, getTxnParams(dhead)];
+                                return [4 /*yield*/, (0, exports.getTxnParams)(dhead)];
                             case 3: return [4 /*yield*/, _b.apply(void 0, _c.concat([_d.apply(void 0, [_f.apply(_e, _g.concat([_m.sent(), algosdk_1["default"].OnApplicationComplete.NoOpOC,
                                             base64ToUI8A(appApproval),
                                             base64ToUI8A(appClear),
@@ -1561,10 +1574,10 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                             case 9:
                                 mapRefs = sim_r.mapRefs;
                                 _loop_1 = function () {
-                                    var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, _r, _s;
+                                    var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, jes, _r, _s;
                                     return __generator(this, function (_t) {
                                         switch (_t.label) {
-                                            case 0: return [4 /*yield*/, getTxnParams(dhead)];
+                                            case 0: return [4 /*yield*/, (0, exports.getTxnParams)(dhead)];
                                             case 1:
                                                 params = _t.sent();
                                                 // We add one, because the firstRound field is actually the current
@@ -1574,9 +1587,8 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(isIsolatedNetwork, getTimeSecs, timeoutAt, params.firstRound + 1)];
                                             case 2:
                                                 if (!_t.sent()) return [3 /*break*/, 4];
-                                                (0, shared_impl_1.debug)(dhead, '--- FAIL/TIMEOUT');
                                                 _o = {};
-                                                return [4 /*yield*/, doRecv(false, false)];
+                                                return [4 /*yield*/, doRecv(false, false, "timeout")];
                                             case 3: return [2 /*return*/, (_o.value = _t.sent(), _o)];
                                             case 4:
                                                 _p = !soloSend;
@@ -1587,9 +1599,8 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 _t.label = 6;
                                             case 6:
                                                 if (!_p) return [3 /*break*/, 8];
-                                                (0, shared_impl_1.debug)(dhead, "CANNOT WIN");
                                                 _q = {};
-                                                return [4 /*yield*/, doRecv(false, false)];
+                                                return [4 /*yield*/, doRecv(false, false, "cannot win " + lct)];
                                             case 7: return [2 /*return*/, (_q.value = _t.sent(), _q)];
                                             case 8:
                                                 (0, shared_impl_1.debug)(dhead, '--- ASSEMBLE w/', params);
@@ -1686,7 +1697,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                         if (amt.eq(0)) {
                                                             return;
                                                         }
-                                                        txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
+                                                        txn = (0, exports.makeTransferTxn)(from, to, amt, tok, params, closeTo, sim_i++);
                                                     }
                                                     extraFees += txn.fee;
                                                     txn.fee = 0;
@@ -1728,13 +1739,13 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 rtxns = __spreadArray(__spreadArray([], __read(txnExtraTxns), false), [txnAppl], false);
                                                 (0, shared_impl_1.debug)(dhead, "assigning", { rtxns: rtxns });
                                                 algosdk_1["default"].assignGroupID(rtxns);
-                                                wtxns = rtxns.map(toWTxn);
+                                                wtxns = rtxns.map(exports.toWTxn);
                                                 (0, shared_impl_1.debug)(dhead, 'signing', { wtxns: wtxns });
                                                 res = void 0;
                                                 _t.label = 9;
                                             case 9:
                                                 _t.trys.push([9, 11, , 14]);
-                                                return [4 /*yield*/, signSendAndConfirm(thisAcc, wtxns)];
+                                                return [4 /*yield*/, (0, exports.signSendAndConfirm)(thisAcc, wtxns)];
                                             case 10:
                                                 res = _t.sent();
                                                 return [3 /*break*/, 14];
@@ -1743,12 +1754,13 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 es = (e_8.type === 'sendRawTransaction') ?
                                                     format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e) : e_8;
                                                 (0, shared_impl_1.debug)(dhead, '--- FAIL:', es);
+                                                jes = JSON.stringify(es);
                                                 if (!!soloSend) return [3 /*break*/, 13];
                                                 // If there is no soloSend, then someone else "won", so let's
                                                 // listen for their message
                                                 (0, shared_impl_1.debug)(dhead, 'LOST');
                                                 _r = {};
-                                                return [4 /*yield*/, doRecv(false, false)];
+                                                return [4 /*yield*/, doRecv(false, false, jes)];
                                             case 12: return [2 /*return*/, (_r.value = _t.sent(), _r)];
                                             case 13:
                                                 if (timeoutAt) {
@@ -1758,7 +1770,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 }
                                                 else {
                                                     // Otherwise, something bad is happening
-                                                    throw Error(label + " failed to call " + funcName + ": " + JSON.stringify(es));
+                                                    throw Error(label + " failed to call " + funcName + ": " + jes);
                                                 }
                                                 return [3 /*break*/, 14];
                                             case 14:
@@ -2208,7 +2220,7 @@ var canFundFromFaucet = function () { return __awaiter(void 0, void 0, void 0, f
                 faucet = _a.sent();
                 dhead = 'canFundFromFaucet';
                 (0, shared_impl_1.debug)(dhead, 'check genesis');
-                return [4 /*yield*/, getTxnParams(dhead)];
+                return [4 /*yield*/, (0, exports.getTxnParams)(dhead)];
             case 2:
                 txnParams = _a.sent();
                 act = txnParams.genesisID;
@@ -2626,7 +2638,7 @@ function launchToken(accCreator, name, sym, opts) {
                                         if (!sk) {
                                             throw new Error("can only launchToken with account with secret key");
                                         }
-                                        return [4 /*yield*/, getTxnParams('launchToken')];
+                                        return [4 /*yield*/, (0, exports.getTxnParams)('launchToken')];
                                     case 1:
                                         params = _a.sent();
                                         t = mktxn(params);

@@ -1,6 +1,8 @@
 export declare const connector = "ALGO";
 import algosdk from 'algosdk';
+export { default as algosdk } from 'algosdk';
 import { ethers } from 'ethers';
+import type { Transaction } from 'algosdk';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract, LaunchTokenOpts } from './shared_impl';
 import { CBR_Val } from './CBR';
@@ -15,6 +17,14 @@ declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 export declare type Ty = AnyALGO_Ty;
 export declare type Address = string;
 declare type SecretKey = Uint8Array;
+declare type TxnParams = {
+    flatFee?: boolean;
+    fee: number;
+    firstRound: number;
+    lastRound: number;
+    genesisID: string;
+    genesisHash: string;
+};
 declare type RecvTxn = {
     'confirmed-round': number;
     'created-asset-index'?: number;
@@ -48,6 +58,9 @@ export declare type Backend = IBackend<AnyALGO_Ty> & {
 export declare type ContractInfo = number;
 export declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+export declare const signSendAndConfirm: (acc: NetworkAccount, txns: Array<WalletTransaction>) => Promise<RecvTxn>;
+export declare const toWTxn: (t: Transaction) => WalletTransaction;
+export declare const getTxnParams: (label: string) => Promise<TxnParams>;
 export declare function getValidQueryWindow(): number | true;
 export declare function setValidQueryWindow(n: number | true): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
@@ -83,6 +96,7 @@ export declare type ProviderName = string;
 export declare function providerEnvByName(pn: ProviderName): ProviderEnv;
 export declare function setProviderByName(pn: ProviderName): void;
 export declare const getFaucet: () => Promise<Account>, setFaucet: (val: Promise<Account>) => void;
+export declare const makeTransferTxn: (from: Address, to: Address, value: BigNumber, token: Token | undefined, ps: TxnParams, closeTo?: Address | undefined, tag?: number | undefined) => Transaction;
 export declare const transfer: (from: Account, to: Account, value: unknown, token?: Token | undefined, tag?: number | undefined) => Promise<RecvTxn>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;

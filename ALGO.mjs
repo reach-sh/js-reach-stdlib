@@ -97,6 +97,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
 var _a, _b, _c;
 export var connector = 'ALGO';
 import algosdk from 'algosdk';
+export { default as algosdk } from 'algosdk';
 import ethers from 'ethers';
 import Timeout from 'await-timeout';
 import buffer from 'buffer';
@@ -281,9 +282,9 @@ var doSignTxnToB64 = function(t, sk) {
 var doSignTxn = function(ts, sk) {
   return doSignTxnToB64(decodeB64Txn(ts), sk);
 };
-var signSendAndConfirm = function(acc, txns) {
+export var signSendAndConfirm = function(acc, txns) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var p, e_2, N, tN, e_3;
+    var p, e_2, es, N, tN, e_3, es;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -309,7 +310,8 @@ var signSendAndConfirm = function(acc, txns) {
           return [3 /*break*/ , 5];
         case 4:
           e_2 = _a.sent();
-          throw { type: 'signAndPost', e: e_2 };
+          es = "" + e_2;
+          throw { type: 'signAndPost', e: e_2, es: es };
         case 5:
           N = txns.length - 1;
           tN = decodeB64Txn(txns[N].txn);
@@ -321,7 +323,8 @@ var signSendAndConfirm = function(acc, txns) {
           return [2 /*return*/ , _a.sent()]; // tN.lastRound
         case 8:
           e_3 = _a.sent();
-          throw { type: 'waitForConfirmation', e: e_3 };
+          es = "" + e_3;
+          throw { type: 'waitForConfirmation', e: e_3, es: es };
         case 9:
           return [2 /*return*/ ];
       }
@@ -331,7 +334,7 @@ var signSendAndConfirm = function(acc, txns) {
 var encodeUnsignedTransaction = function(t) {
   return Buffer.from(algosdk.encodeUnsignedTransaction(t)).toString('base64');
 };
-var toWTxn = function(t) {
+export var toWTxn = function(t) {
   return {
     txn: encodeUnsignedTransaction(t),
     signers: [txnFromAddress(t)]
@@ -339,7 +342,7 @@ var toWTxn = function(t) {
 };
 // Backend
 var stdWait = function() { return Timeout.set(1000); };
-var getTxnParams = function(label) {
+export var getTxnParams = function(label) {
   return __awaiter(void 0, void 0, void 0, function() {
     var dhead, client, params;
     return __generator(this, function(_a) {
@@ -373,7 +376,7 @@ var getTxnParams = function(label) {
 };
 var sign_and_send_sync = function(label, acc, txn) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var e_4;
+    var e_4, es;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -384,7 +387,11 @@ var sign_and_send_sync = function(label, acc, txn) {
         case 2:
           e_4 = _a.sent();
           console.log(e_4);
-          throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + JSON.stringify(e_4));
+          es = JSON.stringify(e_4);
+          if (es === '{}') {
+            es = "" + e_4;
+          };
+          throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + es);
         case 3:
           return [2 /*return*/ ];
       }
@@ -1099,7 +1106,7 @@ var str2note = function(x) { return new Uint8Array(Buffer.from(x)); };
 var NOTE_Reach_str = "Reach " + VERSION;
 var NOTE_Reach = str2note(NOTE_Reach_str);
 var NOTE_Reach_tag = function(tag) { return tag ? str2note(NOTE_Reach_str + (" " + tag + ")")) : NOTE_Reach; };
-var makeTransferTxn = function(from, to, value, token, ps, closeTo, tag) {
+export var makeTransferTxn = function(from, to, value, token, ps, closeTo, tag) {
   if (closeTo === void 0) { closeTo = undefined; }
   if (tag === void 0) { tag = undefined; }
   var valuen = bigNumberToBigInt(value);
@@ -1644,13 +1651,14 @@ export var connectAccount = function(networkAccount) {
                   case 0:
                     funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt, sim_p = srargs.sim_p;
                     isCtor = (funcNum === 0);
-                    doRecv = function(didSend, waitIfNotPresent) {
+                    doRecv = function(didSend, waitIfNotPresent, msg) {
                       return __awaiter(void 0, void 0, void 0, function() {
                         return __generator(this, function(_a) {
                           switch (_a.label) {
                             case 0:
+                              debug(dhead, "doRecv", msg);
                               if (!didSend && lct.eq(0)) {
-                                throw new Error("API call failed");
+                                throw new Error("API call failed: " + msg);
                               }
                               return [4 /*yield*/ , recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                             case 1:
@@ -1662,8 +1670,7 @@ export var connectAccount = function(networkAccount) {
                     funcName = "m" + funcNum;
                     dhead = label + ": sendrecv " + funcName + " " + timeoutAt;
                     if (!!onlyIf) return [3 /*break*/ , 2];
-                    debug(dhead, "onlyIf false");
-                    return [4 /*yield*/ , doRecv(false, true)];
+                    return [4 /*yield*/ , doRecv(false, true, "onlyIf false")];
                   case 1:
                     return [2 /*return*/ , _m.sent()];
                   case 2:
@@ -1767,7 +1774,7 @@ export var connectAccount = function(networkAccount) {
                   case 9:
                     mapRefs = sim_r.mapRefs;
                     _loop_1 = function() {
-                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, _r, _s;
+                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, jes, _r, _s;
                       return __generator(this, function(_t) {
                         switch (_t.label) {
                           case 0:
@@ -1781,9 +1788,8 @@ export var connectAccount = function(networkAccount) {
                             return [4 /*yield*/ , checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, params.firstRound + 1)];
                           case 2:
                             if (!_t.sent()) return [3 /*break*/ , 4];
-                            debug(dhead, '--- FAIL/TIMEOUT');
                             _o = {};
-                            return [4 /*yield*/ , doRecv(false, false)];
+                            return [4 /*yield*/ , doRecv(false, false, "timeout")];
                           case 3:
                             return [2 /*return*/ , (_o.value = _t.sent(), _o)];
                           case 4:
@@ -1795,9 +1801,8 @@ export var connectAccount = function(networkAccount) {
                             _t.label = 6;
                           case 6:
                             if (!_p) return [3 /*break*/ , 8];
-                            debug(dhead, "CANNOT WIN");
                             _q = {};
-                            return [4 /*yield*/ , doRecv(false, false)];
+                            return [4 /*yield*/ , doRecv(false, false, "cannot win " + lct)];
                           case 7:
                             return [2 /*return*/ , (_q.value = _t.sent(), _q)];
                           case 8:
@@ -1945,12 +1950,13 @@ export var connectAccount = function(networkAccount) {
                             es = (e_8.type === 'sendRawTransaction') ?
                               format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e) : e_8;
                             debug(dhead, '--- FAIL:', es);
+                            jes = JSON.stringify(es);
                             if (!!soloSend) return [3 /*break*/ , 13];
                             // If there is no soloSend, then someone else "won", so let's
                             // listen for their message
                             debug(dhead, 'LOST');
                             _r = {};
-                            return [4 /*yield*/ , doRecv(false, false)];
+                            return [4 /*yield*/ , doRecv(false, false, jes)];
                           case 12:
                             return [2 /*return*/ , (_r.value = _t.sent(), _r)];
                           case 13:
@@ -1960,7 +1966,7 @@ export var connectAccount = function(networkAccount) {
                               return [2 /*return*/ , "continue"];
                             } else {
                               // Otherwise, something bad is happening
-                              throw Error(label + " failed to call " + funcName + ": " + JSON.stringify(es));
+                              throw Error(label + " failed to call " + funcName + ": " + jes);
                             }
                             return [3 /*break*/ , 14];
                           case 14:

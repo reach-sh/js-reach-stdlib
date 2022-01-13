@@ -75,7 +75,11 @@ function protect(ctc, v, ai) {
         return ctc.canonicalize(v);
     }
     catch (e) {
-        throw Error("Protect failed: expected " + ctc.name + " but got " + v + "; " + JSON.stringify(ai) + ":\n" + JSON.stringify(e));
+        var vs = "" + v;
+        if (vs === '{}' || vs === '[object Object]') {
+            vs = JSON.stringify(v);
+        }
+        throw Error("Protect failed: expected " + ctc.name + " but got " + vs + "; " + JSON.stringify(ai) + ":\n" + JSON.stringify(e));
     }
 }
 exports.protect = protect;

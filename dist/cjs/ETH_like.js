@@ -709,18 +709,19 @@ function makeEthLike(ethLikeArgs) {
                                 });
                             }); };
                             var sendrecv = function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, trustedRecv, arg, Bytecode, factory, _a, value, toks, overrides, contract_1, deploy_r, ctcAddress, creationBlock, _b, _c, _d, ok_r, e_5;
+                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, trustedRecv, arg, Bytecode, factory, _a, value, toks, overrides, contract_1, deploy_r, ctcAddress, creationBlock, _b, _c, _d, ok_r, e_5, jes;
                                 var _this = this;
                                 return __generator(this, function (_e) {
                                     switch (_e.label) {
                                         case 0:
                                             funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
-                                            doRecv = function (didSend, waitIfNotPresent) { return __awaiter(_this, void 0, void 0, function () {
+                                            doRecv = function (didSend, waitIfNotPresent, msg) { return __awaiter(_this, void 0, void 0, function () {
                                                 return __generator(this, function (_a) {
                                                     switch (_a.label) {
                                                         case 0:
+                                                            (0, shared_impl_1.debug)(dhead, "doRecv", msg);
                                                             if (!didSend && lct.eq(0)) {
-                                                                throw new Error("API call failed");
+                                                                throw new Error("API call failed: " + msg);
                                                             }
                                                             return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                                                         case 1: return [2 /*return*/, _a.sent()];
@@ -728,7 +729,7 @@ function makeEthLike(ethLikeArgs) {
                                                 });
                                             }); };
                                             if (!!onlyIf) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, doRecv(false, true)];
+                                            return [4 /*yield*/, doRecv(false, true, "onlyIf false")];
                                         case 1: return [2 /*return*/, _e.sent()];
                                         case 2:
                                             funcName = reachPublish(funcNum);
@@ -740,7 +741,7 @@ function makeEthLike(ethLikeArgs) {
                                                         case 0:
                                                             didSend = true;
                                                             if (!!isAPI) return [3 /*break*/, 2];
-                                                            return [4 /*yield*/, doRecv(didSend, false)];
+                                                            return [4 /*yield*/, doRecv(didSend, false, "succeeded")];
                                                         case 1: return [2 /*return*/, _a.sent()];
                                                         case 2: return [4 /*yield*/, getC()];
                                                         case 3:
@@ -802,7 +803,7 @@ function makeEthLike(ethLikeArgs) {
                                         case 10:
                                             if (!_e.sent()) return [3 /*break*/, 12];
                                             (0, shared_impl_1.debug)(dhead, 'FAIL/TIMEOUT');
-                                            return [4 /*yield*/, doRecv(false, false)];
+                                            return [4 /*yield*/, doRecv(false, false, "timeout")];
                                         case 11: return [2 /*return*/, _e.sent()];
                                         case 12:
                                             _d = !soloSend;
@@ -814,7 +815,7 @@ function makeEthLike(ethLikeArgs) {
                                         case 14:
                                             if (!_d) return [3 /*break*/, 16];
                                             (0, shared_impl_1.debug)(dhead, "CANNOT WIN");
-                                            return [4 /*yield*/, doRecv(false, false)];
+                                            return [4 /*yield*/, doRecv(false, false, "cannot win " + lct)];
                                         case 15: return [2 /*return*/, _e.sent()];
                                         case 16:
                                             ok_r = void 0;
@@ -829,9 +830,10 @@ function makeEthLike(ethLikeArgs) {
                                         case 19:
                                             e_5 = _e.sent();
                                             (0, shared_impl_1.debug)(dhead, "ERROR", { stack: e_5.stack }, e_5);
+                                            jes = JSON.stringify(e_5);
                                             if (!!soloSend) return [3 /*break*/, 21];
                                             (0, shared_impl_1.debug)(dhead, "LOST");
-                                            return [4 /*yield*/, doRecv(false, false)];
+                                            return [4 /*yield*/, doRecv(false, false, jes)];
                                         case 20: return [2 /*return*/, _e.sent()];
                                         case 21:
                                             if (timeoutAt) {
@@ -841,7 +843,7 @@ function makeEthLike(ethLikeArgs) {
                                             }
                                             else {
                                                 // Otherwise, something bad is happening
-                                                throw Error(label + " failed to call " + funcName + ": " + JSON.stringify(e_5));
+                                                throw Error(label + " failed to call " + funcName + ": " + jes);
                                             }
                                             return [3 /*break*/, 22];
                                         case 22:
