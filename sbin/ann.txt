@@ -1,5 +1,7 @@
 :reach: New Reach Docker images & JavaScript library published :reach:
 The release candidate for Reach version `{{version}}` has received an update.
+See the changelog for details:
+https://docs.reach.sh/changelog/#guide-changelog
 
 :squid: New Docker images based on git hash:
 `{{git_hash}}`
