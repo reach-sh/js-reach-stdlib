@@ -97,7 +97,7 @@ export function run(file) {
           if (!file) {
             throw Error('Run requires an argument.');
           }
-          return [4 /*yield*/ , import(mountDir + "/" + file)];
+          return [4 /*yield*/ , import("".concat(mountDir, "/").concat(file))];
         case 1:
           m = _a.sent();
           return [4 /*yield*/ , loadStdlib()];

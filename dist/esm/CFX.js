@@ -1,5 +1,6 @@
 import * as cfxImpl from './CFX_impl';
 import { makeEthLike } from './ETH_like';
+export * as ethers from './cfxers';
 export * from './CFX_compiled';
 export var connector = 'CFX';
 var ethLike = makeEthLike(cfxImpl);

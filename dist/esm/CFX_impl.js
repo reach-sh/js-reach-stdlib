@@ -63,7 +63,7 @@ import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 var Conflux = cfxsdk.Conflux;
 function notYetSupported(label) {
-    throw Error(label + " not yet supported on CFX");
+    throw Error("".concat(label, " not yet supported on CFX"));
 }
 function throwError(msg) {
     throw Error(msg);
@@ -145,9 +145,9 @@ var makeURLFunder = function (url) { return function (to, amt) { return __awaite
                 to = _a;
                 debug(dhead, to);
                 toHex = toHexAddr(to);
-                u = url + "?address=" + toHex;
+                u = "".concat(url, "?address=").concat(toHex);
                 if (amt) {
-                    u = u + "&amount=" + bigNumberify(amt);
+                    u = "".concat(u, "&amount=").concat(bigNumberify(amt));
                 }
                 debug(dhead, { toHex: toHex, u: u });
                 return [4 /*yield*/, window.fetch(u)];
@@ -192,7 +192,7 @@ export function _specialFundFromFaucet() {
                 coms = base.split(':');
                 coms.pop();
                 uri = coms.join(':');
-                return [2 /*return*/, makeURLFunder(uri + ":1337/faucet")];
+                return [2 /*return*/, makeURLFunder("".concat(uri, ":1337/faucet"))];
             }
             else {
                 return [2 /*return*/, null];
@@ -293,7 +293,7 @@ function setProviderEnv(env) {
             ethLikeCompiled.setNetworkId(networkId);
         }
         catch (_) {
-            throw Error("Invalid CFX_NETWORK_ID='" + env.CFX_NETWORK_ID + "'");
+            throw Error("Invalid CFX_NETWORK_ID='".concat(env.CFX_NETWORK_ID, "'"));
         }
     }
 }
@@ -370,14 +370,14 @@ function providerEnvByName(pn) {
         case 'TestNet': return cfxProviderEnv('TestNet');
         case 'tethys': return cfxProviderEnv('tethys');
         case 'BlockNumber': return cfxProviderEnv('BlockNumber'); // XXX temporary
-        default: throw Error("Unrecognized provider name: " + pn);
+        default: throw Error("Unrecognized provider name: ".concat(pn));
     }
 }
 function cfxProviderEnv(network) {
     var _a = __read(network == 'BlockNumber' ? ['http://52.53.235.44:12537', '1'] // 0x1
         : network == 'TestNet' ? ['https://portal-test.confluxrpc.com', '1'] // 0x1
             : network == 'tethys' ? ['https://portal-main.confluxrpc.com', '1029'] // 0x405
-                : throwError("network name not recognized: '" + network + "'"), 2), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
+                : throwError("network name not recognized: '".concat(network, "'")), 2), CFX_NODE_URI = _a[0], CFX_NETWORK_ID = _a[1];
     return {
         CFX_NODE_URI: CFX_NODE_URI,
         CFX_NETWORK_ID: CFX_NETWORK_ID,

@@ -208,11 +208,11 @@ function waitProviderFromEnv(env) {
         throw Error("window.ethereum is not defined");
       }
     } else {
-      throw Error("ETH_NET not recognized: '" + ETH_NET + "'");
+      throw Error("ETH_NET not recognized: '".concat(ETH_NET, "'"));
     }
   } else {
     // This branch should be impossible, but just in case...
-    throw Error("non-empty ETH_NET or ETH_NODE_URI is required, got: " + Object.keys(env));
+    throw Error("non-empty ETH_NET or ETH_NODE_URI is required, got: ".concat(Object.keys(env)));
   }
 }
 
@@ -264,7 +264,7 @@ function providerEnvByName(pn) {
     case 'ropsten':
       return ethersProviderEnv('ropsten');
     default:
-      throw Error("Unrecognized provider name: " + pn);
+      throw Error("Unrecognized provider name: ".concat(pn));
   }
 }
 // Avoid using _providerEnv directly; use get/set

@@ -1,6 +1,7 @@
 import * as cfxImpl from './CFX_impl';
 export type { Provider, ProviderEnv, ProviderName } from './CFX_impl';
 export type { Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Account } from './ETH_like';
+export * as ethers from './cfxers';
 export * from './CFX_compiled';
 export declare const connector = "CFX";
 export declare const getQueryLowerBound: typeof import("./shared_impl").getQueryLowerBound, setQueryLowerBound: typeof import("./shared_impl").setQueryLowerBound, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => Promise<cfxImpl.ethers.providers.Provider>, setProvider: (p: Promise<cfxImpl.ethers.providers.Provider>) => void, randomUInt: () => import("ethers").BigNumber, hasRandom: {

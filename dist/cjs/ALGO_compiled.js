@@ -58,7 +58,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -70,14 +70,14 @@ var BigNumber = ethers_1.ethers.BigNumber;
 var Buffer = buffer_1["default"].Buffer;
 exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
 exports.digest = (0, shared_impl_1.makeDigest)('sha256', function (t, v) { return t.toNet(v); });
-exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'null' });
-exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'bool' });
+exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'byte[0]' });
+exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'byte' });
 exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize: 8, toNet: function (bv) {
         try {
             return ethers_1.ethers.utils.zeroPad(ethers_1.ethers.utils.arrayify(bv), 8);
         }
         catch (e) {
-            throw new Error("toNet: " + bv + " is out of range [0, " + exports.UInt_max + "]");
+            throw new Error("toNet: ".concat(bv, " is out of range [0, ").concat(exports.UInt_max, "]"));
         }
     }, fromNet: function (nv) {
         // debug(`fromNet: UInt`, nv);
@@ -91,6 +91,8 @@ var stringyNet = function (len) { return ({
 }); };
 /** @description For hex strings representing bytes */
 var bytestringyNet = function (len) { return ({
+    netSize: len,
+    netName: "byte[".concat(len, "]"),
     toNet: function (bv) {
         return ethers_1.ethers.utils.arrayify(bv);
     },
@@ -98,9 +100,10 @@ var bytestringyNet = function (len) { return ({
         return ethers_1.ethers.utils.hexlify(nv.slice(0, len));
     }
 }); };
-var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len), netName: "byte[" + len + "]" })); };
+exports.bytestringyNet = bytestringyNet;
+var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len), netName: "byte[".concat(len, "]") })); };
 exports.T_Bytes = T_Bytes;
-exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet(32)), { netSize: 32, netName: "digest" });
+exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), (0, exports.bytestringyNet)(32)), { netName: "digest" });
 var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk_1["default"].decodeAddress(x).publicKey).toString('hex');
 };
@@ -120,7 +123,7 @@ var extractAddr = function (x) {
     var a = extractAddrM(x);
     //debug(`extractAddr`, {x, a});
     if (a === false) {
-        throw Error("Expected address, got " + x);
+        throw Error("Expected address, got ".concat(x));
     }
     return a;
 };
@@ -132,25 +135,21 @@ function addressUnwrapper(x) {
             : (0, exports.addressToHex)(addr);
 }
 ;
-exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), bytestringyNet(32)), { netSize: 32, canonicalize: function (uv) {
+exports.T_Address = __assign(__assign(__assign({}, CBR.BT_Address), (0, exports.bytestringyNet)(32)), { netSize: 32, canonicalize: function (uv) {
         var val = addressUnwrapper(uv);
         var hs = CBR.BT_Address.canonicalize(val || uv);
         // We are filling up with zeros if the address is less than 32 bytes
         return hs.padEnd(32 * 2 + 2, '0');
     }, netName: "address" });
 exports.T_Contract = __assign(__assign({}, exports.T_UInt), { name: 'Contract' });
-var T_Array = function (co, size) { return (__assign(__assign({}, CBR.BT_Array(co, size)), { netSize: size * co.netSize, toNet: function (bv) {
-        return ethers_1.ethers.utils.concat(bv.map(function (v) { return co.toNet(v); }));
-    }, fromNet: function (nv) {
-        // TODO: assert nv.size = len * size
-        var len = co.netSize;
-        var chunks = new Array(size).fill(null);
-        for (var i = 0; i < size; i++) {
-            var start = i * len;
-            chunks[i] = co.fromNet(nv.slice(start, start + len));
-        }
-        return chunks;
-    }, netName: co.netName + "[" + size + "]" })); };
+var T_Array = function (co, size_u) {
+    var size = (0, shared_user_1.bigNumberToNumber)((0, shared_user_1.bigNumberify)(size_u));
+    (0, shared_impl_1.debug)('T_Array', co, size);
+    var asTuple = (0, exports.T_Tuple)(new Array(size).fill(co));
+    (0, shared_impl_1.debug)('T_Array', asTuple);
+    var netSize = asTuple.netSize, toNet = asTuple.toNet, fromNet = asTuple.fromNet;
+    return __assign(__assign({}, CBR.BT_Array(co, size)), { netSize: netSize, toNet: toNet, fromNet: fromNet, netName: "".concat(co.netName, "[").concat(size, "]") });
+};
 exports.T_Array = T_Array;
 var T_Tuple = function (cos) { return (__assign(__assign({}, CBR.BT_Tuple(cos)), { netSize: (cos.reduce((function (acc, co) {
         return acc + co.netSize;
@@ -169,7 +168,7 @@ var T_Tuple = function (cos) { return (__assign(__assign({}, CBR.BT_Tuple(cos)),
             rest = rest.slice(co.netSize);
         }
         return chunks;
-    }, netName: "(" + cos.map(function (c) { return c.netName; }).join(',') + ")" })); };
+    }, netName: "(".concat(cos.map(function (c) { return c.netName; }).join(','), ")") })); };
 exports.T_Tuple = T_Tuple;
 var T_Struct = function (cos) { return (__assign(__assign({}, CBR.BT_Struct(cos)), { netSize: (cos.reduce(function (acc, co) { return acc + co[1].netSize; }, 0)), toNet: function (bv) {
         var val = cos.map(function (_a) {
@@ -188,7 +187,7 @@ var T_Struct = function (cos) { return (__assign(__assign({}, CBR.BT_Struct(cos)
             rest = rest.slice(co.netSize);
         }
         return obj;
-    }, netName: "(" + cos.map(function (c) { return c[1].netName; }).join(',') + ")" })); };
+    }, netName: "(".concat(cos.map(function (c) { return c[1].netName; }).join(','), ")") })); };
 exports.T_Struct = T_Struct;
 var T_Object = function (coMap) {
     var cos = Object.values(coMap);
@@ -212,7 +211,7 @@ var T_Object = function (coMap) {
                 rest = rest.slice(co.netSize);
             }
             return obj;
-        }, netName: "(" + cos.map(function (c) { return c.netName; }).join(',') + ")" });
+        }, netName: "(".concat(cos.map(function (c) { return c.netName; }).join(','), ")") });
 };
 exports.T_Object = T_Object;
 // 1 byte for the label
@@ -220,8 +219,10 @@ exports.T_Object = T_Object;
 // up to the size of the largest variant
 var T_Data = function (coMap) {
     var cos = Object.values(coMap);
-    var valSize = Math.max.apply(Math, __spreadArray([], __read(cos.map(function (co) { return co.netSize; })), false));
+    var cosSizes = cos.map(function (co) { return co.netSize; });
+    var valSize = Math.max.apply(Math, __spreadArray([], __read(cosSizes), false));
     var netSize = valSize + 1;
+    (0, shared_impl_1.debug)("T_Data", { cos: cos, cosSizes: cosSizes, valSize: valSize, netSize: netSize });
     var _a = (0, shared_impl_1.labelMaps)(coMap), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
     return __assign(__assign({}, CBR.BT_Data(coMap)), { netSize: netSize, toNet: function (_a) {
             var _b = __read(_a, 2), label = _b[0], val = _b[1];
@@ -240,7 +241,7 @@ var T_Data = function (coMap) {
             var sliceTo = val_co.netSize;
             var val = val_co.fromNet(rest.slice(0, sliceTo));
             return [label, val];
-        }, netName: "(byte, byte[" + valSize + "])" });
+        }, netName: "(byte,byte[".concat(valSize, "])") });
 };
 exports.T_Data = T_Data;
 exports.addressEq = (0, shared_impl_1.mkAddressEq)(exports.T_Address);

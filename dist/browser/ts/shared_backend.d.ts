@@ -3,6 +3,7 @@ declare type BigNumber = ethers.BigNumber;
 export declare type num = BigNumber | number;
 export declare type MaybeRep<A> = ['Some', A] | ['None', null];
 export declare const asMaybe: <A>(v: A | undefined) => MaybeRep<A>;
+export declare const fromSome: <A>(mo: MaybeRep<A>, da: A) => A;
 export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;

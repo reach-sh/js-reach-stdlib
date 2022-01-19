@@ -18,6 +18,13 @@ export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;
 export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;
+/** @description For hex strings representing bytes */
+export declare const bytestringyNet: (len: number) => {
+    netSize: number;
+    netName: string;
+    toNet: (bv: string) => NV;
+    fromNet: (nv: NV) => string;
+};
 export declare const T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
 export declare const T_Digest: ALGO_Ty<CBR_Digest>;
 export declare const addressToHex: (x: string) => string;
@@ -25,7 +32,7 @@ export declare const addressFromHex: (hexAddr: string) => string;
 export declare const extractAddr: (x: any) => string;
 export declare const T_Address: ALGO_Ty<CBR_Address>;
 export declare const T_Contract: ALGO_Ty<Contract>;
-export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
+export declare const T_Array: (co: ALGO_Ty<CBR_Val>, size_u: unknown) => ALGO_Ty<CBR_Array>;
 export declare const T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
 export declare const T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 export declare const T_Object: (coMap: {
@@ -55,7 +62,7 @@ export declare const typeDefs: {
     T_Data: (coMap: {
         [key: string]: ALGO_Ty<CBR_Val>;
     }) => ALGO_Ty<CBR_Data>;
-    T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<CBR_Array>;
+    T_Array: (co: ALGO_Ty<CBR_Val>, size_u: unknown) => ALGO_Ty<CBR_Array>;
     T_Tuple: (cos: Array<ALGO_Ty<CBR_Val>>) => ALGO_Ty<CBR_Tuple>;
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 };

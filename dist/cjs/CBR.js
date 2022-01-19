@@ -35,7 +35,7 @@ exports.BT_Null = {
     canonicalize: function (val) {
         // Doesn't check with triple eq; we're being lenient here
         if (val != null) {
-            throw Error("Expected null, but got " + JSON.stringify(val));
+            throw Error("Expected null, but got ".concat(JSON.stringify(val)));
         }
         return exports.BV_Null;
     }
@@ -44,7 +44,7 @@ exports.BT_Bool = {
     name: 'Bool',
     canonicalize: function (val) {
         if (typeof (val) !== 'boolean') {
-            throw Error("Expected boolean, but got " + JSON.stringify(val));
+            throw Error("Expected boolean, but got ".concat(JSON.stringify(val)));
         }
         return val;
     }
@@ -69,7 +69,7 @@ var BT_UInt = function (max) { return ({
         }
         catch (e) {
             if (typeof (uv) === 'string') {
-                throw Error("String does not represent a BigNumber. " + JSON.stringify(uv));
+                throw Error("String does not represent a BigNumber. ".concat(JSON.stringify(uv)));
             }
             throw e;
         }
@@ -81,15 +81,15 @@ var BV_UInt = function (val, max) {
 };
 exports.BV_UInt = BV_UInt;
 var BT_Bytes = function (len) { return ({
-    name: "Bytes(" + len + ")",
+    name: "Bytes(".concat(len, ")"),
     canonicalize: function (val) {
         var lenn = (0, exports.bigNumberToNumber)(len);
         if (typeof (val) !== 'string') {
-            throw Error("Bytes expected string, but got " + JSON.stringify(val));
+            throw Error("Bytes expected string, but got ".concat(JSON.stringify(val)));
         }
         var checkLen = function (label, alen, fill) {
             if (val.length > alen) {
-                throw Error("Bytes(" + len + ") must be a " + label + "string less than or equal to " + alen + ", but given " + label + "string of length " + val.length);
+                throw Error("Bytes(".concat(len, ") must be a ").concat(label, "string less than or equal to ").concat(alen, ", but given ").concat(label, "string of length ").concat(val.length));
             }
             return val.padEnd(alen, fill);
         };
@@ -108,7 +108,7 @@ exports.BT_Digest = {
     name: 'Digest',
     canonicalize: function (val) {
         if (typeof val !== 'string') {
-            throw Error(JSON.stringify(val) + " is not a valid digest");
+            throw Error("".concat(JSON.stringify(val), " is not a valid digest"));
         }
         return val;
     }
@@ -122,13 +122,13 @@ exports.BT_Address = ({
     name: 'Address',
     canonicalize: function (val) {
         if (typeof val !== 'string') {
-            throw Error("Address must be a string, but got: " + JSON.stringify(val));
+            throw Error("Address must be a string, but got: ".concat(JSON.stringify(val)));
         }
         else if (val.slice(0, 2) !== '0x') {
-            throw Error("Address must start with 0x, but got: " + JSON.stringify(val));
+            throw Error("Address must start with 0x, but got: ".concat(JSON.stringify(val)));
         }
         else if (!ethers_1.ethers.utils.isHexString(val)) {
-            throw Error("Address must be a valid hex string, but got: " + JSON.stringify(val));
+            throw Error("Address must be a valid hex string, but got: ".concat(JSON.stringify(val)));
         }
         return val;
     }
@@ -141,13 +141,13 @@ exports.BV_Address = BV_Address;
 var BT_Array = function (ctc, size) {
     // TODO: check ctc, sz for sanity
     return {
-        name: "Array(" + ctc.name + ", " + size + ")",
+        name: "Array(".concat(ctc.name, ", ").concat(size, ")"),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
-                throw Error("Expected an Array, but got " + JSON.stringify(args));
+                throw Error("Expected an Array, but got ".concat(JSON.stringify(args)));
             }
             if (size != args.length) {
-                throw Error("Expected array of length " + size + ", but got " + args.length);
+                throw Error("Expected array of length ".concat(size, ", but got ").concat(args.length));
             }
             var parr = new Array(size);
             for (var i = 0; i < size; i++) {
@@ -167,13 +167,13 @@ exports.BV_Array = BV_Array;
 var BT_Tuple = function (ctcs) {
     // TODO: check ctcs for sanity
     return {
-        name: "Tuple(" + ctcs.map(function (ctc) { return " " + ctc.name + " "; }) + ")",
+        name: "Tuple(".concat(ctcs.map(function (ctc) { return " ".concat(ctc.name, " "); }), ")"),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
-                throw Error("Expected a Tuple, but got " + JSON.stringify(args));
+                throw Error("Expected a Tuple, but got ".concat(JSON.stringify(args)));
             }
             if (ctcs.length != args.length) {
-                throw Error("Expected tuple of size " + ctcs.length + ", but got " + args.length);
+                throw Error("Expected tuple of size ".concat(ctcs.length, ", but got ").concat(args.length));
             }
             var val = args.map(function (arg, i) { return ctcs[i].canonicalize(arg); });
             return val;
@@ -189,10 +189,10 @@ var BV_Tuple = function (ctcs) { return function (val) {
 exports.BV_Tuple = BV_Tuple;
 var BT_Struct = function (ctcs) {
     return {
-        name: "Struct([" + ctcs.map(function (_a) {
+        name: "Struct([".concat(ctcs.map(function (_a) {
             var _b = __read(_a, 2), k = _b[0], ctc = _b[1];
-            return " [" + k + ", " + ctc.name + "] ";
-        }) + "])",
+            return " [".concat(k, ", ").concat(ctc.name, "] ");
+        }), "])"),
         canonicalize: function (arg) {
             var obj = {};
             ctcs.forEach(function (_a, i) {
@@ -211,17 +211,17 @@ exports.BV_Struct = BV_Struct;
 var BT_Object = function (co) {
     // TODO: check co for sanity
     return {
-        name: "Object(" + Object.keys(co).map(function (k) { return " " + k + ": " + co[k].name + " "; }) + ")",
+        name: "Object(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
         canonicalize: function (vo) {
             if (typeof (vo) !== 'object') {
-                throw Error("Expected object, but got " + JSON.stringify(vo));
+                throw Error("Expected object, but got ".concat(JSON.stringify(vo)));
             }
             var obj = {};
             for (var prop in co) {
                 // This is dumb but it's how ESLint says to do it
                 // https://eslint.org/docs/rules/no-prototype-builtins
                 if (!{}.hasOwnProperty.call(vo, prop)) {
-                    throw Error("Expected prop " + prop + ", but didn't found it in " + Object.keys(vo));
+                    throw Error("Expected prop ".concat(prop, ", but didn't found it in ").concat(Object.keys(vo)));
                 }
                 obj[prop] = co[prop].canonicalize(vo[prop]);
             }
@@ -239,14 +239,14 @@ exports.BV_Object = BV_Object;
 var BT_Data = function (co) {
     // TODO: check co for sanity
     return {
-        name: "Data(" + Object.keys(co).map(function (k) { return " " + k + ": " + co[k].name + " "; }) + ")",
+        name: "Data(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
         canonicalize: function (io) {
             if (!(Array.isArray(io) && io.length == 2 && typeof io[0] == 'string')) {
-                throw Error("Expected an array of length two to represent a data instance, but got " + JSON.stringify(io));
+                throw Error("Expected an array of length two to represent a data instance, but got ".concat(JSON.stringify(io)));
             }
             var vn = io[0];
             if (!{}.hasOwnProperty.call(co, vn)) {
-                throw Error("Expected a variant in " + Object.keys(co) + ", but got " + vn);
+                throw Error("Expected a variant in ".concat(Object.keys(co), ", but got ").concat(vn));
             }
             return [vn, co[vn].canonicalize(io[1])];
         }

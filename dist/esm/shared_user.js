@@ -10,7 +10,7 @@ export var uintToBytes = function (i) { return bigNumberToHex(i); };
 export var bigNumberToHex = function (u, size) {
     if (size === void 0) { size = 32; }
     var width = 8 * size;
-    var format = "ufixed" + width + "x0";
+    var format = "ufixed".concat(width, "x0");
     var nPos = bigNumberify(u).toTwos(width);
     // They took away padZeros so we have to use FixedNumber
     var nFix = ethers.FixedNumber.from(nPos.toString(), format);

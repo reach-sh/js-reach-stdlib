@@ -86,7 +86,7 @@ export var setDEBUG = function (b) {
         DEBUG = b;
     }
     else {
-        throw Error("Expected bool, got " + JSON.stringify(b));
+        throw Error("Expected bool, got ".concat(JSON.stringify(b)));
     }
 };
 export var getDEBUG = function () { return DEBUG; };
@@ -128,11 +128,20 @@ export var stdVerifyContract = function (stdArgs, doVerify) { return __awaiter(v
         }
     });
 }); };
+export var stdABIFilter = function (x) {
+    if (x.name && x.name.startsWith('_reach')) {
+        return false;
+    }
+    return true;
+};
+export var stdGetABI = function (ABI) { return function (isFull) {
+    return isFull ? ABI : ABI.filter(stdABIFilter);
+}; };
 export var stdContract = function (stdContractArgs) {
-    var bin = stdContractArgs.bin, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
-            throw Error("Cannot set info(" + JSON.stringify(info) + ") (i.e. deploy) when acc.contract called with contract info");
+            throw Error("Cannot set info(".concat(JSON.stringify(info), ") (i.e. deploy) when acc.contract called with contract info"));
             return;
         };
         if (givenInfoP !== undefined) {
@@ -146,7 +155,7 @@ export var stdContract = function (stdContractArgs) {
             var _infoP_1 = new Promise(function (resolve) {
                 _setInfo = function (info) {
                     if (beenSet_1) {
-                        throw Error("Cannot set info(" + JSON.stringify(info) + "), i.e. deploy, twice");
+                        throw Error("Cannot set info(".concat(JSON.stringify(info), "), i.e. deploy, twice"));
                     }
                     resolve(info);
                     beenSet_1 = true;
@@ -205,7 +214,7 @@ export var stdContract = function (stdContractArgs) {
         return objectMap(bin._APIs, (function (an, am) {
             var f = function (afn, ab) {
                 var mk = function (sep) {
-                    return (afn === undefined) ? "" + an : "" + an + sep + afn;
+                    return (afn === undefined) ? "".concat(an) : "".concat(an).concat(sep).concat(afn);
                 };
                 var bp = mk("_");
                 delete participants[bp];
@@ -230,26 +239,26 @@ export var stdContract = function (stdContractArgs) {
                             theReject(err);
                         }
                     };
-                    debug(bl + ": start", args);
+                    debug("".concat(bl, ": start"), args);
                     ab(ctcC, {
                         "in": (function () {
-                            debug(bl + ": in", args);
+                            debug("".concat(bl, ": in"), args);
                             return args;
                         }),
                         "out": (function (oargs, res) {
-                            debug(bl + ": out", oargs, res);
+                            debug("".concat(bl, ": out"), oargs, res);
                             theResolve(isSafe ? ['Some', res] : res);
                             throw terminal;
                         })
                     })["catch"](function (err) {
                         if (Object.is(err, terminal)) {
-                            debug(bl + ": done");
+                            debug("".concat(bl, ": done"));
                         }
                         else {
-                            fail(new Error(bl + " errored with " + err));
+                            fail(new Error("".concat(bl, " errored with ").concat(err)));
                         }
                     }).then(function (res) {
-                        fail(new Error(bl + " returned with " + JSON.stringify(res)));
+                        fail(new Error("".concat(bl, " returned with ").concat(JSON.stringify(res))));
                     });
                     return p;
                 };
@@ -270,7 +279,7 @@ export var stdContract = function (stdContractArgs) {
                 return createEventStream(k + "_" + kp, vp);
             }));
     }));
-    return __assign(__assign({}, ctcC), { getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
+    return __assign(__assign({}, ctcC), { getABI: getABI, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
@@ -399,15 +408,15 @@ export var ensureConnectorAvailable = function (bin, conn, jsVer, connVer) {
     var connectors = bin._Connectors;
     var conn_bin = connectors[conn];
     if (!conn_bin) {
-        throw (new Error("The application was not compiled for the " + conn + " connector, only: " + Object.keys(connectors)));
+        throw (new Error("The application was not compiled for the ".concat(conn, " connector, only: ").concat(Object.keys(connectors))));
     }
-    checkVersion(conn_bin.version, connVer, conn + " backend");
+    checkVersion(conn_bin.version, connVer, "".concat(conn, " backend"));
 };
 export var checkVersion = function (actual, expected, label) {
     if (actual !== expected) {
         var older = (actual === undefined) || (actual < expected);
         var more = older ? "update your compiler and recompile!" : "updated your standard library and rerun!";
-        throw Error("This Reach compiled " + label + " does not match the expectations of this Reach standard library: expected " + expected + ", but got " + actual + "; " + more);
+        throw Error("This Reach compiled ".concat(label, " does not match the expectations of this Reach standard library: expected ").concat(expected, ", but got ").concat(actual, "; ").concat(more));
     }
 };
 var argHelper = function (xs, f, op) {
@@ -506,7 +515,7 @@ export var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, now
                 return [2 /*return*/, val.lte(nowSecs)];
             case 4:
                 e_1 = _b.sent();
-                debug('checkTimeout', 'err', "" + e_1);
+                debug('checkTimeout', 'err', "".concat(e_1));
                 if (runningIsolated()) {
                     nowSecs = Math.floor(Date.now() / 1000);
                     debug('checkTimeout', 'isolated', val.toString(), nowSecs);
@@ -546,7 +555,7 @@ export var makeEventQueue = function (ctorArgs) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    dhead = lab + " peq";
+                    dhead = "".concat(lab, " peq");
                     updateCtime = function (ntime) {
                         if (ctime.lt(ntime)) {
                             debug(dhead, 'updating ctime', { ctime: ctime, ntime: ntime });
@@ -555,7 +564,7 @@ export var makeEventQueue = function (ctorArgs) {
                         return ntime;
                     };
                     if (initArgs === undefined) {
-                        throw Error(dhead + ": not initialized");
+                        throw Error("".concat(dhead, ": not initialized"));
                     }
                     howMany = 0;
                     _loop_1 = function () {
@@ -586,7 +595,7 @@ export var makeEventQueue = function (ctorArgs) {
                                         t = txns[0];
                                         txns.shift();
                                         if (!ci(t)) {
-                                            throw Error(dhead + " customIgnore present, " + ci + ", but top txn did not match " + JSON.stringify(t));
+                                            throw Error("".concat(dhead, " customIgnore present, ").concat(ci, ", but top txn did not match ").concat(JSON.stringify(t)));
                                         }
                                         else {
                                             debug(dhead, "ignored", ci, t);

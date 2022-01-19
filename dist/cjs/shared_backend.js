@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.asMaybe = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.fromSome = exports.asMaybe = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -51,6 +51,15 @@ var asMaybe = function (v) {
     }
 };
 exports.asMaybe = asMaybe;
+var fromSome = function (mo, da) {
+    if (mo[0] === 'Some') {
+        return mo[1];
+    }
+    else {
+        return da;
+    }
+};
+exports.fromSome = fromSome;
 ;
 var assert = function (d, ai) {
     if (ai === void 0) { ai = null; }
@@ -64,7 +73,7 @@ var checkedBigNumberify = function (at, m, x) {
     if (xb.gte(0) && xb.lte(m)) {
         return xb;
     }
-    throw Error("bigNumberify: " + x + " out of range [0, " + m + "] at " + at);
+    throw Error("bigNumberify: ".concat(x, " out of range [0, ").concat(m, "] at ").concat(at));
 };
 exports.checkedBigNumberify = checkedBigNumberify;
 // .canonicalize turns stuff into the "canonical backend representation"
@@ -75,11 +84,11 @@ function protect(ctc, v, ai) {
         return ctc.canonicalize(v);
     }
     catch (e) {
-        var vs = "" + v;
+        var vs = "".concat(v);
         if (vs === '{}' || vs === '[object Object]') {
             vs = JSON.stringify(v);
         }
-        throw Error("Protect failed: expected " + ctc.name + " but got " + vs + "; " + JSON.stringify(ai) + ":\n" + JSON.stringify(e));
+        throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(vs, "; ").concat(JSON.stringify(ai), ":\n").concat(JSON.stringify(e)));
     }
 }
 exports.protect = protect;

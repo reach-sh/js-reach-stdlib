@@ -67,6 +67,13 @@ export var asMaybe = function(v) {
   } else {
     return ['Some', v];
   }
+};
+export var fromSome = function(mo, da) {
+  if (mo[0] === 'Some') {
+    return mo[1];
+  } else {
+    return da;
+  }
 };;
 export var assert = function(d, ai) {
   if (ai === void 0) { ai = null; }
@@ -79,7 +86,7 @@ export var checkedBigNumberify = function(at, m, x) {
   if (xb.gte(0) && xb.lte(m)) {
     return xb;
   }
-  throw Error("bigNumberify: " + x + " out of range [0, " + m + "] at " + at);
+  throw Error("bigNumberify: ".concat(x, " out of range [0, ").concat(m, "] at ").concat(at));
 };
 // .canonicalize turns stuff into the "canonical backend representation"
 export function protect(ctc, v, ai) {
@@ -88,11 +95,11 @@ export function protect(ctc, v, ai) {
   try {
     return ctc.canonicalize(v);
   } catch (e) {
-    var vs = "" + v;
+    var vs = "".concat(v);
     if (vs === '{}' || vs === '[object Object]') {
       vs = JSON.stringify(v);
     }
-    throw Error("Protect failed: expected " + ctc.name + " but got " + vs + "; " + JSON.stringify(ai) + ":\n" + JSON.stringify(e));
+    throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(vs, "; ").concat(JSON.stringify(ai), ":\n").concat(JSON.stringify(e)));
   }
 };
 var _a = ethers.utils,

@@ -84,7 +84,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
 import { assert, protect, } from './shared_backend';
-import { replaceableThunk, debug, stdContract, stdVerifyContract, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, } from './shared_impl';
+import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
@@ -92,11 +92,11 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 7;
+var reachBackendVersion = 8;
 var reachEthBackendVersion = 6;
-var reachPublish = function (m) { return "_reach_m" + m; };
-var reachEvent = function (e) { return "_reach_e" + e; };
-var reachOutputEvent = function (e) { return "_reach_oe_" + e; };
+var reachPublish = function (m) { return "_reach_m".concat(m); };
+var reachEvent = function (e) { return "_reach_e".concat(e); };
+var reachOutputEvent = function (e) { return "_reach_oe_".concat(e); };
 // TODO: add return type once types are in place
 export function makeEthLike(ethLikeArgs) {
     var _this = this;
@@ -147,13 +147,13 @@ export function makeEthLike(ethLikeArgs) {
                     r = _a.sent();
                     reject = function (x) { throw Error(x); };
                     if (!r) {
-                        reject("No receipt for txHash: " + txHash);
+                        reject("No receipt for txHash: ".concat(txHash));
                     }
                     if (r.transactionHash !== txHash) {
-                        reject("Bad txHash; " + txHash + " !== " + r.transactionHash);
+                        reject("Bad txHash; ".concat(txHash, " !== ").concat(r.transactionHash));
                     }
                     if (!r.status) {
-                        reject("Transaction: " + txHash + " was reverted by EVM\n" + r);
+                        reject("Transaction: ".concat(txHash, " was reverted by EVM\n").concat(r));
                     }
                     return [2 /*return*/, r];
             }
@@ -195,7 +195,7 @@ export function makeEthLike(ethLikeArgs) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        dhead = lab + " getTxns";
+                        dhead = "".concat(lab, " getTxns");
                         address = initArgs.ctcAddress, creationBlock = initArgs.creationBlock;
                         fromBlock = ctime.eq(0) ? creationBlock : ctime.add(1);
                         qw = getValidQueryWindow();
@@ -230,7 +230,7 @@ export function makeEthLike(ethLikeArgs) {
                         return [3 /*break*/, 8];
                     case 7:
                         e_1 = _a.sent();
-                        es = "" + e_1;
+                        es = "".concat(e_1);
                         debug(dhead, "err", e_1, es);
                         if (es.includes('Unable to find block hash')) {
                             debug(dhead, 'ignore');
@@ -324,7 +324,7 @@ export function makeEthLike(ethLikeArgs) {
             return __generator(this, function (_a) {
                 addressable = (typeof acc == 'string') ? acc : acc.networkAccount;
                 if (!addressable) {
-                    throw Error("Cannot get the address of: " + acc);
+                    throw Error("Cannot get the address of: ".concat(acc));
                 }
                 return [2 /*return*/, balanceOfNetworkAccount(addressable, token)];
             });
@@ -352,7 +352,7 @@ export function makeEthLike(ethLikeArgs) {
                     case 5:
                         addr = _b;
                         if (!addr) {
-                            throw Error("address missing. Got: " + networkAccount);
+                            throw Error("address missing. Got: ".concat(networkAccount));
                         }
                         if (!!token) return [3 /*break*/, 8];
                         return [4 /*yield*/, getProvider()];
@@ -409,7 +409,7 @@ export function makeEthLike(ethLikeArgs) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    dpre = dhead + " call " + funcName;
+                    dpre = "".concat(dhead, " call ").concat(funcName);
                     debug(dpre, { args: args, value: value, step: "pre call" });
                     tx = { value: value, gasLimit: gasLimit };
                     if (storageLimit !== undefined) {
@@ -478,7 +478,7 @@ export function makeEthLike(ethLikeArgs) {
                 case 3:
                     address = _b.sent();
                     if (!address) {
-                        throw Error("Expected networkAccount.address: " + networkAccount);
+                        throw Error("Expected networkAccount.address: ".concat(networkAccount));
                     }
                     shad = address.substring(2, 6);
                     label = shad;
@@ -487,7 +487,7 @@ export function makeEthLike(ethLikeArgs) {
                             return address;
                         }
                         else {
-                            throw Error("I should be " + some_addr + ", but am " + address);
+                            throw Error("I should be ".concat(some_addr, ", but am ").concat(address));
                         }
                     };
                     selfAddress = function () {
@@ -558,7 +558,7 @@ export function makeEthLike(ethLikeArgs) {
                                             zero = bigNumberify(0);
                                             actualCall = function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
                                                 switch (_a.label) {
-                                                    case 0: return [4 /*yield*/, doCall(dhead + " callC::reach", ethersC, funcName, [arg], value, gasLimit, storageLimit)];
+                                                    case 0: return [4 /*yield*/, doCall("".concat(dhead, " callC::reach"), ethersC, funcName, [arg], value, gasLimit, storageLimit)];
                                                     case 1: return [2 /*return*/, _a.sent()];
                                                 }
                                             }); }); };
@@ -570,9 +570,9 @@ export function makeEthLike(ethLikeArgs) {
                                                         case 1:
                                                             tokBalance = _a.sent();
                                                             debug(__assign(__assign({}, dhead), { kind: 'token' }), 'balanceOf', tokBalance);
-                                                            assert(tokBalance.gte(amt), "local account token balance is insufficient: " + tokBalance + " < " + amt);
+                                                            assert(tokBalance.gte(amt), "local account token balance is insufficient: ".concat(tokBalance, " < ").concat(amt));
                                                             tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
-                                                            return [4 /*yield*/, doCall(dhead + " callC::token", tokCtc, "approve", [ethersC.address, amt], zero, gasLimit, storageLimit)];
+                                                            return [4 /*yield*/, doCall("".concat(dhead, " callC::token"), tokCtc, "approve", [ethersC.address, amt], zero, gasLimit, storageLimit)];
                                                         case 2:
                                                             _a.sent();
                                                             return [2 /*return*/];
@@ -637,7 +637,7 @@ export function makeEthLike(ethLikeArgs) {
                                             _a = __read.apply(void 0, [_b.sent(), 2]), vibna = _a[0], vsbs = _a[1];
                                             debug("getState", { vibne: vibne, vibna: vibna, vsbs: vsbs });
                                             if (!vibne.eq(vibna)) {
-                                                throw Error("expected state " + vibne + ", got " + vibna);
+                                                throw Error("expected state ".concat(vibne, ", got ").concat(vibna));
                                             }
                                             ty = T_Tuple(tys);
                                             res = decodeEm(ty, vsbs);
@@ -657,7 +657,7 @@ export function makeEthLike(ethLikeArgs) {
                                             return [4 /*yield*/, getC()];
                                         case 1:
                                             ethersC = _a.sent();
-                                            mf = "_reachMap" + i + "Ref";
+                                            mf = "_reachMap".concat(i, "Ref");
                                             debug(dhead, mf);
                                             return [4 /*yield*/, ethersC[mf](f)];
                                         case 2:
@@ -714,7 +714,7 @@ export function makeEthLike(ethLikeArgs) {
                                                         case 0:
                                                             debug(dhead, "doRecv", msg);
                                                             if (!didSend && lct.eq(0)) {
-                                                                throw new Error("API call failed: " + msg);
+                                                                throw new Error("API call failed: ".concat(msg));
                                                             }
                                                             return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                                                         case 1: return [2 /*return*/, _a.sent()];
@@ -726,7 +726,7 @@ export function makeEthLike(ethLikeArgs) {
                                         case 1: return [2 /*return*/, _e.sent()];
                                         case 2:
                                             funcName = reachPublish(funcNum);
-                                            dhead = label + " send " + funcName + " " + timeoutAt;
+                                            dhead = "".concat(label, " send ").concat(funcName, " ").concat(timeoutAt);
                                             trustedRecv = function (ok_r) { return __awaiter(_this, void 0, void 0, function () {
                                                 var didSend, ethersC_1, correctStep;
                                                 return __generator(this, function (_a) {
@@ -808,7 +808,7 @@ export function makeEthLike(ethLikeArgs) {
                                         case 14:
                                             if (!_d) return [3 /*break*/, 16];
                                             debug(dhead, "CANNOT WIN");
-                                            return [4 /*yield*/, doRecv(false, false, "cannot win " + lct)];
+                                            return [4 /*yield*/, doRecv(false, false, "cannot win ".concat(lct))];
                                         case 15: return [2 /*return*/, _e.sent()];
                                         case 16:
                                             ok_r = void 0;
@@ -836,7 +836,7 @@ export function makeEthLike(ethLikeArgs) {
                                             }
                                             else {
                                                 // Otherwise, something bad is happening
-                                                throw Error(label + " failed to call " + funcName + ": " + jes);
+                                                throw Error("".concat(label, " failed to call ").concat(funcName, ": ").concat(jes));
                                             }
                                             return [3 /*break*/, 22];
                                         case 22:
@@ -897,7 +897,7 @@ export function makeEthLike(ethLikeArgs) {
                                                         }
                                                         finally { if (e_6) throw e_6.error; }
                                                     }
-                                                    throw Error("no log for " + l_evt);
+                                                    throw Error("no log for ".concat(l_evt));
                                                 });
                                             }); };
                                             return [2 /*return*/, {
@@ -920,8 +920,8 @@ export function makeEthLike(ethLikeArgs) {
                                     switch (_a.label) {
                                         case 0:
                                             funcNum = rargs.funcNum, out_tys = rargs.out_tys, didSend = rargs.didSend, timeoutAt = rargs.timeoutAt, waitIfNotPresent = rargs.waitIfNotPresent;
-                                            funcName = "m" + funcNum;
-                                            dhead = label + ": recv " + funcName + " " + timeoutAt;
+                                            funcName = "m".concat(funcNum);
+                                            dhead = "".concat(label, ": recv ").concat(funcName, " ").concat(timeoutAt);
                                             debug(dhead, 'start');
                                             return [4 /*yield*/, getC()];
                                         case 1:
@@ -1036,7 +1036,7 @@ export function makeEthLike(ethLikeArgs) {
                                                         return [2 /*return*/, ['None', null]];
                                                     }
                                                     else {
-                                                        throw Error("View " + v + "." + k + " is not set.");
+                                                        throw Error("View ".concat(v, ".").concat(k, " is not set."));
                                                     }
                                                     return [3 /*break*/, 5];
                                                 case 5: return [2 /*return*/];
@@ -1078,7 +1078,8 @@ export function makeEthLike(ethLikeArgs) {
                             };
                             return { createEventStream: createEventStream };
                         };
-                        return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+                        var getABI = stdGetABI(ABI);
+                        return stdContract({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
                     };
                     ;
                     tokenAccepted = function (token) { return __awaiter(_this, void 0, void 0, function () {
@@ -1275,7 +1276,7 @@ export function makeEthLike(ethLikeArgs) {
                     return [3 /*break*/, 6];
                 case 5:
                     e_9 = _a.sent();
-                    console.log("newTestAccount: Trouble with account " + to);
+                    console.log("newTestAccount: Trouble with account ".concat(to));
                     throw e_9;
                 case 6: return [2 /*return*/, acc];
             }
@@ -1389,7 +1390,7 @@ export function makeEthLike(ethLikeArgs) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    dhead = label + ": verifyContract";
+                    dhead = "".concat(label, ": verifyContract");
                     debug(dhead, { ctcInfo: ctcInfo });
                     _a = backend._Connectors.ETH, ABI = _a.ABI, Bytecode = _a.Bytecode;
                     ctcAddress = protect(T_Contract, ctcInfo);
@@ -1397,7 +1398,7 @@ export function makeEthLike(ethLikeArgs) {
                     debug(dhead, { ctcAddress: ctcAddress });
                     chk = function (p, msg) {
                         if (!p) {
-                            throw Error("verifyContract failed: " + msg);
+                            throw Error("verifyContract failed: ".concat(msg));
                         }
                     };
                     creationBlock = bigNumberify(0);
@@ -1416,14 +1417,14 @@ export function makeEthLike(ethLikeArgs) {
                     return [3 /*break*/, 5];
                 case 4:
                     e_10 = _b.sent();
-                    chk(false, "Failed to call the '_reachCreationTime' method on the contract " + ctcAddress + " during contract bytecode verification. This could mean that there is a general network fault, or it could mean that the given address is not a Reach contract and does not provide this function. The internal error we caught is: " + e_10);
+                    chk(false, "Failed to call the '_reachCreationTime' method on the contract ".concat(ctcAddress, " during contract bytecode verification. This could mean that there is a general network fault, or it could mean that the given address is not a Reach contract and does not provide this function. The internal error we caught is: ").concat(e_10));
                     return [3 /*break*/, 5];
                 case 5:
                     eq.init({ ctcAddress: ctcAddress, creationBlock: creationBlock });
                     chkeq = function (a, e, msg) {
                         var as = JSON.stringify(a);
                         var es = JSON.stringify(e);
-                        chk(as === es, msg + ": expected " + es + ", got " + as);
+                        chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
                     };
                     return [4 /*yield*/, eq.peq(dhead, (function (bn) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
                             return [2 /*return*/, bn.gt(creationBlock)];
@@ -1432,7 +1433,7 @@ export function makeEthLike(ethLikeArgs) {
                     r0 = _b.sent();
                     debug(dhead, { r0: r0 });
                     if (r0.timeout) {
-                        chk(false, "Contract was claimed to be deployed, but the current block is " + r0.time + " and it hasn't been deployed yet.");
+                        chk(false, "Contract was claimed to be deployed, but the current block is ".concat(r0.time, " and it hasn't been deployed yet."));
                         throw Error("impossible");
                     }
                     e0rec = r0.txn;
@@ -1482,7 +1483,7 @@ export function makeEthLike(ethLikeArgs) {
         if (decimals === void 0) { decimals = standardDigits; }
         // Recall that 1 WEI = 10e18 ETH
         if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-            throw Error("Expected decimals to be a nonnegative integer, but got " + decimals + ".");
+            throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
         }
         // Truncate
         decimals = Math.min(decimals, standardDigits);
@@ -1514,30 +1515,30 @@ export function makeEthLike(ethLikeArgs) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        debug("Launching token, " + name + " (" + sym + ")");
+                        debug("Launching token, ".concat(name, " (").concat(sym, ")"));
                         addr = function (acc) { return acc.networkAccount.address; };
                         remoteCtc = ETHstdlib["contracts"]["sol/stdlib.sol:ReachToken"];
                         remoteABI = remoteCtc["abi"];
                         remoteBytecode = remoteCtc["bin"];
                         factory = new ethers.ContractFactory(remoteABI, remoteBytecode, accCreator.networkAccount);
-                        debug(sym + ": deploy");
+                        debug("".concat(sym, ": deploy"));
                         supply = (opts.supply && bigNumberify(opts.supply)) || bigNumberify(2).pow(256).sub(1);
                         decimals = opts.decimals !== undefined ? opts.decimals : standardDigits;
                         return [4 /*yield*/, factory.deploy(name, sym, '', '', supply, decimals)];
                     case 1:
                         contract = _a.sent();
-                        debug(sym + ": wait for deploy: " + contract.deployTransaction.hash);
+                        debug("".concat(sym, ": wait for deploy: ").concat(contract.deployTransaction.hash));
                         return [4 /*yield*/, contract.deployTransaction.wait()];
                     case 2:
                         deploy_r = _a.sent();
-                        debug(sym + ": saw deploy: " + deploy_r.blockNumber);
+                        debug("".concat(sym, ": saw deploy: ").concat(deploy_r.blockNumber));
                         id = contract.address;
-                        debug(sym + ": deployed: " + id);
+                        debug("".concat(sym, ": deployed: ").concat(id));
                         mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
-                                        debug(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                        debug("".concat(sym, ": transferring ").concat(amt, " ").concat(sym, " for ").concat(addr(accTo)));
                                         return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
                                     case 1:
                                         _a.sent();
@@ -1549,7 +1550,7 @@ export function makeEthLike(ethLikeArgs) {
                             if (accTo === void 0) { accTo = accCreator; }
                             return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
-                                    debug(sym + ": optOut unnecessary on ETHlike", accFrom, accTo);
+                                    debug("".concat(sym, ": optOut unnecessary on ETHlike"), accFrom, accTo);
                                     return [2 /*return*/];
                                 });
                             });

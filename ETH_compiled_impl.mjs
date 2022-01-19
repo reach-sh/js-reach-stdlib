@@ -25,7 +25,7 @@ function addressUnwrapper(x) {
   } else if (x.address) {
     return x.address;
   } else {
-    throw Error("Failed to unwrap address " + x);
+    throw Error("Failed to unwrap address ".concat(x));
   }
 }
 export var T_Address = __assign(__assign({}, CBR.BT_Address), {

@@ -55,7 +55,7 @@ export default function waitPort(uri, givenPort) {
                         return [2 /*return*/];
                     _a = url.parse(uri), hostname = _a.hostname, port = _a.port, protocol = _a.protocol;
                     if (!(protocol === 'http:' || protocol === 'https:')) {
-                        throw Error("Unsupported protocol " + protocol);
+                        throw Error("Unsupported protocol ".concat(protocol));
                     }
                     thePort = port || givenPort;
                     testPort = (typeof thePort === 'string' && parseInt(thePort, 10)) || (typeof thePort === 'number' && thePort) || protocolPort[protocol];

@@ -44,7 +44,7 @@ export function loadStdlib(connectorModeOrEnv) {
       stdlib = stdlib_CFX;
       break;
     default:
-      throw Error("impossible: unknown connector " + connector);
+      throw Error("impossible: unknown connector ".concat(connector));
   }
   // also just inject ourselves into the window for ease of use
   window.reach = stdlib;

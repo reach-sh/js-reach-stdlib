@@ -51,14 +51,14 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 return v;
             }
             else {
-                throw Error("impossible: digest tuple() with non-empty array: " + JSON.stringify(v));
+                throw Error("impossible: digest tuple() with non-empty array: ".concat(JSON.stringify(v)));
             }
         }
         return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
     });
     var V_Null = null;
-    // null is represented in solidity as true
-    var T_Null = __assign(__assign({}, CBR.BT_Null), { defaultValue: V_Null, munge: function (bv) { return (void (bv), true); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' });
+    // null is represented in solidity as false
+    var T_Null = __assign(__assign({}, CBR.BT_Null), { defaultValue: V_Null, munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' });
     var T_Bool = __assign(__assign({}, CBR.BT_Bool), { defaultValue: false, munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' });
     var V_Bool = function (b) {
         return T_Bool.canonicalize(b);
@@ -106,10 +106,10 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 var fs = [];
                 while (0 < n) {
                     var ell = Math.min(32, n);
-                    fs.push("bytes" + ell);
+                    fs.push("bytes".concat(ell));
                     n = n - ell;
                 }
-                return "tuple(" + fs.join(',') + ")";
+                return "tuple(".concat(fs.join(','), ")");
             })() });
         return me;
     };
@@ -119,21 +119,24 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Digest = function (s) {
         return T_Digest.canonicalize(s);
     };
-    var T_Array = function (ctc, size) { return (__assign(__assign({}, CBR.BT_Array(ctc, size)), { defaultValue: Array(size).fill(ctc.defaultValue), munge: function (bv) {
-            if (size == 0) {
-                return false;
-            }
-            else {
-                return bv.map(function (arg) { return ctc.munge(arg); });
-            }
-        }, unmunge: function (nv) {
-            if (size == 0) {
-                return [];
-            }
-            else {
-                return V_Array(ctc, size)(nv.map(function (arg) { return ctc.unmunge(arg); }));
-            }
-        }, paramType: ctc.paramType + "[" + size + "]" })); };
+    var T_Array = function (ctc, size_i) {
+        var size = bigNumberToNumber(bigNumberify(size_i));
+        return __assign(__assign({}, CBR.BT_Array(ctc, size)), { defaultValue: Array(size).fill(ctc.defaultValue), munge: function (bv) {
+                if (size == 0) {
+                    return false;
+                }
+                else {
+                    return bv.map(function (arg) { return ctc.munge(arg); });
+                }
+            }, unmunge: function (nv) {
+                if (size == 0) {
+                    return [];
+                }
+                else {
+                    return V_Array(ctc, size)(nv.map(function (arg) { return ctc.unmunge(arg); }));
+                }
+            }, paramType: "".concat(ctc.paramType, "[").concat(size, "]") });
+    };
     var V_Array = function (ctc, size) { return function (val) {
         return T_Array(ctc, size).canonicalize(val);
     }; };
@@ -147,7 +150,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
             }
         }, unmunge: function (args) {
             return V_Tuple(ctcs)(ctcs.map(function (ctc, i) { return ctc.unmunge(args[i]); }));
-        }, paramType: "tuple(" + ctcs.map(function (ctc) { return ctc.paramType; }).join(',') + ")" })); };
+        }, paramType: "tuple(".concat(ctcs.map(function (ctc) { return ctc.paramType; }).join(','), ")") })); };
     var V_Tuple = function (ctcs) { return function (val) {
         return T_Tuple(ctcs).canonicalize(val);
     }; };
@@ -174,11 +177,11 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 void (k);
                 return ctc.unmunge(args[i]);
             }));
-        }, paramType: "tuple(" + ctcs.map(function (_a) {
+        }, paramType: "tuple(".concat(ctcs.map(function (_a) {
             var _b = __read(_a, 2), k = _b[0], ctc = _b[1];
             void (k);
             return ctc.paramType;
-        }).join(',') + ")" })); };
+        }).join(','), ")") })); };
     var V_Struct = function (ctcs) { return function (val) {
         return T_Struct(ctcs).canonicalize(val);
     }; };
@@ -211,8 +214,8 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
             return V_Object(co)(obj);
         }, paramType: (function () {
             var ascLabels = labelMaps(co).ascLabels;
-            var tupFields = ascLabels.map(function (label) { return co[label].paramType + " _" + label; }).join(',');
-            return "tuple(" + tupFields + ")";
+            var tupFields = ascLabels.map(function (label) { return "".concat(co[label].paramType, " _").concat(label); }).join(',');
+            return "tuple(".concat(tupFields, ")");
         })() })); };
     var V_Object = function (co) { return function (val) {
         return T_Object(co).canonicalize(val);
@@ -262,9 +265,9 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
             }, paramType: (function () {
                 var ascLabels = labelMaps(co).ascLabels;
                 // See comment on unmunge about field names that we could use but currently don't
-                var optionTys = ascLabels.map(function (label) { return co[label].paramType + " _" + label; });
-                var tupFields = [T_UInt.paramType + " which"].concat(optionTys).join(',');
-                return "tuple(" + tupFields + ")";
+                var optionTys = ascLabels.map(function (label) { return "".concat(co[label].paramType, " _").concat(label); });
+                var tupFields = ["".concat(T_UInt.paramType, " which")].concat(optionTys).join(',');
+                return "tuple(".concat(tupFields, ")");
             })() });
     };
     var V_Data = function (co) { return function (val) {

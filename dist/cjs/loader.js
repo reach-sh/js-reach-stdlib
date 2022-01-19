@@ -68,7 +68,7 @@ function loadStdlib(connectorModeOrEnv) {
         case 'CFX':
             stdlib = stdlib_CFX;
             break;
-        default: throw Error("impossible: unknown connector " + connector);
+        default: throw Error("impossible: unknown connector ".concat(connector));
     }
     // also just inject ourselves into the window for ease of use
     shim_1.window.reach = stdlib;

@@ -3,6 +3,7 @@ export type { Provider, ProviderEnv, ProviderName } from './ETH_impl';
 export type { Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Account } from './ETH_like';
 export * from './ETH_compiled';
 export declare const connector = "ETH";
+export * as ethers from 'ethers';
 export declare const getQueryLowerBound: typeof import("./shared_impl").getQueryLowerBound, setQueryLowerBound: typeof import("./shared_impl").setQueryLowerBound, getValidQueryWindow: () => number | true, setValidQueryWindow: (val: number | true) => void, getProvider: () => Promise<ethImpl.ethers.providers.Provider>, setProvider: (p: Promise<ethImpl.ethers.providers.Provider>) => void, randomUInt: () => ethImpl.ethers.BigNumber, hasRandom: {
     random: () => ethImpl.ethers.BigNumber;
 }, setProviderByEnv: (env: ethImpl.ProviderEnv) => void, setProviderByName: (providerName: ethImpl.ProviderName) => void, providerEnvByName: (providerName: ethImpl.ProviderName) => ethImpl.ProviderEnv, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: string | import("./ETH_like").Account, token?: string | false) => Promise<ethImpl.ethers.BigNumber>, transfer: (from: import("./ETH_like").Account | {

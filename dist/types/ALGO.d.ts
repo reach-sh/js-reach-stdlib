@@ -44,6 +44,7 @@ export declare type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
             version: number;
+            ABI: any;
             appApproval: string;
             appClear: string;
             extraPages: number;
@@ -61,10 +62,11 @@ export declare type Account = IAccount<NetworkAccount, Backend, Contract, Contra
 export declare const signSendAndConfirm: (acc: NetworkAccount, txns: Array<WalletTransaction>) => Promise<RecvTxn>;
 export declare const toWTxn: (t: Transaction) => WalletTransaction;
 export declare const getTxnParams: (label: string) => Promise<TxnParams>;
+export declare const MinTxnFee = 1000;
 export declare function getValidQueryWindow(): number | true;
 export declare function setValidQueryWindow(n: number | true): void;
 export declare const addressEq: (addr1: unknown, addr2: unknown) => boolean, tokenEq: (x: unknown, y: unknown) => boolean, digest: (t: ALGO_Ty<any>, a: unknown) => string;
-export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size: number) => ALGO_Ty<import("./CBR").CBR_Array>, T_Contract: ALGO_Ty<ethers.BigNumber>, T_Object: (coMap: {
+export declare const T_Null: ALGO_Ty<null>, T_Bool: ALGO_Ty<boolean>, T_UInt: ALGO_Ty<ethers.BigNumber>, T_Tuple: (cos: ALGO_Ty<CBR_Val>[]) => ALGO_Ty<import("./CBR").CBR_Tuple>, T_Array: (co: ALGO_Ty<CBR_Val>, size_u: unknown) => ALGO_Ty<import("./CBR").CBR_Array>, T_Contract: ALGO_Ty<ethers.BigNumber>, T_Object: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;
 }) => ALGO_Ty<import("./CBR").CBR_Object>, T_Data: (coMap: {
     [key: string]: ALGO_Ty<CBR_Val>;

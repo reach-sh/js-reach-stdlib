@@ -79,18 +79,18 @@ import Timeout from 'await-timeout';
 import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { stdContract, stdVerifyContract, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, } from './shared_impl';
+import { stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, } from './shared_impl';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user';
 import waitPort from './waitPort';
-import { addressFromHex, stdlib, typeDefs, extractAddr, } from './ALGO_compiled';
+import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
 import { window, process } from './shim';
 import { sha512_256 } from 'js-sha512';
 export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mul, div = stdlib.div, protect = stdlib.protect, assert = stdlib.assert, Array_set = stdlib.Array_set, eq = stdlib.eq, ge = stdlib.ge, gt = stdlib.gt, le = stdlib.le, lt = stdlib.lt, bytesEq = stdlib.bytesEq, digestEq = stdlib.digestEq;
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
-var reachBackendVersion = 7;
-var reachAlgoBackendVersion = 8;
+var reachBackendVersion = 8;
+var reachAlgoBackendVersion = 9;
 // Helpers
 // Parse CBR into Public Key
 var cbr2algo_addr = function (x) {
@@ -103,7 +103,7 @@ function uint8ArrayToStr(a, enc) {
     if (enc === void 0) { enc = 'utf8'; }
     if (!(a instanceof Uint8Array)) {
         console.log(a);
-        throw Error("Expected Uint8Array, got " + a);
+        throw Error("Expected Uint8Array, got ".concat(a));
     }
     return Buffer.from(a).toString(enc);
 }
@@ -148,7 +148,7 @@ var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, voi
                         }
                     });
                 }); };
-                dhead = "waitForConfirmation " + txId;
+                dhead = "waitForConfirmation ".concat(txId);
                 return [4 /*yield*/, getAlgodClient()];
             case 1:
                 client = _a.sent();
@@ -189,7 +189,7 @@ var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, voi
                                 debug(dhead, 'still in pool, trying again');
                                 return [4 /*yield*/, checkAlgod()];
                             case 5: return [2 /*return*/, _a.sent()];
-                            case 6: throw Error("waitForConfirmation: error confirming: " + JSON.stringify(info));
+                            case 6: throw Error("waitForConfirmation: error confirming: ".concat(JSON.stringify(info)));
                         }
                     });
                 }); };
@@ -230,7 +230,7 @@ var doSignTxn = function (ts, sk) {
     return doSignTxnToB64(decodeB64Txn(ts), sk);
 };
 export var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0, void 0, function () {
-    var p, e_2, es, N, tN, e_3, es;
+    var p, e_2, es, r, N, tN, e_3, es;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -256,7 +256,20 @@ export var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, 
                 return [3 /*break*/, 5];
             case 4:
                 e_2 = _a.sent();
-                es = "" + e_2;
+                es = "".concat(e_2);
+                if ('response' in e_2) {
+                    r = e_2.response;
+                    if ('body' in r) {
+                        e_2.response = r.body;
+                    }
+                    else if ('text' in r) {
+                        e_2.response = r.text;
+                    }
+                    else {
+                        delete r.request;
+                        delete r.req;
+                    }
+                }
                 throw { type: 'signAndPost', e: e_2, es: es };
             case 5:
                 N = txns.length - 1;
@@ -268,7 +281,7 @@ export var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, 
             case 7: return [2 /*return*/, _a.sent()]; // tN.lastRound
             case 8:
                 e_3 = _a.sent();
-                es = "" + e_3;
+                es = "".concat(e_3);
                 throw { type: 'waitForConfirmation', e: e_3, es: es };
             case 9: return [2 /*return*/];
         }
@@ -290,7 +303,7 @@ export var getTxnParams = function (label) { return __awaiter(void 0, void 0, vo
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                dhead = label + " fillTxn";
+                dhead = "".concat(label, " fillTxn");
                 debug(dhead, "getting params");
                 return [4 /*yield*/, getAlgodClient()];
             case 1:
@@ -327,10 +340,10 @@ var sign_and_send_sync = function (label, acc, txn) { return __awaiter(void 0, v
                 console.log(e_4);
                 es = JSON.stringify(e_4);
                 if (es === '{}') {
-                    es = "" + e_4;
+                    es = "".concat(e_4);
                 }
                 ;
-                throw Error(label + " txn failed:\n" + JSON.stringify(txn) + "\nwith:\n" + es);
+                throw Error("".concat(label, " txn failed:\n").concat(JSON.stringify(txn), "\nwith:\n").concat(es));
             case 3: return [2 /*return*/];
         }
     });
@@ -349,13 +362,13 @@ function must_be_supported(bin) {
     var algob = bin._Connectors.ALGO;
     var unsupported = algob.unsupported;
     if (unsupported.length > 0) {
-        var reasons = unsupported.map(function (s) { return " * " + s; }).join('\n');
-        throw Error("This Reach application is not supported on Algorand for the following reasons:\n" + reasons);
+        var reasons = unsupported.map(function (s) { return " * ".concat(s); }).join('\n');
+        throw Error("This Reach application is not supported on Algorand for the following reasons:\n".concat(reasons));
     }
 }
 // Get these from stdlib
 // const MaxTxnLife = 1000;
-var MinTxnFee = 1000;
+export var MinTxnFee = 1000;
 var MaxAppTxnAccounts = 4;
 var MinBalance = 100000;
 var ui8h = function (x) { return Buffer.from(x).toString('hex'); };
@@ -365,10 +378,10 @@ var format_failed_request = function (e) {
     var ep = JSON.parse(JSON.stringify(e));
     var db64 = ep.req ?
         (ep.req.data ? base64ify(ep.req.data) :
-            "no data, but " + JSON.stringify(Object.keys(ep.req))) :
-        "no req, but " + JSON.stringify(Object.keys(ep));
+            "no data, but ".concat(JSON.stringify(Object.keys(ep.req)))) :
+        "no req, but ".concat(JSON.stringify(Object.keys(ep)));
     var msg = e.text ? JSON.parse(e.text) : e;
-    return "\n" + db64 + "\n" + JSON.stringify(msg);
+    return "\n".concat(db64, "\n").concat(JSON.stringify(msg));
 };
 function looksLikeAccountingNotInitialized(e) {
     var _a;
@@ -716,7 +729,7 @@ var walletFallback_mnemonic = function (opts) { return function () {
             return [2 /*return*/, txns.map(function (ts) {
                     var t = decodeB64Txn(ts);
                     var addr = txnFromAddress(t);
-                    var mn = window.prompt("Please paste the mnemonic for the address, " + addr + ". It will not be saved.");
+                    var mn = window.prompt("Please paste the mnemonic for the address, ".concat(addr, ". It will not be saved."));
                     var acc = algosdk.mnemonicToSecretKey(mn);
                     return doSignTxnToB64(t, acc.sk);
                 })];
@@ -726,6 +739,10 @@ var walletFallback_mnemonic = function (opts) { return function () {
 }; };
 var walletFallback_MyAlgoWallet = function (MyAlgoConnect, opts) { return function () {
     debug("using MyAlgoWallet wallet fallback");
+    // Workaround for known webpack issue w/ MAW 1.1.2 & earlier
+    // https://github.com/randlabs/myalgo-connect/issues/27
+    if (!window.Buffer)
+        window.Buffer = Buffer;
     // @ts-ignore
     var mac = new MyAlgoConnect();
     // MyAlgoConnect uses a global popup object for managing, so we need to
@@ -871,7 +888,7 @@ function makeProviderByEnv(env) {
                     lab = "Providers created by environment";
                     getDefaultAddress = function () { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
-                            throw new Error(lab + " do not have default addresses");
+                            throw new Error("".concat(lab, " do not have default addresses"));
                         });
                     }); };
                     signAndPostTxns = function (txns, opts) { return __awaiter(_this, void 0, void 0, function () {
@@ -884,7 +901,7 @@ function makeProviderByEnv(env) {
                                         if (txn.stxn) {
                                             return txn.stxn;
                                         }
-                                        throw new Error(lab + " cannot interactively sign");
+                                        throw new Error("".concat(lab, " cannot interactively sign"));
                                     });
                                     bs = stxns.map(function (stxn) { return Buffer.from(stxn, 'base64'); });
                                     debug("signAndPostTxns", bs);
@@ -906,13 +923,13 @@ export function setProviderByEnv(env) {
 }
 ;
 function randlabsProviderEnv(net) {
-    var prefix = net === 'MainNet' ? '' : net.toLowerCase() + ".";
-    var RANDLABS_BASE = prefix + "algoexplorerapi.io";
+    var prefix = net === 'MainNet' ? '' : "".concat(net.toLowerCase(), ".");
+    var RANDLABS_BASE = "".concat(prefix, "algoexplorerapi.io");
     return {
-        ALGO_SERVER: "https://" + RANDLABS_BASE,
+        ALGO_SERVER: "https://node.".concat(RANDLABS_BASE),
         ALGO_PORT: '',
         ALGO_TOKEN: '',
-        ALGO_INDEXER_SERVER: "https://algoindexer." + RANDLABS_BASE,
+        ALGO_INDEXER_SERVER: "https://algoindexer.".concat(RANDLABS_BASE),
         ALGO_INDEXER_PORT: '',
         ALGO_INDEXER_TOKEN: '',
         REACH_ISOLATED_NETWORK: 'no'
@@ -927,7 +944,7 @@ export function providerEnvByName(pn) {
         case 'randlabs/TestNet': return randlabsProviderEnv('TestNet');
         case 'randlabs/BetaNet': return randlabsProviderEnv('BetaNet');
         case 'LocalHost': return localhostProviderEnv;
-        default: throw Error("Unrecognized provider name: " + pn);
+        default: throw Error("Unrecognized provider name: ".concat(pn));
     }
 }
 export function setProviderByName(pn) {
@@ -947,9 +964,9 @@ export var getFaucet = (_c = __read(replaceableThunk(function () { return __awai
     });
 }); }), 2), _c[0]), setFaucet = _c[1];
 var str2note = function (x) { return new Uint8Array(Buffer.from(x)); };
-var NOTE_Reach_str = "Reach " + VERSION;
+var NOTE_Reach_str = "Reach ".concat(VERSION);
 var NOTE_Reach = str2note(NOTE_Reach_str);
-var NOTE_Reach_tag = function (tag) { return tag ? str2note(NOTE_Reach_str + (" " + tag + ")")) : NOTE_Reach; };
+var NOTE_Reach_tag = function (tag) { return tag ? str2note(NOTE_Reach_str + " ".concat(tag, ")")) : NOTE_Reach; };
 export var makeTransferTxn = function (from, to, value, token, ps, closeTo, tag) {
     if (closeTo === void 0) { closeTo = undefined; }
     if (tag === void 0) { tag = undefined; }
@@ -976,7 +993,7 @@ export var transfer = function (from, to, value, token, tag) {
                 case 1:
                     ps = _a.sent();
                     txn = toWTxn(makeTransferTxn(sender.addr, receiver, valuebn, token, ps, undefined, tag));
-                    return [4 /*yield*/, sign_and_send_sync("transfer " + JSON.stringify(from) + " " + JSON.stringify(to) + " " + valuebn, sender, txn)];
+                    return [4 /*yield*/, sign_and_send_sync("transfer ".concat(JSON.stringify(from), " ").concat(JSON.stringify(to), " ").concat(valuebn), sender, txn)];
                 case 2: return [2 /*return*/, _a.sent()];
             }
         });
@@ -986,18 +1003,19 @@ export var transfer = function (from, to, value, token, tag) {
 var makeLogRep = function (evt, tys) {
     var hLen = 4;
     var tyns = tys.map(function (ty) { return ty.netName; });
-    var sig = evt + "(" + tyns.join(',') + ")";
-    var hp = base64ify(sha512_256(sig));
+    var sig = "".concat(evt, "(").concat(tyns.join(','), ")");
+    var hu = sha512_256(sig);
+    var hp = hu.slice(0, hLen * 2); // hu is hex nibbles
     var trunc = function (x) { return ui8h(base64ToUI8A(x).slice(0, hLen)); };
-    var hpb = trunc(hp);
-    debug("makeLogRep", { evt: evt, tyns: tyns, sig: sig, hp: hp, hpb: hpb });
+    debug("makeLogRep", { evt: evt, tyns: tyns, sig: sig, hu: hu, hp: hp });
     var parse = function (log) {
-        if (trunc(log) !== hpb) {
+        if (trunc(log) !== hp) {
             return undefined;
         }
+        debug("parse", { log: log });
         // @ts-ignore
-        var _a = __read(T_Tuple([T_Bytes(hLen)].concat(tys)).fromNet(reNetify(log))), logb = _a[0], pd = _a.slice(1);
-        debug("parse", { log: log, logb: logb, pd: pd });
+        var _a = __read(T_Tuple(__spreadArray([bytestringyNet(hLen)], __read(tys), false)).fromNet(reNetify(log))), logb = _a[0], pd = _a.slice(1);
+        debug("parse", { logb: logb, pd: pd });
         return pd;
     };
     var parse0 = function (txn) {
@@ -1010,7 +1028,7 @@ var makeLogRep = function (evt, tys) {
     var parse0b = function (txn) { return parse0(txn) !== undefined; };
     return { parse: parse, parse0: parse0, parse0b: parse0b };
 };
-var reachEvent = function (i) { return "_reach_e" + i; };
+var reachEvent = function (i) { return "_reach_e".concat(i); };
 var makeHasLogFor = function (i, tys) {
     debug("hasLogFor", i, tys);
     var lr = makeLogRep(reachEvent(i), tys);
@@ -1129,13 +1147,13 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                 return some_addr;
             }
             else {
-                throw Error("I should be " + some_addr + ", but am " + pks);
+                throw Error("I should be ".concat(some_addr, ", but am ").concat(pks));
             }
         };
         contract = function (bin, givenInfoP) {
             ensureConnectorAvailable(bin, 'ALGO', reachBackendVersion, reachAlgoBackendVersion);
             must_be_supported(bin);
-            var _a = bin._Connectors.ALGO, stateSize = _a.stateSize, stateKeys = _a.stateKeys, mapDataKeys = _a.mapDataKeys, mapDataSize = _a.mapDataSize;
+            var _a = bin._Connectors.ALGO, stateSize = _a.stateSize, stateKeys = _a.stateKeys, mapDataKeys = _a.mapDataKeys, mapDataSize = _a.mapDataSize, ABI = _a.ABI;
             var hasMaps = mapDataKeys > 0;
             var mapDataTy = bin._getMaps({ reachStdlib: stdlib }).mapDataTy;
             var emptyMapDataTy = T_Bytes(mapDataTy.netSize);
@@ -1405,7 +1423,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                         if (vibne.eq(vibna)) {
                                             return vtys;
                                         }
-                                        throw Error("Expected state " + vibne + ", got " + vibna);
+                                        throw Error("Expected state ".concat(vibne, ", got ").concat(vibna));
                                     })];
                             case 1: return [2 /*return*/, _a.sent()];
                         }
@@ -1438,15 +1456,15 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             case 0:
                                                 debug(dhead, "doRecv", msg);
                                                 if (!didSend && lct.eq(0)) {
-                                                    throw new Error("API call failed: " + msg);
+                                                    throw new Error("API call failed: ".concat(msg));
                                                 }
                                                 return [4 /*yield*/, recv({ funcNum: funcNum, evt_cnt: evt_cnt, out_tys: out_tys, didSend: didSend, waitIfNotPresent: waitIfNotPresent, timeoutAt: timeoutAt })];
                                             case 1: return [2 /*return*/, _a.sent()];
                                         }
                                     });
                                 }); };
-                                funcName = "m" + funcNum;
-                                dhead = label + ": sendrecv " + funcName + " " + timeoutAt;
+                                funcName = "m".concat(funcNum);
+                                dhead = "".concat(label, ": sendrecv ").concat(funcName, " ").concat(timeoutAt);
                                 if (!!onlyIf) return [3 /*break*/, 2];
                                 return [4 /*yield*/, doRecv(false, true, "onlyIf false")];
                             case 1: return [2 /*return*/, _m.sent()];
@@ -1488,7 +1506,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 createRes = _m.sent();
                                 ApplicationID_1 = createRes['created-application-index'];
                                 if (!ApplicationID_1) {
-                                    throw Error("No created-application-index in " + JSON.stringify(createRes));
+                                    throw Error("No created-application-index in ".concat(JSON.stringify(createRes)));
                                 }
                                 debug(label, "created", { ApplicationID: ApplicationID_1 });
                                 ctcInfo = ApplicationID_1;
@@ -1568,7 +1586,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             case 6:
                                                 if (!_p) return [3 /*break*/, 8];
                                                 _q = {};
-                                                return [4 /*yield*/, doRecv(false, false, "cannot win " + lct)];
+                                                return [4 /*yield*/, doRecv(false, false, "cannot win ".concat(lct))];
                                             case 7: return [2 /*return*/, (_q.value = _t.sent(), _q)];
                                             case 8:
                                                 debug(dhead, '--- ASSEMBLE w/', params);
@@ -1690,11 +1708,12 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 // @ts-ignore
                                                 function (m, i) { return actual_tys[i].toNet(m); });
                                                 safe_args.unshift(new Uint8Array([funcNum]));
+                                                safe_args.unshift(new Uint8Array([0]));
                                                 safe_args.forEach(function (x) {
                                                     if (!(x instanceof Uint8Array)) {
                                                         // The types say this is impossible now,
                                                         // but we'll leave it in for a while just in case...
-                                                        throw Error("expect safe program argument, got " + JSON.stringify(x));
+                                                        throw Error("expect safe program argument, got ".concat(JSON.stringify(x)));
                                                     }
                                                 });
                                                 debug(dhead, '--- PREPARE:', safe_args.map(ui8h));
@@ -1738,7 +1757,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 }
                                                 else {
                                                     // Otherwise, something bad is happening
-                                                    throw Error(label + " failed to call " + funcName + ": " + jes);
+                                                    throw Error("".concat(label, " failed to call ").concat(funcName, ": ").concat(jes));
                                                 }
                                                 return [3 /*break*/, 14];
                                             case 14:
@@ -1793,7 +1812,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 l = _b.value;
                                                 lb = reNetify(l);
                                                 ln = T_UInt.fromNet(lb);
-                                                ls = "v" + ln;
+                                                ls = "v".concat(ln);
                                                 debug("getOutput", { l: l, lb: lb, ln: ln, ls: ls });
                                                 if (ls === o_lab) {
                                                     ld = f_ctc.fromNet(lb);
@@ -1810,7 +1829,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             }
                                             finally { if (e_9) throw e_9.error; }
                                         }
-                                        throw Error("no log for " + o_lab);
+                                        throw Error("no log for ".concat(o_lab));
                                     });
                                 }); };
                                 return [2 /*return*/, {
@@ -1831,8 +1850,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                         switch (_a.label) {
                             case 0:
                                 funcNum = rargs.funcNum, out_tys = rargs.out_tys, didSend = rargs.didSend, timeoutAt = rargs.timeoutAt, waitIfNotPresent = rargs.waitIfNotPresent;
-                                funcName = "m" + funcNum;
-                                dhead = label + ": recv " + funcName + " " + timeoutAt;
+                                funcName = "m".concat(funcNum);
+                                dhead = "".concat(label, ": recv ").concat(funcName, " ").concat(timeoutAt);
                                 debug(dhead, 'start');
                                 return [4 /*yield*/, getC()];
                             case 1:
@@ -1877,7 +1896,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     return [2 /*return*/, { didTimeout: true }];
                                 }
                                 else {
-                                    throw Error(dhead + ": impossible: not good, but no timeout");
+                                    throw Error("".concat(dhead, ": impossible: not good, but no timeout"));
                                 }
                                 _a.label = 6;
                             case 6: return [2 /*return*/];
@@ -1977,7 +1996,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                                 vi_1 = bigNumberToNumber(vibna);
                                                 var vtys = vs[vi_1];
                                                 if (!vtys) {
-                                                    throw Error("no views for state " + vibna);
+                                                    throw Error("no views for state ".concat(vibna));
                                                 }
                                                 return vtys;
                                             })];
@@ -1995,7 +2014,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             return [2 /*return*/, ['None', null]];
                                         }
                                         else {
-                                            throw Error("View " + v + "." + k + " is not set.");
+                                            throw Error("View ".concat(v, ".").concat(k, " is not set."));
                                         }
                                         return [3 /*break*/, 5];
                                     case 5: return [2 /*return*/];
@@ -2036,7 +2055,14 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                 };
                 return { createEventStream: createEventStream };
             };
-            return stdContract({ bin: bin, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+            var ABI_sigs = ABI.sigs;
+            var getABI = function (isFull) { return ({
+                sigs: (isFull ? ABI_sigs : ABI_sigs.map(function (name) { return ({ name: name }); }).filter(stdABIFilter).map(function (_a) {
+                    var name = _a.name;
+                    return name;
+                }))
+            }); };
+            return stdContract({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
         };
         me_na = { networkAccount: networkAccount };
         tokenAccepted = function (token) { return __awaiter(void 0, void 0, void 0, function () {
@@ -2096,7 +2122,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 return p(32, mh);
                             }
                             catch (e) {
-                                debug("tokenMetadata metadata-hash", "" + e);
+                                debug("tokenMetadata metadata-hash", "".concat(e));
                                 return p_t(T_Digest, mh);
                             }
                         })();
@@ -2191,14 +2217,14 @@ export var canFundFromFaucet = function () { return __awaiter(void 0, void 0, vo
                 act = txnParams.genesisID;
                 exp = 'devnet-v1';
                 if (act !== exp) {
-                    debug(dhead, "expected '" + exp + "' !== actual '" + act + "'");
+                    debug(dhead, "expected '".concat(exp, "' !== actual '").concat(act, "'"));
                     return [2 /*return*/, false];
                 }
                 debug(dhead, 'check balance');
                 return [4 /*yield*/, balanceOf(faucet)];
             case 3:
                 fbal = _a.sent();
-                debug(dhead, "faucet balance = " + formatCurrency(fbal, 4) + " " + standardUnit);
+                debug(dhead, "faucet balance = ".concat(formatCurrency(fbal, 4), " ").concat(standardUnit));
                 return [2 /*return*/, gt(fbal, 0)];
         }
     });
@@ -2248,7 +2274,7 @@ export var atomicUnit = 'μALGO';
 export function parseCurrency(amt, decimals) {
     if (decimals === void 0) { decimals = 6; }
     if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-        throw Error("Expected decimals to be a nonnegative integer, but got " + decimals + ".");
+        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
     }
     // @ts-ignore
     var numericAmt = isBigNumber(amt) ? amt.toNumber()
@@ -2293,10 +2319,10 @@ function ldrop(str, char) {
 function handleFormat(amt, decimals, splitValue) {
     if (splitValue === void 0) { splitValue = 6; }
     if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-        throw Error("Expected decimals to be a nonnegative integer, but got " + decimals + ".");
+        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
     }
     if (!(Number.isInteger(splitValue) && 0 <= splitValue)) {
-        throw Error("Expected split value to be a nonnegative integer, but got " + decimals + ".");
+        throw Error("Expected split value to be a nonnegative integer, but got ".concat(decimals, "."));
     }
     var amtStr = bigNumberify(amt).toString();
     var splitAt = Math.max(amtStr.length - splitValue, 0);
@@ -2308,7 +2334,7 @@ function handleFormat(amt, decimals, splitValue) {
     var rPre = lpad(amtStr.slice(splitAt), '0', splitValue);
     var rSliced = rPre.slice(0, decimals);
     var r = rdrop(rSliced, '0');
-    return r ? l + "." + r : l;
+    return r ? "".concat(l, ".").concat(r) : l;
 }
 /**
  * @description  Format currency by network
@@ -2498,22 +2524,22 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
                 ai_bn = protect(T_Contract, info);
                 ApplicationID = bigNumberToNumber(ai_bn);
                 _a = bin._Connectors.ALGO, appApproval = _a.appApproval, appClear = _a.appClear, mapDataKeys = _a.mapDataKeys, stateKeys = _a.stateKeys;
-                dhead = label + ": verifyContract";
+                dhead = "".concat(label, ": verifyContract");
                 chk = function (p, msg) {
                     if (!p) {
-                        throw Error(dhead + " failed: " + msg);
+                        throw Error("".concat(dhead, " failed: ").concat(msg));
                     }
                 };
                 chkeq = function (a, e, msg) {
                     var as = JSON.stringify(a);
                     var es = JSON.stringify(e);
-                    chk(as === es, msg + ": expected " + es + ", got " + as);
+                    chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
                 };
                 return [4 /*yield*/, getApplicationInfoM(ApplicationID)];
             case 1:
                 appInfoM = _b.sent();
                 if ('exn' in appInfoM) {
-                    throw Error(dhead + " failed: failed to lookup application (" + ApplicationID + "): " + JSON.stringify(appInfoM.exn));
+                    throw Error("".concat(dhead, " failed: failed to lookup application (").concat(ApplicationID, "): ").concat(JSON.stringify(appInfoM.exn)));
                 }
                 appInfo = appInfoM.val;
                 appInfo_p = appInfo['params'];
@@ -2570,7 +2596,7 @@ export function launchToken(accCreator, name, sym, opts) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    debug("Launching token, " + name + " (" + sym + ")");
+                    debug("Launching token, ".concat(name, " (").concat(sym, ")"));
                     addr = function (acc) { return acc.networkAccount.addr; };
                     caddr = addr(accCreator);
                     zaddr = caddr;
@@ -2611,15 +2637,15 @@ export function launchToken(accCreator, name, sym, opts) {
                     ctxn_p = _a.sent();
                     idn = ctxn_p['created-asset-index'];
                     if (!idn) {
-                        throw Error(sym + " no asset-index!");
+                        throw Error("".concat(sym, " no asset-index!"));
                     }
                     id = bigNumberify(idn);
-                    debug(sym + ": asset is " + id);
+                    debug("".concat(sym, ": asset is ").concat(id));
                     mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    debug(sym + ": transferring " + amt + " " + sym + " for " + addr(accTo));
+                                    debug("".concat(sym, ": transferring ").concat(amt, " ").concat(sym, " for ").concat(addr(accTo)));
                                     return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
                                 case 1:
                                     _a.sent();

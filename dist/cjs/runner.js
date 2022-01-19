@@ -97,7 +97,7 @@ function run(file) {
                     if (!file) {
                         throw Error('Run requires an argument.');
                     }
-                    return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require(mountDir + "/" + file)); })];
+                    return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require("".concat(mountDir, "/").concat(file))); })];
                 case 1:
                     m = _a.sent();
                     return [4 /*yield*/, (0, loader_1.loadStdlib)()];

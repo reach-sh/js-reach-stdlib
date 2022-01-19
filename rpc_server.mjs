@@ -119,14 +119,14 @@ export var mkKont = function() {
   // TODO consider replacing stringly-typed exceptions with structured
   // descendants of `Error` base class
   var UNTRACKED = 'Untracked continuation ID:';
-  var untracked = function(i) { return UNTRACKED + " " + i; };
+  var untracked = function(i) { return "".concat(UNTRACKED, " ").concat(i); };
   var k = {};
   var i = 0;
   var mkWas = function(m) {
     return function(e) {
       return !!(e.message && e.message
         .substr(0, m.length)
-        .match("^" + m + "$"));
+        .match("^".concat(m, "$")));
     };
   };
   var was = {
@@ -144,7 +144,7 @@ export var mkKont = function() {
             return [4 /*yield*/ , randomBytes(24)];
           case 1:
             rb = _a.sent();
-            id = i + "_" + rb.toString('hex');
+            id = "".concat(i, "_").concat(rb.toString('hex'));
             k[id] = a;
             i++;
             return [2 /*return*/ , id];
@@ -458,7 +458,7 @@ export var serveRpc = function(backend) {
             setDebugLabel: function(id, l) {
               return __awaiter(void 0, void 0, void 0, function() {
                 return __generator(this, function(_a) {
-                  return [2 /*return*/ , account.id(id).setDebugLabel(l)];
+                  return [2 /*return*/ , account.id(id).setDebugLabel(l) && id];
                 });
               });
             },
@@ -526,23 +526,23 @@ export var serveRpc = function(backend) {
                     switch (_b.label) {
                       case 0:
                         was = kont.was;
-                        client = "client " + req.ip + ": " + req.method + " " + req.originalUrl + " " + JSON.stringify(req.body);
+                        client = "client ".concat(req.ip, ": ").concat(req.method, " ").concat(req.originalUrl, " ").concat(JSON.stringify(req.body));
                         _b.label = 1;
                       case 1:
                         _b.trys.push([1, 3, , 4]);
-                        debug("Attempting to process request by " + client);
+                        debug("Attempting to process request by ".concat(client));
                         return [4 /*yield*/ , f(req, res)];
                       case 2:
                         _b.sent();
                         return [3 /*break*/ , 4];
                       case 3:
                         e_1 = _b.sent();
-                        debug("!! Witnessed exception triggered by " + client + ":\n  " + e_1.stack);
+                        debug("!! Witnessed exception triggered by ".concat(client, ":\n  ").concat(e_1.stack));
                         _a = __read(was.untracked(e_1) ? [404, String(e_1)] :
                           [500, 'Unspecified fault'], 2), s = _a[0], message = _a[1];
                         if (!res.headersSent) {
                           res.status(s).json({ message: message, request: req.body });
-                          debug("!! HTTP " + s + ": \"" + message + "\" response sent to client");
+                          debug("!! HTTP ".concat(s, ": \"").concat(message, "\" response sent to client"));
                         } else {
                           res.end();
                           debug("!! Response already initiated; unable to send appropriate payload");
@@ -559,20 +559,20 @@ export var serveRpc = function(backend) {
           mkRPC = function(olab, obj) {
             var router = express.Router();
             var _loop_2 = function(k) {
-              router.post("/" + k, safely(function(req, res) {
+              router.post("/".concat(k), safely(function(req, res) {
                 return __awaiter(void 0, void 0, void 0, function() {
                   var args, lab, ans, ret;
                   return __generator(this, function(_a) {
                     switch (_a.label) {
                       case 0:
                         args = req.body;
-                        lab = "RPC /" + olab + "/" + k + " " + JSON.stringify(args);
+                        lab = "RPC /".concat(olab, "/").concat(k, " ").concat(JSON.stringify(args));
                         debug(lab);
                         return [4 /*yield*/ , obj[k].apply(obj, __spreadArray([], __read(args), false))];
                       case 1:
                         ans = _a.sent();
                         ret = ans === undefined ? null : ans;
-                        debug(lab + " ==> " + JSON.stringify(ret));
+                        debug("".concat(lab, " ==> ").concat(JSON.stringify(ret)));
                         res.json(ret);
                         return [2 /*return*/ ];
                     }
@@ -597,9 +597,9 @@ export var serveRpc = function(backend) {
                   switch (_b.label) {
                     case 0:
                       if (!Array.isArray(req.body))
-                        throw new Error("Expected an array but received: " + req.body);
+                        throw new Error("Expected an array but received: ".concat(req.body));
                       _a = __read(req.body), id = _a[0], args = _a.slice(1);
-                      lab = "RPC " + olab + req.path + " " + JSON.stringify(req.body);
+                      lab = "RPC ".concat(olab).concat(req.path, " ").concat(JSON.stringify(req.body));
                       debug(lab);
                       _b.label = 1;
                     case 1:
@@ -610,15 +610,15 @@ export var serveRpc = function(backend) {
                       ];
                     case 2:
                       a = _b.sent();
-                      debug(lab + " ==> " + JSON.stringify(a));
+                      debug("".concat(lab, " ==> ").concat(JSON.stringify(a)));
                       return [2 /*return*/ , res.json(a)];
                     case 3:
                       e_2 = _b.sent();
                       if (unsafe) {
-                        debug(lab + " ==> " + JSON.stringify(e_2));
+                        debug("".concat(lab, " ==> ").concat(JSON.stringify(e_2)));
                         return [2 /*return*/ , res.status(404).json({})];
                       } else {
-                        debug(lab + " ==> " + JSON.stringify(null));
+                        debug("".concat(lab, " ==> ").concat(JSON.stringify(null)));
                         return [2 /*return*/ , res.json(null)];
                       }
                       return [3 /*break*/ , 4];
@@ -638,8 +638,8 @@ export var serveRpc = function(backend) {
                   case 0:
                     args = req.body;
                     if (!Array.isArray(args))
-                      throw new Error("Expected an array but received: " + args);
-                    lab = "RPC /backend" + req.path + (args.length > 0 ? ' ' + JSON.stringify(args) : '');
+                      throw new Error("Expected an array but received: ".concat(args));
+                    lab = "RPC /backend".concat(req.path).concat(args.length > 0 ? ' ' + JSON.stringify(args) : '');
                     debug(lab);
                     _b = (_a = req.path.split('/')
                         .filter(function(a) { return a !== ''; })
@@ -661,7 +661,7 @@ export var serveRpc = function(backend) {
                     _e.label = 5;
                   case 5:
                     a = _d;
-                    debug(lab + " ==> " + JSON.stringify(a));
+                    debug("".concat(lab, " ==> ").concat(JSON.stringify(a)));
                     res.json(a);
                     return [2 /*return*/ ];
                 }
@@ -677,14 +677,14 @@ export var serveRpc = function(backend) {
                   return __generator(this, function(_b) {
                     switch (_b.label) {
                       case 0:
-                        debug(lab + " IN");
+                        debug("".concat(lab, " IN"));
                         _a = __read(req.body, 3), cid = _a[0], vals = _a[1], meths = _a[2];
                         ctc = contract.id(cid);
                         return [4 /*yield*/ , kont.track(res)];
                       case 1:
                         kid = _b.sent();
-                        lab = lab + " " + cid + " " + kid;
-                        debug(lab + " START " + JSON.stringify(req.body));
+                        lab = "".concat(lab, " ").concat(cid, " ").concat(kid);
+                        debug("".concat(lab, " START ").concat(JSON.stringify(req.body)));
                         io = __assign({}, vals);
                         if (io['stdlib.hasRandom']) {
                           delete io['stdlib.hasRandom'];
@@ -697,7 +697,7 @@ export var serveRpc = function(backend) {
                               args[_i] = arguments[_i];
                             }
                             return new Promise(function(resolve, reject) {
-                              debug(lab + " IO " + m + " " + JSON.stringify(args));
+                              debug("".concat(lab, " IO ").concat(m, " ").concat(JSON.stringify(args)));
                               var old_res = kont.id(kid);
                               kont.replace(kid, { resolve: resolve, reject: reject });
                               old_res.json({ t: "Kont", kid: kid, m: m, args: args });
@@ -710,10 +710,10 @@ export var serveRpc = function(backend) {
                         return [4 /*yield*/ , backend[b](ctc, io)];
                       case 2:
                         ans = _b.sent();
-                        debug(lab + " END " + JSON.stringify(ans));
+                        debug("".concat(lab, " END ").concat(JSON.stringify(ans)));
                         new_res = kont.id(kid);
                         kont.forget(kid);
-                        debug(lab + " DONE");
+                        debug("".concat(lab, " DONE"));
                         new_res.json({ t: "Done", ans: ans });
                         return [2 /*return*/ ];
                     }
@@ -721,9 +721,9 @@ export var serveRpc = function(backend) {
                 });
               });
             };
-            route_backend.post("/" + b, h("RPC /backend/" + b));
-            ctcPs["/ctc/p/" + b] = h("RPC /ctc/p/" + b);
-            ctcPs["/ctc/participants/" + b] = h("RPC /ctc/participants/" + b);
+            route_backend.post("/".concat(b), h("RPC /backend/".concat(b)));
+            ctcPs["/ctc/p/".concat(b)] = h("RPC /ctc/p/".concat(b));
+            ctcPs["/ctc/participants/".concat(b)] = h("RPC /ctc/participants/".concat(b));
           };
           for (b in backend) {
             _loop_1(b);
@@ -733,14 +733,14 @@ export var serveRpc = function(backend) {
               var lab, _a, kid, ans, _b, resolve, reject;
               return __generator(this, function(_c) {
                 lab = "KONT";
-                debug(lab + " IN");
+                debug("".concat(lab, " IN"));
                 _a = __read(req.body, 2), kid = _a[0], ans = _a[1];
-                lab = lab + " " + kid;
-                debug(lab + " ANS " + JSON.stringify(ans));
+                lab = "".concat(lab, " ").concat(kid);
+                debug("".concat(lab, " ANS ").concat(JSON.stringify(ans)));
                 _b = kont.id(kid), resolve = _b.resolve, reject = _b.reject;
                 void(reject);
                 kont.replace(kid, res);
-                debug(lab + " OUT");
+                debug("".concat(lab, " OUT"));
                 resolve(ans);
                 return [2 /*return*/ ];
               });
@@ -804,12 +804,12 @@ export var serveRpc = function(backend) {
           fetchOrFail = function(envvar, desc) {
             var f = process.env[envvar];
             if (!f) {
-              console.error(["\nPlease populate the `" + envvar + "` environment variable with", " the path to your TLS " + desc + ".\n"].join(''));
+              console.error(["\nPlease populate the `".concat(envvar, "` environment variable with"), " the path to your TLS ".concat(desc, ".\n")].join(''));
               process.exit(1);
             }
-            var fq = resolve("./tls/" + f);
+            var fq = resolve("./tls/".concat(f));
             if (!existsSync(fq)) {
-              console.error("\nPath: " + fq + " does not exist!\n");
+              console.error("\nPath: ".concat(fq, " does not exist!\n"));
               process.exit(1);
             }
             return readFileSync(fq);

@@ -2,6 +2,7 @@ import { makeEthLike } from './ETH_like.mjs';
 import * as ethImpl from './ETH_impl.mjs';
 export * from './ETH_compiled.mjs';
 export var connector = 'ETH';
+export * as ethers from 'ethers';
 var ethLike = makeEthLike(ethImpl);
 // The following should be identical to CFX.ts
 export var getQueryLowerBound = ethLike.getQueryLowerBound,

@@ -47,7 +47,7 @@ function address_cfxToEth(addrC) {
     var addrObj = decodeCfxAddress(addrC);
     var addrE = '0x' + addrObj.hexAddress.toString('hex');
     if (netId !== addrObj.netId) {
-        debug("Expected netId=" + netId + ", got netId=" + addrObj.netId + ".", "You might want to select " + netId + " in Conflux Portal.");
+        debug("Expected netId=".concat(netId, ", got netId=").concat(addrObj.netId, "."), "You might want to select ".concat(netId, " in Conflux Portal."));
     }
     return addrE;
 }
@@ -61,7 +61,7 @@ export var T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: fun
             return address_cfxStandardize(uv);
         }
         if (!uv)
-            throw Error("Expected address, got " + JSON.stringify(uv));
+            throw Error("Expected address, got ".concat(JSON.stringify(uv)));
         // XXX what's a better way to show ts what's going on?
         var uobj = uv;
         if (uobj.networkAccount) {

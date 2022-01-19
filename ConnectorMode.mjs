@@ -40,7 +40,7 @@ try {
     try {
       for (var _c = (e_2 = void 0, __values(knownConnectorMode.split('-'))), _d = _c.next(); !_d.done; _d = _c.next()) {
         var piece = _d.value;
-        prefix = prefix ? prefix + "-" + piece : piece;
+        prefix = prefix ? "".concat(prefix, "-").concat(piece) : piece;
         if (!connectorModeDefaults[prefix]) {
           connectorModeDefaults[prefix] = knownConnectorMode;
         }
@@ -61,7 +61,7 @@ export function canonicalizeConnectorMode(connectorMode) {
   if (canonicalized) {
     return canonicalized;
   } else {
-    throw Error("Unrecognized REACH_CONNECTOR_MODE='" + connectorMode + "'");
+    throw Error("Unrecognized REACH_CONNECTOR_MODE='".concat(connectorMode, "'"));
   }
 }
 export function getConnectorMode() {
@@ -76,7 +76,7 @@ export function getConnector(connectorMode) {
   if (isKnownConnector(connector)) {
     return connector;
   } else {
-    throw Error("impossible: unknown connector: " + connector);
+    throw Error("impossible: unknown connector: ".concat(connector));
   }
 }
 //# sourceMappingURL=ConnectorMode.js.map

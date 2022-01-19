@@ -142,7 +142,7 @@ var attachBlockNumbers = function (conflux, xs) { return __awaiter(void 0, void 
                             case 2:
                                 blockNumber = _a.sent();
                                 return [2 /*return*/, __assign(__assign({}, x), { blockNumber: blockNumber })];
-                            case 3: throw Error("No blockNumber or blockHash on log: " + Object.keys(x));
+                            case 3: throw Error("No blockNumber or blockHash on log: ".concat(Object.keys(x)));
                         }
                     });
                 }); };
@@ -170,13 +170,13 @@ var attachBlockNumbers = function (conflux, xs) { return __awaiter(void 0, void 
 }); };
 var ethifyOkReceipt = function (receipt) {
     if (receipt.outcomeStatus !== 0) {
-        throw Error("Receipt outcomeStatus is nonzero: " + receipt.outcomeStatus);
+        throw Error("Receipt outcomeStatus is nonzero: ".concat(receipt.outcomeStatus));
     }
     return __assign({ status: 'ok' }, receipt);
 };
 var ethifyTxn = function (txn) {
     if (txn.status !== 0) {
-        throw Error("Txn status is not 0: " + txn.status);
+        throw Error("Txn status is not 0: ".concat(txn.status));
     }
     // It would appear that no eth-ification is actully necessary at this moment.
     // It might be nice to have blockNumber on here,
@@ -355,7 +355,7 @@ export var providers;
                             return [3 /*break*/, 1];
                         case 5:
                             if (r.outcomeStatus !== 0) {
-                                throw Error("Transaction failed, outcomeStatus: " + r.outcomeStatus);
+                                throw Error("Transaction failed, outcomeStatus: ".concat(r.outcomeStatus));
                             }
                             return [2 /*return*/, r];
                     }
@@ -406,7 +406,7 @@ var booleanize = function (arg) {
     if (Array.isArray(arg) && arg.length === 1)
         return booleanize(arg[0]);
     // XXX handle more stuff
-    throw Error("don't know how to booleanize '" + arg + "': " + typeof arg);
+    throw Error("don't know how to booleanize '".concat(arg, "': ").concat(typeof arg));
 };
 var conform = function (args, tys) {
     // XXX find a better way to do this stuff.
@@ -414,7 +414,7 @@ var conform = function (args, tys) {
     if (Array.isArray(args)) {
         if (args.length !== tys.length) {
             debug("conform", "err", { args: args, tys: tys });
-            throw Error("impossible: number of args (" + args.length + ") does not match number of tys (" + tys.length + ")");
+            throw Error("impossible: number of args (".concat(args.length, ") does not match number of tys (").concat(tys.length, ")"));
         }
         for (var i in tys) {
             var ty = tys[i].type;
@@ -445,7 +445,7 @@ var prepForConfluxPortal = function (txnOrig) {
         // These fields are transformed if present
         // TODO: is it safe just to turn all number fields into hex strings?
         // Where is the "real" Conflux Portal source code to check this?
-        for (var _b = __values(['storageLimit', 'gas']), _c = _b.next(); !_c.done; _c = _b.next()) {
+        for (var _b = __values(['storageLimit', 'gas', 'nonce']), _c = _b.next(); !_c.done; _c = _b.next()) {
             var field = _c.value;
             if (txn[field] !== undefined)
                 txn[field] = hexStringify(txnOrig[field]);
@@ -571,13 +571,13 @@ var Contract = /** @class */ (function () {
                             debug("cfxers:Contract.wait", "got receipt", r);
                             rcc = address_cfxStandardize(r.contractCreated);
                             if (self.address && self.address !== rcc) {
-                                throw Error("Impossible: ctc addresses don't match: " + self.address + " vs " + rcc);
+                                throw Error("Impossible: ctc addresses don't match: ".concat(self.address, " vs ").concat(rcc));
                             }
                             self.address = self.address || rcc;
                             rth = r.transactionHash;
                             dt = self.deployTransaction;
                             if (dt.transactionHash && dt.transactionHash !== rth) {
-                                throw Error("Impossible: txn hashes don't match: " + dt.transactionHash + " vs " + rth);
+                                throw Error("Impossible: txn hashes don't match: ".concat(dt.transactionHash, " vs ").concat(rth));
                             }
                             dt.transactionHash = rth;
                             return [2 /*return*/, ethifyOkReceipt(r)];
@@ -733,7 +733,7 @@ var ContractFactory = /** @class */ (function () {
         }
         var expectedLen = iface.deploy.inputs.length;
         if (args.length !== expectedLen) {
-            throw Error("cfxers: contract deployment expected " + expectedLen + " args but got " + args.length);
+            throw Error("cfxers: contract deployment expected ".concat(expectedLen, " args but got ").concat(args.length));
         }
         var contract = conflux.Contract({ abi: abi, bytecode: bytecode });
         var from = wallet.getAddress();
@@ -775,6 +775,7 @@ var BrowserWallet = /** @class */ (function () {
     BrowserWallet.prototype.sendTransaction = function (txnOrig) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, provider, from, txn, value, data, transactionHash;
+            var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -784,15 +785,23 @@ var BrowserWallet = /** @class */ (function () {
                             throw Error("Impossible: provider is undefined");
                         txn = prepForConfluxPortal(__assign(__assign({}, txnOrig), { from: from }));
                         value = txn.value;
-                        return [4 /*yield*/, this.cp.sendAsync({
+                        return [4 /*yield*/, new Promise(function (resolve, reject) { return _this.cp.sendAsync({
                                 from: from,
                                 value: value,
                                 method: 'cfx_sendTransaction',
                                 params: [txn]
-                            })];
+                            }, function (err, data) {
+                                if (err)
+                                    reject(err);
+                                else
+                                    resolve(data);
+                            }); })];
                     case 1:
                         data = _b.sent();
                         debug('sendTransaction', { txn: txn, data: data });
+                        if (!data) {
+                            throw Error("No data returned from ConfluxPortal.sendAsync");
+                        }
                         transactionHash = data.result;
                         return [2 /*return*/, {
                                 transactionHash: transactionHash,
@@ -889,7 +898,7 @@ var Wallet = /** @class */ (function () {
                                     case 5:
                                         if (!!(got && got.blockHash)) return [3 /*break*/, 8];
                                         if (howMany_1++ > 2 * 60 * 5) {
-                                            throw Error(dhead + " timeout in mining " + th_1);
+                                            throw Error("".concat(dhead, " timeout in mining ").concat(th_1));
                                         }
                                         debug(dhead, 'get', howMany_1, th_1);
                                         return [4 /*yield*/, Timeout.set(500)];

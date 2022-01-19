@@ -159,7 +159,7 @@ function encodeNetId(netId) {
         case 1029:
             return 'cfx';
         default:
-            return "net" + netId;
+            return "net".concat(netId);
     }
 }
 function isValidNetId(netId) {
@@ -230,7 +230,7 @@ function encodeCfxAddress(ha_in, netId) {
     var checksum5Bits = convertBit(checksumBytes, 8, 5, true);
     var payload = payload5Bits.map(function (byte) { return ALPHABET[byte]; }).join('');
     var checksum = checksum5Bits.map(function (byte) { return ALPHABET[byte]; }).join('');
-    return netName + ":TYPE." + addressType + ":" + payload + checksum;
+    return "".concat(netName, ":TYPE.").concat(addressType, ":").concat(payload).concat(checksum);
 }
 exports.encodeCfxAddress = encodeCfxAddress;
 ;
@@ -246,7 +246,7 @@ function decodeCfxAddress(address) {
     }
     var am = address.toUpperCase().match(/^([^:]+):(.+:)?(.{34})(.{8})$/);
     if (!am) {
-        throw Error("Invalid address: " + address);
+        throw Error("Invalid address: ".concat(address));
     }
     var _c = __read(am, 5), netName = _c[1], shouldHaveType = _c[2], payload = _c[3], checksum = _c[4];
     var prefix5Bits = __spreadArray([], __read(Buffer.from(netName)), false).map(function (byte) { return byte & 31; });
@@ -286,15 +286,15 @@ function decodeCfxAddress(address) {
     var netId = decodeNetId(netName.toLowerCase());
     var type = getAddressType(hexAddress);
     if (shouldHaveType) {
-        var actual = "type." + type + ":";
+        var actual = "type.".concat(type, ":");
         var expected = shouldHaveType.toLowerCase();
         if (actual !== expected) {
-            throw new Error("Type of address doesn't match, got '" + actual + "', expected '" + expected + "'");
+            throw new Error("Type of address doesn't match, got '".concat(actual, "', expected '").concat(expected, "'"));
         }
     }
     var bigInt = polyMod(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], __read(prefix5Bits), false), [0], false), __read(payload5Bits), false), __read(checksum5Bits), false));
     if (Number(bigInt)) {
-        throw new Error("Invalid checksum for " + address);
+        throw new Error("Invalid checksum for ".concat(address));
     }
     return { hexAddress: hexAddress, netId: netId, type: type };
 }
@@ -308,10 +308,10 @@ function address_cfxStandardize(addrC) {
     var pieces = addrC.split(':');
     //debug(`address_cfxStandardize`, pieces.length, {pieces});
     if (pieces.length === 3) {
-        addrC = pieces[0] + ":" + pieces[2];
+        addrC = "".concat(pieces[0], ":").concat(pieces[2]);
     }
     else if (pieces.length !== 2) {
-        throw Error("impossible: bad CFX addr: '" + addrC + "'");
+        throw Error("impossible: bad CFX addr: '".concat(addrC, "'"));
     }
     //debug(`address_cfxStandardize`, {addrC});
     return addrC.toUpperCase();
