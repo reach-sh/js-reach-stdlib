@@ -1203,8 +1203,10 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                             case 0:
                                 (0, shared_impl_1.debug)(label, 'getC');
                                 if (_theC) {
+                                    (0, shared_impl_1.debug)(label, 'getC', 'ret');
                                     return [2 /*return*/, _theC];
                                 }
+                                (0, shared_impl_1.debug)(label, 'getC', 'wait');
                                 return [4 /*yield*/, getInfo()];
                             case 1:
                                 ctcInfo = _b.sent();
@@ -1977,12 +1979,16 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                 return bsi;
             };
             var recoverSplitBytes = function (prefix, size, howMany, src) {
+                (0, shared_impl_1.debug)('recoverSplitBytes', { prefix: prefix, size: size, howMany: howMany, src: src });
                 var bs = new Uint8Array(size);
                 var offset = 0;
                 for (var i = 0; i < howMany; i++) {
                     var bsi = readStateBytes(prefix, [i], src);
                     if (!bsi || bsi.length == 0) {
-                        return undefined;
+                        // We are at a state where we don't need all the keys, so they
+                        // haven't all been set, bs is initialized to 0, so this should be
+                        // fine.
+                        return bs;
                     }
                     bs.set(bsi, offset);
                     offset += bsi.length;
