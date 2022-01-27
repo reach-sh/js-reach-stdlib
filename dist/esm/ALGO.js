@@ -77,6 +77,9 @@ export { default as algosdk } from 'algosdk';
 import { ethers } from 'ethers';
 import Timeout from 'await-timeout';
 import buffer from 'buffer';
+import * as RHC from './ALGO_ReachHTTPClient';
+// @ts-ignore // XXX Dan FIXME pls
+import * as UTBC from './ALGO_UTBC';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
 import { stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, } from './shared_impl';
@@ -89,8 +92,72 @@ export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mu
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
-var reachBackendVersion = 8;
+var reachBackendVersion = 9;
 var reachAlgoBackendVersion = 9;
+// module-wide config
+var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+    return [2 /*return*/, undefined];
+}); }); };
+export function setCustomHttpEventHandler(h) {
+    customHttpEventHandler = h;
+}
+/**
+ * @description client-side rate limiting.
+ *  Setting this to any positive number will also prevent requests from being sent in parallel.
+ *  Rate limiting is applied to all outgoing http requests, even if they are to different servers.
+ */
+var minMillisBetweenRequests = 0;
+export function setMinMillisBetweenRequests(n) {
+    minMillisBetweenRequests = n;
+}
+var reqLock = new Lock();
+var currentReqNum = undefined;
+var currentReqLabel = undefined;
+var lastReqSentAt = undefined; // ms
+function httpEventHandler(e) {
+    return __awaiter(this, void 0, void 0, function () {
+        var en, waitMs;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    en = e.eventName;
+                    if (!(minMillisBetweenRequests > 0)) return [3 /*break*/, 5];
+                    if (!(en === 'before')) return [3 /*break*/, 4];
+                    return [4 /*yield*/, reqLock.acquire()];
+                case 1:
+                    _a.sent();
+                    if (!lastReqSentAt) return [3 /*break*/, 3];
+                    waitMs = Math.max(0, lastReqSentAt + minMillisBetweenRequests - Date.now());
+                    debug("waiting ".concat(waitMs, "ms due to minMillisBetweenRequests=").concat(minMillisBetweenRequests));
+                    return [4 /*yield*/, Timeout.set(waitMs)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    lastReqSentAt = Date.now();
+                    currentReqNum = e.reqNum;
+                    currentReqLabel = e.label;
+                    _a.label = 4;
+                case 4:
+                    if (en === 'success' || en === 'error') {
+                        if (currentReqNum === e.reqNum && currentReqLabel == e.label) {
+                            currentReqNum = undefined;
+                            currentReqLabel = undefined;
+                            reqLock.release();
+                        }
+                        else {
+                            throw Error('impossible: multiple requests in flight');
+                        }
+                    }
+                    _a.label = 5;
+                case 5: return [4 /*yield*/, customHttpEventHandler(e)];
+                case 6:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
 // Helpers
 // Parse CBR into Public Key
 var cbr2algo_addr = function (x) {
@@ -360,10 +427,13 @@ var replaceAll = function (orig, what, whatp) {
 };
 function must_be_supported(bin) {
     var algob = bin._Connectors.ALGO;
-    var unsupported = algob.unsupported;
+    var unsupported = algob.unsupported, warnings = algob.warnings;
+    var render = function (x) { return x.map(function (s) { return " * ".concat(s); }).join('\n'); };
+    if (warnings.length > 0) {
+        console.error("This Reach application is dangerous to run on Algorand for the following reasons:\n".concat(render(warnings)));
+    }
     if (unsupported.length > 0) {
-        var reasons = unsupported.map(function (s) { return " * ".concat(s); }).join('\n');
-        throw Error("This Reach application is not supported on Algorand for the following reasons:\n".concat(reasons));
+        throw Error("This Reach application is not supported on Algorand for the following reasons:\n".concat(render(unsupported)));
     }
 }
 // Get these from stdlib
@@ -371,6 +441,11 @@ function must_be_supported(bin) {
 export var MinTxnFee = 1000;
 var MaxAppTxnAccounts = 4;
 var MinBalance = 100000;
+var SchemaMinBalancePerEntry = 25000;
+var SchemaBytesMinBalance = 25000;
+var SchemaUintMinBalance = 3500;
+var AppFlatParamsMinBalance = 100000;
+var AppFlatOptInMinBalance = 100000;
 var ui8h = function (x) { return Buffer.from(x).toString('hex'); };
 var base64ToUI8A = function (x) { return Uint8Array.from(Buffer.from(x, 'base64')); };
 var base64ify = function (x) { return Buffer.from(x).toString('base64'); };
@@ -511,7 +586,7 @@ export var T_Null = typeDefs.T_Null, T_Bool = typeDefs.T_Bool, T_UInt = typeDefs
 export var randomUInt = (_a = makeRandom(8), _a.randomUInt), hasRandom = _a.hasRandom;
 function waitIndexerFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT, ALGO_INDEXER_TOKEN;
+        var ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT, ALGO_INDEXER_TOKEN, port, utbc, rhc;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -519,14 +594,17 @@ function waitIndexerFromEnv(env) {
                     return [4 /*yield*/, waitPort(ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/, new algosdk.Indexer(ALGO_INDEXER_TOKEN, ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT)];
+                    port = ALGO_INDEXER_PORT || undefined;
+                    utbc = new UTBC.URLTokenBaseHTTPClient({ 'X-Indexer-API-Token': ALGO_INDEXER_TOKEN }, ALGO_INDEXER_SERVER, port);
+                    rhc = new RHC.ReachHTTPClient(utbc, 'indexer', httpEventHandler);
+                    return [2 /*return*/, new algosdk.Indexer(rhc)];
             }
         });
     });
 }
 function waitAlgodClientFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var ALGO_SERVER, ALGO_PORT, ALGO_TOKEN;
+        var ALGO_SERVER, ALGO_PORT, ALGO_TOKEN, port, utbc, rhc;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -534,7 +612,10 @@ function waitAlgodClientFromEnv(env) {
                     return [4 /*yield*/, waitPort(ALGO_SERVER, ALGO_PORT)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/, new algosdk.Algodv2(ALGO_TOKEN, ALGO_SERVER, ALGO_PORT)];
+                    port = ALGO_PORT || undefined;
+                    utbc = new UTBC.URLTokenBaseHTTPClient({ 'X-Algo-API-Token': ALGO_TOKEN }, ALGO_SERVER, port);
+                    rhc = new RHC.ReachHTTPClient(utbc, 'algodv2', httpEventHandler);
+                    return [2 /*return*/, new algosdk.Algodv2(rhc)];
             }
         });
     });
@@ -2141,6 +2222,36 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
         return [2 /*return*/, stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })];
     });
 }); };
+export var minimumBalanceOf = function (acc) { return __awaiter(void 0, void 0, void 0, function () {
+    var addr, ai, createdAppCount, optinAppCount, numByteSlice, numUInt, assetCount, accMinBalance;
+    var _a, _b, _c, _d, _e, _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
+            case 0:
+                addr = extractAddr(acc);
+                return [4 /*yield*/, getAccountInfo(addr)];
+            case 1:
+                ai = _h.sent();
+                if (ai.amount === 0) {
+                    return [2 /*return*/, bigNumberify(0)];
+                }
+                createdAppCount = bigNumberify(((_a = ai['created-apps']) !== null && _a !== void 0 ? _a : []).length);
+                optinAppCount = bigNumberify(((_b = ai['apps-local-state']) !== null && _b !== void 0 ? _b : []).length);
+                numByteSlice = bigNumberify((_d = ((_c = ai['apps-total-schema']) !== null && _c !== void 0 ? _c : {})['num-byte-slice']) !== null && _d !== void 0 ? _d : 0);
+                numUInt = bigNumberify((_f = ((_e = ai['apps-total-schema']) !== null && _e !== void 0 ? _e : {})['num-uint']) !== null && _f !== void 0 ? _f : 0);
+                assetCount = bigNumberify(((_g = ai.assets) !== null && _g !== void 0 ? _g : []).length);
+                accMinBalance = bigNumberify(0)
+                    .add(assetCount.mul(appFlatOptInMinBalance))
+                    .add(schemaMinBalancePerEntry.add(schemaUintMinBalance).mul(numUInt))
+                    .add(schemaMinBalancePerEntry.add(schemaBytesMinBalance).mul(numByteSlice))
+                    .add(appFlatParamsMinBalance.mul(createdAppCount))
+                    .add(appFlatOptInMinBalance.mul(optinAppCount))
+                    .add(minimumBalance);
+                debug("minBalance", accMinBalance);
+                return [2 /*return*/, accMinBalance];
+        }
+    });
+}); };
 var balanceOfM = function (acc, token) {
     if (token === void 0) { token = false; }
     return __awaiter(void 0, void 0, void 0, function () {
@@ -2291,6 +2402,11 @@ export function parseCurrency(amt, decimals) {
     return bigNumberify(Math.floor(value));
 }
 export var minimumBalance = bigNumberify(MinBalance);
+var schemaMinBalancePerEntry = bigNumberify(SchemaMinBalancePerEntry);
+var schemaBytesMinBalance = bigNumberify(SchemaBytesMinBalance);
+var schemaUintMinBalance = bigNumberify(SchemaUintMinBalance);
+var appFlatParamsMinBalance = bigNumberify(AppFlatParamsMinBalance);
+var appFlatOptInMinBalance = bigNumberify(AppFlatOptInMinBalance);
 // lol I am not importing leftpad for this
 /** @example lpad('asdf', '0', 6); // => '00asdf' */
 function lpad(str, padChar, nChars) {

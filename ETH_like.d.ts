@@ -65,6 +65,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
         random: () => real_ethers.BigNumber;
     };
     balanceOf: (acc: Account | Address, token?: Token | false) => Promise<BigNumber>;
+    minimumBalanceOf: (acc: Account | Address) => Promise<BigNumber>;
     transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: string) => Promise<Account>;
@@ -96,6 +97,8 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
         optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
     }>;
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
+    setMinMillisBetweenRequests: () => void;
+    setCustomHttpEventHandler: () => void;
     getProvider: () => Promise<Provider>;
     setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;

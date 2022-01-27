@@ -35,8 +35,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.fromSome = exports.asMaybe = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.fromSome = exports.asMaybe = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -210,6 +221,46 @@ var mapRef = function (m, f) { return __awaiter(void 0, void 0, void 0, function
     });
 }); };
 exports.mapRef = mapRef;
+var Array_asyncMap = function (a, f) { return Promise.all(a.map(f)); };
+exports.Array_asyncMap = Array_asyncMap;
+var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, void 0, void 0, function () {
+    var y, a_1, a_1_1, x, e_1_1;
+    var e_1, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                y = b;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 6, 7, 8]);
+                a_1 = __values(a), a_1_1 = a_1.next();
+                _b.label = 2;
+            case 2:
+                if (!!a_1_1.done) return [3 /*break*/, 5];
+                x = a_1_1.value;
+                return [4 /*yield*/, f(y, x)];
+            case 3:
+                y = _b.sent();
+                _b.label = 4;
+            case 4:
+                a_1_1 = a_1.next();
+                return [3 /*break*/, 2];
+            case 5: return [3 /*break*/, 8];
+            case 6:
+                e_1_1 = _b.sent();
+                e_1 = { error: e_1_1 };
+                return [3 /*break*/, 8];
+            case 7:
+                try {
+                    if (a_1_1 && !a_1_1.done && (_a = a_1["return"])) _a.call(a_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+                return [7 /*endfinally*/];
+            case 8: return [2 /*return*/, y];
+        }
+    });
+}); };
+exports.Array_asyncReduce = Array_asyncReduce;
 var Array_zip = function (x, y) {
     return x.map(function (e, i) { return [e, y[i]]; });
 };

@@ -117,7 +117,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 8;
+var reachBackendVersion = 9;
 var reachEthBackendVersion = 6;
 var reachPublish = function(m) { return "_reach_m".concat(m); };
 var reachEvent = function(e) { return "_reach_e".concat(e); };
@@ -394,6 +394,14 @@ export function makeEthLike(ethLikeArgs) {
       });
     });
   };
+  var minimumBalanceOf = function(acc) {
+    return __awaiter(_this, void 0, void 0, function() {
+      return __generator(this, function(_a) {
+        void acc;
+        return [2 /*return*/ , zeroBn];
+      });
+    });
+  };
   var balanceOfNetworkAccount = function(networkAccount, token) {
     if (token === void 0) { token = false; }
     return __awaiter(_this, void 0, void 0, function() {
@@ -528,7 +536,7 @@ export function makeEthLike(ethLikeArgs) {
             tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
             gl = from.getGasLimit ? from.getGasLimit() : undefined;
             sl = from.getStorageLimit ? from.getStorageLimit() : undefined;
-            return [4 /*yield*/ , doCall(dhead, tokCtc, "transfer", [receiver, valueb], bigNumberify(0), gl, sl)];
+            return [4 /*yield*/ , doCall(dhead, tokCtc, "transfer", [receiver, valueb], zeroBn, gl, sl)];
           case 6:
             return [2 /*return*/ , _b.sent()];
         }
@@ -636,7 +644,7 @@ export function makeEthLike(ethLikeArgs) {
                 var getC = makeGetC(setupArgs, eq);
                 var callC = function(dhead, funcName, arg, pay) {
                   return __awaiter(_this, void 0, void 0, function() {
-                    var _a, value, toks, ethersC, zero, actualCall, callTok, maybePayTok;
+                    var _a, value, toks, ethersC, actualCall, callTok, maybePayTok;
                     var _this = this;
                     return __generator(this, function(_b) {
                       switch (_b.label) {
@@ -645,7 +653,6 @@ export function makeEthLike(ethLikeArgs) {
                           return [4 /*yield*/ , getC()];
                         case 1:
                           ethersC = _b.sent();
-                          zero = bigNumberify(0);
                           actualCall = function() {
                             return __awaiter(_this, void 0, void 0, function() {
                               return __generator(this, function(_a) {
@@ -670,7 +677,7 @@ export function makeEthLike(ethLikeArgs) {
                                     debug(__assign(__assign({}, dhead), { kind: 'token' }), 'balanceOf', tokBalance);
                                     assert(tokBalance.gte(amt), "local account token balance is insufficient: ".concat(tokBalance, " < ").concat(amt));
                                     tokCtc = new ethers.Contract(tok, ERC20_ABI, networkAccount);
-                                    return [4 /*yield*/ , doCall("".concat(dhead, " callC::token"), tokCtc, "approve", [ethersC.address, amt], zero, gasLimit, storageLimit)];
+                                    return [4 /*yield*/ , doCall("".concat(dhead, " callC::token"), tokCtc, "approve", [ethersC.address, amt], zeroBn, gasLimit, storageLimit)];
                                   case 2:
                                     _a.sent();
                                     return [2 /*return*/ ];
@@ -697,7 +704,7 @@ export function makeEthLike(ethLikeArgs) {
                                     return [2 /*return*/ , _b.sent()];
                                   case 4:
                                     e_3 = _b.sent();
-                                    return [4 /*yield*/ , callTok(tok, zero)];
+                                    return [4 /*yield*/ , callTok(tok, zeroBn)];
                                   case 5:
                                     _b.sent();
                                     throw e_3;
@@ -1440,7 +1447,7 @@ export function makeEthLike(ethLikeArgs) {
             return [4 /*yield*/ , getAddr(acc)];
           case 2:
             to = _a.sent();
-            if (!bigNumberify(0).lt(startingBalance)) return [3 /*break*/ , 6];
+            if (!zeroBn.lt(startingBalance)) return [3 /*break*/ , 6];
             _a.label = 3;
           case 3:
             _a.trys.push([3, 5, , 6]);
@@ -1610,7 +1617,7 @@ export function makeEthLike(ethLikeArgs) {
                 throw Error("verifyContract failed: ".concat(msg));
               }
             };
-            creationBlock = bigNumberify(0);
+            creationBlock = zeroBn;
             _b.label = 1;
           case 1:
             _b.trys.push([1, 4, , 5]);
@@ -1683,7 +1690,8 @@ export function makeEthLike(ethLikeArgs) {
   function parseCurrency(amt) {
     return bigNumberify(real_ethers.utils.parseUnits(amt.toString(), standardDigits));
   }
-  var minimumBalance = parseCurrency(0);
+  var zeroBn = bigNumberify(0);
+  var minimumBalance = zeroBn;
   /**
    * @description  Format currency by network
    * @param amt  the amount in the {@link atomicUnit} of the network.
@@ -1786,9 +1794,17 @@ export function makeEthLike(ethLikeArgs) {
       throw Error("unsafeGetMnemonic: Secret key not accessible for account");
     }
   }
+
+  function setMinMillisBetweenRequests() {
+    console.warn("setMinMillisBetweenRequests is not supported on this connector");
+  }
+
+  function setCustomHttpEventHandler() {
+    console.warn("setCustomHttpEventHandler is not supported on this connector");
+  }
   // TODO: restore type ann once types are in place
   // const ethLike: EthLike = {
-  var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib });
+  var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler });
   return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map

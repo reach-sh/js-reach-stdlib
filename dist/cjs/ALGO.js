@@ -6,6 +6,18 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
@@ -86,8 +98,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = void 0;
+exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var algosdk_2 = require("algosdk");
@@ -95,6 +107,9 @@ __createBinding(exports, algosdk_2, "default", "algosdk");
 var ethers_1 = require("ethers");
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var buffer_1 = __importDefault(require("buffer"));
+var RHC = __importStar(require("./ALGO_ReachHTTPClient"));
+// @ts-ignore // XXX Dan FIXME pls
+var UTBC = __importStar(require("./ALGO_UTBC"));
 var Buffer = buffer_1["default"].Buffer;
 var version_1 = require("./version");
 var shared_impl_1 = require("./shared_impl");
@@ -109,8 +124,74 @@ __exportStar(require("./shared_user"), exports);
 var shared_impl_2 = require("./shared_impl");
 exports.setQueryLowerBound = shared_impl_2.setQueryLowerBound;
 exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
-var reachBackendVersion = 8;
+var reachBackendVersion = 9;
 var reachAlgoBackendVersion = 9;
+// module-wide config
+var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+    return [2 /*return*/, undefined];
+}); }); };
+function setCustomHttpEventHandler(h) {
+    customHttpEventHandler = h;
+}
+exports.setCustomHttpEventHandler = setCustomHttpEventHandler;
+/**
+ * @description client-side rate limiting.
+ *  Setting this to any positive number will also prevent requests from being sent in parallel.
+ *  Rate limiting is applied to all outgoing http requests, even if they are to different servers.
+ */
+var minMillisBetweenRequests = 0;
+function setMinMillisBetweenRequests(n) {
+    minMillisBetweenRequests = n;
+}
+exports.setMinMillisBetweenRequests = setMinMillisBetweenRequests;
+var reqLock = new shared_impl_1.Lock();
+var currentReqNum = undefined;
+var currentReqLabel = undefined;
+var lastReqSentAt = undefined; // ms
+function httpEventHandler(e) {
+    return __awaiter(this, void 0, void 0, function () {
+        var en, waitMs;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    en = e.eventName;
+                    if (!(minMillisBetweenRequests > 0)) return [3 /*break*/, 5];
+                    if (!(en === 'before')) return [3 /*break*/, 4];
+                    return [4 /*yield*/, reqLock.acquire()];
+                case 1:
+                    _a.sent();
+                    if (!lastReqSentAt) return [3 /*break*/, 3];
+                    waitMs = Math.max(0, lastReqSentAt + minMillisBetweenRequests - Date.now());
+                    (0, shared_impl_1.debug)("waiting ".concat(waitMs, "ms due to minMillisBetweenRequests=").concat(minMillisBetweenRequests));
+                    return [4 /*yield*/, await_timeout_1["default"].set(waitMs)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    lastReqSentAt = Date.now();
+                    currentReqNum = e.reqNum;
+                    currentReqLabel = e.label;
+                    _a.label = 4;
+                case 4:
+                    if (en === 'success' || en === 'error') {
+                        if (currentReqNum === e.reqNum && currentReqLabel == e.label) {
+                            currentReqNum = undefined;
+                            currentReqLabel = undefined;
+                            reqLock.release();
+                        }
+                        else {
+                            throw Error('impossible: multiple requests in flight');
+                        }
+                    }
+                    _a.label = 5;
+                case 5: return [4 /*yield*/, customHttpEventHandler(e)];
+                case 6:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
 // Helpers
 // Parse CBR into Public Key
 var cbr2algo_addr = function (x) {
@@ -383,10 +464,13 @@ var replaceAll = function (orig, what, whatp) {
 };
 function must_be_supported(bin) {
     var algob = bin._Connectors.ALGO;
-    var unsupported = algob.unsupported;
+    var unsupported = algob.unsupported, warnings = algob.warnings;
+    var render = function (x) { return x.map(function (s) { return " * ".concat(s); }).join('\n'); };
+    if (warnings.length > 0) {
+        console.error("This Reach application is dangerous to run on Algorand for the following reasons:\n".concat(render(warnings)));
+    }
     if (unsupported.length > 0) {
-        var reasons = unsupported.map(function (s) { return " * ".concat(s); }).join('\n');
-        throw Error("This Reach application is not supported on Algorand for the following reasons:\n".concat(reasons));
+        throw Error("This Reach application is not supported on Algorand for the following reasons:\n".concat(render(unsupported)));
     }
 }
 // Get these from stdlib
@@ -394,6 +478,11 @@ function must_be_supported(bin) {
 exports.MinTxnFee = 1000;
 var MaxAppTxnAccounts = 4;
 var MinBalance = 100000;
+var SchemaMinBalancePerEntry = 25000;
+var SchemaBytesMinBalance = 25000;
+var SchemaUintMinBalance = 3500;
+var AppFlatParamsMinBalance = 100000;
+var AppFlatOptInMinBalance = 100000;
 var ui8h = function (x) { return Buffer.from(x).toString('hex'); };
 var base64ToUI8A = function (x) { return Uint8Array.from(Buffer.from(x, 'base64')); };
 var base64ify = function (x) { return Buffer.from(x).toString('base64'); };
@@ -536,7 +625,7 @@ exports.T_Null = ALGO_compiled_1.typeDefs.T_Null, exports.T_Bool = ALGO_compiled
 exports.randomUInt = (_a = (0, shared_impl_1.makeRandom)(8), _a.randomUInt), exports.hasRandom = _a.hasRandom;
 function waitIndexerFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT, ALGO_INDEXER_TOKEN;
+        var ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT, ALGO_INDEXER_TOKEN, port, utbc, rhc;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -544,14 +633,17 @@ function waitIndexerFromEnv(env) {
                     return [4 /*yield*/, (0, waitPort_1["default"])(ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/, new algosdk_1["default"].Indexer(ALGO_INDEXER_TOKEN, ALGO_INDEXER_SERVER, ALGO_INDEXER_PORT)];
+                    port = ALGO_INDEXER_PORT || undefined;
+                    utbc = new UTBC.URLTokenBaseHTTPClient({ 'X-Indexer-API-Token': ALGO_INDEXER_TOKEN }, ALGO_INDEXER_SERVER, port);
+                    rhc = new RHC.ReachHTTPClient(utbc, 'indexer', httpEventHandler);
+                    return [2 /*return*/, new algosdk_1["default"].Indexer(rhc)];
             }
         });
     });
 }
 function waitAlgodClientFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var ALGO_SERVER, ALGO_PORT, ALGO_TOKEN;
+        var ALGO_SERVER, ALGO_PORT, ALGO_TOKEN, port, utbc, rhc;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -559,7 +651,10 @@ function waitAlgodClientFromEnv(env) {
                     return [4 /*yield*/, (0, waitPort_1["default"])(ALGO_SERVER, ALGO_PORT)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/, new algosdk_1["default"].Algodv2(ALGO_TOKEN, ALGO_SERVER, ALGO_PORT)];
+                    port = ALGO_PORT || undefined;
+                    utbc = new UTBC.URLTokenBaseHTTPClient({ 'X-Algo-API-Token': ALGO_TOKEN }, ALGO_SERVER, port);
+                    rhc = new RHC.ReachHTTPClient(utbc, 'algodv2', httpEventHandler);
+                    return [2 /*return*/, new algosdk_1["default"].Algodv2(rhc)];
             }
         });
     });
@@ -2174,6 +2269,37 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
     });
 }); };
 exports.connectAccount = connectAccount;
+var minimumBalanceOf = function (acc) { return __awaiter(void 0, void 0, void 0, function () {
+    var addr, ai, createdAppCount, optinAppCount, numByteSlice, numUInt, assetCount, accMinBalance;
+    var _a, _b, _c, _d, _e, _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
+            case 0:
+                addr = (0, ALGO_compiled_1.extractAddr)(acc);
+                return [4 /*yield*/, getAccountInfo(addr)];
+            case 1:
+                ai = _h.sent();
+                if (ai.amount === 0) {
+                    return [2 /*return*/, (0, shared_user_1.bigNumberify)(0)];
+                }
+                createdAppCount = (0, shared_user_1.bigNumberify)(((_a = ai['created-apps']) !== null && _a !== void 0 ? _a : []).length);
+                optinAppCount = (0, shared_user_1.bigNumberify)(((_b = ai['apps-local-state']) !== null && _b !== void 0 ? _b : []).length);
+                numByteSlice = (0, shared_user_1.bigNumberify)((_d = ((_c = ai['apps-total-schema']) !== null && _c !== void 0 ? _c : {})['num-byte-slice']) !== null && _d !== void 0 ? _d : 0);
+                numUInt = (0, shared_user_1.bigNumberify)((_f = ((_e = ai['apps-total-schema']) !== null && _e !== void 0 ? _e : {})['num-uint']) !== null && _f !== void 0 ? _f : 0);
+                assetCount = (0, shared_user_1.bigNumberify)(((_g = ai.assets) !== null && _g !== void 0 ? _g : []).length);
+                accMinBalance = (0, shared_user_1.bigNumberify)(0)
+                    .add(assetCount.mul(appFlatOptInMinBalance))
+                    .add(schemaMinBalancePerEntry.add(schemaUintMinBalance).mul(numUInt))
+                    .add(schemaMinBalancePerEntry.add(schemaBytesMinBalance).mul(numByteSlice))
+                    .add(appFlatParamsMinBalance.mul(createdAppCount))
+                    .add(appFlatOptInMinBalance.mul(optinAppCount))
+                    .add(exports.minimumBalance);
+                (0, shared_impl_1.debug)("minBalance", accMinBalance);
+                return [2 /*return*/, accMinBalance];
+        }
+    });
+}); };
+exports.minimumBalanceOf = minimumBalanceOf;
 var balanceOfM = function (acc, token) {
     if (token === void 0) { token = false; }
     return __awaiter(void 0, void 0, void 0, function () {
@@ -2330,6 +2456,11 @@ function parseCurrency(amt, decimals) {
 }
 exports.parseCurrency = parseCurrency;
 exports.minimumBalance = (0, shared_user_1.bigNumberify)(MinBalance);
+var schemaMinBalancePerEntry = (0, shared_user_1.bigNumberify)(SchemaMinBalancePerEntry);
+var schemaBytesMinBalance = (0, shared_user_1.bigNumberify)(SchemaBytesMinBalance);
+var schemaUintMinBalance = (0, shared_user_1.bigNumberify)(SchemaUintMinBalance);
+var appFlatParamsMinBalance = (0, shared_user_1.bigNumberify)(AppFlatParamsMinBalance);
+var appFlatOptInMinBalance = (0, shared_user_1.bigNumberify)(AppFlatOptInMinBalance);
 // lol I am not importing leftpad for this
 /** @example lpad('asdf', '0', 6); // => '00asdf' */
 function lpad(str, padChar, nChars) {

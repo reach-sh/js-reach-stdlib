@@ -38,6 +38,8 @@ export interface LinearMap<A> {
 export declare const newMap: <A>(opts: MapOpts<A>) => LinearMap<A>;
 export declare const mapSet: <A>(m: LinearMap<A>, f: string, v: A | undefined) => Promise<void>;
 export declare const mapRef: <A>(m: LinearMap<A>, f: string) => Promise<MaybeRep<A>>;
+export declare const Array_asyncMap: <A, B>(a: A[], f: (x: A, i: number) => Promise<B>) => Promise<B[]>;
+export declare const Array_asyncReduce: <A, B>(a: A[], b: B, f: (y: B, x: A) => Promise<B>) => Promise<B>;
 export declare const Array_zip: <X, Y>(x: X[], y: Y[]) => [X, Y][];
 export declare const simMapDupe: <A>(sim_r: any, mapi: number, mapo: LinearMap<A>) => void;
 export declare const simMapRef: <A>(sim_r: any, mapi: number, f: string) => Promise<MaybeRep<A>>;
