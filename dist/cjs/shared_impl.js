@@ -82,7 +82,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -781,11 +781,15 @@ function setQueryLowerBound(x) {
 }
 exports.setQueryLowerBound = setQueryLowerBound;
 ;
+var makePromise = function () {
+    var r = function (a) { void (a); throw new Error("promise never initialized"); };
+    var p = new Promise(function (resolve) { r = resolve; });
+    return [p, r];
+};
 var Signal = /** @class */ (function () {
     function Signal() {
-        this.r = function (a) { void (a); throw new Error("signal never initialized"); };
-        var me = this;
-        this.p = new Promise(function (resolve) { me.r = resolve; });
+        var _a;
+        _a = __read(makePromise(), 2), this.p = _a[0], this.r = _a[1];
     }
     Signal.prototype.wait = function () { return this.p; };
     Signal.prototype.notify = function () { this.r(true); };
@@ -886,4 +890,39 @@ var retryLoop = function (lab, f) { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 exports.retryLoop = retryLoop;
+var makeSigningMonitor = function () {
+    var mon = undefined;
+    var setSigningMonitor = function (h) {
+        mon = h;
+    };
+    var notifySend = function (e, pre) { return __awaiter(void 0, void 0, void 0, function () {
+        var _a, post, postr_1, notifyComplete;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!mon) return [3 /*break*/, 2];
+                    _a = __read(makePromise(), 2), post = _a[0], postr_1 = _a[1];
+                    mon(e, pre, post);
+                    notifyComplete = function (pb) { return __awaiter(void 0, void 0, void 0, function () {
+                        var b;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, pb];
+                                case 1:
+                                    b = _a.sent();
+                                    postr_1(b);
+                                    return [2 /*return*/, b];
+                            }
+                        });
+                    }); };
+                    return [4 /*yield*/, pre];
+                case 1: return [2 /*return*/, [_b.sent(), notifyComplete]];
+                case 2: return [4 /*yield*/, pre];
+                case 3: return [2 /*return*/, [_b.sent(), function (x) { return x; }]];
+            }
+        });
+    }); };
+    return [setSigningMonitor, notifySend];
+};
+exports.makeSigningMonitor = makeSigningMonitor;
 //# sourceMappingURL=shared_impl.js.map

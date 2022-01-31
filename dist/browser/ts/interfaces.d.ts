@@ -1,6 +1,6 @@
 import type { num, MaybeRep, MapOpts, LinearMap, AnyBackendTy } from './shared_backend';
 import type { BigNumber } from 'ethers';
-import { IAccount, LaunchTokenOpts, IContract, IBackend } from './shared_impl';
+import { IAccount, LaunchTokenOpts, IContract, IBackend, SetSigningMonitor } from './shared_impl';
 export interface TypeDefs<Ty> {
     T_Null: Ty;
     T_Bool: Ty;
@@ -152,6 +152,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     reachStdlib: Stdlib_Backend<Ty>;
     setMinMillisBetweenRequests: (n: number) => void;
     setCustomHttpEventHandler: (h: (e: any) => Promise<void>) => void;
+    setSigningMonitor: SetSigningMonitor;
 }
 export {};
 //# sourceMappingURL=interfaces.d.ts.map

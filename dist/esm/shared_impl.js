@@ -733,11 +733,15 @@ export function setQueryLowerBound(x) {
     console.log("WARNING: setQueryLowerBound() is deprecated and does nothing.");
 }
 ;
+var makePromise = function () {
+    var r = function (a) { void (a); throw new Error("promise never initialized"); };
+    var p = new Promise(function (resolve) { r = resolve; });
+    return [p, r];
+};
 var Signal = /** @class */ (function () {
     function Signal() {
-        this.r = function (a) { void (a); throw new Error("signal never initialized"); };
-        var me = this;
-        this.p = new Promise(function (resolve) { me.r = resolve; });
+        var _a;
+        _a = __read(makePromise(), 2), this.p = _a[0], this.r = _a[1];
     }
     Signal.prototype.wait = function () { return this.p; };
     Signal.prototype.notify = function () { this.r(true); };
@@ -834,4 +838,38 @@ export var retryLoop = function (lab, f) { return __awaiter(void 0, void 0, void
         }
     });
 }); };
+export var makeSigningMonitor = function () {
+    var mon = undefined;
+    var setSigningMonitor = function (h) {
+        mon = h;
+    };
+    var notifySend = function (e, pre) { return __awaiter(void 0, void 0, void 0, function () {
+        var _a, post, postr_1, notifyComplete;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!mon) return [3 /*break*/, 2];
+                    _a = __read(makePromise(), 2), post = _a[0], postr_1 = _a[1];
+                    mon(e, pre, post);
+                    notifyComplete = function (pb) { return __awaiter(void 0, void 0, void 0, function () {
+                        var b;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, pb];
+                                case 1:
+                                    b = _a.sent();
+                                    postr_1(b);
+                                    return [2 /*return*/, b];
+                            }
+                        });
+                    }); };
+                    return [4 /*yield*/, pre];
+                case 1: return [2 /*return*/, [_b.sent(), notifyComplete]];
+                case 2: return [4 /*yield*/, pre];
+                case 3: return [2 /*return*/, [_b.sent(), function (x) { return x; }]];
+            }
+        });
+    }); };
+    return [setSigningMonitor, notifySend];
+};
 //# sourceMappingURL=shared_impl.js.map

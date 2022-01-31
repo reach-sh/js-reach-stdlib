@@ -98,8 +98,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = void 0;
+exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var algosdk_2 = require("algosdk");
@@ -124,6 +124,8 @@ __exportStar(require("./shared_user"), exports);
 var shared_impl_2 = require("./shared_impl");
 exports.setQueryLowerBound = shared_impl_2.setQueryLowerBound;
 exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
+var _d = __read((0, shared_impl_1.makeSigningMonitor)(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
+exports.setSigningMonitor = setSigningMonitor;
 var reachBackendVersion = 9;
 var reachAlgoBackendVersion = 9;
 // module-wide config
@@ -310,12 +312,13 @@ var waitForConfirmation = function (txId) { return __awaiter(void 0, void 0, voi
                         }
                     });
                 }); };
+                return [4 /*yield*/, nodeCanRead()];
+            case 2:
+                if (!_a.sent()) return [3 /*break*/, 4];
                 return [4 /*yield*/, checkAlgod()];
-            case 2: 
-            // AlgoExplorer will NOT support this query, but I believe it will fail and
-            // then fall back to the Indexer, which does work, so we're keeping it in for
-            // optimization on local cases
-            return [2 /*return*/, _a.sent()];
+            case 3: return [2 /*return*/, _a.sent()];
+            case 4: return [4 /*yield*/, checkIndexer()];
+            case 5: return [2 /*return*/, _a.sent()];
         }
     });
 }); };
@@ -331,9 +334,10 @@ var doSignTxn = function (ts, sk) {
     return doSignTxnToB64(decodeB64Txn(ts), sk);
 };
 var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0, void 0, function () {
-    var p, e_2, es, r, N, tN, e_3, es;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var p, sapt_res, notifyComplete, e_2, es, r, N, tN, e_3, es;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 if (acc.sk !== undefined) {
                     txns.forEach(function (t) {
@@ -347,16 +351,16 @@ var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0,
                 }
                 return [4 /*yield*/, (0, exports.getProvider)()];
             case 1:
-                p = _a.sent();
-                _a.label = 2;
+                p = _b.sent();
+                _b.label = 2;
             case 2:
-                _a.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, p.signAndPostTxns(txns)];
+                _b.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, notifySend(txns, p.signAndPostTxns(txns))];
             case 3:
-                _a.sent();
+                _a = __read.apply(void 0, [_b.sent(), 2]), sapt_res = _a[0], notifyComplete = _a[1];
                 return [3 /*break*/, 5];
             case 4:
-                e_2 = _a.sent();
+                e_2 = _b.sent();
                 es = "".concat(e_2);
                 if ('response' in e_2) {
                     r = e_2.response;
@@ -373,15 +377,16 @@ var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, void 0,
                 }
                 throw { type: 'signAndPost', e: e_2, es: es };
             case 5:
+                (0, shared_impl_1.debug)({ sapt_res: sapt_res });
                 N = txns.length - 1;
                 tN = decodeB64Txn(txns[N].txn);
-                _a.label = 6;
+                _b.label = 6;
             case 6:
-                _a.trys.push([6, 8, , 9]);
-                return [4 /*yield*/, waitForConfirmation(tN.txID())];
-            case 7: return [2 /*return*/, _a.sent()]; // tN.lastRound
+                _b.trys.push([6, 8, , 9]);
+                return [4 /*yield*/, notifyComplete(waitForConfirmation(tN.txID()))];
+            case 7: return [2 /*return*/, _b.sent()]; // tN.lastRound
             case 8:
-                e_3 = _a.sent();
+                e_3 = _b.sent();
                 es = "".concat(e_3);
                 throw { type: 'waitForConfirmation', e: e_3, es: es };
             case 9: return [2 /*return*/];
@@ -661,7 +666,7 @@ function waitAlgodClientFromEnv(env) {
 }
 ;
 var makeProviderByWallet = function (wallet) { return __awaiter(void 0, void 0, void 0, function () {
-    var walletOpts, enabledNetwork, enabledAccounts, enabled, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork;
+    var walletOpts, enabledNetwork, enabledAccounts, enabled, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork, nodeWriteOnly;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -710,7 +715,8 @@ var makeProviderByWallet = function (wallet) { return __awaiter(void 0, void 0, 
                 }); };
                 signAndPostTxns = wallet.signAndPostTxns;
                 isIsolatedNetwork = (0, shared_impl_1.truthyEnv)(shim_1.process.env['REACH_ISOLATED_NETWORK']);
-                return [2 /*return*/, { algodClient: algodClient, indexer: indexer, getDefaultAddress: getDefaultAddress, isIsolatedNetwork: isIsolatedNetwork, signAndPostTxns: signAndPostTxns }];
+                nodeWriteOnly = (0, shared_impl_1.truthyEnv)(shim_1.process.env.ALGO_NODE_WRITE_ONLY);
+                return [2 /*return*/, { algodClient: algodClient, indexer: indexer, nodeWriteOnly: nodeWriteOnly, getDefaultAddress: getDefaultAddress, isIsolatedNetwork: isIsolatedNetwork, signAndPostTxns: signAndPostTxns }];
         }
     });
 }); };
@@ -723,26 +729,27 @@ exports.setWalletFallback = setWalletFallback;
 var doWalletFallback_signOnly = function (opts, getAddr, signTxns) {
     var p = undefined;
     var enableNetwork = function (eopts) { return __awaiter(void 0, void 0, void 0, function () {
-        var base, baseEnv;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var base, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     void (eopts);
                     base = opts['providerEnv'];
-                    baseEnv = shim_1.process.env;
                     if (!base) return [3 /*break*/, 3];
                     if (!(typeof base === 'string')) return [3 /*break*/, 2];
+                    // @ts-ignore
+                    _a = shim_1.updateProcessEnv;
                     return [4 /*yield*/, providerEnvByName(base)];
                 case 1:
                     // @ts-ignore
-                    baseEnv = _a.sent();
+                    _a.apply(void 0, [_b.sent()]);
                     return [3 /*break*/, 3];
                 case 2:
-                    baseEnv = base;
-                    _a.label = 3;
-                case 3: return [4 /*yield*/, makeProviderByEnv(baseEnv)];
+                    (0, shim_1.updateProcessEnv)(base);
+                    _b.label = 3;
+                case 3: return [4 /*yield*/, makeProviderByEnv(shim_1.process.env)];
                 case 4:
-                    p = _a.sent();
+                    p = _b.sent();
                     return [2 /*return*/, {}];
             }
         });
@@ -959,6 +966,20 @@ var getIndexer = function () { return __awaiter(void 0, void 0, void 0, function
         case 1: return [2 /*return*/, (_a.sent()).indexer];
     }
 }); }); };
+var nodeCanRead = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+    switch (_a.label) {
+        case 0: return [4 /*yield*/, (0, exports.getProvider)()];
+        case 1: return [2 /*return*/, ((_a.sent()).nodeWriteOnly === false)];
+    }
+}); }); };
+var ensureNodeCanRead = function () { return __awaiter(void 0, void 0, void 0, function () { var _a; return __generator(this, function (_b) {
+    switch (_b.label) {
+        case 0:
+            _a = exports.assert;
+            return [4 /*yield*/, nodeCanRead()];
+        case 1: return [2 /*return*/, _a.apply(void 0, [_b.sent(), "node can read"])];
+    }
+}); }); };
 var localhostProviderEnv = {
     ALGO_SERVER: 'http://localhost',
     ALGO_PORT: '4180',
@@ -966,7 +987,8 @@ var localhostProviderEnv = {
     ALGO_INDEXER_SERVER: 'http://localhost',
     ALGO_INDEXER_PORT: '8980',
     ALGO_INDEXER_TOKEN: rawDefaultItoken,
-    REACH_ISOLATED_NETWORK: 'yes'
+    REACH_ISOLATED_NETWORK: 'yes',
+    ALGO_NODE_WRITE_ONLY: 'no'
 };
 function envDefaultsALGO(env) {
     var e_5, _a;
@@ -974,7 +996,7 @@ function envDefaultsALGO(env) {
     // @ts-ignore
     var ret = {};
     try {
-        for (var _b = __values(['ALGO_SERVER', 'ALGO_PORT', 'ALGO_TOKEN', 'ALGO_INDEXER_SERVER', 'ALGO_INDEXER_PORT', 'ALGO_INDEXER_TOKEN', 'REACH_ISOLATED_NETWORK']), _c = _b.next(); !_c.done; _c = _b.next()) {
+        for (var _b = __values(['ALGO_SERVER', 'ALGO_PORT', 'ALGO_TOKEN', 'ALGO_INDEXER_SERVER', 'ALGO_INDEXER_PORT', 'ALGO_INDEXER_TOKEN', 'REACH_ISOLATED_NETWORK', 'ALGO_NODE_WRITE_ONLY']), _c = _b.next(); !_c.done; _c = _b.next()) {
             var f = _c.value;
             // @ts-ignore
             ret[f] = (0, shared_impl_1.envDefault)(env[f], denv[f]);
@@ -992,7 +1014,7 @@ function envDefaultsALGO(env) {
 ;
 function makeProviderByEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var fullEnv, algodClient, indexer, isIsolatedNetwork, lab, getDefaultAddress, signAndPostTxns;
+        var fullEnv, algodClient, indexer, isIsolatedNetwork, nodeWriteOnly, lab, getDefaultAddress, signAndPostTxns;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -1007,6 +1029,7 @@ function makeProviderByEnv(env) {
                 case 2:
                     indexer = _a.sent();
                     isIsolatedNetwork = (0, shared_impl_1.truthyEnv)(fullEnv.REACH_ISOLATED_NETWORK);
+                    nodeWriteOnly = (0, shared_impl_1.truthyEnv)(fullEnv.ALGO_NODE_WRITE_ONLY);
                     lab = "Providers created by environment";
                     getDefaultAddress = function () { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
@@ -1034,7 +1057,7 @@ function makeProviderByEnv(env) {
                             }
                         });
                     }); };
-                    return [2 /*return*/, { algodClient: algodClient, indexer: indexer, isIsolatedNetwork: isIsolatedNetwork, getDefaultAddress: getDefaultAddress, signAndPostTxns: signAndPostTxns }];
+                    return [2 /*return*/, { algodClient: algodClient, indexer: indexer, nodeWriteOnly: nodeWriteOnly, isIsolatedNetwork: isIsolatedNetwork, getDefaultAddress: getDefaultAddress, signAndPostTxns: signAndPostTxns }];
             }
         });
     });
@@ -1055,7 +1078,8 @@ function randlabsProviderEnv(net) {
         ALGO_INDEXER_SERVER: "https://algoindexer.".concat(RANDLABS_BASE),
         ALGO_INDEXER_PORT: '',
         ALGO_INDEXER_TOKEN: '',
-        REACH_ISOLATED_NETWORK: 'no'
+        REACH_ISOLATED_NETWORK: 'no',
+        ALGO_NODE_WRITE_ONLY: 'yes'
     };
 }
 function providerEnvByName(pn) {
@@ -1174,25 +1198,28 @@ var getAccountInfo = function (a) { return __awaiter(void 0, void 0, void 0, fun
                 dhead = 'getAccountInfo';
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, getAlgodClient()];
+                _a.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, ensureNodeCanRead()];
             case 2:
+                _a.sent();
+                return [4 /*yield*/, getAlgodClient()];
+            case 3:
                 client = _a.sent();
                 return [4 /*yield*/, client.accountInformation(a)["do"]()];
-            case 3:
+            case 4:
                 res_1 = (_a.sent());
                 (0, shared_impl_1.debug)(dhead, 'node', res_1);
                 return [2 /*return*/, res_1];
-            case 4:
+            case 5:
                 e_6 = _a.sent();
                 (0, shared_impl_1.debug)(dhead, 'node err', e_6);
-                return [3 /*break*/, 5];
-            case 5: return [4 /*yield*/, getIndexer()];
-            case 6:
+                return [3 /*break*/, 6];
+            case 6: return [4 /*yield*/, getIndexer()];
+            case 7:
                 indexer = _a.sent();
                 q = indexer.lookupAccountByID(a);
                 return [4 /*yield*/, doQuery_(dhead, q)];
-            case 7:
+            case 8:
                 res = _a.sent();
                 (0, shared_impl_1.debug)(dhead, res);
                 return [2 /*return*/, res.account];
@@ -1226,28 +1253,31 @@ var getApplicationInfoM = function (id) { return __awaiter(void 0, void 0, void 
                 dhead = 'getApplicationInfo';
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, getAlgodClient()];
+                _c.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, ensureNodeCanRead()];
             case 2:
+                _c.sent();
+                return [4 /*yield*/, getAlgodClient()];
+            case 3:
                 client = _c.sent();
                 return [4 /*yield*/, client.getApplicationByID(id)["do"]()];
-            case 3:
+            case 4:
                 res_2 = (_c.sent());
                 (0, shared_impl_1.debug)(dhead, 'node', res_2);
                 return [2 /*return*/, { val: res_2 }];
-            case 4:
+            case 5:
                 e_7 = _c.sent();
                 (0, shared_impl_1.debug)(dhead, 'node err', e_7);
                 if (((_b = (_a = e_7 === null || e_7 === void 0 ? void 0 : e_7.response) === null || _a === void 0 ? void 0 : _a.body) === null || _b === void 0 ? void 0 : _b.message) === 'application does not exist') {
                     return [2 /*return*/, { exn: e_7 }];
                 }
-                return [3 /*break*/, 5];
-            case 5: return [4 /*yield*/, getIndexer()];
-            case 6:
+                return [3 /*break*/, 6];
+            case 6: return [4 /*yield*/, getIndexer()];
+            case 7:
                 indexer = _c.sent();
                 q = indexer.lookupApplications(id);
                 return [4 /*yield*/, doQueryM_(dhead, q)];
-            case 7:
+            case 8:
                 res = _c.sent();
                 (0, shared_impl_1.debug)(dhead, 'indexer', res);
                 return [2 /*return*/, 'exn' in res ? res : { val: res.val.application }];
@@ -1348,7 +1378,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                     return __generator(this, function (_g) {
                                         switch (_g.label) {
                                             case 0:
-                                                dhead = 'doOptIn';
+                                                dhead = "".concat(label, " doOptIn");
                                                 (0, shared_impl_1.debug)(dhead);
                                                 _a = sign_and_send_sync;
                                                 _b = [dhead,
@@ -2594,27 +2624,30 @@ var getTimeSecs = function (now_bn) { return __awaiter(void 0, void 0, void 0, f
                 now = (0, shared_user_1.bigNumberToNumber)(now_bn);
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 4, , 7]);
-                return [4 /*yield*/, getAlgodClient()];
+                _a.trys.push([1, 5, , 8]);
+                return [4 /*yield*/, ensureNodeCanRead()];
             case 2:
+                _a.sent();
+                return [4 /*yield*/, getAlgodClient()];
+            case 3:
                 client = _a.sent();
                 return [4 /*yield*/, client.block(now)["do"]()];
-            case 3:
+            case 4:
                 binfo = _a.sent();
                 //debug(`getTimeSecs`, `node`, binfo);
                 return [2 /*return*/, (0, shared_user_1.bigNumberify)(binfo.block.ts)];
-            case 4:
+            case 5:
                 e_12 = _a.sent();
                 (0, shared_impl_1.debug)("getTimeSecs", "node failed", e_12);
                 return [4 /*yield*/, getIndexer()];
-            case 5:
+            case 6:
                 indexer = _a.sent();
                 return [4 /*yield*/, indexer.lookupBlock(now)["do"]()];
-            case 6:
+            case 7:
                 info = _a.sent();
                 (0, shared_impl_1.debug)("getTimeSecs", "indexer", info);
                 return [2 /*return*/, (0, shared_user_1.bigNumberify)(info['timestamp'])];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

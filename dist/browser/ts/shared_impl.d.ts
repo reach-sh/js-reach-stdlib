@@ -391,4 +391,9 @@ export declare function isSome<T>(m: Maybe<T>): m is Some<T>;
 export declare const Some: <T>(m: T) => Some<T>;
 export declare const None: None;
 export declare const retryLoop: <T>(lab: any, f: () => Promise<T>) => Promise<T>;
+declare type SigningMonitor = (e: any, pre: Promise<any>, post: Promise<any>) => void;
+export declare type SetSigningMonitor = (h: SigningMonitor) => void;
+declare type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
+export declare type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, NotifyComplete<B>]>;
+export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifySend<A, B>];
 //# sourceMappingURL=shared_impl.d.ts.map

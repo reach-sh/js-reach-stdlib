@@ -99,6 +99,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
     setMinMillisBetweenRequests: () => void;
     setCustomHttpEventHandler: () => void;
+    setSigningMonitor: import("./shared_impl").SetSigningMonitor;
     getProvider: () => Promise<Provider>;
     setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;

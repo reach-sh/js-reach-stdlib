@@ -84,7 +84,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
 import { assert, protect, } from './shared_backend';
-import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, } from './shared_impl';
+import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
@@ -387,24 +387,26 @@ export function makeEthLike(ethLikeArgs) {
             }
         });
     }); };
+    var _e = __read(makeSigningMonitor(), 2), setSigningMonitor = _e[0], notifySend = _e[1];
     var doTxn = function (dhead, tp) { return __awaiter(_this, void 0, void 0, function () {
-        var rt, rm, ro;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var notifySendp, _a, rt, notifyComplete, rm, ro;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     debug(dhead, { step: "pre call" });
-                    return [4 /*yield*/, tp];
+                    notifySendp = notifySend;
+                    return [4 /*yield*/, notifySendp(dhead, tp)];
                 case 1:
-                    rt = _a.sent();
+                    _a = __read.apply(void 0, [_b.sent(), 2]), rt = _a[0], notifyComplete = _a[1];
                     debug(dhead, { rt: rt, step: "pre wait" });
-                    return [4 /*yield*/, rt.wait()];
+                    return [4 /*yield*/, notifyComplete(rt.wait())];
                 case 2:
-                    rm = _a.sent();
+                    rm = _b.sent();
                     debug(dhead, { rt: rt, rm: rm, step: "pre receipt" });
                     assert(rm !== null, "receipt wait null");
                     return [4 /*yield*/, fetchAndRejectInvalidReceiptFor(rm.transactionHash)];
                 case 3:
-                    ro = _a.sent();
+                    ro = _b.sent();
                     debug(dhead, { rt: rt, rm: rm, ro: ro, step: "post receipt" });
                     return [2 /*return*/, ro];
             }
@@ -707,10 +709,10 @@ export function makeEthLike(ethLikeArgs) {
                                 });
                             }); };
                             var sendrecv = function (srargs) { return __awaiter(_this, void 0, void 0, function () {
-                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, trustedRecv, arg, Bytecode, factory, _a, value, toks, overrides, contract_1, deploy_r, ctcAddress, creationBlock, _b, _c, _d, ok_r, e_5, jes;
+                                var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, doRecv, funcName, dhead, trustedRecv, arg, Bytecode, factory, _a, value, toks, overrides, notifySendp, _b, contract_1, notifyComplete, deploy_r, ctcAddress, creationBlock, _c, _d, _e, ok_r, e_5, jes;
                                 var _this = this;
-                                return __generator(this, function (_e) {
-                                    switch (_e.label) {
+                                return __generator(this, function (_f) {
+                                    switch (_f.label) {
                                         case 0:
                                             funcNum = srargs.funcNum, evt_cnt = srargs.evt_cnt, lct = srargs.lct, tys = srargs.tys, args = srargs.args, pay = srargs.pay, out_tys = srargs.out_tys, onlyIf = srargs.onlyIf, soloSend = srargs.soloSend, timeoutAt = srargs.timeoutAt;
                                             doRecv = function (didSend, waitIfNotPresent, msg) { return __awaiter(_this, void 0, void 0, function () {
@@ -728,7 +730,7 @@ export function makeEthLike(ethLikeArgs) {
                                             }); };
                                             if (!!onlyIf) return [3 /*break*/, 2];
                                             return [4 /*yield*/, doRecv(false, true, "onlyIf false")];
-                                        case 1: return [2 /*return*/, _e.sent()];
+                                        case 1: return [2 /*return*/, _f.sent()];
                                         case 2:
                                             funcName = reachPublish(funcNum);
                                             dhead = "".concat(label, " send ").concat(funcName, " ").concat(timeoutAt);
@@ -767,13 +769,14 @@ export function makeEthLike(ethLikeArgs) {
                                                 // @ts-ignore
                                                 overrides.storageLimit = storageLimit;
                                             }
-                                            return [4 /*yield*/, factory.deploy(arg, overrides)];
+                                            notifySendp = notifySend;
+                                            return [4 /*yield*/, notifySendp("".concat(dhead, " deploy"), factory.deploy(arg, overrides))];
                                         case 3:
-                                            contract_1 = _e.sent();
+                                            _b = __read.apply(void 0, [_f.sent(), 2]), contract_1 = _b[0], notifyComplete = _b[1];
                                             debug(label, "waiting for receipt:", contract_1.deployTransaction.hash);
-                                            return [4 /*yield*/, contract_1.deployTransaction.wait()];
+                                            return [4 /*yield*/, notifyComplete(contract_1.deployTransaction.wait())];
                                         case 4:
-                                            deploy_r = _e.sent();
+                                            deploy_r = _f.sent();
                                             ctcAddress = contract_1.address;
                                             creationBlock = bigNumberify(deploy_r.blockNumber);
                                             debug(label, "deployed", { ctcAddress: ctcAddress, creationBlock: creationBlock });
@@ -781,7 +784,7 @@ export function makeEthLike(ethLikeArgs) {
                                             setTrustedVerifyResult({ creationBlock: creationBlock });
                                             setInfo(ctcAddress);
                                             return [4 /*yield*/, trustedRecv(deploy_r)];
-                                        case 5: return [2 /*return*/, _e.sent()];
+                                        case 5: return [2 /*return*/, _f.sent()];
                                         case 6: 
                                         // Make sure the ctc is available and verified (before we get into try/catch)
                                         // https://github.com/reach-sh/reach-lang/issues/134
@@ -789,50 +792,50 @@ export function makeEthLike(ethLikeArgs) {
                                         case 7:
                                             // Make sure the ctc is available and verified (before we get into try/catch)
                                             // https://github.com/reach-sh/reach-lang/issues/134
-                                            _e.sent();
-                                            _e.label = 8;
+                                            _f.sent();
+                                            _f.label = 8;
                                         case 8:
                                             if (!true) return [3 /*break*/, 24];
                                             debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt });
-                                            _b = checkTimeout;
-                                            _c = [isIsolatedNetwork, getTimeSecs, timeoutAt];
+                                            _c = checkTimeout;
+                                            _d = [isIsolatedNetwork, getTimeSecs, timeoutAt];
                                             return [4 /*yield*/, getNetworkTimeNumber()];
-                                        case 9: return [4 /*yield*/, _b.apply(void 0, _c.concat([(_e.sent()) + 1]))];
+                                        case 9: return [4 /*yield*/, _c.apply(void 0, _d.concat([(_f.sent()) + 1]))];
                                         case 10:
-                                            if (!_e.sent()) return [3 /*break*/, 12];
+                                            if (!_f.sent()) return [3 /*break*/, 12];
                                             debug(dhead, 'FAIL/TIMEOUT');
                                             return [4 /*yield*/, doRecv(false, false, "timeout")];
-                                        case 11: return [2 /*return*/, _e.sent()];
+                                        case 11: return [2 /*return*/, _f.sent()];
                                         case 12:
-                                            _d = !soloSend;
-                                            if (!_d) return [3 /*break*/, 14];
+                                            _e = !soloSend;
+                                            if (!_e) return [3 /*break*/, 14];
                                             return [4 /*yield*/, canIWin(lct)];
                                         case 13:
-                                            _d = !(_e.sent());
-                                            _e.label = 14;
+                                            _e = !(_f.sent());
+                                            _f.label = 14;
                                         case 14:
-                                            if (!_d) return [3 /*break*/, 16];
+                                            if (!_e) return [3 /*break*/, 16];
                                             debug(dhead, "CANNOT WIN");
                                             return [4 /*yield*/, doRecv(false, false, "cannot win ".concat(lct))];
-                                        case 15: return [2 /*return*/, _e.sent()];
+                                        case 15: return [2 /*return*/, _f.sent()];
                                         case 16:
                                             ok_r = void 0;
-                                            _e.label = 17;
+                                            _f.label = 17;
                                         case 17:
-                                            _e.trys.push([17, 19, , 22]);
+                                            _f.trys.push([17, 19, , 22]);
                                             debug(dhead, 'ARG', arg, pay);
                                             return [4 /*yield*/, callC(dhead, funcName, arg, pay)];
                                         case 18:
-                                            ok_r = _e.sent();
+                                            ok_r = _f.sent();
                                             return [3 /*break*/, 22];
                                         case 19:
-                                            e_5 = _e.sent();
+                                            e_5 = _f.sent();
                                             debug(dhead, "ERROR", { stack: e_5.stack }, e_5);
                                             jes = JSON.stringify(e_5);
                                             if (!!soloSend) return [3 /*break*/, 21];
                                             debug(dhead, "LOST");
                                             return [4 /*yield*/, doRecv(false, false, jes)];
-                                        case 20: return [2 /*return*/, _e.sent()];
+                                        case 20: return [2 /*return*/, _f.sent()];
                                         case 21:
                                             if (timeoutAt) {
                                                 // If there can be a timeout, then keep waiting for it
@@ -847,7 +850,7 @@ export function makeEthLike(ethLikeArgs) {
                                         case 22:
                                             debug(dhead, 'SUCC');
                                             return [4 /*yield*/, trustedRecv(ok_r)];
-                                        case 23: return [2 /*return*/, _e.sent()];
+                                        case 23: return [2 /*return*/, _f.sent()];
                                         case 24: return [2 /*return*/];
                                     }
                                 });
@@ -1209,7 +1212,7 @@ export function makeEthLike(ethLikeArgs) {
     }); };
     // TODO: Should users be able to access this directly?
     // TODO: define a faucet on Ropsten & other testnets?
-    var _e = __read(replaceableThunk(function () { return __awaiter(_this, void 0, void 0, function () {
+    var _f = __read(replaceableThunk(function () { return __awaiter(_this, void 0, void 0, function () {
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1220,7 +1223,7 @@ export function makeEthLike(ethLikeArgs) {
                 case 2: return [2 /*return*/, _b.sent()];
             }
         });
-    }); }), 2), getFaucet = _e[0], setFaucet = _e[1];
+    }); }), 2), getFaucet = _f[0], setFaucet = _f[1];
     var createAccount = function () { return __awaiter(_this, void 0, void 0, function () {
         var provider, networkAccount;
         return __generator(this, function (_a) {
@@ -1585,7 +1588,7 @@ export function makeEthLike(ethLikeArgs) {
     }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map

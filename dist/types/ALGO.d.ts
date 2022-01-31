@@ -13,6 +13,8 @@ export declare const add: (x: import("./shared_backend").num, y: import("./share
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
+declare const setSigningMonitor: import("./shared_impl").SetSigningMonitor;
+export { setSigningMonitor };
 declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 export declare type Ty = AnyALGO_Ty;
@@ -81,6 +83,7 @@ export declare const randomUInt: () => ethers.BigNumber, hasRandom: {
 export interface Provider {
     algodClient: algosdk.Algodv2;
     indexer: algosdk.Indexer;
+    nodeWriteOnly: boolean;
     getDefaultAddress: () => Promise<Address>;
     isIsolatedNetwork: boolean;
     signAndPostTxns: (txns: WalletTransaction[], opts?: object) => Promise<unknown>;
@@ -96,6 +99,7 @@ export interface ProviderEnv {
     ALGO_INDEXER_PORT: string;
     ALGO_INDEXER_TOKEN: string;
     REACH_ISOLATED_NETWORK: string;
+    ALGO_NODE_WRITE_ONLY: string;
 }
 export declare function setProviderByEnv(env: Partial<ProviderEnv>): void;
 export declare type ProviderName = string;
