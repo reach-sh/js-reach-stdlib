@@ -65,6 +65,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
         random: () => real_ethers.BigNumber;
     };
     balanceOf: (acc: Account | Address, token?: Token | false) => Promise<BigNumber>;
+    balancesOf: (acc: Account | Address, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
     minimumBalanceOf: (acc: Account | Address) => Promise<BigNumber>;
     transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token | false) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;

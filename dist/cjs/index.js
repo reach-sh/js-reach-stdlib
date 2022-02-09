@@ -19,7 +19,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 exports.__esModule = true;
-exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = void 0;
+exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = exports.ask = void 0;
+exports.ask = __importStar(require("./ask"));
 var loader_1 = require("./loader");
 __createBinding(exports, loader_1, "loadStdlib");
 __createBinding(exports, loader_1, "unsafeAllowMultipleStdlibs");

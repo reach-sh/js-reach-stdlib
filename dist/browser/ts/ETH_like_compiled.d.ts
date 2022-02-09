@@ -22,7 +22,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     checkedBigNumberify: (at: string, max: ethers.BigNumber, n: any) => ethers.BigNumber;
     protect: (t: any, v: unknown, ai?: string | undefined) => unknown;
     Array_asyncMap: <A, B>(a: A[], f: (x: A, i: number) => Promise<B>) => Promise<B[]>;
-    Array_asyncReduce: <A_1, B_1>(a: A_1[], b: B_1, f: (y: B_1, x: A_1) => Promise<B_1>) => Promise<B_1>;
+    Array_asyncReduce: <A_1, B_1>(a: A_1[], b: B_1, f: (y: B_1, x: A_1, i: number) => Promise<B_1>) => Promise<B_1>;
     Array_zip: <A_2, B_2>(a1: A_2[], a2: B_2[]) => [A_2, B_2][];
     newMap: <A_3>(opts: shared_backend.MapOpts<A_3>) => shared_backend.LinearMap<A_3>;
     mapRef: <A_4>(m: shared_backend.LinearMap<A_4>, f: string) => Promise<shared_backend.MaybeRep<A_4>>;

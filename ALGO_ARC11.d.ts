@@ -1,3 +1,4 @@
+import type { BaseHTTPClient } from "algosdk";
 export declare type EnableNetworkFunction = (opts?: EnableNetworkOpts) => Promise<EnableNetworkResult>;
 export interface EnableNetworkOpts {
     network?: string;
@@ -27,18 +28,15 @@ export interface PostTxnsResult {
     txId?: string;
 }
 export declare type SignAndPostTxnsFunction = (txns: WalletTransaction[], opts?: any) => Promise<PostTxnsResult>;
-declare type Algodv2 = any;
-declare type GetAlgodv2Function = () => Promise<Algodv2>;
-declare type Indexer = any;
-declare type GetIndexerFunction = () => Promise<Indexer>;
+export declare type GetAlgodv2ClientFunction = () => Promise<BaseHTTPClient>;
+export declare type GetIndexerClientFunction = () => Promise<BaseHTTPClient>;
 export interface WindowAlgorand {
     enable: EnableFunction;
     enableNetwork?: EnableNetworkFunction;
     enableAccounts?: EnableAccountsFunction;
     signAndPostTxns: SignAndPostTxnsFunction;
-    getAlgodv2: GetAlgodv2Function;
-    getIndexer: GetIndexerFunction;
+    getAlgodv2Client: GetAlgodv2ClientFunction;
+    getIndexerClient: GetIndexerClientFunction;
 }
 export declare type ARC11_Wallet = WindowAlgorand;
-export {};
 //# sourceMappingURL=ALGO_ARC11.d.ts.map

@@ -41,13 +41,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 exports.__esModule = true;
 exports.yesno = exports.done = exports.ask = void 0;
 var readline_1 = __importDefault(require("readline"));
-var rl = readline_1["default"].createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+var _rl = null;
+function getRl() {
+    if (!_rl) {
+        _rl = readline_1["default"].createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+    }
+    return _rl;
+}
 var ask_ = function (q) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         return [2 /*return*/, new Promise(function (resolve) {
+                var rl = getRl();
                 rl.question(q + '\n', function (ans) {
                     resolve(ans);
                 });
@@ -88,7 +95,7 @@ var ask = function (question, validator) { return __awaiter(void 0, void 0, void
 }); };
 exports.ask = ask;
 var done = function () {
-    rl.close();
+    getRl().close();
 };
 exports.done = done;
 // The answer arg be 'y' (true) or 'n' (false)

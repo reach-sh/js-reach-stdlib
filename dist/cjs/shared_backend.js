@@ -224,12 +224,13 @@ exports.mapRef = mapRef;
 var Array_asyncMap = function (a, f) { return Promise.all(a.map(f)); };
 exports.Array_asyncMap = Array_asyncMap;
 var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, void 0, void 0, function () {
-    var y, a_1, a_1_1, x, e_1_1;
+    var y, i, a_1, a_1_1, x, e_1_1;
     var e_1, _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 y = b;
+                i = 0;
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 6, 7, 8]);
@@ -238,7 +239,7 @@ var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, void 0, vo
             case 2:
                 if (!!a_1_1.done) return [3 /*break*/, 5];
                 x = a_1_1.value;
-                return [4 /*yield*/, f(y, x)];
+                return [4 /*yield*/, f(y, x, i++)];
             case 3:
                 y = _b.sent();
                 _b.label = 4;

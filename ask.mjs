@@ -57,14 +57,22 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
   }
 };
 import readline from 'readline';
-var rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+var _rl = null;
+
+function getRl() {
+  if (!_rl) {
+    _rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+  }
+  return _rl;
+}
 var ask_ = function(q) {
   return __awaiter(void 0, void 0, void 0, function() {
     return __generator(this, function(_a) {
       return [2 /*return*/ , new Promise(function(resolve) {
+        var rl = getRl();
         rl.question(q + '\n', function(ans) {
           resolve(ans);
         });
@@ -108,7 +116,7 @@ export var ask = function(question, validator) {
   });
 };
 export var done = function() {
-  rl.close();
+  getRl().close();
 };
 // The answer arg be 'y' (true) or 'n' (false)
 export var yesno = function(answer) {

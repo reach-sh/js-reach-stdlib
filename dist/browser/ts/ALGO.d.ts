@@ -4,6 +4,7 @@ export { default as algosdk } from 'algosdk';
 import { ethers } from 'ethers';
 import type { Transaction } from 'algosdk';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
+import type { BaseHTTPClient } from 'algosdk';
 import * as RHC from './ALGO_ReachHTTPClient';
 import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract, LaunchTokenOpts } from './shared_impl';
 import { CBR_Val } from './CBR';
@@ -81,6 +82,8 @@ export declare const randomUInt: () => ethers.BigNumber, hasRandom: {
     random: () => ethers.BigNumber;
 };
 export interface Provider {
+    algod_bc: BaseHTTPClient;
+    indexer_bc: BaseHTTPClient;
     algodClient: algosdk.Algodv2;
     indexer: algosdk.Indexer;
     nodeWriteOnly: boolean;
@@ -110,7 +113,8 @@ export declare const makeTransferTxn: (from: Address, to: Address, value: BigNum
 export declare const transfer: (from: Account, to: Account, value: unknown, token?: Token | undefined, tag?: number | undefined) => Promise<RecvTxn>;
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const minimumBalanceOf: (acc: Account) => Promise<BigNumber>;
-export declare const balanceOf: (acc: Account, token?: Token | false) => Promise<BigNumber>;
+export declare const balancesOf: (acc: Account, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
+export declare const balanceOf: (acc: Account, token?: ethers.BigNumber | undefined) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
 export declare const canFundFromFaucet: () => Promise<boolean>;
 export declare const fundFromFaucet: (account: Account, value: unknown) => Promise<void>;
