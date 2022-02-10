@@ -3,6 +3,7 @@
 
 PACKAGE='@reach-sh/stdlib'
 
+# Usage note: Use FORCE_PUBLISH=1 to ignore safety checks
 .PHONY: bump-version-and-publish
 bump-version-and-publish:
 	sbin/check-recent-commits.sh

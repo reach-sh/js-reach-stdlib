@@ -1,6 +1,10 @@
 #!/bin/sh
 set -ex
 
+if [ "x${FORCE_PUBLISH}" = "x1" ] ; then
+  exit 0;
+fi
+
 git diff --exit-code || (printf '\n\n\nGit repo is not clean; please commit first.' && exit 1)
 
 IMAGE=reachsh/stdlib:latest
