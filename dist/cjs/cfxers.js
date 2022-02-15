@@ -918,7 +918,7 @@ var Wallet = /** @class */ (function () {
                                     case 8: return [2 /*return*/, { value: __assign(__assign({}, got), { transactionHash: th_1, wait: function () { return p.waitForTransaction(th_1); } }) }];
                                     case 9:
                                         e_6 = _c.sent();
-                                        es = JSON.stringify(e_6);
+                                        es = (0, shared_impl_1.j2s)(e_6);
                                         (0, shared_impl_1.debug)(dhead, "err", { txn: txn, e: e_6, es: es });
                                         //if ( es.includes("stale nonce") || es.includes("same nonce") || es.includes('tx already exist') ) {
                                         //  debug(dhead, `nonce error`);

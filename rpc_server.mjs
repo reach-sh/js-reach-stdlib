@@ -98,8 +98,8 @@ import { randomBytes } from 'crypto';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import express from 'express';
-import { loadStdlib } from './loader.mjs';
-import { debug } from './shared_impl.mjs';
+import { loadStdlib, } from './loader.mjs';
+import { debug, j2s, } from './shared_impl.mjs';
 var withApiKey = function() {
   var key = process.env.REACH_RPC_KEY;
   if (!key) {
@@ -538,7 +538,7 @@ export var serveRpc = function(backend) {
                     switch (_b.label) {
                       case 0:
                         was = kont.was;
-                        client = "client ".concat(req.ip, ": ").concat(req.method, " ").concat(req.originalUrl, " ").concat(JSON.stringify(req.body));
+                        client = "client ".concat(req.ip, ": ").concat(req.method, " ").concat(req.originalUrl, " ").concat(j2s(req.body));
                         _b.label = 1;
                       case 1:
                         _b.trys.push([1, 3, , 4]);
@@ -578,13 +578,13 @@ export var serveRpc = function(backend) {
                     switch (_a.label) {
                       case 0:
                         args = req.body;
-                        lab = "RPC /".concat(olab, "/").concat(k, " ").concat(JSON.stringify(args));
+                        lab = "RPC /".concat(olab, "/").concat(k, " ").concat(j2s(args));
                         debug(lab);
                         return [4 /*yield*/ , obj[k].apply(obj, __spreadArray([], __read(args), false))];
                       case 1:
                         ans = _a.sent();
                         ret = ans === undefined ? null : ans;
-                        debug("".concat(lab, " ==> ").concat(JSON.stringify(ret)));
+                        debug("".concat(lab, " ==> ").concat(j2s(ret)));
                         res.json(ret);
                         return [2 /*return*/ ];
                     }
@@ -611,7 +611,7 @@ export var serveRpc = function(backend) {
                       if (!Array.isArray(req.body))
                         throw new Error("Expected an array but received: ".concat(req.body));
                       _a = __read(req.body), id = _a[0], args = _a.slice(1);
-                      lab = "RPC ".concat(olab).concat(req.path, " ").concat(JSON.stringify(req.body));
+                      lab = "RPC ".concat(olab).concat(req.path, " ").concat(j2s(req.body));
                       debug(lab);
                       _b.label = 1;
                     case 1:
@@ -622,15 +622,15 @@ export var serveRpc = function(backend) {
                       ];
                     case 2:
                       a = _b.sent();
-                      debug("".concat(lab, " ==> ").concat(JSON.stringify(a)));
+                      debug("".concat(lab, " ==> ").concat(j2s(a)));
                       return [2 /*return*/ , res.json(a)];
                     case 3:
                       e_2 = _b.sent();
                       if (unsafe) {
-                        debug("".concat(lab, " ==> ").concat(JSON.stringify(e_2)));
+                        debug("".concat(lab, " ==> ").concat(j2s(e_2)));
                         return [2 /*return*/ , res.status(404).json({})];
                       } else {
-                        debug("".concat(lab, " ==> ").concat(JSON.stringify(null)));
+                        debug("".concat(lab, " ==> ").concat(j2s(null)));
                         return [2 /*return*/ , res.json(null)];
                       }
                       return [3 /*break*/ , 4];
@@ -651,7 +651,7 @@ export var serveRpc = function(backend) {
                     args = req.body;
                     if (!Array.isArray(args))
                       throw new Error("Expected an array but received: ".concat(args));
-                    lab = "RPC /backend".concat(req.path).concat(args.length > 0 ? ' ' + JSON.stringify(args) : '');
+                    lab = "RPC /backend".concat(req.path).concat(args.length > 0 ? ' ' + j2s(args) : '');
                     debug(lab);
                     _b = (_a = req.path.split('/')
                         .filter(function(a) { return a !== ''; })
@@ -673,7 +673,7 @@ export var serveRpc = function(backend) {
                     _e.label = 5;
                   case 5:
                     a = _d;
-                    debug("".concat(lab, " ==> ").concat(JSON.stringify(a)));
+                    debug("".concat(lab, " ==> ").concat(j2s(a)));
                     res.json(a);
                     return [2 /*return*/ ];
                 }
@@ -696,7 +696,7 @@ export var serveRpc = function(backend) {
                       case 1:
                         kid = _b.sent();
                         lab = "".concat(lab, " ").concat(cid, " ").concat(kid);
-                        debug("".concat(lab, " START ").concat(JSON.stringify(req.body)));
+                        debug("".concat(lab, " START ").concat(j2s(req.body)));
                         io = __assign({}, vals);
                         if (io['stdlib.hasRandom']) {
                           delete io['stdlib.hasRandom'];
@@ -709,7 +709,7 @@ export var serveRpc = function(backend) {
                               args[_i] = arguments[_i];
                             }
                             return new Promise(function(resolve, reject) {
-                              debug("".concat(lab, " IO ").concat(m, " ").concat(JSON.stringify(args)));
+                              debug("".concat(lab, " IO ").concat(m, " ").concat(j2s(args)));
                               var old_res = kont.id(kid);
                               kont.replace(kid, { resolve: resolve, reject: reject });
                               old_res.json({ t: "Kont", kid: kid, m: m, args: args });
@@ -722,7 +722,7 @@ export var serveRpc = function(backend) {
                         return [4 /*yield*/ , backend[b](ctc, io)];
                       case 2:
                         ans = _b.sent();
-                        debug("".concat(lab, " END ").concat(JSON.stringify(ans)));
+                        debug("".concat(lab, " END ").concat(j2s(ans)));
                         new_res = kont.id(kid);
                         kont.forget(kid);
                         debug("".concat(lab, " DONE"));
@@ -748,7 +748,7 @@ export var serveRpc = function(backend) {
                 debug("".concat(lab, " IN"));
                 _a = __read(req.body, 2), kid = _a[0], ans = _a[1];
                 lab = "".concat(lab, " ").concat(kid);
-                debug("".concat(lab, " ANS ").concat(JSON.stringify(ans)));
+                debug("".concat(lab, " ANS ").concat(j2s(ans)));
                 _b = kont.id(kid), resolve = _b.resolve, reject = _b.reject;
                 void(reject);
                 kont.replace(kid, res);

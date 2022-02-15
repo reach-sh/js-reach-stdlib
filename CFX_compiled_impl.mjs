@@ -13,7 +13,7 @@ var __assign = (this && this.__assign) || function() {
 import * as eci from './ETH_compiled_impl.mjs';
 import buffer from 'buffer';
 import { address_cfxStandardize, decodeCfxAddress, encodeCfxAddress } from './CFX_util.mjs';
-import { debug } from './shared_impl.mjs';
+import { debug, j2s } from './shared_impl.mjs';
 var Buffer = buffer.Buffer;
 // XXX find a better way to support multiple netIds
 var netId = 999;
@@ -64,7 +64,7 @@ export var T_Address = __assign(__assign({}, eci.T_Address), {
       return address_cfxStandardize(uv);
     }
     if (!uv)
-      throw Error("Expected address, got ".concat(JSON.stringify(uv)));
+      throw Error("Expected address, got ".concat(j2s(uv)));
     // XXX what's a better way to show ts what's going on?
     var uobj = uv;
     if (uobj.networkAccount) {

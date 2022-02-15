@@ -843,7 +843,7 @@ function makeEthLike(ethLikeArgs) {
                                         case 19:
                                             e_5 = _f.sent();
                                             (0, shared_impl_1.debug)(dhead, "ERROR", { stack: e_5.stack }, e_5);
-                                            jes = JSON.stringify(e_5);
+                                            jes = (0, shared_impl_1.j2s)(e_5);
                                             if (!!soloSend) return [3 /*break*/, 21];
                                             (0, shared_impl_1.debug)(dhead, "LOST");
                                             return [4 /*yield*/, doRecv(false, false, jes)];
@@ -1442,8 +1442,8 @@ function makeEthLike(ethLikeArgs) {
                 case 5:
                     eq.init({ ctcAddress: ctcAddress, creationBlock: creationBlock });
                     chkeq = function (a, e, msg) {
-                        var as = JSON.stringify(a);
-                        var es = JSON.stringify(e);
+                        var as = (0, shared_impl_1.j2sf)(a);
+                        var es = (0, shared_impl_1.j2sf)(e);
                         chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
                     };
                     return [4 /*yield*/, eq.peq(dhead, (function (bn) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {

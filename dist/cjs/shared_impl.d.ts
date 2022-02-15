@@ -7,6 +7,8 @@ export declare const bigNumberToBigInt: (x: BigNumber) => bigint;
 declare type BigNumber = ethers.BigNumber;
 export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
+export declare const j2sf: (x: any) => string;
+export declare const j2s: (x: any) => string;
 export declare const setDEBUG: (b: boolean) => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;

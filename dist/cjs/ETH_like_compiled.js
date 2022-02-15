@@ -73,7 +73,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 return v;
             }
             else {
-                throw Error("impossible: digest tuple() with non-empty array: ".concat(JSON.stringify(v)));
+                throw Error("impossible: digest tuple() with non-empty array: ".concat((0, shared_impl_1.j2s)(v)));
             }
         }
         return ethers_1.ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);

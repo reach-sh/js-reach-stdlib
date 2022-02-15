@@ -40,7 +40,7 @@ import * as shared_backend from './shared_backend.mjs';
 import * as CBR from './CBR.mjs';
 var bigNumberify = CBR.bigNumberify,
   bigNumberToNumber = CBR.bigNumberToNumber;
-import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, } from './shared_impl.mjs';
+import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, } from './shared_impl.mjs';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   // ...............................................
@@ -52,7 +52,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       if (Array.isArray(v) && v.length === 0) {
         return v;
       } else {
-        throw Error("impossible: digest tuple() with non-empty array: ".concat(JSON.stringify(v)));
+        throw Error("impossible: digest tuple() with non-empty array: ".concat(j2s(v)));
       }
     }
     return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);

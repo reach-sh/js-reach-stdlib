@@ -38,7 +38,7 @@ import { ethers } from 'ethers';
 import * as shared_backend from './shared_backend';
 import * as CBR from './CBR';
 var bigNumberify = CBR.bigNumberify, bigNumberToNumber = CBR.bigNumberToNumber;
-import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, } from './shared_impl';
+import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, } from './shared_impl';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
@@ -51,7 +51,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 return v;
             }
             else {
-                throw Error("impossible: digest tuple() with non-empty array: ".concat(JSON.stringify(v)));
+                throw Error("impossible: digest tuple() with non-empty array: ".concat(j2s(v)));
             }
         }
         return ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);

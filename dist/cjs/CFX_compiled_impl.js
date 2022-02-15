@@ -88,7 +88,7 @@ exports.T_Address = __assign(__assign({}, eci.T_Address), { canonicalize: functi
             return (0, CFX_util_1.address_cfxStandardize)(uv);
         }
         if (!uv)
-            throw Error("Expected address, got ".concat(JSON.stringify(uv)));
+            throw Error("Expected address, got ".concat((0, shared_impl_1.j2s)(uv)));
         // XXX what's a better way to show ts what's going on?
         var uobj = uv;
         if (uobj.networkAccount) {

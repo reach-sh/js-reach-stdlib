@@ -89,7 +89,7 @@ import { ethers } from 'ethers';
 var BigNumber = ethers.BigNumber, utils = ethers.utils;
 export { BigNumber, utils };
 import { address_cfxStandardize, defaultEpochTag } from './CFX_util';
-import { debug } from './shared_impl';
+import { debug, j2s } from './shared_impl';
 import { T_Address } from './CFX_compiled_impl';
 var attachBlockNumbers = function (conflux, xs) { return __awaiter(void 0, void 0, void 0, function () {
     var actuallyLookup, cache, lookup, attachBlockNumber, out, _a, _b, _i, i, _c, _d;
@@ -911,7 +911,7 @@ var Wallet = /** @class */ (function () {
                                     case 8: return [2 /*return*/, { value: __assign(__assign({}, got), { transactionHash: th_1, wait: function () { return p.waitForTransaction(th_1); } }) }];
                                     case 9:
                                         e_6 = _c.sent();
-                                        es = JSON.stringify(e_6);
+                                        es = j2s(e_6);
                                         debug(dhead, "err", { txn: txn, e: e_6, es: es });
                                         //if ( es.includes("stale nonce") || es.includes("same nonce") || es.includes('tx already exist') ) {
                                         //  debug(dhead, `nonce error`);

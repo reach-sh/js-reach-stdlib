@@ -48,7 +48,7 @@ var __values = (this && this.__values) || function(o) {
 // This has no dependencies on other shared things
 import { ethers } from 'ethers';
 import { bigNumberify } from './CBR';
-import { debug } from './shared_impl';
+import { debug, j2s, } from './shared_impl';
 void (debug);
 export var asMaybe = function (v) {
     if (v === undefined) {
@@ -67,10 +67,61 @@ export var fromSome = function (mo, da) {
     }
 };
 ;
+var objectIsEmpty = function (obj) {
+    return (obj
+        && Object.keys(obj).length === 0
+        && Object.getPrototypeOf(obj) === Object.prototype);
+};
+var formatAssertInfo = function (ai) {
+    var e_1, _a;
+    if (ai === void 0) { ai = null; }
+    var msg = '';
+    if (typeof ai === 'string') {
+        msg = ": ".concat(ai);
+    }
+    else {
+        if (ai.who) {
+            msg += ": ".concat(ai.who);
+            delete ai.who;
+        }
+        if (ai.msg !== undefined) {
+            if (ai.msg !== null) {
+                msg += ": ".concat(ai.msg);
+            }
+            delete ai.msg;
+        }
+        if (ai.at) {
+            msg += "\n  at ".concat(ai.at);
+            delete ai.at;
+        }
+        var rest = ":";
+        if (Array.isArray(ai.fs)) {
+            try {
+                for (var _b = __values(ai.fs), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var f = _c.value;
+                    msg += "\n  ".concat(f);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            delete ai.fs;
+            rest = "\n";
+        }
+        if (!objectIsEmpty(ai)) {
+            msg += "".concat(rest, " ").concat(j2s(ai));
+        }
+    }
+    return msg;
+};
 export var assert = function (d, ai) {
     if (ai === void 0) { ai = null; }
     if (!d) {
-        throw Error(JSON.stringify(ai));
+        throw Error("Assertion failed".concat(formatAssertInfo(ai)));
     }
 };
 export var checkedBigNumberify = function (at, m, x) {
@@ -80,19 +131,15 @@ export var checkedBigNumberify = function (at, m, x) {
     }
     throw Error("bigNumberify: ".concat(x, " out of range [0, ").concat(m, "] at ").concat(at));
 };
-// .canonicalize turns stuff into the "canonical backend representation"
 export function protect(ctc, v, ai) {
     if (ai === void 0) { ai = null; }
     debug("protect", ctc.name, v);
     try {
+        // .canonicalize turns stuff into the "canonical backend representation"
         return ctc.canonicalize(v);
     }
     catch (e) {
-        var vs = "".concat(v);
-        if (vs === '{}' || vs === '[object Object]') {
-            vs = JSON.stringify(v);
-        }
-        throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(vs, "; ").concat(JSON.stringify(ai), ":\n").concat(JSON.stringify(e)));
+        throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(j2s(v)).concat(formatAssertInfo(ai), "\n").concat(j2s(e)));
     }
 }
 ;
@@ -203,8 +250,8 @@ export var mapRef = function (m, f) { return __awaiter(void 0, void 0, void 0, f
 }); };
 export var Array_asyncMap = function (a, f) { return Promise.all(a.map(f)); };
 export var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, void 0, void 0, function () {
-    var y, i, a_1, a_1_1, x, e_1_1;
-    var e_1, _a;
+    var y, i, a_1, a_1_1, x, e_2_1;
+    var e_2, _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -227,14 +274,14 @@ export var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, voi
                 return [3 /*break*/, 2];
             case 5: return [3 /*break*/, 8];
             case 6:
-                e_1_1 = _b.sent();
-                e_1 = { error: e_1_1 };
+                e_2_1 = _b.sent();
+                e_2 = { error: e_2_1 };
                 return [3 /*break*/, 8];
             case 7:
                 try {
                     if (a_1_1 && !a_1_1.done && (_a = a_1["return"])) _a.call(a_1);
                 }
-                finally { if (e_1) throw e_1.error; }
+                finally { if (e_2) throw e_2.error; }
                 return [7 /*endfinally*/];
             case 8: return [2 /*return*/, y];
         }

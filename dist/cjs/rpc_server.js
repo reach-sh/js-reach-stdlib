@@ -404,7 +404,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                         switch (_b.label) {
                             case 0:
                                 was = kont.was;
-                                client = "client ".concat(req.ip, ": ").concat(req.method, " ").concat(req.originalUrl, " ").concat(JSON.stringify(req.body));
+                                client = "client ".concat(req.ip, ": ").concat(req.method, " ").concat(req.originalUrl, " ").concat((0, shared_impl_1.j2s)(req.body));
                                 _b.label = 1;
                             case 1:
                                 _b.trys.push([1, 3, , 4]);
@@ -440,13 +440,13 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 switch (_a.label) {
                                     case 0:
                                         args = req.body;
-                                        lab = "RPC /".concat(olab, "/").concat(k, " ").concat(JSON.stringify(args));
+                                        lab = "RPC /".concat(olab, "/").concat(k, " ").concat((0, shared_impl_1.j2s)(args));
                                         (0, shared_impl_1.debug)(lab);
                                         return [4 /*yield*/, obj[k].apply(obj, __spreadArray([], __read(args), false))];
                                     case 1:
                                         ans = _a.sent();
                                         ret = ans === undefined ? null : ans;
-                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat(JSON.stringify(ret)));
+                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat((0, shared_impl_1.j2s)(ret)));
                                         res.json(ret);
                                         return [2 /*return*/];
                                 }
@@ -471,7 +471,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     if (!Array.isArray(req.body))
                                         throw new Error("Expected an array but received: ".concat(req.body));
                                     _a = __read(req.body), id = _a[0], args = _a.slice(1);
-                                    lab = "RPC ".concat(olab).concat(req.path, " ").concat(JSON.stringify(req.body));
+                                    lab = "RPC ".concat(olab).concat(req.path, " ").concat((0, shared_impl_1.j2s)(req.body));
                                     (0, shared_impl_1.debug)(lab);
                                     _b.label = 1;
                                 case 1:
@@ -481,16 +481,16 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                             .reduce(userDefinedField, k.id(id)[prop]).apply(void 0, __spreadArray([], __read(args.map(reBigNumberify)), false))];
                                 case 2:
                                     a = _b.sent();
-                                    (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat(JSON.stringify(a)));
+                                    (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat((0, shared_impl_1.j2s)(a)));
                                     return [2 /*return*/, res.json(a)];
                                 case 3:
                                     e_2 = _b.sent();
                                     if (unsafe) {
-                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat(JSON.stringify(e_2)));
+                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat((0, shared_impl_1.j2s)(e_2)));
                                         return [2 /*return*/, res.status(404).json({})];
                                     }
                                     else {
-                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat(JSON.stringify(null)));
+                                        (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat((0, shared_impl_1.j2s)(null)));
                                         return [2 /*return*/, res.json(null)];
                                     }
                                     return [3 /*break*/, 4];
@@ -508,7 +508,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 args = req.body;
                                 if (!Array.isArray(args))
                                     throw new Error("Expected an array but received: ".concat(args));
-                                lab = "RPC /backend".concat(req.path).concat(args.length > 0 ? ' ' + JSON.stringify(args) : '');
+                                lab = "RPC /backend".concat(req.path).concat(args.length > 0 ? ' ' + (0, shared_impl_1.j2s)(args) : '');
                                 (0, shared_impl_1.debug)(lab);
                                 _b = (_a = req.path.split('/')
                                     .filter(function (a) { return a !== ''; })
@@ -529,7 +529,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 _e.label = 5;
                             case 5:
                                 a = _d;
-                                (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat(JSON.stringify(a)));
+                                (0, shared_impl_1.debug)("".concat(lab, " ==> ").concat((0, shared_impl_1.j2s)(a)));
                                 res.json(a);
                                 return [2 /*return*/];
                         }
@@ -549,7 +549,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                 case 1:
                                     kid = _b.sent();
                                     lab = "".concat(lab, " ").concat(cid, " ").concat(kid);
-                                    (0, shared_impl_1.debug)("".concat(lab, " START ").concat(JSON.stringify(req.body)));
+                                    (0, shared_impl_1.debug)("".concat(lab, " START ").concat((0, shared_impl_1.j2s)(req.body)));
                                     io = __assign({}, vals);
                                     if (io['stdlib.hasRandom']) {
                                         delete io['stdlib.hasRandom'];
@@ -562,7 +562,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                                 args[_i] = arguments[_i];
                                             }
                                             return new Promise(function (resolve, reject) {
-                                                (0, shared_impl_1.debug)("".concat(lab, " IO ").concat(m, " ").concat(JSON.stringify(args)));
+                                                (0, shared_impl_1.debug)("".concat(lab, " IO ").concat(m, " ").concat((0, shared_impl_1.j2s)(args)));
                                                 var old_res = kont.id(kid);
                                                 kont.replace(kid, { resolve: resolve, reject: reject });
                                                 old_res.json({ t: "Kont", kid: kid, m: m, args: args });
@@ -575,7 +575,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                                     return [4 /*yield*/, backend[b](ctc, io)];
                                 case 2:
                                     ans = _b.sent();
-                                    (0, shared_impl_1.debug)("".concat(lab, " END ").concat(JSON.stringify(ans)));
+                                    (0, shared_impl_1.debug)("".concat(lab, " END ").concat((0, shared_impl_1.j2s)(ans)));
                                     new_res = kont.id(kid);
                                     kont.forget(kid);
                                     (0, shared_impl_1.debug)("".concat(lab, " DONE"));
@@ -598,7 +598,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                         (0, shared_impl_1.debug)("".concat(lab, " IN"));
                         _a = __read(req.body, 2), kid = _a[0], ans = _a[1];
                         lab = "".concat(lab, " ").concat(kid);
-                        (0, shared_impl_1.debug)("".concat(lab, " ANS ").concat(JSON.stringify(ans)));
+                        (0, shared_impl_1.debug)("".concat(lab, " ANS ").concat((0, shared_impl_1.j2s)(ans)));
                         _b = kont.id(kid), resolve = _b.resolve, reject = _b.reject;
                         void (reject);
                         kont.replace(kid, res);

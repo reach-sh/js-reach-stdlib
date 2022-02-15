@@ -103,12 +103,35 @@ import { hexlify, checkedBigNumberify, bytesEq, assert, } from './shared_backend
 import { process } from './shim.mjs';
 export { hexlify } from './shared_backend.mjs';
 export var bigNumberToBigInt = function(x) { return BigInt(x.toHexString()); };
+export var j2sf = function(x) {
+  // We're removing duplicated values, so we can remove cyclic references
+  var seen = [];
+  var rep = function(key, val) {
+    void key;
+    if (val != null && typeof val === "object") {
+      var idx = seen.indexOf(val);
+      if (idx >= 0) {
+        return "@".concat(idx);
+      }
+      seen.push(val);
+    }
+    return val;
+  };
+  return JSON.stringify(x, rep, 2);
+};
+export var j2s = function(x) {
+  var xs = "".concat(x);
+  if (!(x && x._isBigNumber) && (xs === '{}' || xs.startsWith('[object'))) {
+    return j2sf(x);
+  }
+  return xs;
+};
 var DEBUG = truthyEnv(process.env.REACH_DEBUG);
 export var setDEBUG = function(b) {
   if (b === false || b === true) {
     DEBUG = b;
   } else {
-    throw Error("Expected bool, got ".concat(JSON.stringify(b)));
+    throw Error("Expected bool, got ".concat(j2s(b)));
   }
 };
 export var getDEBUG = function() { return DEBUG; };
@@ -177,7 +200,7 @@ export var stdContract = function(stdContractArgs) {
     givenInfoP = stdContractArgs.givenInfoP;
   var _a = (function() {
       var _setInfo = function(info) {
-        throw Error("Cannot set info(".concat(JSON.stringify(info), ") (i.e. deploy) when acc.contract called with contract info"));
+        throw Error("Cannot set info(".concat(j2s(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
         return;
       };
       if (givenInfoP !== undefined) {
@@ -190,7 +213,7 @@ export var stdContract = function(stdContractArgs) {
         var _infoP_1 = new Promise(function(resolve) {
           _setInfo = function(info) {
             if (beenSet_1) {
-              throw Error("Cannot set info(".concat(JSON.stringify(info), "), i.e. deploy, twice"));
+              throw Error("Cannot set info(".concat(j2s(info), ") (i.e. deploy) twice"));
             }
             resolve(info);
             beenSet_1 = true;
@@ -302,7 +325,7 @@ export var stdContract = function(stdContractArgs) {
               fail(new Error("".concat(bl, " errored with ").concat(err)));
             }
           }).then(function(res) {
-            fail(new Error("".concat(bl, " returned with ").concat(JSON.stringify(res))));
+            fail(new Error("".concat(bl, " returned with ").concat(j2s(res))));
           });
           return p;
         };
@@ -681,7 +704,7 @@ export var makeEventQueue = function(ctorArgs) {
                       t = txns[0];
                       txns.shift();
                       if (!ci(t)) {
-                        throw Error("".concat(dhead, " customIgnore present, ").concat(ci, ", but top txn did not match ").concat(JSON.stringify(t)));
+                        throw Error("".concat(dhead, " customIgnore present, ").concat(ci, ", but top txn did not match ").concat(j2s(t)));
                       } else {
                         debug(dhead, "ignored", ci, t);
                       }

@@ -109,7 +109,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
 import Timeout from 'await-timeout';
 import real_ethers from 'ethers';
 import { assert, protect, } from './shared_backend.mjs';
-import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, } from './shared_impl.mjs';
+import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, } from './shared_impl.mjs';
 import { bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl.mjs';
@@ -973,7 +973,7 @@ export function makeEthLike(ethLikeArgs) {
                         case 19:
                           e_5 = _f.sent();
                           debug(dhead, "ERROR", { stack: e_5.stack }, e_5);
-                          jes = JSON.stringify(e_5);
+                          jes = j2s(e_5);
                           if (!!soloSend) return [3 /*break*/ , 21];
                           debug(dhead, "LOST");
                           return [4 /*yield*/ , doRecv(false, false, jes)];
@@ -1650,8 +1650,8 @@ export function makeEthLike(ethLikeArgs) {
           case 5:
             eq.init({ ctcAddress: ctcAddress, creationBlock: creationBlock });
             chkeq = function(a, e, msg) {
-              var as = JSON.stringify(a);
-              var es = JSON.stringify(e);
+              var as = j2sf(a);
+              var es = j2sf(e);
               chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
             };
             return [4 /*yield*/ , eq.peq(dhead, (function(bn) {

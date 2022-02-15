@@ -82,7 +82,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -95,13 +95,38 @@ var shared_backend_2 = require("./shared_backend");
 __createBinding(exports, shared_backend_2, "hexlify");
 var bigNumberToBigInt = function (x) { return BigInt(x.toHexString()); };
 exports.bigNumberToBigInt = bigNumberToBigInt;
+var j2sf = function (x) {
+    // We're removing duplicated values, so we can remove cyclic references
+    var seen = [];
+    var rep = function (key, val) {
+        void key;
+        if (val != null && typeof val === "object") {
+            var idx = seen.indexOf(val);
+            if (idx >= 0) {
+                return "@".concat(idx);
+            }
+            seen.push(val);
+        }
+        return val;
+    };
+    return JSON.stringify(x, rep, 2);
+};
+exports.j2sf = j2sf;
+var j2s = function (x) {
+    var xs = "".concat(x);
+    if (!(x && x._isBigNumber) && (xs === '{}' || xs.startsWith('[object'))) {
+        return (0, exports.j2sf)(x);
+    }
+    return xs;
+};
+exports.j2s = j2s;
 var DEBUG = truthyEnv(shim_1.process.env.REACH_DEBUG);
 var setDEBUG = function (b) {
     if (b === false || b === true) {
         DEBUG = b;
     }
     else {
-        throw Error("Expected bool, got ".concat(JSON.stringify(b)));
+        throw Error("Expected bool, got ".concat((0, exports.j2s)(b)));
     }
 };
 exports.setDEBUG = setDEBUG;
@@ -162,7 +187,7 @@ var stdContract = function (stdContractArgs) {
     var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
-            throw Error("Cannot set info(".concat(JSON.stringify(info), ") (i.e. deploy) when acc.contract called with contract info"));
+            throw Error("Cannot set info(".concat((0, exports.j2s)(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
             return;
         };
         if (givenInfoP !== undefined) {
@@ -176,7 +201,7 @@ var stdContract = function (stdContractArgs) {
             var _infoP_1 = new Promise(function (resolve) {
                 _setInfo = function (info) {
                     if (beenSet_1) {
-                        throw Error("Cannot set info(".concat(JSON.stringify(info), "), i.e. deploy, twice"));
+                        throw Error("Cannot set info(".concat((0, exports.j2s)(info), ") (i.e. deploy) twice"));
                     }
                     resolve(info);
                     beenSet_1 = true;
@@ -279,7 +304,7 @@ var stdContract = function (stdContractArgs) {
                             fail(new Error("".concat(bl, " errored with ").concat(err)));
                         }
                     }).then(function (res) {
-                        fail(new Error("".concat(bl, " returned with ").concat(JSON.stringify(res))));
+                        fail(new Error("".concat(bl, " returned with ").concat((0, exports.j2s)(res))));
                     });
                     return p;
                 };
@@ -639,7 +664,7 @@ var makeEventQueue = function (ctorArgs) {
                                         t = txns[0];
                                         txns.shift();
                                         if (!ci(t)) {
-                                            throw Error("".concat(dhead, " customIgnore present, ").concat(ci, ", but top txn did not match ").concat(JSON.stringify(t)));
+                                            throw Error("".concat(dhead, " customIgnore present, ").concat(ci, ", but top txn did not match ").concat((0, exports.j2s)(t)));
                                         }
                                         else {
                                             (0, exports.debug)(dhead, "ignored", ci, t);

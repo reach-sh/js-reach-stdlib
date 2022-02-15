@@ -106,7 +106,7 @@ import * as RHC from './ALGO_ReachHTTPClient.mjs';
 import * as UTBC from './ALGO_UTBC.mjs';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, } from './shared_impl.mjs';
+import { stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled.mjs';
@@ -312,7 +312,7 @@ var waitForConfirmation = function(txId) {
                   case 5:
                     return [2 /*return*/ , _a.sent()];
                   case 6:
-                    throw Error("waitForConfirmation: error confirming: ".concat(JSON.stringify(info)));
+                    throw Error("waitForConfirmation: error confirming: ".concat(j2s(info)));
                 }
               });
             });
@@ -468,7 +468,7 @@ export var getTxnParams = function(label) {
 };
 var sign_and_send_sync = function(label, acc, txn) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var e_4, es;
+    var e_4;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -479,11 +479,7 @@ var sign_and_send_sync = function(label, acc, txn) {
         case 2:
           e_4 = _a.sent();
           console.log(e_4);
-          es = JSON.stringify(e_4);
-          if (es === '{}') {
-            es = "".concat(e_4);
-          };
-          throw Error("".concat(label, " txn failed:\n").concat(JSON.stringify(txn), "\nwith:\n").concat(es));
+          throw Error("".concat(label, " txn failed:\n").concat(j2s(txn), "\nwith:\n").concat(j2s(e_4)));
         case 3:
           return [2 /*return*/ ];
       }
@@ -525,15 +521,6 @@ var AppFlatOptInMinBalance = 100000;
 var ui8h = function(x) { return Buffer.from(x).toString('hex'); };
 var base64ToUI8A = function(x) { return Uint8Array.from(Buffer.from(x, 'base64')); };
 var base64ify = function(x) { return Buffer.from(x).toString('base64'); };
-var format_failed_request = function(e) {
-  var ep = JSON.parse(JSON.stringify(e));
-  var db64 = ep.req ?
-    (ep.req.data ? base64ify(ep.req.data) :
-      "no data, but ".concat(JSON.stringify(Object.keys(ep.req)))) :
-    "no req, but ".concat(JSON.stringify(Object.keys(ep)));
-  var msg = e.text ? JSON.parse(e.text) : e;
-  return "\n".concat(db64, "\n").concat(JSON.stringify(msg));
-};
 
 function looksLikeAccountingNotInitialized(e) {
   var _a;
@@ -1272,7 +1259,7 @@ export var transfer = function(from, to, value, token, tag) {
         case 1:
           ps = _a.sent();
           txn = toWTxn(makeTransferTxn(sender.addr, receiver, valuebn, token, ps, undefined, tag));
-          return [4 /*yield*/ , sign_and_send_sync("transfer ".concat(JSON.stringify(from), " ").concat(JSON.stringify(to), " ").concat(valuebn), sender, txn)];
+          return [4 /*yield*/ , sign_and_send_sync("transfer ".concat(j2s(from), " ").concat(j2s(to), " ").concat(valuebn), sender, txn)];
         case 2:
           return [2 /*return*/ , _a.sent()];
       }
@@ -1868,7 +1855,7 @@ export var connectAccount = function(networkAccount) {
                     createRes = _m.sent();
                     ApplicationID_1 = createRes['created-application-index'];
                     if (!ApplicationID_1) {
-                      throw Error("No created-application-index in ".concat(JSON.stringify(createRes)));
+                      throw Error("No created-application-index in ".concat(j2s(createRes)));
                     }
                     debug(label, "created", { ApplicationID: ApplicationID_1 });
                     ctcInfo = ApplicationID_1;
@@ -1925,7 +1912,7 @@ export var connectAccount = function(networkAccount) {
                   case 9:
                     mapRefs = sim_r.mapRefs;
                     _loop_1 = function() {
-                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, es, jes, _r, _s;
+                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, jes, _r, _s;
                       return __generator(this, function(_t) {
                         switch (_t.label) {
                           case 0:
@@ -2074,7 +2061,7 @@ export var connectAccount = function(networkAccount) {
                               if (!(x instanceof Uint8Array)) {
                                 // The types say this is impossible now,
                                 // but we'll leave it in for a while just in case...
-                                throw Error("expect safe program argument, got ".concat(JSON.stringify(x)));
+                                throw Error("expect safe program argument, got ".concat(j2s(x)));
                               }
                             });
                             debug(dhead, '--- PREPARE:', safe_args.map(ui8h));
@@ -2099,10 +2086,8 @@ export var connectAccount = function(networkAccount) {
                             return [3 /*break*/ , 14];
                           case 11:
                             e_8 = _t.sent();
-                            es = (e_8.type === 'sendRawTransaction') ?
-                              format_failed_request(e_8 === null || e_8 === void 0 ? void 0 : e_8.e) : e_8;
-                            debug(dhead, '--- FAIL:', es);
-                            jes = JSON.stringify(es);
+                            jes = j2s(e_8);
+                            debug(dhead, 'FAIL', e_8, jes);
                             if (!!soloSend) return [3 /*break*/ , 13];
                             // If there is no soloSend, then someone else "won", so let's
                             // listen for their message
@@ -3025,15 +3010,15 @@ var verifyContract_ = function(label, info, bin, eq) {
             }
           };
           chkeq = function(a, e, msg) {
-            var as = JSON.stringify(a);
-            var es = JSON.stringify(e);
+            var as = j2sf(a);
+            var es = j2sf(e);
             chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
           };
           return [4 /*yield*/ , getApplicationInfoM(ApplicationID)];
         case 1:
           appInfoM = _b.sent();
           if ('exn' in appInfoM) {
-            throw Error("".concat(dhead, " failed: failed to lookup application (").concat(ApplicationID, "): ").concat(JSON.stringify(appInfoM.exn)));
+            throw Error("".concat(dhead, " failed: failed to lookup application (").concat(ApplicationID, "): ").concat(j2s(appInfoM.exn)));
           }
           appInfo = appInfoM.val;
           appInfo_p = appInfo['params'];

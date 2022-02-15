@@ -19,6 +19,7 @@ exports.__esModule = true;
 exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
+var shared_impl_1 = require("./shared_impl");
 var BigNumber = ethers_1.ethers.BigNumber;
 var bigNumberify = function (x) {
     var xp = typeof x === 'number' ? x.toString() : x;
@@ -35,7 +36,7 @@ exports.BT_Null = {
     canonicalize: function (val) {
         // Doesn't check with triple eq; we're being lenient here
         if (val != null) {
-            throw Error("Expected null, but got ".concat(JSON.stringify(val)));
+            throw Error("Expected null, but got ".concat((0, shared_impl_1.j2s)(val)));
         }
         return exports.BV_Null;
     }
@@ -44,7 +45,7 @@ exports.BT_Bool = {
     name: 'Bool',
     canonicalize: function (val) {
         if (typeof (val) !== 'boolean') {
-            throw Error("Expected boolean, but got ".concat(JSON.stringify(val)));
+            throw Error("Expected boolean, but got ".concat((0, shared_impl_1.j2s)(val)));
         }
         return val;
     }
@@ -69,7 +70,7 @@ var BT_UInt = function (max) { return ({
         }
         catch (e) {
             if (typeof (uv) === 'string') {
-                throw Error("String does not represent a BigNumber. ".concat(JSON.stringify(uv)));
+                throw Error("String does not represent a BigNumber. ".concat((0, shared_impl_1.j2s)(uv)));
             }
             throw e;
         }
@@ -85,7 +86,7 @@ var BT_Bytes = function (len) { return ({
     canonicalize: function (val) {
         var lenn = (0, exports.bigNumberToNumber)(len);
         if (typeof (val) !== 'string') {
-            throw Error("Bytes expected string, but got ".concat(JSON.stringify(val)));
+            throw Error("Bytes expected string, but got ".concat((0, shared_impl_1.j2s)(val)));
         }
         var checkLen = function (label, alen, fill) {
             if (val.length > alen) {
@@ -108,7 +109,7 @@ exports.BT_Digest = {
     name: 'Digest',
     canonicalize: function (val) {
         if (typeof val !== 'string') {
-            throw Error("".concat(JSON.stringify(val), " is not a valid digest"));
+            throw Error("".concat((0, shared_impl_1.j2s)(val), " is not a valid digest"));
         }
         return val;
     }
@@ -122,13 +123,13 @@ exports.BT_Address = ({
     name: 'Address',
     canonicalize: function (val) {
         if (typeof val !== 'string') {
-            throw Error("Address must be a string, but got: ".concat(JSON.stringify(val)));
+            throw Error("Address must be a string, but got: ".concat((0, shared_impl_1.j2s)(val)));
         }
         else if (val.slice(0, 2) !== '0x') {
-            throw Error("Address must start with 0x, but got: ".concat(JSON.stringify(val)));
+            throw Error("Address must start with 0x, but got: ".concat((0, shared_impl_1.j2s)(val)));
         }
         else if (!ethers_1.ethers.utils.isHexString(val)) {
-            throw Error("Address must be a valid hex string, but got: ".concat(JSON.stringify(val)));
+            throw Error("Address must be a valid hex string, but got: ".concat((0, shared_impl_1.j2s)(val)));
         }
         return val;
     }
@@ -144,7 +145,7 @@ var BT_Array = function (ctc, size) {
         name: "Array(".concat(ctc.name, ", ").concat(size, ")"),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
-                throw Error("Expected an Array, but got ".concat(JSON.stringify(args)));
+                throw Error("Expected an Array, but got ".concat((0, shared_impl_1.j2s)(args)));
             }
             if (size != args.length) {
                 throw Error("Expected array of length ".concat(size, ", but got ").concat(args.length));
@@ -170,7 +171,7 @@ var BT_Tuple = function (ctcs) {
         name: "Tuple(".concat(ctcs.map(function (ctc) { return " ".concat(ctc.name, " "); }), ")"),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
-                throw Error("Expected a Tuple, but got ".concat(JSON.stringify(args)));
+                throw Error("Expected a Tuple, but got ".concat((0, shared_impl_1.j2s)(args)));
             }
             if (ctcs.length != args.length) {
                 throw Error("Expected tuple of size ".concat(ctcs.length, ", but got ").concat(args.length));
@@ -214,7 +215,7 @@ var BT_Object = function (co) {
         name: "Object(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
         canonicalize: function (vo) {
             if (typeof (vo) !== 'object') {
-                throw Error("Expected object, but got ".concat(JSON.stringify(vo)));
+                throw Error("Expected object, but got ".concat((0, shared_impl_1.j2s)(vo)));
             }
             var obj = {};
             for (var prop in co) {
@@ -242,7 +243,7 @@ var BT_Data = function (co) {
         name: "Data(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
         canonicalize: function (io) {
             if (!(Array.isArray(io) && io.length == 2 && typeof io[0] == 'string')) {
-                throw Error("Expected an array of length two to represent a data instance, but got ".concat(JSON.stringify(io)));
+                throw Error("Expected an array of length two to represent a data instance, but got ".concat((0, shared_impl_1.j2s)(io)));
             }
             var vn = io[0];
             if (!{}.hasOwnProperty.call(co, vn)) {
