@@ -98,8 +98,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatWithDecimals = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = void 0;
+exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.formatWithDecimals = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var algosdk_2 = require("algosdk");
@@ -124,6 +124,7 @@ __exportStar(require("./shared_user"), exports);
 var shared_impl_2 = require("./shared_impl");
 exports.setQueryLowerBound = shared_impl_2.setQueryLowerBound;
 exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
+exports.formatWithDecimals = shared_impl_2.formatWithDecimals;
 var _d = __read((0, shared_impl_1.makeSigningMonitor)(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
 exports.setSigningMonitor = setSigningMonitor;
 var reachBackendVersion = 10;
@@ -1062,6 +1063,7 @@ function randlabsProviderEnv(net) {
         ALGO_SERVER: "https://node.".concat(RANDLABS_BASE),
         ALGO_PORT: '',
         ALGO_TOKEN: '',
+        // TODO: update to just indexer.
         ALGO_INDEXER_SERVER: "https://algoindexer.".concat(RANDLABS_BASE),
         ALGO_INDEXER_PORT: '',
         ALGO_INDEXER_TOKEN: '',
@@ -1569,7 +1571,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                         if (vibne.eq(vibna)) {
                                             return vtys;
                                         }
-                                        throw Error("Expected state ".concat(vibne, ", got ").concat(vibna));
+                                        throw (0, shared_impl_1.apiStateMismatchError)(bin, vibne, vibna);
                                     })];
                             case 1: return [2 /*return*/, _a.sent()];
                         }
@@ -1823,6 +1825,11 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                             to = ctcAddr;
                                                             amt = t.amt;
                                                         }
+                                                        else if (t.kind === 'info') {
+                                                            var tok_1 = t.tok;
+                                                            recordAsset(tok_1);
+                                                            return;
+                                                        }
                                                         else {
                                                             (0, exports.assert)(false, 'sim txn kind');
                                                         }
@@ -2059,7 +2066,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                     return [4 /*yield*/, (0, exports.balanceOf)({ addr: ctcAddr }, mtok)];
                                 case 2:
                                     bal = _a.sent();
-                                    result = bal.eq(0) ? bal : bal.sub(exports.minimumBalance);
+                                    result = bal.lt(exports.minimumBalance) ? (0, shared_user_1.bigNumberify)(0) : bal.sub(exports.minimumBalance);
                                     (0, shared_impl_1.debug)("Balance of contract:", result);
                                     return [2 /*return*/, result];
                             }
@@ -2476,72 +2483,14 @@ var schemaBytesMinBalance = (0, shared_user_1.bigNumberify)(SchemaBytesMinBalanc
 var schemaUintMinBalance = (0, shared_user_1.bigNumberify)(SchemaUintMinBalance);
 var appFlatParamsMinBalance = (0, shared_user_1.bigNumberify)(AppFlatParamsMinBalance);
 var appFlatOptInMinBalance = (0, shared_user_1.bigNumberify)(AppFlatOptInMinBalance);
-// lol I am not importing leftpad for this
-/** @example lpad('asdf', '0', 6); // => '00asdf' */
-function lpad(str, padChar, nChars) {
-    var padding = padChar.repeat(Math.max(nChars - str.length, 0));
-    return padding + str;
-}
-/** @example rdrop('asfdfff', 'f'); // => 'asfd' */
-function rdrop(str, char) {
-    while (str[str.length - 1] === char) {
-        str = str.slice(0, str.length - 1);
-    }
-    return str;
-}
-/** @example ldrop('007', '0'); // => '7' */
-function ldrop(str, char) {
-    while (str[0] === char) {
-        str = str.slice(1);
-    }
-    return str;
-}
-/**
- * @description  Format currency by network or token
- * @param amt  the amount in the {@link atomicUnit} of the network or token.
- * @param decimals  up to how many decimal places to display in the {@link standardUnit}.
- * @param splitValue  where to split the numeric value.
- *   Trailing zeros will be omitted. Excess decimal places will be truncated (not rounded).
- *   This argument defaults to maximum precision.
- * @returns  a string representation of that amount in the {@link standardUnit} for that network or token.
- * @example  formatCurrency(bigNumberify('100000000')); // => '100'
- * @example  formatCurrency(bigNumberify('9999998799987000')); // => '9999998799.987'
- */
-function handleFormat(amt, decimals, splitValue) {
-    if (splitValue === void 0) { splitValue = 6; }
-    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
-    }
-    if (!(Number.isInteger(splitValue) && 0 <= splitValue)) {
-        throw Error("Expected split value to be a nonnegative integer, but got ".concat(decimals, "."));
-    }
-    var amtStr = (0, shared_user_1.bigNumberify)(amt).toString();
-    var splitAt = Math.max(amtStr.length - splitValue, 0);
-    var lPredropped = amtStr.slice(0, splitAt);
-    var l = ldrop(lPredropped, '0') || '0';
-    if (decimals === 0) {
-        return l;
-    }
-    var rPre = lpad(amtStr.slice(splitAt), '0', splitValue);
-    var rSliced = rPre.slice(0, decimals);
-    var r = rdrop(rSliced, '0');
-    return r ? "".concat(l, ".").concat(r) : l;
-}
 /**
  * @description  Format currency by network
  */
 function formatCurrency(amt, decimals) {
     if (decimals === void 0) { decimals = 6; }
-    return handleFormat(amt, decimals, 6);
+    return (0, shared_impl_2.handleFormat)(amt, decimals, 6);
 }
 exports.formatCurrency = formatCurrency;
-/**
- * @description  Format currency based on token decimals
- */
-function formatWithDecimals(amt, decimals) {
-    return handleFormat(amt, decimals, decimals);
-}
-exports.formatWithDecimals = formatWithDecimals;
 function getDefaultAccount() {
     return __awaiter(this, void 0, void 0, function () {
         var addr;
@@ -2796,7 +2745,7 @@ exports.unsafeGetMnemonic = unsafeGetMnemonic;
 function launchToken(accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, client, dotxn, supply, decimals, ctxn_p, idn, id, mint, optOut;
+        var addr, caddr, zaddr, client, dotxn, supply, decimals, clawback, ctxn_p, idn, id, mint, optOut;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -2835,8 +2784,9 @@ function launchToken(accCreator, name, sym, opts) {
                     };
                     supply = opts.supply ? (0, shared_user_1.bigNumberify)(opts.supply) : (0, shared_user_1.bigNumberify)(2).pow(64).sub(1);
                     decimals = opts.decimals !== undefined ? opts.decimals : 6;
+                    clawback = opts.clawback !== undefined ? addr(opts.clawback) : zaddr;
                     return [4 /*yield*/, dotxn(function (params) {
-                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, (0, shared_impl_1.bigNumberToBigInt)(supply), decimals, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
+                            return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParams(caddr, undefined, (0, shared_impl_1.bigNumberToBigInt)(supply), decimals, false, zaddr, zaddr, zaddr, clawback, sym, name, '', '', params);
                         })];
                 case 2:
                     ctxn_p = _a.sent();

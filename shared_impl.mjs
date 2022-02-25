@@ -99,7 +99,7 @@ import Timeout from 'await-timeout';
 import ethers from 'ethers';
 import { bigNumberify, } from './CBR.mjs';
 import util from 'util';
-import { hexlify, checkedBigNumberify, bytesEq, assert, } from './shared_backend.mjs';
+import { hexlify, checkedBigNumberify, bytesEq, assert, formatAssertInfo, } from './shared_backend.mjs';
 import { process } from './shim.mjs';
 export { hexlify } from './shared_backend.mjs';
 export var bigNumberToBigInt = function(x) { return BigInt(x.toHexString()); };
@@ -1016,5 +1016,63 @@ export var makeSigningMonitor = function() {
     });
   };
   return [setSigningMonitor, notifySend];
+};
+/** @example lpad('asdf', '0', 6); // => '00asdf' */
+var lpad = function(str, padChar, nChars) {
+  var padding = padChar.repeat(Math.max(nChars - str.length, 0));
+  return padding + str;
+};
+/** @example rdrop('asfdfff', 'f'); // => 'asfd' */
+var rdrop = function(str, char) {
+  while (str[str.length - 1] === char) {
+    str = str.slice(0, str.length - 1);
+  }
+  return str;
+};
+/** @example ldrop('007', '0'); // => '7' */
+var ldrop = function(str, char) {
+  while (str[0] === char) {
+    str = str.slice(1);
+  }
+  return str;
+};
+// Helper to<BigNumber> -> string formatting function used in a couple of places
+// amt = the number to format
+// decimals = number of digits from the right to put the decimal point
+// splitValue = number of digits to keep after the decimal point
+// Example: handleFormat(1234567, 4, 2) => "123.45"
+export var handleFormat = function(amt, decimals, splitValue) {
+  if (splitValue === void 0) { splitValue = 6; }
+  if (!(Number.isInteger(decimals) && 0 <= decimals)) {
+    throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
+  }
+  if (!(Number.isInteger(splitValue) && 0 <= splitValue)) {
+    throw Error("Expected split value to be a nonnegative integer, but got ".concat(decimals, "."));
+  }
+  var amtStr = bigNumberify(amt).toString();
+  var splitAt = Math.max(amtStr.length - splitValue, 0);
+  var lPredropped = amtStr.slice(0, splitAt);
+  var l = ldrop(lPredropped, '0') || '0';
+  if (decimals === 0) {
+    return l;
+  }
+  var rPre = lpad(amtStr.slice(splitAt), '0', splitValue);
+  var rSliced = rPre.slice(0, decimals);
+  var r = rdrop(rSliced, '0');
+  return r ? "".concat(l, ".").concat(r) : l;
+};
+export var formatWithDecimals = function(amt, decimals) {
+  return handleFormat(amt, decimals, decimals);
+};
+export var apiStateMismatchError = function(bin, es, as) {
+  var formatLoc = function(s) {
+    return formatAssertInfo(bin._stateSourceMap[s.toNumber()]);
+  };
+  var el = formatLoc(es);
+  var al = formatLoc(as);
+  return Error("Expected the DApp to be in state ".concat(es, ", but it was actually in state ").concat(as, ".\n") +
+    "\nState ".concat(es, " corresponds to the commit() at ").concat(el) +
+    "\nState ".concat(as, " corresponds to the commit() at ").concat(al) +
+    (el == al ? "\n(This means that the commit() is in the continuation of impure control-flow.)" : ""));
 };
 //# sourceMappingURL=shared_impl.js.map

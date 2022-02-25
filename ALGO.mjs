@@ -106,7 +106,7 @@ import * as RHC from './ALGO_ReachHTTPClient.mjs';
 import * as UTBC from './ALGO_UTBC.mjs';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
 import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled.mjs';
@@ -128,8 +128,8 @@ export var add = stdlib.add,
   bytesEq = stdlib.bytesEq,
   digestEq = stdlib.digestEq;
 export * from './shared_user.mjs';
-import { setQueryLowerBound, getQueryLowerBound } from './shared_impl.mjs';
-export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
+import { setQueryLowerBound, getQueryLowerBound, handleFormat, formatWithDecimals } from './shared_impl.mjs';
+export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
 var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
@@ -1183,6 +1183,7 @@ function randlabsProviderEnv(net) {
     ALGO_SERVER: "https://node.".concat(RANDLABS_BASE),
     ALGO_PORT: '',
     ALGO_TOKEN: '',
+    // TODO: update to just indexer.
     ALGO_INDEXER_SERVER: "https://algoindexer.".concat(RANDLABS_BASE),
     ALGO_INDEXER_PORT: '',
     ALGO_INDEXER_TOKEN: '',
@@ -1754,7 +1755,7 @@ export var connectAccount = function(networkAccount) {
                       if (vibne.eq(vibna)) {
                         return vtys;
                       }
-                      throw Error("Expected state ".concat(vibne, ", got ").concat(vibna));
+                      throw apiStateMismatchError(bin, vibne, vibna);
                     })];
                   case 1:
                     return [2 /*return*/ , _a.sent()];
@@ -2025,6 +2026,10 @@ export var connectAccount = function(networkAccount) {
                                   from = thisAcc.addr;
                                   to = ctcAddr;
                                   amt = t.amt;
+                                } else if (t.kind === 'info') {
+                                  var tok_1 = t.tok;
+                                  recordAsset(tok_1);
+                                  return;
                                 } else {
                                   assert(false, 'sim txn kind');
                                 }
@@ -2272,7 +2277,7 @@ export var connectAccount = function(networkAccount) {
                     return [4 /*yield*/ , balanceOf({ addr: ctcAddr }, mtok)];
                   case 2:
                     bal = _a.sent();
-                    result = bal.eq(0) ? bal : bal.sub(minimumBalance);
+                    result = bal.lt(minimumBalance) ? bigNumberify(0) : bal.sub(minimumBalance);
                     debug("Balance of contract:", result);
                     return [2 /*return*/ , result];
                 }
@@ -2721,69 +2726,12 @@ var schemaBytesMinBalance = bigNumberify(SchemaBytesMinBalance);
 var schemaUintMinBalance = bigNumberify(SchemaUintMinBalance);
 var appFlatParamsMinBalance = bigNumberify(AppFlatParamsMinBalance);
 var appFlatOptInMinBalance = bigNumberify(AppFlatOptInMinBalance);
-// lol I am not importing leftpad for this
-/** @example lpad('asdf', '0', 6); // => '00asdf' */
-function lpad(str, padChar, nChars) {
-  var padding = padChar.repeat(Math.max(nChars - str.length, 0));
-  return padding + str;
-}
-/** @example rdrop('asfdfff', 'f'); // => 'asfd' */
-function rdrop(str, char) {
-  while (str[str.length - 1] === char) {
-    str = str.slice(0, str.length - 1);
-  }
-  return str;
-}
-/** @example ldrop('007', '0'); // => '7' */
-function ldrop(str, char) {
-  while (str[0] === char) {
-    str = str.slice(1);
-  }
-  return str;
-}
-/**
- * @description  Format currency by network or token
- * @param amt  the amount in the {@link atomicUnit} of the network or token.
- * @param decimals  up to how many decimal places to display in the {@link standardUnit}.
- * @param splitValue  where to split the numeric value.
- *   Trailing zeros will be omitted. Excess decimal places will be truncated (not rounded).
- *   This argument defaults to maximum precision.
- * @returns  a string representation of that amount in the {@link standardUnit} for that network or token.
- * @example  formatCurrency(bigNumberify('100000000')); // => '100'
- * @example  formatCurrency(bigNumberify('9999998799987000')); // => '9999998799.987'
- */
-function handleFormat(amt, decimals, splitValue) {
-  if (splitValue === void 0) { splitValue = 6; }
-  if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-    throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
-  }
-  if (!(Number.isInteger(splitValue) && 0 <= splitValue)) {
-    throw Error("Expected split value to be a nonnegative integer, but got ".concat(decimals, "."));
-  }
-  var amtStr = bigNumberify(amt).toString();
-  var splitAt = Math.max(amtStr.length - splitValue, 0);
-  var lPredropped = amtStr.slice(0, splitAt);
-  var l = ldrop(lPredropped, '0') || '0';
-  if (decimals === 0) {
-    return l;
-  }
-  var rPre = lpad(amtStr.slice(splitAt), '0', splitValue);
-  var rSliced = rPre.slice(0, decimals);
-  var r = rdrop(rSliced, '0');
-  return r ? "".concat(l, ".").concat(r) : l;
-}
 /**
  * @description  Format currency by network
  */
 export function formatCurrency(amt, decimals) {
   if (decimals === void 0) { decimals = 6; }
   return handleFormat(amt, decimals, 6);
-}
-/**
- * @description  Format currency based on token decimals
- */
-export function formatWithDecimals(amt, decimals) {
-  return handleFormat(amt, decimals, decimals);
 }
 export function getDefaultAccount() {
   return __awaiter(this, void 0, void 0, function() {
@@ -3071,7 +3019,7 @@ export function unsafeGetMnemonic(acc) {
 export function launchToken(accCreator, name, sym, opts) {
   if (opts === void 0) { opts = {}; }
   return __awaiter(this, void 0, void 0, function() {
-    var addr, caddr, zaddr, client, dotxn, supply, decimals, ctxn_p, idn, id, mint, optOut;
+    var addr, caddr, zaddr, client, dotxn, supply, decimals, clawback, ctxn_p, idn, id, mint, optOut;
     var _this = this;
     return __generator(this, function(_a) {
       switch (_a.label) {
@@ -3111,8 +3059,9 @@ export function launchToken(accCreator, name, sym, opts) {
           };
           supply = opts.supply ? bigNumberify(opts.supply) : bigNumberify(2).pow(64).sub(1);
           decimals = opts.decimals !== undefined ? opts.decimals : 6;
+          clawback = opts.clawback !== undefined ? addr(opts.clawback) : zaddr;
           return [4 /*yield*/ , dotxn(function(params) {
-            return algosdk.makeAssetCreateTxnWithSuggestedParams(caddr, undefined, bigNumberToBigInt(supply), decimals, false, zaddr, zaddr, zaddr, zaddr, sym, name, '', '', params);
+            return algosdk.makeAssetCreateTxnWithSuggestedParams(caddr, undefined, bigNumberToBigInt(supply), decimals, false, zaddr, zaddr, zaddr, clawback, sym, name, '', '', params);
           })];
         case 2:
           ctxn_p = _a.sent();

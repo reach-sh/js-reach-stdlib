@@ -112,7 +112,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     setValidQueryWindow: (n: number | true) => void;
     getQueryLowerBound: () => BigNumber;
     setQueryLowerBound: (n: number | BigNumber) => void;
-    connector: string;
+    connector: 'ALGO' | 'CFX' | 'ETH';
     randomUInt: () => BigNumber;
     hasRandom: {
         random: () => BigNumber;
@@ -148,6 +148,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     minimumBalance: BigNumber;
     formatCurrency: (amt: BigNumber, decimals: number) => string;
     formatAddress: (acc: Account | string) => string;
+    formatWithDecimals: (amt: unknown, decimals: number) => string;
     unsafeGetMnemonic: (acc: Account) => string;
     launchToken: (acc: Account, name: string, sym: string, opts?: LaunchTokenOpts) => any;
     reachStdlib: Stdlib_Backend<Ty>;

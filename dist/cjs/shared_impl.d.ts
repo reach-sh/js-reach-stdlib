@@ -46,6 +46,9 @@ export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
             [n: string]: any;
         };
     };
+    _stateSourceMap: {
+        [key: number]: any;
+    };
     _getEvents: (stdlib: Object) => ({
         [n: string]: [any];
     });
@@ -202,6 +205,7 @@ export declare type TokenMetadata = {
 export declare type LaunchTokenOpts = {
     'decimals'?: number;
     'supply'?: unknown;
+    'clawback'?: any;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
@@ -260,6 +264,9 @@ export declare type ISimTxn<Token> = {
     amt: BigNumber;
 } | {
     kind: 'tokenDestroy';
+    tok: Token;
+} | {
+    kind: 'info';
     tok: Token;
 };
 /**
@@ -398,4 +405,7 @@ export declare type SetSigningMonitor = (h: SigningMonitor) => void;
 declare type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
 export declare type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, NotifyComplete<B>]>;
 export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifySend<A, B>];
+export declare const handleFormat: (amt: unknown, decimals: number, splitValue?: number) => string;
+export declare const formatWithDecimals: (amt: unknown, decimals: number) => string;
+export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber, as: BigNumber) => Error;
 //# sourceMappingURL=shared_impl.d.ts.map

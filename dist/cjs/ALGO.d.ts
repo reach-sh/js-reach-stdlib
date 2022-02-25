@@ -12,8 +12,8 @@ import { Token, ALGO_Ty, addressFromHex } from './ALGO_compiled';
 export type { Token } from './ALGO_compiled';
 export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (x: unknown, y: unknown) => boolean;
 export * from './shared_user';
-import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
-export { setQueryLowerBound, getQueryLowerBound, addressFromHex };
+import { setQueryLowerBound, getQueryLowerBound, formatWithDecimals } from './shared_impl';
+export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
 declare const setSigningMonitor: import("./shared_impl").SetSigningMonitor;
 export { setSigningMonitor };
 declare type BigNumber = ethers.BigNumber;
@@ -137,10 +137,6 @@ export declare const minimumBalance: BigNumber;
  * @description  Format currency by network
  */
 export declare function formatCurrency(amt: unknown, decimals?: number): string;
-/**
- * @description  Format currency based on token decimals
- */
-export declare function formatWithDecimals(amt: unknown, decimals: number): string;
 export declare function getDefaultAccount(): Promise<Account>;
 /**
  * @param mnemonic 25 words, space-separated

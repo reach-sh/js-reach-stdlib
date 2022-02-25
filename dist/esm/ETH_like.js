@@ -84,10 +84,10 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
 import { assert, protect, } from './shared_backend';
-import { replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, } from './shared_impl';
+import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
-import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
+import { setQueryLowerBound, getQueryLowerBound, formatWithDecimals } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
@@ -341,39 +341,50 @@ export function makeEthLike(ethLikeArgs) {
             });
         });
     };
-    var balanceOfNetworkAccount = function (networkAccount, token) {
+    var balanceOfNetworkAccount = function (arg, token) {
         if (token === void 0) { token = false; }
         return __awaiter(_this, void 0, void 0, function () {
-            var _a, addr, _b, provider, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var argIsString, addr, _a, _b, provider, _c, networkAccount, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
-                        if (!(!token && networkAccount.getBalance)) return [3 /*break*/, 2];
-                        _a = bigNumberify;
-                        return [4 /*yield*/, networkAccount.getBalance()];
-                    case 1: return [2 /*return*/, _a.apply(void 0, [_d.sent()])];
+                        argIsString = typeof arg === 'string';
+                        if (!argIsString) return [3 /*break*/, 1];
+                        _a = arg;
+                        return [3 /*break*/, 3];
+                    case 1: return [4 /*yield*/, getAddr({ networkAccount: arg })];
                     case 2:
-                        if (!(typeof networkAccount == 'string')) return [3 /*break*/, 3];
-                        _b = networkAccount;
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, getAddr({ networkAccount: networkAccount })];
-                    case 4:
-                        _b = _d.sent();
-                        _d.label = 5;
-                    case 5:
-                        addr = _b;
+                        _a = _e.sent();
+                        _e.label = 3;
+                    case 3:
+                        addr = _a;
                         if (!addr) {
-                            throw Error("address missing. Got: ".concat(networkAccount));
+                            throw Error("balanceOfNetworkAccount: address missing on ".concat(arg));
                         }
+                        if (!(!token && !argIsString && arg.getBalance)) return [3 /*break*/, 5];
+                        _b = bigNumberify;
+                        return [4 /*yield*/, arg.getBalance()];
+                    case 4: return [2 /*return*/, _b.apply(void 0, [_e.sent()])];
+                    case 5:
                         if (!!token) return [3 /*break*/, 8];
                         return [4 /*yield*/, getProvider()];
                     case 6:
-                        provider = _d.sent();
+                        provider = _e.sent();
                         _c = bigNumberify;
                         return [4 /*yield*/, provider.getBalance(addr)];
-                    case 7: return [2 /*return*/, _c.apply(void 0, [_d.sent()])];
-                    case 8: return [4 /*yield*/, balanceOf_token(networkAccount, addr, token)];
-                    case 9: return [2 /*return*/, _d.sent()];
+                    case 7: return [2 /*return*/, _c.apply(void 0, [_e.sent()])];
+                    case 8:
+                        if (!!argIsString) return [3 /*break*/, 9];
+                        _d = arg;
+                        return [3 /*break*/, 11];
+                    case 9: return [4 /*yield*/, createNetworkAccount()];
+                    case 10:
+                        _d = _e.sent();
+                        _e.label = 11;
+                    case 11:
+                        networkAccount = _d;
+                        return [4 /*yield*/, balanceOf_token(networkAccount, addr, token)];
+                    case 12: return [2 /*return*/, _e.sent()];
                 }
             });
         });
@@ -649,7 +660,7 @@ export function makeEthLike(ethLikeArgs) {
                                             _a = __read.apply(void 0, [_b.sent(), 2]), vibna = _a[0], vsbs = _a[1];
                                             debug("getState", { vibne: vibne, vibna: vibna, vsbs: vsbs });
                                             if (!vibne.eq(vibna)) {
-                                                throw Error("expected state ".concat(vibne, ", got ").concat(vibna));
+                                                throw apiStateMismatchError(bin, vibne, vibna);
                                             }
                                             ty = T_Tuple(tys);
                                             res = decodeEm(ty, vsbs);
@@ -1229,16 +1240,26 @@ export function makeEthLike(ethLikeArgs) {
             }
         });
     }); }), 2), getFaucet = _f[0], setFaucet = _f[1];
+    var createNetworkAccount = function () { return __awaiter(_this, void 0, void 0, function () {
+        var provider;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getProvider()];
+                case 1:
+                    provider = _a.sent();
+                    return [2 /*return*/, ethers.Wallet.createRandom().connect(provider)];
+            }
+        });
+    }); };
     var createAccount = function () { return __awaiter(_this, void 0, void 0, function () {
-        var provider, networkAccount;
+        var networkAccount;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     debug("createAccount with 0 balance.");
-                    return [4 /*yield*/, getProvider()];
+                    return [4 /*yield*/, createNetworkAccount()];
                 case 1:
-                    provider = _a.sent();
-                    networkAccount = ethers.Wallet.createRandom().connect(provider);
+                    networkAccount = _a.sent();
                     return [4 /*yield*/, connectAccount(networkAccount)];
                 case 2: return [2 /*return*/, _a.sent()];
             }
@@ -1495,23 +1516,7 @@ export function makeEthLike(ethLikeArgs) {
      */
     function formatCurrency(amt, decimals) {
         if (decimals === void 0) { decimals = standardDigits; }
-        // Recall that 1 WEI = 10e18 ETH
-        if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-            throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
-        }
-        // Truncate
-        decimals = Math.min(decimals, standardDigits);
-        var decimalsToForget = standardDigits - decimals;
-        var divAmt = bigNumberify(amt)
-            .div(bigNumberify(10).pow(decimalsToForget));
-        var amtStr = real_ethers.utils.formatUnits(divAmt, decimals);
-        // If the str ends with .0, chop it off
-        if (amtStr.slice(amtStr.length - 2) == ".0") {
-            return amtStr.slice(0, amtStr.length - 2);
-        }
-        else {
-            return amtStr;
-        }
+        return handleFormat(amt, decimals, 18);
     }
     /**
      * Formats an account's address in the way users expect to see it.
@@ -1593,7 +1598,7 @@ export function makeEthLike(ethLikeArgs) {
     }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { doCall: doCall, getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map

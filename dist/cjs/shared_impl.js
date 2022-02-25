@@ -82,7 +82,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.bigNumberToBigInt = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -950,4 +950,65 @@ var makeSigningMonitor = function () {
     return [setSigningMonitor, notifySend];
 };
 exports.makeSigningMonitor = makeSigningMonitor;
+/** @example lpad('asdf', '0', 6); // => '00asdf' */
+var lpad = function (str, padChar, nChars) {
+    var padding = padChar.repeat(Math.max(nChars - str.length, 0));
+    return padding + str;
+};
+/** @example rdrop('asfdfff', 'f'); // => 'asfd' */
+var rdrop = function (str, char) {
+    while (str[str.length - 1] === char) {
+        str = str.slice(0, str.length - 1);
+    }
+    return str;
+};
+/** @example ldrop('007', '0'); // => '7' */
+var ldrop = function (str, char) {
+    while (str[0] === char) {
+        str = str.slice(1);
+    }
+    return str;
+};
+// Helper to<BigNumber> -> string formatting function used in a couple of places
+// amt = the number to format
+// decimals = number of digits from the right to put the decimal point
+// splitValue = number of digits to keep after the decimal point
+// Example: handleFormat(1234567, 4, 2) => "123.45"
+var handleFormat = function (amt, decimals, splitValue) {
+    if (splitValue === void 0) { splitValue = 6; }
+    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
+        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
+    }
+    if (!(Number.isInteger(splitValue) && 0 <= splitValue)) {
+        throw Error("Expected split value to be a nonnegative integer, but got ".concat(decimals, "."));
+    }
+    var amtStr = (0, CBR_1.bigNumberify)(amt).toString();
+    var splitAt = Math.max(amtStr.length - splitValue, 0);
+    var lPredropped = amtStr.slice(0, splitAt);
+    var l = ldrop(lPredropped, '0') || '0';
+    if (decimals === 0) {
+        return l;
+    }
+    var rPre = lpad(amtStr.slice(splitAt), '0', splitValue);
+    var rSliced = rPre.slice(0, decimals);
+    var r = rdrop(rSliced, '0');
+    return r ? "".concat(l, ".").concat(r) : l;
+};
+exports.handleFormat = handleFormat;
+var formatWithDecimals = function (amt, decimals) {
+    return (0, exports.handleFormat)(amt, decimals, decimals);
+};
+exports.formatWithDecimals = formatWithDecimals;
+var apiStateMismatchError = function (bin, es, as) {
+    var formatLoc = function (s) {
+        return (0, shared_backend_1.formatAssertInfo)(bin._stateSourceMap[s.toNumber()]);
+    };
+    var el = formatLoc(es);
+    var al = formatLoc(as);
+    return Error("Expected the DApp to be in state ".concat(es, ", but it was actually in state ").concat(as, ".\n")
+        + "\nState ".concat(es, " corresponds to the commit() at ").concat(el)
+        + "\nState ".concat(as, " corresponds to the commit() at ").concat(al)
+        + (el == al ? "\n(This means that the commit() is in the continuation of impure control-flow.)" : ""));
+};
+exports.apiStateMismatchError = apiStateMismatchError;
 //# sourceMappingURL=shared_impl.js.map

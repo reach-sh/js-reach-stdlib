@@ -8,6 +8,7 @@ export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;
 }
+export declare const formatAssertInfo: (ai?: any) => string;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare function protect(ctc: AnyBackendTy, v: unknown, ai?: unknown): any;

@@ -47,7 +47,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.fromSome = exports.asMaybe = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -79,7 +79,7 @@ var objectIsEmpty = function (obj) {
 };
 var formatAssertInfo = function (ai) {
     var e_1, _a;
-    if (ai === void 0) { ai = null; }
+    if (ai === void 0) { ai = {}; }
     var msg = '';
     if (typeof ai === 'string') {
         msg = ": ".concat(ai);
@@ -123,10 +123,11 @@ var formatAssertInfo = function (ai) {
     }
     return msg;
 };
+exports.formatAssertInfo = formatAssertInfo;
 var assert = function (d, ai) {
-    if (ai === void 0) { ai = null; }
+    if (ai === void 0) { ai = {}; }
     if (!d) {
-        throw Error("Assertion failed".concat(formatAssertInfo(ai)));
+        throw Error("Assertion failed".concat((0, exports.formatAssertInfo)(ai)));
     }
 };
 exports.assert = assert;
@@ -146,7 +147,7 @@ function protect(ctc, v, ai) {
         return ctc.canonicalize(v);
     }
     catch (e) {
-        throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat((0, shared_impl_1.j2s)(v)).concat(formatAssertInfo(ai), "\n").concat((0, shared_impl_1.j2s)(e)));
+        throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat((0, shared_impl_1.j2s)(v)).concat((0, exports.formatAssertInfo)(ai), "\n").concat((0, shared_impl_1.j2s)(e)));
     }
 }
 exports.protect = protect;

@@ -5,7 +5,8 @@ export * from './CFX_compiled.mjs';
 export var connector = 'CFX';
 var ethLike = makeEthLike(cfxImpl);
 // The following should be identical to ETH.ts
-export var getQueryLowerBound = ethLike.getQueryLowerBound,
+export var doCall = ethLike.doCall,
+  getQueryLowerBound = ethLike.getQueryLowerBound,
   setQueryLowerBound = ethLike.setQueryLowerBound,
   getValidQueryWindow = ethLike.getValidQueryWindow,
   setValidQueryWindow = ethLike.setValidQueryWindow,
@@ -45,6 +46,7 @@ export var getQueryLowerBound = ethLike.getQueryLowerBound,
   minimumBalance = ethLike.minimumBalance,
   formatCurrency = ethLike.formatCurrency,
   formatAddress = ethLike.formatAddress,
+  formatWithDecimals = ethLike.formatWithDecimals,
   unsafeGetMnemonic = ethLike.unsafeGetMnemonic,
   launchToken = ethLike.launchToken,
   reachStdlib = ethLike.reachStdlib,

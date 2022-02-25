@@ -72,9 +72,9 @@ var objectIsEmpty = function (obj) {
         && Object.keys(obj).length === 0
         && Object.getPrototypeOf(obj) === Object.prototype);
 };
-var formatAssertInfo = function (ai) {
+export var formatAssertInfo = function (ai) {
     var e_1, _a;
-    if (ai === void 0) { ai = null; }
+    if (ai === void 0) { ai = {}; }
     var msg = '';
     if (typeof ai === 'string') {
         msg = ": ".concat(ai);
@@ -119,7 +119,7 @@ var formatAssertInfo = function (ai) {
     return msg;
 };
 export var assert = function (d, ai) {
-    if (ai === void 0) { ai = null; }
+    if (ai === void 0) { ai = {}; }
     if (!d) {
         throw Error("Assertion failed".concat(formatAssertInfo(ai)));
     }

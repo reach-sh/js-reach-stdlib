@@ -7,7 +7,8 @@ import type { // =>
 AnyETH_Ty, Token } from './ETH_like_compiled';
 export type { Token } from './ETH_like_compiled';
 export declare type Ty = AnyETH_Ty;
-import type { EthersLikeSigner, EthersLikeWallet, EthersLikeProvider, EthLikeArgs, TransactionReceipt, Address } from './ETH_like_interfaces';
+import type { // =>
+EthersLikeContract, EthersLikeSigner, EthersLikeWallet, EthersLikeProvider, EthLikeArgs, TransactionReceipt, Address } from './ETH_like_interfaces';
 export type { Address, } from './ETH_like_interfaces';
 import type { // =>
 Stdlib_Backend } from './interfaces';
@@ -54,6 +55,7 @@ declare type AccountTransferable = Account | {
     getStorageLimit?: any;
 };
 export declare function makeEthLike<Provider extends EthersLikeProvider, ProviderEnv, ProviderName>(ethLikeArgs: EthLikeArgs<Provider, ProviderEnv, ProviderName>): {
+    doCall: (dhead: string, ctc: EthersLikeContract, funcName: string, args: Array<any>, value: BigNumber, gasLimit: BigNumber | undefined, storageLimit: BigNumber | undefined) => Promise<TransactionReceipt>;
     getQueryLowerBound: typeof getQueryLowerBound;
     setQueryLowerBound: typeof setQueryLowerBound;
     getValidQueryWindow: () => number | true;
@@ -89,6 +91,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
+    formatWithDecimals: (amt: unknown, decimals: number) => string;
     unsafeGetMnemonic: (acc: Account | NetworkAccount) => string;
     launchToken: (accCreator: Account, name: string, sym: string, opts?: any) => Promise<{
         name: string;
