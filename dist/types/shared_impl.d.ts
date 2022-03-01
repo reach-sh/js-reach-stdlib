@@ -206,6 +206,8 @@ export declare type LaunchTokenOpts = {
     'decimals'?: number;
     'supply'?: unknown;
     'clawback'?: any;
+    'url'?: string;
+    'metadataHash'?: string;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;

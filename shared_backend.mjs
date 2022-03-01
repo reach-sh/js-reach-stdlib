@@ -356,13 +356,10 @@ export var simMapSet = function(sim_r, mapi, f, nv) {
     });
   });
 };
-export var simTokenNew = function(sim_r, n, s, u, m, p, d) {
+export var simTokenNew = function(sim_r, n, s, u, m, p, d, ctr) {
   sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p, d: d });
-  // XXX This 0 is a hack... on Algorand we can't know at simulation time what
-  // this is going to be... so this will cause a runtime exception from
-  // something if it gets looked at (i.e. if you try to create and immediately
-  // use it)
-  return 0;
+  // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
+  return ctr;
 };
 export var simTokenBurn = function(sim_r, tok, amt) {
   sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });

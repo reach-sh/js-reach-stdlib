@@ -163,11 +163,11 @@ export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promi
  */
 export declare function formatAddress(acc: string | NetworkAccount | Account): string;
 export declare function unsafeGetMnemonic(acc: NetworkAccount | Account): string;
-export declare function launchToken(accCreator: Account, name: string, sym: string, opts?: LaunchTokenOpts): Promise<{
+export declare const launchToken: (accCreator: Account, name: string, sym: string, opts?: LaunchTokenOpts) => Promise<{
     name: string;
     sym: string;
     id: ethers.BigNumber;
-    mint: (accTo: Account, amt: unknown) => Promise<void>;
+    mint: (accTo: Account, amt: any) => Promise<RecvTxn>;
     optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
 }>;
 export declare const reachStdlib: import("./interfaces").Stdlib_Backend_Base<ALGO_Ty<any>>;

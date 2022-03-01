@@ -960,7 +960,7 @@ function envDefaultsALGO(env) {
 ;
 function makeProviderByEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
-        var fullEnv, _a, algod_bc, algodClient, _b, indexer_bc, indexer, isIsolatedNetwork, nodeWriteOnly, lab, getDefaultAddress, signAndPostTxns;
+        var fullEnv, _a, algod_bc, algodClient, _b, indexer_bc, indexer, isIsolatedNetwork, nodeWriteOnly, errmsg, getDefaultAddress, signAndPostTxns;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -976,10 +976,12 @@ function makeProviderByEnv(env) {
                     _b = __read.apply(void 0, [_c.sent(), 2]), indexer_bc = _b[0], indexer = _b[1];
                     isIsolatedNetwork = truthyEnv(fullEnv.REACH_ISOLATED_NETWORK);
                     nodeWriteOnly = truthyEnv(fullEnv.ALGO_NODE_WRITE_ONLY);
-                    lab = "Providers created by environment";
+                    errmsg = function (s) {
+                        return "Providers created by environment ".concat(s, ". Calling setProviderByEnv or setProviderByName removes this capability. Try removing calls to those functions.");
+                    };
                     getDefaultAddress = function () { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
-                            throw new Error("".concat(lab, " do not have default addresses"));
+                            throw new Error(errmsg("do not have default addresses"));
                         });
                     }); };
                     signAndPostTxns = function (txns, opts) { return __awaiter(_this, void 0, void 0, function () {
@@ -992,7 +994,7 @@ function makeProviderByEnv(env) {
                                         if (txn.stxn) {
                                             return txn.stxn;
                                         }
-                                        throw new Error("".concat(lab, " cannot interactively sign"));
+                                        throw new Error(errmsg("cannot interactively sign"));
                                     });
                                     bs = stxns.map(function (stxn) { return Buffer.from(stxn, 'base64'); });
                                     debug("signAndPostTxns", bs);
@@ -2676,81 +2678,60 @@ export function unsafeGetMnemonic(acc) {
     }
     return algosdk.secretKeyToMnemonic(networkAccount.sk);
 }
-export function launchToken(accCreator, name, sym, opts) {
+var makeAssetCreateTxn = function (creator, supply, decimals, symbol, name, url, metadataHash, clawback, params) {
+    return algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+        from: creator,
+        total: bigNumberToBigInt(supply),
+        decimals: decimals,
+        defaultFrozen: false,
+        unitName: symbol,
+        assetName: name,
+        assetURL: url,
+        assetMetadataHash: metadataHash,
+        clawback: clawback,
+        suggestedParams: params
+    });
+};
+export var launchToken = function (accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
-    return __awaiter(this, void 0, void 0, function () {
-        var addr, caddr, zaddr, client, dotxn, supply, decimals, clawback, ctxn_p, idn, id, mint, optOut;
-        var _this = this;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+    return __awaiter(void 0, void 0, void 0, function () {
+        var addrCreator, supply, decimals, url, metadataHash, clawback, params, txnResult, assetIndex, id, mint, optOut;
+        var _a, _b, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    debug("Launching token, ".concat(name, " (").concat(sym, ")"));
-                    addr = function (acc) { return acc.networkAccount.addr; };
-                    caddr = addr(accCreator);
-                    zaddr = caddr;
-                    return [4 /*yield*/, getAlgodClient()];
+                    addrCreator = accCreator.networkAccount.addr;
+                    supply = opts.supply ? bigNumberify(opts.supply) : bigNumberify(2).pow(64).sub(1);
+                    decimals = (_a = opts.decimals) !== null && _a !== void 0 ? _a : 6;
+                    url = (_b = opts.url) !== null && _b !== void 0 ? _b : '';
+                    metadataHash = (_c = opts.metadataHash) !== null && _c !== void 0 ? _c : '';
+                    clawback = opts.clawback ? cbr2algo_addr(protect(T_Address, opts.clawback)) : undefined;
+                    return [4 /*yield*/, getTxnParams('launchToken')];
                 case 1:
-                    client = _a.sent();
-                    dotxn = function (mktxn, acc) {
-                        if (acc === void 0) { acc = accCreator; }
-                        return __awaiter(_this, void 0, void 0, function () {
-                            var sk, params, t, s, r;
+                    params = _d.sent();
+                    return [4 /*yield*/, sign_and_send_sync("launchToken ".concat(j2s(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, toWTxn(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, params)))];
+                case 2:
+                    txnResult = _d.sent();
+                    assetIndex = txnResult['created-asset-index'];
+                    if (!assetIndex)
+                        throw Error("".concat(sym, " no asset-index!"));
+                    id = bigNumberify(assetIndex);
+                    mint = function (accTo, amt) { return transfer(accCreator, accTo, amt, id); };
+                    optOut = function (accFrom, accTo) {
+                        if (accTo === void 0) { accTo = accCreator; }
+                        return __awaiter(void 0, void 0, void 0, function () {
+                            var addrFrom, addrTo, params, optOutTxn;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
-                                        sk = acc.networkAccount.sk;
-                                        if (!sk) {
-                                            throw new Error("can only launchToken with account with secret key");
-                                        }
-                                        return [4 /*yield*/, getTxnParams('launchToken')];
+                                        addrFrom = accFrom.networkAccount.addr;
+                                        addrTo = accTo.networkAccount.addr;
+                                        return [4 /*yield*/, getTxnParams('token.optOut')];
                                     case 1:
                                         params = _a.sent();
-                                        t = mktxn(params);
-                                        s = t.signTxn(sk);
-                                        return [4 /*yield*/, client.sendRawTransaction(s)["do"]()];
+                                        optOutTxn = makeTransferTxn(addrFrom, addrTo, bigNumberify(0), id, params, addrTo);
+                                        return [4 /*yield*/, sign_and_send_sync("token.optOut ".concat(j2s(accFrom), " ").concat(name), accFrom.networkAccount, toWTxn(optOutTxn))];
                                     case 2:
-                                        r = (_a.sent());
-                                        return [4 /*yield*/, waitForConfirmation(r.txId)];
-                                    case 3: return [2 /*return*/, _a.sent()];
-                                }
-                            });
-                        });
-                    };
-                    supply = opts.supply ? bigNumberify(opts.supply) : bigNumberify(2).pow(64).sub(1);
-                    decimals = opts.decimals !== undefined ? opts.decimals : 6;
-                    clawback = opts.clawback !== undefined ? addr(opts.clawback) : zaddr;
-                    return [4 /*yield*/, dotxn(function (params) {
-                            return algosdk.makeAssetCreateTxnWithSuggestedParams(caddr, undefined, bigNumberToBigInt(supply), decimals, false, zaddr, zaddr, zaddr, clawback, sym, name, '', '', params);
-                        })];
-                case 2:
-                    ctxn_p = _a.sent();
-                    idn = ctxn_p['created-asset-index'];
-                    if (!idn) {
-                        throw Error("".concat(sym, " no asset-index!"));
-                    }
-                    id = bigNumberify(idn);
-                    debug("".concat(sym, ": asset is ").concat(id));
-                    mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    debug("".concat(sym, ": transferring ").concat(amt, " ").concat(sym, " for ").concat(addr(accTo)));
-                                    return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
-                                case 1:
-                                    _a.sent();
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); };
-                    optOut = function (accFrom, accTo) {
-                        if (accTo === void 0) { accTo = accCreator; }
-                        return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, dotxn(function (params) {
-                                            return algosdk.makeAssetTransferTxnWithSuggestedParams(addr(accFrom), addr(accTo), addr(accTo), undefined, 0, undefined, idn, params);
-                                        }, accFrom)];
-                                    case 1:
                                         _a.sent();
                                         return [2 /*return*/];
                                 }
@@ -2761,7 +2742,6 @@ export function launchToken(accCreator, name, sym, opts) {
             }
         });
     });
-}
-;
+};
 export var reachStdlib = stdlib;
 //# sourceMappingURL=ALGO.js.map

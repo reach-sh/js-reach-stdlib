@@ -1534,12 +1534,13 @@ function makeEthLike(ethLikeArgs) {
         return T_Address.canonicalize(acc); // TODO: typing
     }
     function launchToken(accCreator, name, sym, opts) {
+        var _a, _b;
         if (opts === void 0) { opts = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, decimals, contract, deploy_r, id, mint, optOut;
+            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, decimals, url, metadataHash, contract, deploy_r, id, mint, optOut;
             var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         (0, shared_impl_1.debug)("Launching token, ".concat(name, " (").concat(sym, ")"));
                         addr = function (acc) { return acc.networkAccount.address; };
@@ -1550,13 +1551,15 @@ function makeEthLike(ethLikeArgs) {
                         (0, shared_impl_1.debug)("".concat(sym, ": deploy"));
                         supply = (opts.supply && (0, shared_user_1.bigNumberify)(opts.supply)) || (0, shared_user_1.bigNumberify)(2).pow(256).sub(1);
                         decimals = opts.decimals !== undefined ? opts.decimals : standardDigits;
-                        return [4 /*yield*/, factory.deploy(name, sym, '', '', supply, decimals)];
+                        url = (_a = opts.url) !== null && _a !== void 0 ? _a : '';
+                        metadataHash = (_b = opts.metadataHash) !== null && _b !== void 0 ? _b : '';
+                        return [4 /*yield*/, factory.deploy(name, sym, url, metadataHash, supply, decimals)];
                     case 1:
-                        contract = _a.sent();
+                        contract = _c.sent();
                         (0, shared_impl_1.debug)("".concat(sym, ": wait for deploy: ").concat(contract.deployTransaction.hash));
                         return [4 /*yield*/, contract.deployTransaction.wait()];
                     case 2:
-                        deploy_r = _a.sent();
+                        deploy_r = _c.sent();
                         (0, shared_impl_1.debug)("".concat(sym, ": saw deploy: ").concat(deploy_r.blockNumber));
                         id = contract.address;
                         (0, shared_impl_1.debug)("".concat(sym, ": deployed: ").concat(id));
