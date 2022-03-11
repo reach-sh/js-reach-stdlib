@@ -1,10 +1,12 @@
 import type { BaseHTTPClient } from "algosdk";
 export declare type EnableNetworkFunction = (opts?: EnableNetworkOpts) => Promise<EnableNetworkResult>;
 export interface EnableNetworkOpts {
-    network?: string;
+    genesisID?: string;
+    genesisHash?: string;
 }
 export interface EnableNetworkResult {
-    network?: string;
+    genesisID: string;
+    genesisHash: string;
 }
 export declare type EnableAccountsFunction = (opts?: EnableOpts) => Promise<EnableAccountsResult>;
 export interface EnableAccountsOpts {
@@ -38,5 +40,7 @@ export interface WindowAlgorand {
     getAlgodv2Client: GetAlgodv2ClientFunction;
     getIndexerClient: GetIndexerClientFunction;
 }
-export declare type ARC11_Wallet = WindowAlgorand;
+export declare type ARC11_Wallet = WindowAlgorand & {
+    _env?: any;
+};
 //# sourceMappingURL=ALGO_ARC11.d.ts.map

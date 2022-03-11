@@ -71,8 +71,9 @@ var __values = (this && this.__values) || function(o) {
 };
 // This has no dependencies on other shared things
 import ethers from 'ethers';
-import { bigNumberify } from './CBR.mjs';
+import { bigNumberify, bigNumberToNumber, } from './CBR.mjs';
 import { debug, j2s, } from './shared_impl.mjs';
+export { bigNumberToNumber, };
 void(debug);
 export var asMaybe = function(v) {
   if (v === undefined) {

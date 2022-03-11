@@ -2,7 +2,7 @@ export declare const connector = "ALGO";
 import algosdk from 'algosdk';
 export { default as algosdk } from 'algosdk';
 import { ethers } from 'ethers';
-import type { Transaction } from 'algosdk';
+import type { Transaction, SuggestedParams } from 'algosdk';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
 import type { BaseHTTPClient } from 'algosdk';
 import * as RHC from './ALGO_ReachHTTPClient';
@@ -21,19 +21,12 @@ declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 export declare type Ty = AnyALGO_Ty;
 export declare type Address = string;
 declare type SecretKey = Uint8Array;
-declare type TxnParams = {
-    flatFee?: boolean;
-    fee: number;
-    firstRound: number;
-    lastRound: number;
-    genesisID: string;
-    genesisHash: string;
-};
+declare type TxnParams = SuggestedParams;
 declare type RecvTxn = {
-    'confirmed-round': number;
-    'created-asset-index'?: number;
-    'created-application-index'?: number;
-    'application-index'?: number;
+    'confirmed-round': bigint;
+    'created-asset-index'?: bigint;
+    'created-application-index'?: bigint;
+    'application-index'?: bigint;
     'application-args': Array<string>;
     'sender': Address;
     'logs': Array<string>;
@@ -61,7 +54,7 @@ export declare type Backend = IBackend<AnyALGO_Ty> & {
         };
     };
 };
-export declare type ContractInfo = number;
+export declare type ContractInfo = BigNumber;
 export declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
 export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare function setCustomHttpEventHandler(h: (e: RHC.Event) => Promise<void>): void;
@@ -152,7 +145,7 @@ export declare const waitUntilTime: (target: ethers.BigNumber, onProgress?: OnPr
 export declare const waitUntilSecs: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
 export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
 declare type VerifyResult = {
-    ApplicationID: number;
+    ApplicationID: BigNumber;
     Deployer: Address;
 };
 export declare const verifyContract: (info: ContractInfo, bin: Backend) => Promise<VerifyResult>;

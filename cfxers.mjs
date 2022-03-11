@@ -945,6 +945,7 @@ var Wallet = /** @class */ (function() {
                     _c.sent();
                     return [4 /*yield*/ , p.conflux.getTransactionByHash(th_1)];
                   case 7:
+                    // @ts-ignore
                     got = _c.sent();
                     return [3 /*break*/ , 5];
                   case 8:

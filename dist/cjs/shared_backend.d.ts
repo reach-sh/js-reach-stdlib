@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { bigNumberToNumber } from './CBR';
+export { bigNumberToNumber, };
 declare type BigNumber = ethers.BigNumber;
 export declare type num = BigNumber | number;
 export declare type MaybeRep<A> = ['Some', A] | ['None', null];
@@ -48,5 +50,4 @@ export declare const simMapSet: <A>(sim_r: any, mapi: number, f: string, nv: A) 
 export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p: any, d: any, ctr: any) => any;
 export declare const simTokenBurn: (sim_r: any, tok: any, amt: any) => void;
 export declare const simTokenDestroy: (sim_r: any, tok: any) => void;
-export {};
 //# sourceMappingURL=shared_backend.d.ts.map

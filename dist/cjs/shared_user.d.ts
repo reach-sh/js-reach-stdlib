@@ -6,6 +6,7 @@ export { isHex, stringToHex, bigNumberify, bigNumberToNumber, hexToBigNumber };
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.BigNumber;
 export declare const isBigNumber: typeof ethers.BigNumber.isBigNumber;
+export declare const bigNumberToBigInt: (x: BigNumber) => bigint;
 export declare const uintToBytes: (i: BigNumber) => string;
 export declare const bigNumberToHex: (u: num, size?: number) => string;
 export declare const parseFixedPoint: (x: {

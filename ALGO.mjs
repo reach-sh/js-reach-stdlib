@@ -1,3 +1,15 @@
+var __assign = (this && this.__assign) || function() {
+  __assign = Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+      for (var p in s)
+        if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function(thisArg, _arguments, P, generator) {
   function adopt(value) { return value instanceof P ? value : new P(function(resolve) { resolve(value); }); }
   return new(P || (P = Promise))(function(resolve, reject) {
@@ -106,11 +118,11 @@ import * as RHC from './ALGO_ReachHTTPClient.mjs';
 import * as UTBC from './ALGO_UTBC.mjs';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, bigNumberToBigInt, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
-import { isBigNumber, bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
+import { isBigNumber, bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled.mjs';
-import { window, process, updateProcessEnv } from './shim.mjs';
+import { window, process } from './shim.mjs';
 import { sha512_256 } from 'js-sha512';
 export var add = stdlib.add,
   sub = stdlib.sub,
@@ -227,7 +239,7 @@ var rawDefaultItoken = 'reach-devnet';
 var indexerTxn2RecvTxn = function(txn) {
   var ait = txn['application-transaction'] || {};
   var aargs = ait['application-args'] || [];
-  var aidx = ait['application-id'] || 0;
+  var aidx = ait['application-id'];
   return {
     'confirmed-round': txn['confirmed-round'],
     'sender': txn['sender'],
@@ -436,7 +448,7 @@ export var toWTxn = function(t) {
 var stdWait = function() { return Timeout.set(1000); };
 export var getTxnParams = function(label) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, client, params;
+    var dhead, client, params_r, bi2n, params;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -450,7 +462,10 @@ export var getTxnParams = function(label) {
           if (!true) return [3 /*break*/ , 5];
           return [4 /*yield*/ , client.getTransactionParams()["do"]()];
         case 3:
-          params = _a.sent();
+          params_r = (_a.sent());
+          debug(dhead, 'got params:', params_r);
+          bi2n = function(x) { return bigNumberToNumber(bigNumberify(x)); };
+          params = __assign(__assign({}, params_r), { fee: bi2n(params_r.fee), firstRound: bi2n(params_r.firstRound), lastRound: bi2n(params_r.lastRound) });
           debug(dhead, 'got params:', params);
           if (params.firstRound !== 0) {
             return [2 /*return*/ , params];
@@ -605,7 +620,7 @@ export function setValidQueryWindow(n) {
 }
 var isCreateTxn = function(txn) {
   var at = txn['application-transaction'];
-  return at ? at['application-id'] === 0 : false;
+  return at ? bigNumberify(at['application-id']).eq(0) : false;
 };
 var emptyOptIn = function(txn) {
   var at = txn['application-transaction'];
@@ -614,10 +629,26 @@ var emptyOptIn = function(txn) {
     (at['on-completion'] === 'optin' && ataa.length == 0) :
     false;
 };
+var apiOnly = function(txn) {
+  var ls = txn['logs'];
+  if (ls && ls.length === 1) {
+    var l0 = ls[0];
+    var l0ui = base64ToUI8A(l0);
+    if (l0ui.length >= 4) {
+      var l0h = ui8h(l0ui.subarray(0, 4));
+      debug('apiOnly', { l0h: l0h });
+      return (l0h === '151f7c75');
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
 var newEventQueue = function() {
   var getTxns = function(dhead, initArgs, ctime, howMany) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var ApplicationID, indexer, mtime, query, q, res, txns, gtime;
+      var ApplicationID, indexer, mtime, appn, query, q, res, txns, walkTxns, gtime;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -625,17 +656,32 @@ var newEventQueue = function() {
             return [4 /*yield*/ , getIndexer()];
           case 1:
             indexer = _a.sent();
-            mtime = bigNumberToNumber(ctime) + 1;
+            mtime = bigNumberToNumber(ctime.add(1));
             debug(dhead, { ctime: ctime, mtime: mtime });
+            appn = bigNumberToNumber(ApplicationID);
             query = indexer.searchForTransactions()
-              .applicationID(ApplicationID)
+              .applicationID(appn)
               //.txType('appl')
               .minRound(mtime);
             q = query;
             return [4 /*yield*/ , doQuery_(dhead, q, howMany)];
           case 2:
             res = _a.sent();
-            txns = res.transactions.filter(function(x) { return x['tx-type'] === 'appl'; });
+            txns = [];
+            walkTxns = function(ints) {
+              ints.filter(function(x) { return x['tx-type'] === 'appl'; }).forEach(function(x) {
+                var at = (x['application-transaction'] || {});
+                var ai = bigNumberify(at['application-id'] || 0);
+                var cai = bigNumberify(x['created-application-index'] || 0);
+                var its = x['inner-txns'];
+                if (ai.eq(ApplicationID) || cai.eq(ApplicationID)) {
+                  txns.push(x);
+                } else if (its) {
+                  walkTxns(its);
+                }
+              });
+            };
+            walkTxns(res.transactions);
             gtime = bigNumberify(res['current-round']);
             return [2 /*return*/ , { txns: txns, gtime: gtime }];
         }
@@ -645,7 +691,7 @@ var newEventQueue = function() {
   var getTxnTime = function(x) { return bigNumberify(x['confirmed-round']); };
   return makeEventQueue({
     raw2proc: indexerTxn2RecvTxn,
-    alwaysIgnored: emptyOptIn,
+    alwaysIgnored: function(x) { return (emptyOptIn(x) || apiOnly(x)); },
     getTxns: getTxns,
     getTxnTime: getTxnTime
   });
@@ -706,14 +752,24 @@ function waitAlgodClientFromEnv(env) {
     });
   });
 };
-var makeProviderByWallet = function(wallet) {
+var makeProviderByWallet = function(wallet, env) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var walletOpts, enabledNetwork, enabledAccounts, enabled, algod_bc, indexer_bc, algodClient, indexer, getDefaultAddress, signAndPostTxns, isIsolatedNetwork, nodeWriteOnly;
+    var defaults, allEnv, ALGO_GENESIS_ID, ALGO_GENESIS_HASH, ALGO_ACCOUNT, REACH_ISOLATED_NETWORK, ALGO_NODE_WRITE_ONLY, walletOpts, isIsolatedNetwork, nodeWriteOnly, enabledNetwork, enabledAccounts, enabled, algod_bc, indexer_bc, algodClient, indexer, getDefaultAddress, signAndPostTxns;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
           debug("making provider with wallet");
-          walletOpts = { 'network': process.env['ALGO_NETWORK'] };
+          defaults = { REACH_ISOLATED_NETWORK: 'no', ALGO_NODE_WRITE_ONLY: 'yes' };
+          allEnv = __assign(__assign(__assign({}, defaults), env), (wallet._env || {}));
+          ALGO_GENESIS_ID = env.ALGO_GENESIS_ID, ALGO_GENESIS_HASH = env.ALGO_GENESIS_HASH, ALGO_ACCOUNT = env.ALGO_ACCOUNT;
+          REACH_ISOLATED_NETWORK = allEnv.REACH_ISOLATED_NETWORK, ALGO_NODE_WRITE_ONLY = allEnv.ALGO_NODE_WRITE_ONLY;
+          walletOpts = {
+            genesisID: ALGO_GENESIS_ID || undefined,
+            genesisHash: ALGO_GENESIS_HASH || undefined,
+            accounts: ALGO_ACCOUNT ? [ALGO_ACCOUNT] : undefined
+          };
+          isIsolatedNetwork = truthyEnv(REACH_ISOLATED_NETWORK);
+          nodeWriteOnly = truthyEnv(ALGO_NODE_WRITE_ONLY);
           if (!(wallet.enableNetwork === undefined && wallet.enableAccounts === undefined)) return [3 /*break*/ , 2];
           return [4 /*yield*/ , wallet.enable(walletOpts)];
         case 1:
@@ -762,8 +818,6 @@ var makeProviderByWallet = function(wallet) {
             });
           };
           signAndPostTxns = wallet.signAndPostTxns;
-          isIsolatedNetwork = truthyEnv(process.env['REACH_ISOLATED_NETWORK']);
-          nodeWriteOnly = truthyEnv(process.env.ALGO_NODE_WRITE_ONLY);
           return [2 /*return*/ , { algod_bc: algod_bc, indexer_bc: indexer_bc, indexer: indexer, algodClient: algodClient, nodeWriteOnly: nodeWriteOnly, getDefaultAddress: getDefaultAddress, isIsolatedNetwork: isIsolatedNetwork, signAndPostTxns: signAndPostTxns }];
       }
     });
@@ -774,30 +828,44 @@ export var setWalletFallback = function(wf) {
     window.algorand = wf();
   }
 };
+var checkNetwork = function(ret, eopts) {
+  var id = ret.genesisID,
+    h = ret.genesisHash;
+  var _a = eopts || {},
+    eid = _a.genesisID,
+    eh = _a.genesisHash;
+  if ((eid && eid !== id) || (eh && eh !== h)) {
+    throw Error("Requested genesis ID or hash not supported by this wallet.\n" +
+      "Expected: '".concat(id, "' '").concat(h, "'\n") +
+      "Got: '".concat(eid, "' '").concat(eh, "'"));
+  }
+};
+var checkAccounts = function(addr, got) {
+  if (got && (got[0] !== addr || got.length > 1)) {
+    throw Error("One or more requested accounts not supported by this wallet.\n" +
+      "Expected: ".concat(JSON.stringify([addr]), "\n") +
+      "Got: ".concat(JSON.stringify(got)));
+  }
+};
 var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
   var p = undefined;
+  var base = opts['providerEnv'] || 'LocalHost';
+  var _env = typeof base === 'string' ? providerEnvByName(base) : base;
   var enableNetwork = function(eopts) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var base;
-      return __generator(this, function(_a) {
-        switch (_a.label) {
+      var _a, genesisID, genesisHash, ret;
+      return __generator(this, function(_b) {
+        switch (_b.label) {
           case 0:
-            void(eopts);
-            base = opts['providerEnv'];
-            if (base) {
-              // XXX Is it a bad idea to update the process.env? This is to get
-              // ALGO_NODE_WRITE_ONLY from here to makeProviderByWallet
-              if (typeof base === 'string') {
-                // @ts-ignore
-                updateProcessEnv(providerEnvByName(base));
-              } else {
-                updateProcessEnv(base);
-              }
-            }
-            return [4 /*yield*/ , makeProviderByEnv(process.env)];
+            return [4 /*yield*/ , makeProviderByEnv(_env)];
           case 1:
-            p = _a.sent();
-            return [2 /*return*/ , {}];
+            p = _b.sent();
+            return [4 /*yield*/ , p.algodClient.getTransactionParams()["do"]()];
+          case 2:
+            _a = _b.sent(), genesisID = _a.genesisID, genesisHash = _a.genesisHash;
+            ret = { genesisID: genesisID, genesisHash: genesisHash };
+            checkNetwork(ret, eopts);
+            return [2 /*return*/ , ret];
         }
       });
     });
@@ -808,10 +876,10 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
-            void(eopts);
             return [4 /*yield*/ , getAddr()];
           case 1:
             addr = _a.sent();
+            checkAccounts(addr, eopts === null || eopts === void 0 ? void 0 : eopts.accounts);
             return [2 /*return*/ , { accounts: [addr] }];
         }
       });
@@ -819,15 +887,17 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
   };
   var enable = function(eopts) {
     return __awaiter(void 0, void 0, void 0, function() {
+      var nres, ares;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
             return [4 /*yield*/ , enableNetwork(eopts)];
           case 1:
-            _a.sent();
+            nres = _a.sent();
             return [4 /*yield*/ , enableAccounts(eopts)];
           case 2:
-            return [2 /*return*/ , _a.sent()];
+            ares = _a.sent();
+            return [2 /*return*/ , __assign(__assign({}, nres), ares)];
         }
       });
     });
@@ -901,7 +971,7 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
       });
     });
   };
-  return { enable: enable, enableNetwork: enableNetwork, enableAccounts: enableAccounts, getAlgodv2Client: getAlgodv2Client, getIndexerClient: getIndexerClient, signAndPostTxns: signAndPostTxns };
+  return { _env: _env, enable: enable, enableNetwork: enableNetwork, enableAccounts: enableAccounts, getAlgodv2Client: getAlgodv2Client, getIndexerClient: getIndexerClient, signAndPostTxns: signAndPostTxns };
 };
 var walletFallback_mnemonic = function(opts) {
   return function() {
@@ -1024,7 +1094,7 @@ export var getProvider = (_b = __read(replaceableThunk(function() {
         switch (_a.label) {
           case 0:
             if (!window.algorand) return [3 /*break*/ , 2];
-            return [4 /*yield*/ , makeProviderByWallet(window.algorand)];
+            return [4 /*yield*/ , makeProviderByWallet(window.algorand, process.env)];
           case 1:
             // @ts-ignore
             return [2 /*return*/ , _a.sent()];
@@ -1040,24 +1110,30 @@ export var getProvider = (_b = __read(replaceableThunk(function() {
   setProvider = _b[1];
 var getAlgodClient = function() {
   return __awaiter(void 0, void 0, void 0, function() {
+    var c;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
           return [4 /*yield*/ , getProvider()];
         case 1:
-          return [2 /*return*/ , (_a.sent()).algodClient];
+          c = (_a.sent()).algodClient;
+          c.setIntEncoding(algosdk.IntDecoding.BIGINT);
+          return [2 /*return*/ , c];
       }
     });
   });
 };
 var getIndexer = function() {
   return __awaiter(void 0, void 0, void 0, function() {
+    var p;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
           return [4 /*yield*/ , getProvider()];
         case 1:
-          return [2 /*return*/ , (_a.sent()).indexer];
+          p = (_a.sent()).indexer;
+          p.setIntEncoding(algosdk.IntDecoding.BIGINT);
+          return [2 /*return*/ , p];
       }
     });
   });
@@ -1217,7 +1293,7 @@ export function setProviderByName(pn) {
   return setProviderByEnv(providerEnvByName(pn));
 }
 // eslint-disable-next-line max-len
-var rawFaucetDefaultMnemonic = 'frown slush talent visual weather bounce evil teach tower view fossil trip sauce express moment sea garbage pave monkey exercise soap lawn army above dynamic';
+var rawFaucetDefaultMnemonic = 'crisp casino index crack nose present cry chair brief shuffle humble marine loop fall unable task solar bright crack heavy blast south twist absorb similar';
 export var getFaucet = (_c = __read(replaceableThunk(function() {
     return __awaiter(void 0, void 0, void 0, function() {
       var FAUCET;
@@ -1312,7 +1388,7 @@ var reNetify = function(x) {
 };
 var getAccountInfo = function(a) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, client, res_1, e_6, indexer, q, res;
+    var dhead, client, req, res_1, e_6, indexer, q, res;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -1326,7 +1402,9 @@ var getAccountInfo = function(a) {
           return [4 /*yield*/ , getAlgodClient()];
         case 3:
           client = _a.sent();
-          return [4 /*yield*/ , client.accountInformation(a)["do"]()];
+          req = client.accountInformation(a);
+          debug(dhead, req);
+          return [4 /*yield*/ , req["do"]()];
         case 4:
           res_1 = (_a.sent());
           debug(dhead, 'node', res_1);
@@ -1369,13 +1447,14 @@ var getAssetInfo = function(a) {
     });
   });
 };
-var getApplicationInfoM = function(id) {
+var getApplicationInfoM = function(idn) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, client, res_2, e_7, indexer, q, res;
+    var id, dhead, client, res_2, e_7, indexer, q, res;
     var _a, _b;
     return __generator(this, function(_c) {
       switch (_c.label) {
         case 0:
+          id = bigNumberToNumber(idn);
           dhead = 'getApplicationInfo';
           _c.label = 1;
         case 1:
@@ -1419,7 +1498,7 @@ export var connectAccount = function(networkAccount) {
       // @ts-ignore
       return this;
     }
-    var thisAcc, label, pks, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata;
+    var thisAcc, label, pks, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc;
     return __generator(this, function(_a) {
       thisAcc = networkAccount;
       label = thisAcc.addr.substring(2, 6);
@@ -1488,11 +1567,11 @@ export var connectAccount = function(networkAccount) {
                       eq.pushIgnore(isCreateTxn);
                     }
                     debug(label, 'getC', { ApplicationID: ApplicationID });
-                    ctcAddr = algosdk.getApplicationAddress(ApplicationID);
+                    ctcAddr = algosdk.getApplicationAddress(bigNumberToBigInt(ApplicationID));
                     debug(label, 'getC', { ctcAddr: ctcAddr });
                     getLocalState = function(a) {
                       return __awaiter(void 0, void 0, void 0, function() {
-                        var ai, alss, als;
+                        var ai, alss, fmtApplicationID, als;
                         return __generator(this, function(_a) {
                           switch (_a.label) {
                             case 0:
@@ -1501,7 +1580,8 @@ export var connectAccount = function(networkAccount) {
                               ai = _a.sent();
                               debug("getLocalState", ai);
                               alss = ai['apps-local-state'] || [];
-                              als = alss.find(function(x) { return (x.id === ApplicationID); });
+                              fmtApplicationID = bigNumberToBigInt(ApplicationID);
+                              als = alss.find(function(x) { return (x.id === fmtApplicationID); });
                               debug("getLocalState", als);
                               return [2 /*return*/ , als ? als['key-value'] : undefined];
                           }
@@ -1537,7 +1617,7 @@ export var connectAccount = function(networkAccount) {
                               _f = [thisAcc.addr];
                               return [4 /*yield*/ , getTxnParams(dhead)];
                             case 1:
-                              return [4 /*yield*/ , _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_g.sent(), ApplicationID,
+                              return [4 /*yield*/ , _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_g.sent(), bigNumberToNumber(ApplicationID),
                                 undefined, undefined, undefined, undefined,
                                 NOTE_Reach
                               ]))])]))];
@@ -1786,7 +1866,7 @@ export var connectAccount = function(networkAccount) {
           };
           var sendrecv = function(srargs) {
             return __awaiter(void 0, void 0, void 0, function() {
-              var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, ApplicationID_1, ctcInfo, _h, ApplicationID, ctcAddr, Deployer, ensureOptIn, canIWin, isIsolatedNetwork, _j, value, toks, _k, _svs, msg, _l, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, _loop_1, state_1;
+              var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, ai, ApplicationID_1, ctcInfo, _h, ApplicationID, ctcAddr, Deployer, ensureOptIn, canIWin, isIsolatedNetwork, _j, value, toks, _k, _svs, msg, _l, _svs_tys, msg_tys, fake_res, sim_r, isHalt, mapRefs, _loop_1, state_1;
               return __generator(this, function(_m) {
                 switch (_m.label) {
                   case 0:
@@ -1856,10 +1936,11 @@ export var connectAccount = function(networkAccount) {
                     ]))])]))];
                   case 4:
                     createRes = _m.sent();
-                    ApplicationID_1 = createRes['created-application-index'];
-                    if (!ApplicationID_1) {
+                    ai = createRes['created-application-index'];
+                    if (!ai) {
                       throw Error("No created-application-index in ".concat(j2s(createRes)));
                     }
+                    ApplicationID_1 = bigNumberify(ai);
                     debug(label, "created", { ApplicationID: ApplicationID_1 });
                     ctcInfo = ApplicationID_1;
                     setTrustedVerifyResult({ ApplicationID: ApplicationID_1, Deployer: Deployer_1 });
@@ -1915,7 +1996,7 @@ export var connectAccount = function(networkAccount) {
                   case 9:
                     mapRefs = sim_r.mapRefs;
                     _loop_1 = function() {
-                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, jes, _r, _s;
+                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, processSimTxn, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_8, jes, _r, _s;
                       return __generator(this, function(_t) {
                         switch (_t.label) {
                           case 0:
@@ -1926,7 +2007,7 @@ export var connectAccount = function(networkAccount) {
                             // round, which we couldn't possibly be in, because it already
                             // happened.
                             debug(dhead, '--- TIMECHECK', { params: params, timeoutAt: timeoutAt });
-                            return [4 /*yield*/ , checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, params.firstRound + 1)];
+                            return [4 /*yield*/ , checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, bigNumberify(params.firstRound).add(1))];
                           case 2:
                             if (!_t.sent()) return [3 /*break*/ , 4];
                             _o = {};
@@ -1967,6 +2048,15 @@ export var connectAccount = function(networkAccount) {
                               recordAccount_(addr);
                             };
                             mapRefs.forEach(recordAccount);
+                            foreignArr = [];
+                            recordApp = function(app) {
+                              var appn = bigNumberToNumber(app);
+                              if (!foreignArr.includes(appn)) {
+                                foreignArr.push(appn);
+                                var addr = algosdk.getApplicationAddress(bigNumberToBigInt(app));
+                                recordAccount_(addr);
+                              }
+                            };
                             assetsArr = [];
                             recordAsset = function(tok) {
                               if (tok) {
@@ -1996,6 +2086,10 @@ export var connectAccount = function(networkAccount) {
                               } else if (t.kind === 'tokenDestroy') {
                                 recordAsset(t.tok);
                                 howManyMoreFees++;
+                                return;
+                              } else if (t.kind === 'remote') {
+                                recordApp(t.obj);
+                                howManyMoreFees += 1 + bigNumberToNumber(t.pays);
                                 return;
                               } else {
                                 var tok = t.tok;
@@ -2035,9 +2129,6 @@ export var connectAccount = function(networkAccount) {
                                 } else {
                                   assert(false, 'sim txn kind');
                                 }
-                                if (amt.eq(0)) {
-                                  return;
-                                }
                                 txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
                               }
                               extraFees += txn.fee;
@@ -2056,6 +2147,8 @@ export var connectAccount = function(networkAccount) {
                             mapAcctsVal = (mapAccts.length === 0) ? undefined : mapAccts;
                             assetsVal = (assetsArr.length === 0) ? undefined : assetsArr;
                             debug(dhead, { assetsArr: assetsArr, assetsVal: assetsVal });
+                            foreignVal = (foreignArr.length === 0) ? undefined : foreignArr;
+                            debug(dhead, { foreignArr: foreignArr, foreignVal: foreignVal });
                             actual_args = [lct, msg];
                             actual_tys = [T_UInt, T_Tuple(msg_tys)];
                             debug(dhead, '--- ARGS =', actual_args);
@@ -2076,7 +2169,7 @@ export var connectAccount = function(networkAccount) {
                               // We are treating it like any party can delete the application, but the docs say it may only be possible for the creator. The code appears to not care: https://github.com/algorand/go-algorand/blob/0e9cc6b0c2ddc43c3cfa751d61c1321d8707c0da/ledger/apply/application.go#L589
                               algosdk.makeApplicationDeleteTxn :
                               algosdk.makeApplicationNoOpTxn;
-                            txnAppl = whichAppl(thisAcc.addr, params, ApplicationID, safe_args, mapAcctsVal, undefined, assetsVal, NOTE_Reach);
+                            txnAppl = whichAppl(thisAcc.addr, params, bigNumberToNumber(ApplicationID), safe_args, mapAcctsVal, foreignVal, assetsVal, NOTE_Reach);
                             txnAppl.fee += extraFees;
                             rtxns = __spreadArray(__spreadArray([], __read(txnExtraTxns), false), [txnAppl], false);
                             debug(dhead, "assigning", { rtxns: rtxns });
@@ -2146,7 +2239,7 @@ export var connectAccount = function(networkAccount) {
                     dhead = rfargs.dhead, funcNum = rfargs.funcNum, out_tys = rfargs.out_tys, didSend = rfargs.didSend, txn = rfargs.txn;
                     debug(dhead, 'txn', txn);
                     theRound = txn['confirmed-round'];
-                    return [4 /*yield*/ , retryLoop([dhead, 'getTimeSecs'], function() { return getTimeSecs(bigNumberify(theRound - 0)); })];
+                    return [4 /*yield*/ , retryLoop([dhead, 'getTimeSecs'], function() { return getTimeSecs(bigNumberify(theRound)); })];
                   case 1:
                     theSecs = _a.sent();
                     lr = makeLogRep(reachEvent(funcNum), out_tys);
@@ -2216,19 +2309,18 @@ export var connectAccount = function(networkAccount) {
                     isIsolatedNetwork = (_a.sent()).isIsolatedNetwork;
                     didTimeout = function(cr_bn) {
                       return __awaiter(void 0, void 0, void 0, function() {
-                        var cr, crp, r;
+                        var crp, r;
                         return __generator(this, function(_a) {
                           switch (_a.label) {
                             case 0:
-                              cr = bigNumberToNumber(cr_bn);
-                              debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, cr_bn: cr_bn, cr: cr });
-                              crp = cr + 1;
+                              crp = cr_bn.add(1);
+                              debug(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, cr_bn: cr_bn, crp: crp });
                               return [4 /*yield*/ , checkTimeout(isIsolatedNetwork, getTimeSecs, timeoutAt, crp)];
                             case 1:
                               r = _a.sent();
                               debug(dhead, 'TIMECHECK', { r: r, waitIfNotPresent: waitIfNotPresent });
                               if (!(!r && waitIfNotPresent)) return [3 /*break*/ , 3];
-                              return [4 /*yield*/ , waitUntilTime(bigNumberify(crp))];
+                              return [4 /*yield*/ , waitUntilTime(crp)];
                             case 2:
                               _a.sent();
                               _a.label = 3;
@@ -2514,7 +2606,8 @@ export var connectAccount = function(networkAccount) {
           });
         });
       };
-      return [2 /*return*/ , stdAccount({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract })];
+      unsupportedAcc = stdAccount_unsupported(connector);
+      return [2 /*return*/ , stdAccount(__assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract }))];
     });
   });
 };
@@ -2529,7 +2622,7 @@ export var minimumBalanceOf = function(acc) {
           return [4 /*yield*/ , getAccountInfo(addr)];
         case 1:
           ai = _h.sent();
-          if (ai.amount === 0) {
+          if (ai.amount === BigInt(0)) {
             return [2 /*return*/ , bigNumberify(0)];
           }
           createdAppCount = bigNumberify(((_a = ai['created-apps']) !== null && _a !== void 0 ? _a : []).length);
@@ -2945,13 +3038,12 @@ export var verifyContract = function(info, bin) {
 };
 var verifyContract_ = function(label, info, bin, eq) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var ai_bn, ApplicationID, _a, appApproval, appClear, mapDataKeys, stateKeys, dhead, chk, chkeq, appInfoM, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, iat, allocRound;
+    var ApplicationID, _a, appApproval, appClear, mapDataKeys, stateKeys, dhead, chk, chkeq_x, chkeq_b, chkeq_bn_, chkeq_bn, chkeq_bs, appInfoM, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, iat, allocRound;
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
           must_be_supported(bin);
-          ai_bn = protect(T_Contract, info);
-          ApplicationID = bigNumberToNumber(ai_bn);
+          ApplicationID = protect(T_Contract, info);
           _a = bin._Connectors.ALGO, appApproval = _a.appApproval, appClear = _a.appClear, mapDataKeys = _a.mapDataKeys, stateKeys = _a.stateKeys;
           dhead = "".concat(label, ": verifyContract");
           chk = function(p, msg) {
@@ -2959,11 +3051,17 @@ var verifyContract_ = function(label, info, bin, eq) {
               throw Error("".concat(dhead, " failed: ").concat(msg));
             }
           };
-          chkeq = function(a, e, msg) {
-            var as = j2sf(a);
-            var es = j2sf(e);
-            chk(as === es, "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
+          chkeq_x = function(cmp) {
+            return function(a, e, msg) {
+              var as = j2sf(a);
+              var es = j2sf(e);
+              chk(cmp(a, e), "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
+            };
           };
+          chkeq_b = chkeq_x(function(a, b) { return a === b; });
+          chkeq_bn_ = chkeq_x(function(a, b) { return a.eq(b); });
+          chkeq_bn = function(a, b, msg) { return chkeq_bn_(bigNumberify(a), bigNumberify(b), msg); };
+          chkeq_bs = chkeq_x(function(a, b) { return j2sf(a) === j2sf(b); });
           return [4 /*yield*/ , getApplicationInfoM(ApplicationID)];
         case 1:
           appInfoM = _b.sent();
@@ -2974,29 +3072,29 @@ var verifyContract_ = function(label, info, bin, eq) {
           appInfo_p = appInfo['params'];
           debug(dhead, { appInfo_p: appInfo_p });
           chk(appInfo_p !== undefined, "Cannot lookup ApplicationId");
-          chkeq(appInfo_p['approval-program'], appApproval, "Approval program does not match Reach backend");
-          chkeq(appInfo_p['clear-state-program'], appClear, "ClearState program does not match Reach backend");
+          chkeq_bs(appInfo_p['approval-program'], appApproval, "Approval program does not match Reach backend");
+          chkeq_bs(appInfo_p['clear-state-program'], appClear, "ClearState program does not match Reach backend");
           Deployer = appInfo_p['creator'];
           appInfo_LocalState = appInfo_p['local-state-schema'];
-          chkeq(appInfo_LocalState['num-byte-slice'], appLocalStateNumBytes + mapDataKeys, "Num of byte-slices in local state schema does not match Reach backend");
-          chkeq(appInfo_LocalState['num-uint'], appLocalStateNumUInt, "Num of uints in local state schema does not match Reach backend");
+          chkeq_bn(appInfo_LocalState['num-byte-slice'], appLocalStateNumBytes + mapDataKeys, "Num of byte-slices in local state schema does not match Reach backend");
+          chkeq_bn(appInfo_LocalState['num-uint'], appLocalStateNumUInt, "Num of uints in local state schema does not match Reach backend");
           appInfo_GlobalState = appInfo_p['global-state-schema'];
-          chkeq(appInfo_GlobalState['num-byte-slice'], appGlobalStateNumBytes + stateKeys, "Num of byte-slices in global state schema does not match Reach backend");
-          chkeq(appInfo_GlobalState['num-uint'], appGlobalStateNumUInt, "Num of uints in global state schema does not match Reach backend");
-          chkeq(appInfo['deleted'] === true, false, "Application must not be deleted");
+          chkeq_bn(appInfo_GlobalState['num-byte-slice'], appGlobalStateNumBytes + stateKeys, "Num of byte-slices in global state schema does not match Reach backend");
+          chkeq_bn(appInfo_GlobalState['num-uint'], appGlobalStateNumUInt, "Num of uints in global state schema does not match Reach backend");
+          chkeq_b(appInfo['deleted'] === true, false, "Application must not be deleted");
           eq.init({ ApplicationID: ApplicationID });
           return [4 /*yield*/ , eq.deq(dhead)];
         case 2:
           iat = _b.sent();
           debug({ iat: iat });
-          chkeq(iat['created-application-index'], ApplicationID, 'app created');
-          chkeq(iat['application-index'], 0, 'app created');
+          chkeq_bn(iat['created-application-index'], ApplicationID, 'app created');
+          chkeq_bn(iat['application-index'], 0, 'app created');
           allocRound = appInfo['created-at-round'];
           if (allocRound) {
-            chkeq(iat['confirmed-round'], allocRound, 'created on correct round');
+            chkeq_bn(iat['confirmed-round'], allocRound, 'created on correct round');
           }
-          chkeq(iat['approval-program'], appInfo_p['approval-program'], "ApprovalProgram unchanged since creation");
-          chkeq(iat['clear-state-program'], appInfo_p['clear-state-program'], "ClearStateProgram unchanged since creation");
+          chkeq_bs(iat['approval-program'], appInfo_p['approval-program'], "ApprovalProgram unchanged since creation");
+          chkeq_bs(iat['clear-state-program'], appInfo_p['clear-state-program'], "ClearStateProgram unchanged since creation");
           return [2 /*return*/ , { ApplicationID: ApplicationID, Deployer: Deployer }];
       }
     });

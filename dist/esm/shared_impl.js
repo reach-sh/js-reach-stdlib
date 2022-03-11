@@ -79,7 +79,6 @@ import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, assert, formatAssertInfo, } from './shared_backend';
 import { process } from './shim';
 export { hexlify } from './shared_backend';
-export var bigNumberToBigInt = function (x) { return BigInt(x.toHexString()); };
 export var j2sf = function (x) {
     // We're removing duplicated values, so we can remove cyclic references
     var seen = [];
@@ -307,6 +306,25 @@ export var stdContract = function (stdContractArgs) {
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
 };
+export var stdAccount_unsupported = function (conn) {
+    var setGasLimit = function (ngl) {
+        void (ngl);
+        console.warn("setGasLimit not supported on ".concat(conn));
+    };
+    var getGasLimit = function () {
+        console.warn("getGasLimit not supported on ".concat(conn));
+        return bigNumberify(0);
+    };
+    var setStorageLimit = function (ngl) {
+        void (ngl);
+        console.warn("setStorageLimit not supported on ".concat(conn));
+    };
+    var getStorageLimit = function () {
+        console.warn("getStorageLimit not supported on ".concat(conn));
+        return bigNumberify(0);
+    };
+    return { setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
+};
 export var stdAccount = function (orig) {
     return __assign(__assign({}, orig), { deploy: function (bin) {
             console.log("WARNING: acc.deploy(bin) is deprecated; use acc.contract(bin) instead. Deployment is implied by the first publication.");
@@ -514,17 +532,16 @@ export var make_waitUntilX = function (label, getCurrent, step) { return functio
         }
     });
 }); }; };
-export var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, nowTimeN) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, mode, val, nowTime, nowSecs, e_1, nowSecs;
+export var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, nowTime) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, mode, val, nowSecs, e_1, nowSecs;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                debug('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
+                debug('checkTimeout', { timeoutAt: timeoutAt, nowTime: nowTime });
                 if (!timeoutAt) {
                     return [2 /*return*/, false];
                 }
                 _a = __read(timeoutAt, 2), mode = _a[0], val = _a[1];
-                nowTime = bigNumberify(nowTimeN);
                 if (!(mode === 'time')) return [3 /*break*/, 1];
                 return [2 /*return*/, val.lte(nowTime)];
             case 1:

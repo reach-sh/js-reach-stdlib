@@ -40,19 +40,14 @@ export declare type NetworkAccount = {
 } | EthersLikeWallet | EthersLikeSigner;
 export declare type ContractInfo = Address;
 export declare type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
-export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> & {
-    setGasLimit?: (ngl: any) => void;
-    getGasLimit?: any;
-    setStorageLimit?: any;
-    getStorageLimit?: any;
-};
+export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 declare type VerifyResult = {
     creationBlock: BigNumber;
 };
 declare type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
-    getGasLimit?: any;
-    getStorageLimit?: any;
+    getGasLimit?: () => BigNumber;
+    getStorageLimit?: () => BigNumber;
 };
 export declare function makeEthLike<Provider extends EthersLikeProvider, ProviderEnv, ProviderName>(ethLikeArgs: EthLikeArgs<Provider, ProviderEnv, ProviderName>): {
     doCall: (dhead: string, ctc: EthersLikeContract, funcName: string, args: Array<any>, value: BigNumber, gasLimit: BigNumber | undefined, storageLimit: BigNumber | undefined) => Promise<TransactionReceipt>;

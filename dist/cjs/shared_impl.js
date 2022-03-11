@@ -12,7 +12,11 @@ var __assign = (this && this.__assign) || function () {
 };
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -82,7 +86,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.bigNumberToBigInt = exports.hexlify = void 0;
+exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -93,8 +97,6 @@ var shared_backend_1 = require("./shared_backend");
 var shim_1 = require("./shim");
 var shared_backend_2 = require("./shared_backend");
 __createBinding(exports, shared_backend_2, "hexlify");
-var bigNumberToBigInt = function (x) { return BigInt(x.toHexString()); };
-exports.bigNumberToBigInt = bigNumberToBigInt;
 var j2sf = function (x) {
     // We're removing duplicated values, so we can remove cyclic references
     var seen = [];
@@ -331,6 +333,26 @@ var stdContract = function (stdContractArgs) {
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
 };
 exports.stdContract = stdContract;
+var stdAccount_unsupported = function (conn) {
+    var setGasLimit = function (ngl) {
+        void (ngl);
+        console.warn("setGasLimit not supported on ".concat(conn));
+    };
+    var getGasLimit = function () {
+        console.warn("getGasLimit not supported on ".concat(conn));
+        return (0, CBR_1.bigNumberify)(0);
+    };
+    var setStorageLimit = function (ngl) {
+        void (ngl);
+        console.warn("setStorageLimit not supported on ".concat(conn));
+    };
+    var getStorageLimit = function () {
+        console.warn("getStorageLimit not supported on ".concat(conn));
+        return (0, CBR_1.bigNumberify)(0);
+    };
+    return { setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
+};
+exports.stdAccount_unsupported = stdAccount_unsupported;
 var stdAccount = function (orig) {
     return __assign(__assign({}, orig), { deploy: function (bin) {
             console.log("WARNING: acc.deploy(bin) is deprecated; use acc.contract(bin) instead. Deployment is implied by the first publication.");
@@ -559,17 +581,16 @@ var make_waitUntilX = function (label, getCurrent, step) { return function (targ
     });
 }); }; };
 exports.make_waitUntilX = make_waitUntilX;
-var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, nowTimeN) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, mode, val, nowTime, nowSecs, e_1, nowSecs;
+var checkTimeout = function (runningIsolated, getTimeSecs, timeoutAt, nowTime) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, mode, val, nowSecs, e_1, nowSecs;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                (0, exports.debug)('checkTimeout', { timeoutAt: timeoutAt, nowTimeN: nowTimeN });
+                (0, exports.debug)('checkTimeout', { timeoutAt: timeoutAt, nowTime: nowTime });
                 if (!timeoutAt) {
                     return [2 /*return*/, false];
                 }
                 _a = __read(timeoutAt, 2), mode = _a[0], val = _a[1];
-                nowTime = (0, CBR_1.bigNumberify)(nowTimeN);
                 if (!(mode === 'time')) return [3 /*break*/, 1];
                 return [2 /*return*/, val.lte(nowTime)];
             case 1:

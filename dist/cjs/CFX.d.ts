@@ -8,16 +8,16 @@ export declare const doCall: (dhead: string, ctc: import("./ETH_like_interfaces"
     random: () => import("ethers").BigNumber;
 }, setProviderByEnv: (env: cfxImpl.ProviderEnv) => void, setProviderByName: (providerName: cfxImpl.ProviderName) => void, providerEnvByName: (providerName: cfxImpl.ProviderName) => cfxImpl.ProviderEnv, setWalletFallback: (wallet: any) => void, walletFallback: (opts: any) => any, balanceOf: (acc: string | import("./ETH_like").Account, token?: string | false) => Promise<import("ethers").BigNumber>, balancesOf: (acc: string | import("./ETH_like").Account, tokens: (string | null)[]) => Promise<import("ethers").BigNumber[]>, minimumBalanceOf: (acc: string | import("./ETH_like").Account) => Promise<import("ethers").BigNumber>, transfer: (from: import("./ETH_like").Account | {
     networkAccount: import("./ETH_like").NetworkAccount;
-    getGasLimit?: any;
-    getStorageLimit?: any;
+    getGasLimit?: (() => import("ethers").BigNumber) | undefined;
+    getStorageLimit?: (() => import("ethers").BigNumber) | undefined;
 }, to: import("./ETH_like").Account | {
     networkAccount: import("./ETH_like").NetworkAccount;
-    getGasLimit?: any;
-    getStorageLimit?: any;
+    getGasLimit?: (() => import("ethers").BigNumber) | undefined;
+    getStorageLimit?: (() => import("ethers").BigNumber) | undefined;
 }, value: any, token?: string | false) => Promise<import("@ethersproject/abstract-provider").TransactionReceipt>, connectAccount: (networkAccount: import("./ETH_like").NetworkAccount) => Promise<import("./ETH_like").Account>, newAccountFromSecret: (secret: string) => Promise<import("./ETH_like").Account>, newAccountFromMnemonic: (phrase: string) => Promise<import("./ETH_like").Account>, getDefaultAccount: () => Promise<import("./ETH_like").Account>, getFaucet: () => Promise<import("./ETH_like").Account>, setFaucet: (val: Promise<import("./ETH_like").Account>) => void, createAccount: () => Promise<import("./ETH_like").Account>, canFundFromFaucet: () => Promise<boolean>, fundFromFaucet: (account: import("./ETH_like").Account | {
     networkAccount: import("./ETH_like").NetworkAccount;
-    getGasLimit?: any;
-    getStorageLimit?: any;
+    getGasLimit?: (() => import("ethers").BigNumber) | undefined;
+    getStorageLimit?: (() => import("ethers").BigNumber) | undefined;
 }, value: any) => Promise<any>, newTestAccount: (startingBalance: any) => Promise<import("./ETH_like").Account>, newTestAccounts: (k: number, bal: any) => Promise<import("./ETH_like").Account[]>, getNetworkTime: () => Promise<import("ethers").BigNumber>, waitUntilTime: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, wait: (delta: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, getNetworkSecs: () => Promise<import("ethers").BigNumber>, waitUntilSecs: (target: import("ethers").BigNumber, onProgress?: import("./shared_impl").OnProgress | undefined) => Promise<import("ethers").BigNumber>, verifyContract: (ctcInfo: string, backend: import("./ETH_like").Backend) => Promise<{
     creationBlock: import("ethers").BigNumber;
 }>, standardUnit: string, atomicUnit: string, parseCurrency: (amt: import("./shared_impl").CurrencyAmount) => import("ethers").BigNumber, minimumBalance: import("ethers").BigNumber, formatCurrency: (amt: any, decimals?: number) => string, formatAddress: (acc: string | import("./ETH_like").NetworkAccount | import("./ETH_like").Account) => string, formatWithDecimals: (amt: unknown, decimals: number) => string, unsafeGetMnemonic: (acc: import("./ETH_like").NetworkAccount | import("./ETH_like").Account) => string, launchToken: (accCreator: import("./ETH_like").Account, name: string, sym: string, opts?: any) => Promise<{

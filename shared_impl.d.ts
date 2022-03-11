@@ -3,7 +3,6 @@ import { CBR_Address } from './CBR';
 import { num, AnyBackendTy } from './shared_backend';
 import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
-export declare const bigNumberToBigInt: (x: BigNumber) => bigint;
 declare type BigNumber = ethers.BigNumber;
 export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
@@ -80,7 +79,7 @@ export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
 };
 export declare type TimeArg = [('time' | 'secs'), BigNumber];
-export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBackendTy, ContractInfo> = {
     funcNum: number;
     evt_cnt: number;
     tys: Array<ConnectorTy>;
@@ -91,7 +90,7 @@ export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBack
     soloSend: boolean;
     timeoutAt: TimeArg | undefined;
     lct: BigNumber;
-    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token>>;
+    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token, ContractInfo>>;
 };
 export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     funcNum: number;
@@ -125,7 +124,7 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     selfAddress: () => CBR_Address;
     iam: (some_addr: RawAddress) => RawAddress;
     stdlib: Object;
-    sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy>) => Promise<IRecv<RawAddress>>;
+    sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy, ContractInfo>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
     apiMapRef: (i: number, ty: ConnectorTy) => MapRefT<any>;
@@ -230,17 +229,22 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     tokenAccept: (token: Token) => Promise<void>;
     tokenAccepted: (token: Token) => Promise<boolean>;
     tokenMetadata: (token: Token) => Promise<TokenMetadata>;
+    setGasLimit: (ngl: unknown) => void;
+    getGasLimit: () => BigNumber;
+    setStorageLimit: (nsl: unknown) => void;
+    getStorageLimit: () => BigNumber;
 };
+export declare const stdAccount_unsupported: <NetworkAccount, Backend, Contract, ContractInfo, Token>(conn: string) => Pick<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "setGasLimit" | "getGasLimit" | "setStorageLimit" | "getStorageLimit">;
 export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
 export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Token> = {
-    txns: Array<ISimTxn<Token>>;
+export declare type ISimRes<Token, ContractInfo> = {
+    txns: Array<ISimTxn<Token, ContractInfo>>;
     mapRefs: Array<string>;
     isHalt: boolean;
 };
-export declare type ISimTxn<Token> = {
+export declare type ISimTxn<Token, ContractInfo> = {
     kind: 'to' | 'init';
     amt: BigNumber;
     tok: Token | undefined;
@@ -267,6 +271,10 @@ export declare type ISimTxn<Token> = {
 } | {
     kind: 'tokenDestroy';
     tok: Token;
+} | {
+    kind: 'remote';
+    obj: ContractInfo;
+    pays: BigNumber;
 } | {
     kind: 'info';
     tok: Token;
@@ -332,7 +340,7 @@ export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Pro
     serial: NewTestAccounts<X>;
 };
 export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
-export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTimeN: number) => Promise<boolean>;
+export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTime: BigNumber) => Promise<boolean>;
 declare type Pred<X> = (x: X) => boolean;
 declare type AsyncPred<X> = (x: X) => Promise<boolean>;
 declare type EQPeqResult<ProcTxn> = {

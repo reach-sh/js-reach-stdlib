@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.numberToInt = exports.numberToFixedPoint = exports.hasConsoleLogger = exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
+exports.numberToInt = exports.numberToFixedPoint = exports.hasConsoleLogger = exports.parseInt = exports.parseFixedPoint = exports.bigNumberToHex = exports.uintToBytes = exports.bigNumberToBigInt = exports.isBigNumber = exports.hexToBigNumber = exports.bigNumberToNumber = exports.bigNumberify = exports.stringToHex = exports.isHex = void 0;
 // This can depend on the shared backend and impl
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -13,6 +13,8 @@ exports.isHex = shared_backend_1.isHex;
 exports.stringToHex = shared_backend_1.stringToHex;
 var BigNumber = ethers_1.ethers.BigNumber;
 exports.isBigNumber = BigNumber.isBigNumber;
+var bigNumberToBigInt = function (x) { return BigInt((0, CBR_1.bigNumberify)(x).toHexString()); };
+exports.bigNumberToBigInt = bigNumberToBigInt;
 var uintToBytes = function (i) { return (0, exports.bigNumberToHex)(i); };
 exports.uintToBytes = uintToBytes;
 var bigNumberToHex = function (u, size) {

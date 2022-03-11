@@ -6,6 +6,7 @@ import { isHex, stringToHex, } from './shared_backend';
 export { isHex, stringToHex, bigNumberify, bigNumberToNumber, hexToBigNumber };
 var BigNumber = ethers.BigNumber;
 export var isBigNumber = BigNumber.isBigNumber;
+export var bigNumberToBigInt = function (x) { return BigInt(bigNumberify(x).toHexString()); };
 export var uintToBytes = function (i) { return bigNumberToHex(i); };
 export var bigNumberToHex = function (u, size) {
     if (size === void 0) { size = 32; }
