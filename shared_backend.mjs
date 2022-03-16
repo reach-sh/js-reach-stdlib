@@ -69,6 +69,31 @@ var __values = (this && this.__values) || function(o) {
   };
   throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
+var __read = (this && this.__read) || function(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o),
+    r, ar = [],
+    e;
+  try {
+    while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  } catch (error) { e = { error: error }; } finally {
+    try {
+      if (r && !r.done && (m = i["return"])) m.call(i);
+    } finally { if (e) throw e.error; }
+  }
+  return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+};
 // This has no dependencies on other shared things
 import ethers from 'ethers';
 import { bigNumberify, bigNumberToNumber, } from './CBR.mjs';
@@ -95,7 +120,7 @@ var objectIsEmpty = function(obj) {
     Object.getPrototypeOf(obj) === Object.prototype);
 };
 export var formatAssertInfo = function(ai) {
-  var e_1, _a;
+  var e_1, _b;
   if (ai === void 0) { ai = {}; }
   var msg = '';
   if (typeof ai === 'string') {
@@ -118,13 +143,13 @@ export var formatAssertInfo = function(ai) {
     var rest = ":";
     if (Array.isArray(ai.fs)) {
       try {
-        for (var _b = __values(ai.fs), _c = _b.next(); !_c.done; _c = _b.next()) {
-          var f = _c.value;
+        for (var _c = __values(ai.fs), _d = _c.next(); !_d.done; _d = _c.next()) {
+          var f = _d.value;
           msg += "\n  ".concat(f);
         }
       } catch (e_1_1) { e_1 = { error: e_1_1 }; } finally {
         try {
-          if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+          if (_d && !_d.done && (_b = _c["return"])) _b.call(_c);
         } finally { if (e_1) throw e_1.error; }
       }
       delete ai.fs;
@@ -159,14 +184,15 @@ export function protect(ctc, v, ai) {
     throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(j2s(v)).concat(formatAssertInfo(ai), "\n").concat(j2s(e)));
   }
 };
-var _a = ethers.utils,
-  toUtf8Bytes = _a.toUtf8Bytes,
-  isHexString = _a.isHexString;
+var _b = ethers.utils,
+  toUtf8Bytes = _b.toUtf8Bytes,
+  isHexString = _b.isHexString;
 export var hexlify = ethers.utils.hexlify;
 export var isHex = isHexString;
 export var stringToHex = function(x) {
   return hexlify(toUtf8Bytes(x));
 };
+var hexToInt = function(x) { return parseInt(x, 16); };
 var forceHex = function(x) {
   return isHex(x) ? x : stringToHex(x);
 };
@@ -182,6 +208,28 @@ export var ge = function(a, b) { return bigNumberify(a).gte(bigNumberify(b)); };
 export var gt = function(a, b) { return bigNumberify(a).gt(bigNumberify(b)); };
 export var le = function(a, b) { return bigNumberify(a).lte(bigNumberify(b)); };
 export var lt = function(a, b) { return bigNumberify(a).lt(bigNumberify(b)); };
+export var digest_xor = function(xd, yd) {
+  var clean = function(s) { return s.slice(0, 2) === '0x' ? s.slice(2) : s; };
+  var xc = clean(xd);
+  var yc = clean(yd);
+  var parseHex = function(xs) {
+    var ret = [];
+    for (var i = 0; i < xs.length; i += 2) {
+      ret.push(hexToInt(xs.substr(i, 2)));
+    }
+    return ret;
+  };
+  var xs = parseHex(xc);
+  var ys = parseHex(yc);
+  var result = '0x' + xs.map(function(x, i) { return (x ^ ys[i]).toString(16).padStart(2, '0'); }).join('');
+  return result;
+};
+export var bytes_xor = function(x, y) {
+  var xs = Buffer.from(x);
+  var ys = Buffer.from(y);
+  var xors = xs.map(function(x, i) { return x ^ ys[i]; });
+  return String.fromCharCode.apply(String, __spreadArray([], __read(xors), false));
+};
 export function Array_set(arr, idx, elem) {
   var arrp = arr.slice();
   arrp[idx] = elem;
@@ -191,7 +239,7 @@ var basicMap = function() {
   var m = {};
   var basicSet = function(f, v) {
     return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_a) {
+      return __generator(this, function(_b) {
         m[f] = v;
         return [2 /*return*/ ];
       });
@@ -199,7 +247,7 @@ var basicMap = function() {
   };
   var basicRef = function(f) {
     return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_a) {
+      return __generator(this, function(_b) {
         return [2 /*return*/ , asMaybe(m[f])];
       });
     });
@@ -211,13 +259,13 @@ var copyMap = function(or) {
   var seen = {};
   var copySet = function(f, v) {
     return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_a) {
-        switch (_a.label) {
+      return __generator(this, function(_b) {
+        switch (_b.label) {
           case 0:
             seen[f] = true;
             return [4 /*yield*/ , mapSet(m, f, v)];
           case 1:
-            _a.sent();
+            _b.sent();
             return [2 /*return*/ ];
         }
       });
@@ -226,21 +274,21 @@ var copyMap = function(or) {
   var copyRef = function(f) {
     return __awaiter(void 0, void 0, void 0, function() {
       var mv;
-      return __generator(this, function(_a) {
-        switch (_a.label) {
+      return __generator(this, function(_b) {
+        switch (_b.label) {
           case 0:
             if (!!seen[f]) return [3 /*break*/ , 3];
             return [4 /*yield*/ , or(f)];
           case 1:
-            mv = _a.sent();
+            mv = _b.sent();
             return [4 /*yield*/ , copySet(f, mv[0] === 'Some' ? mv[1] : undefined)];
           case 2:
-            _a.sent();
-            _a.label = 3;
+            _b.sent();
+            _b.label = 3;
           case 3:
             return [4 /*yield*/ , mapRef(m, f)];
           case 4:
-            return [2 /*return*/ , _a.sent()];
+            return [2 /*return*/ , _b.sent()];
         }
       });
     });
@@ -257,12 +305,12 @@ export var newMap = function(opts) {
 };
 export var mapSet = function(m, f, v) {
   return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_a) {
-      switch (_a.label) {
+    return __generator(this, function(_b) {
+      switch (_b.label) {
         case 0:
           return [4 /*yield*/ , m.set(f, v)];
         case 1:
-          _a.sent();
+          _b.sent();
           return [2 /*return*/ ];
       }
     });
@@ -270,60 +318,50 @@ export var mapSet = function(m, f, v) {
 };
 export var mapRef = function(m, f) {
   return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_a) {
-      switch (_a.label) {
-        case 0:
-          return [4 /*yield*/ , m.ref(f)];
-        case 1:
-          return [2 /*return*/ , _a.sent()];
-      }
-    });
-  });
-};
-export var Array_asyncMap = function(a, f) { return Promise.all(a.map(f)); };
-export var Array_asyncReduce = function(a, b, f) {
-  return __awaiter(void 0, void 0, void 0, function() {
-    var y, i, a_1, a_1_1, x, e_2_1;
-    var e_2, _a;
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
-          y = b;
-          i = 0;
-          _b.label = 1;
+          return [4 /*yield*/ , m.ref(f)];
         case 1:
-          _b.trys.push([1, 6, 7, 8]);
-          a_1 = __values(a), a_1_1 = a_1.next();
-          _b.label = 2;
-        case 2:
-          if (!!a_1_1.done) return [3 /*break*/ , 5];
-          x = a_1_1.value;
-          return [4 /*yield*/ , f(y, x, i++)];
-        case 3:
-          y = _b.sent();
-          _b.label = 4;
-        case 4:
-          a_1_1 = a_1.next();
-          return [3 /*break*/ , 2];
-        case 5:
-          return [3 /*break*/ , 8];
-        case 6:
-          e_2_1 = _b.sent();
-          e_2 = { error: e_2_1 };
-          return [3 /*break*/ , 8];
-        case 7:
-          try {
-            if (a_1_1 && !a_1_1.done && (_a = a_1["return"])) _a.call(a_1);
-          } finally { if (e_2) throw e_2.error; }
-          return [7 /*endfinally*/ ];
-        case 8:
-          return [2 /*return*/ , y];
+          return [2 /*return*/ , _b.sent()];
       }
     });
   });
 };
-export var Array_zip = function(x, y) {
-  return x.map(function(e, i) { return [e, y[i]]; });
+export var Array_asyncMap = function(as, f) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var fWrap;
+    return __generator(this, function(_b) {
+      fWrap = function(_a, i) { return f(as.map(function(a) { return a[i]; }), i); };
+      return [2 /*return*/ , Promise.all(as[0].map(fWrap))];
+    });
+  });
+};
+export var Array_asyncReduce = function(as, b, f) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var accum, i, as_i;
+    return __generator(this, function(_b) {
+      switch (_b.label) {
+        case 0:
+          accum = b;
+          i = 0;
+          i = 0;
+          _b.label = 1;
+        case 1:
+          if (!(i < as[0].length)) return [3 /*break*/ , 4];
+          as_i = as.map(function(a) { return a[i]; });
+          return [4 /*yield*/ , f(as_i, accum, i)];
+        case 2:
+          accum = _b.sent();
+          _b.label = 3;
+        case 3:
+          i++;
+          return [3 /*break*/ , 1];
+        case 4:
+          return [2 /*return*/ , accum];
+      }
+    });
+  });
 };
 export var simMapDupe = function(sim_r, mapi, mapo) {
   sim_r.maps[mapi] = copyMap(mapo.ref);
@@ -333,26 +371,26 @@ var simMapLog = function(sim_r, f) {
 };
 export var simMapRef = function(sim_r, mapi, f) {
   return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_a) {
-      switch (_a.label) {
+    return __generator(this, function(_b) {
+      switch (_b.label) {
         case 0:
           simMapLog(sim_r, f);
           return [4 /*yield*/ , mapRef(sim_r.maps[mapi], f)];
         case 1:
-          return [2 /*return*/ , _a.sent()];
+          return [2 /*return*/ , _b.sent()];
       }
     });
   });
 };
 export var simMapSet = function(sim_r, mapi, f, nv) {
   return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_a) {
-      switch (_a.label) {
+    return __generator(this, function(_b) {
+      switch (_b.label) {
         case 0:
           simMapLog(sim_r, f);
           return [4 /*yield*/ , mapSet(sim_r.maps[mapi], f, nv)];
         case 1:
-          return [2 /*return*/ , _a.sent()];
+          return [2 /*return*/ , _b.sent()];
       }
     });
   });

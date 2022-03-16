@@ -10,7 +10,7 @@ import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract, LaunchTokenO
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty, addressFromHex } from './ALGO_compiled';
 export type { Token } from './ALGO_compiled';
-export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (x: unknown, y: unknown) => boolean;
+export declare const add: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, sub: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mod: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, mul: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, div: (x: import("./shared_backend").num, y: import("./shared_backend").num) => ethers.BigNumber, protect: (t: any, v: unknown, ai?: string | undefined) => unknown, assert: (b: boolean, message: string) => void, Array_set: <A>(arr: A[], idx: number, val: A) => A[], eq: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, ge: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, gt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, le: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, lt: (n1: import("./shared_backend").num, n2: import("./shared_backend").num) => boolean, bytesEq: (s1: string, s2: string) => boolean, digestEq: (x: unknown, y: unknown) => boolean, digest_xor: (x: string, y: string) => string, bytes_xor: (x: string, y: string) => string;
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound, formatWithDecimals } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
@@ -26,6 +26,7 @@ declare type RecvTxn = {
     'confirmed-round': bigint;
     'created-asset-index'?: bigint;
     'created-application-index'?: bigint;
+    'created-companion-application-index'?: bigint;
     'application-index'?: bigint;
     'application-args': Array<string>;
     'sender': Address;
@@ -44,6 +45,9 @@ export declare type Backend = IBackend<AnyALGO_Ty> & {
             ABI: any;
             appApproval: string;
             appClear: string;
+            companionInfo: {
+                [key: string]: number;
+            } | null;
             extraPages: number;
             stateSize: number;
             stateKeys: number;

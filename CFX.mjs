@@ -67,6 +67,8 @@ export var add = reachStdlib.add,
   le = reachStdlib.le,
   lt = reachStdlib.lt,
   bytesEq = reachStdlib.bytesEq,
-  digestEq = reachStdlib.digestEq;
+  digestEq = reachStdlib.digestEq,
+  digest_xor = reachStdlib.digest_xor,
+  bytes_xor = reachStdlib.bytes_xor;
 export * from './shared_user.mjs';
 //# sourceMappingURL=CFX.js.map

@@ -275,9 +275,14 @@ export declare type ISimTxn<Token, ContractInfo> = {
     kind: 'remote';
     obj: ContractInfo;
     pays: BigNumber;
+    bills: BigNumber;
+    toks: Array<Token>;
 } | {
     kind: 'info';
     tok: Token;
+} | {
+    kind: 'api';
+    who: string;
 };
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk
@@ -412,7 +417,7 @@ export declare const None: None;
 export declare const retryLoop: <T>(lab: any, f: () => Promise<T>) => Promise<T>;
 declare type SigningMonitor = (e: any, pre: Promise<any>, post: Promise<any>) => void;
 export declare type SetSigningMonitor = (h: SigningMonitor) => void;
-declare type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
+export declare type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
 export declare type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, NotifyComplete<B>]>;
 export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifySend<A, B>];
 export declare const handleFormat: (amt: unknown, decimals: number, splitValue?: number) => string;

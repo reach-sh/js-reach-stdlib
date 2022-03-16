@@ -330,6 +330,8 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
   var addressEq = mkAddressEq(T_Address);
   var digestEq = shared_backend.eq;
+  var digest_xor = shared_backend.digest_xor;
+  var bytes_xor = shared_backend.bytes_xor;
   var T_Token = T_Address;
   var tokenEq = addressEq;
   var typeDefs = {
@@ -353,6 +355,8 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     addressEq: addressEq,
     // @ts-ignore
     digestEq: digestEq,
+    digest_xor: digest_xor,
+    bytes_xor: bytes_xor,
     tokenEq: tokenEq,
     digest: digest,
     UInt_max: UInt_max,

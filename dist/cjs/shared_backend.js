@@ -46,8 +46,33 @@ var __values = (this && this.__values) || function(o) {
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_zip = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.bigNumberToNumber = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.bytes_xor = exports.digest_xor = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.bigNumberToNumber = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -79,7 +104,7 @@ var objectIsEmpty = function (obj) {
         && Object.getPrototypeOf(obj) === Object.prototype);
 };
 var formatAssertInfo = function (ai) {
-    var e_1, _a;
+    var e_1, _b;
     if (ai === void 0) { ai = {}; }
     var msg = '';
     if (typeof ai === 'string') {
@@ -103,15 +128,15 @@ var formatAssertInfo = function (ai) {
         var rest = ":";
         if (Array.isArray(ai.fs)) {
             try {
-                for (var _b = __values(ai.fs), _c = _b.next(); !_c.done; _c = _b.next()) {
-                    var f = _c.value;
+                for (var _c = __values(ai.fs), _d = _c.next(); !_d.done; _d = _c.next()) {
+                    var f = _d.value;
                     msg += "\n  ".concat(f);
                 }
             }
             catch (e_1_1) { e_1 = { error: e_1_1 }; }
             finally {
                 try {
-                    if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+                    if (_d && !_d.done && (_b = _c["return"])) _b.call(_c);
                 }
                 finally { if (e_1) throw e_1.error; }
             }
@@ -153,13 +178,14 @@ function protect(ctc, v, ai) {
 }
 exports.protect = protect;
 ;
-var _a = ethers_1.ethers.utils, toUtf8Bytes = _a.toUtf8Bytes, isHexString = _a.isHexString;
+var _b = ethers_1.ethers.utils, toUtf8Bytes = _b.toUtf8Bytes, isHexString = _b.isHexString;
 exports.hexlify = ethers_1.ethers.utils.hexlify;
 exports.isHex = isHexString;
 var stringToHex = function (x) {
     return (0, exports.hexlify)(toUtf8Bytes(x));
 };
 exports.stringToHex = stringToHex;
+var hexToInt = function (x) { return parseInt(x, 16); };
 var forceHex = function (x) {
     return (0, exports.isHex)(x) ? x : (0, exports.stringToHex)(x);
 };
@@ -182,6 +208,30 @@ var le = function (a, b) { return (0, CBR_1.bigNumberify)(a).lte((0, CBR_1.bigNu
 exports.le = le;
 var lt = function (a, b) { return (0, CBR_1.bigNumberify)(a).lt((0, CBR_1.bigNumberify)(b)); };
 exports.lt = lt;
+var digest_xor = function (xd, yd) {
+    var clean = function (s) { return s.slice(0, 2) === '0x' ? s.slice(2) : s; };
+    var xc = clean(xd);
+    var yc = clean(yd);
+    var parseHex = function (xs) {
+        var ret = [];
+        for (var i = 0; i < xs.length; i += 2) {
+            ret.push(hexToInt(xs.substr(i, 2)));
+        }
+        return ret;
+    };
+    var xs = parseHex(xc);
+    var ys = parseHex(yc);
+    var result = '0x' + xs.map(function (x, i) { return (x ^ ys[i]).toString(16).padStart(2, '0'); }).join('');
+    return result;
+};
+exports.digest_xor = digest_xor;
+var bytes_xor = function (x, y) {
+    var xs = Buffer.from(x);
+    var ys = Buffer.from(y);
+    var xors = xs.map(function (x, i) { return x ^ ys[i]; });
+    return String.fromCharCode.apply(String, __spreadArray([], __read(xors), false));
+};
+exports.bytes_xor = bytes_xor;
 function Array_set(arr, idx, elem) {
     var arrp = arr.slice();
     arrp[idx] = elem;
@@ -193,13 +243,13 @@ exports.Array_set = Array_set;
 var basicMap = function () {
     var m = {};
     var basicSet = function (f, v) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+        return __generator(this, function (_b) {
             m[f] = v;
             return [2 /*return*/];
         });
     }); };
     var basicRef = function (f) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+        return __generator(this, function (_b) {
             return [2 /*return*/, (0, exports.asMaybe)(m[f])];
         });
     }); };
@@ -209,32 +259,32 @@ var copyMap = function (or) {
     var m = basicMap();
     var seen = {};
     var copySet = function (f, v) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     seen[f] = true;
                     return [4 /*yield*/, (0, exports.mapSet)(m, f, v)];
                 case 1:
-                    _a.sent();
+                    _b.sent();
                     return [2 /*return*/];
             }
         });
     }); };
     var copyRef = function (f) { return __awaiter(void 0, void 0, void 0, function () {
         var mv;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     if (!!seen[f]) return [3 /*break*/, 3];
                     return [4 /*yield*/, or(f)];
                 case 1:
-                    mv = _a.sent();
+                    mv = _b.sent();
                     return [4 /*yield*/, copySet(f, mv[0] === 'Some' ? mv[1] : undefined)];
                 case 2:
-                    _a.sent();
-                    _a.label = 3;
+                    _b.sent();
+                    _b.label = 3;
                 case 3: return [4 /*yield*/, (0, exports.mapRef)(m, f)];
-                case 4: return [2 /*return*/, _a.sent()];
+                case 4: return [2 /*return*/, _b.sent()];
             }
         });
     }); };
@@ -251,70 +301,57 @@ var newMap = function (opts) {
 };
 exports.newMap = newMap;
 var mapSet = function (m, f, v) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0: return [4 /*yield*/, m.set(f, v)];
             case 1:
-                _a.sent();
+                _b.sent();
                 return [2 /*return*/];
         }
     });
 }); };
 exports.mapSet = mapSet;
 var mapRef = function (m, f) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0: return [4 /*yield*/, m.ref(f)];
-            case 1: return [2 /*return*/, _a.sent()];
+            case 1: return [2 /*return*/, _b.sent()];
         }
     });
 }); };
 exports.mapRef = mapRef;
-var Array_asyncMap = function (a, f) { return Promise.all(a.map(f)); };
+var Array_asyncMap = function (as, f) { return __awaiter(void 0, void 0, void 0, function () {
+    var fWrap;
+    return __generator(this, function (_b) {
+        fWrap = function (_a, i) { return f(as.map(function (a) { return a[i]; }), i); };
+        return [2 /*return*/, Promise.all(as[0].map(fWrap))];
+    });
+}); };
 exports.Array_asyncMap = Array_asyncMap;
-var Array_asyncReduce = function (a, b, f) { return __awaiter(void 0, void 0, void 0, function () {
-    var y, i, a_1, a_1_1, x, e_2_1;
-    var e_2, _a;
+var Array_asyncReduce = function (as, b, f) { return __awaiter(void 0, void 0, void 0, function () {
+    var accum, i, as_i;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                y = b;
+                accum = b;
+                i = 0;
                 i = 0;
                 _b.label = 1;
             case 1:
-                _b.trys.push([1, 6, 7, 8]);
-                a_1 = __values(a), a_1_1 = a_1.next();
-                _b.label = 2;
+                if (!(i < as[0].length)) return [3 /*break*/, 4];
+                as_i = as.map(function (a) { return a[i]; });
+                return [4 /*yield*/, f(as_i, accum, i)];
             case 2:
-                if (!!a_1_1.done) return [3 /*break*/, 5];
-                x = a_1_1.value;
-                return [4 /*yield*/, f(y, x, i++)];
+                accum = _b.sent();
+                _b.label = 3;
             case 3:
-                y = _b.sent();
-                _b.label = 4;
-            case 4:
-                a_1_1 = a_1.next();
-                return [3 /*break*/, 2];
-            case 5: return [3 /*break*/, 8];
-            case 6:
-                e_2_1 = _b.sent();
-                e_2 = { error: e_2_1 };
-                return [3 /*break*/, 8];
-            case 7:
-                try {
-                    if (a_1_1 && !a_1_1.done && (_a = a_1["return"])) _a.call(a_1);
-                }
-                finally { if (e_2) throw e_2.error; }
-                return [7 /*endfinally*/];
-            case 8: return [2 /*return*/, y];
+                i++;
+                return [3 /*break*/, 1];
+            case 4: return [2 /*return*/, accum];
         }
     });
 }); };
 exports.Array_asyncReduce = Array_asyncReduce;
-var Array_zip = function (x, y) {
-    return x.map(function (e, i) { return [e, y[i]]; });
-};
-exports.Array_zip = Array_zip;
 var simMapDupe = function (sim_r, mapi, mapo) {
     sim_r.maps[mapi] = copyMap(mapo.ref);
 };
@@ -323,23 +360,23 @@ var simMapLog = function (sim_r, f) {
     sim_r.mapRefs.push(f);
 };
 var simMapRef = function (sim_r, mapi, f) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 simMapLog(sim_r, f);
                 return [4 /*yield*/, (0, exports.mapRef)(sim_r.maps[mapi], f)];
-            case 1: return [2 /*return*/, _a.sent()];
+            case 1: return [2 /*return*/, _b.sent()];
         }
     });
 }); };
 exports.simMapRef = simMapRef;
 var simMapSet = function (sim_r, mapi, f, nv) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 simMapLog(sim_r, f);
                 return [4 /*yield*/, (0, exports.mapSet)(sim_r.maps[mapi], f, nv)];
-            case 1: return [2 /*return*/, _a.sent()];
+            case 1: return [2 /*return*/, _b.sent()];
         }
     });
 }); };

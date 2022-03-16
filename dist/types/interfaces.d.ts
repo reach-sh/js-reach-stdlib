@@ -30,13 +30,14 @@ export interface Stdlib_Backend_Shared_User<Ty> {
     le: (n1: num, n2: num) => boolean;
     lt: (n1: num, n2: num) => boolean;
     bytesEq: (s1: string, s2: string) => boolean;
+    digest_xor: (x: string, y: string) => string;
+    bytes_xor: (x: string, y: string) => string;
 }
 export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty> {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
     protect: (t: any, v: unknown, ai?: string) => unknown;
-    Array_asyncMap: <A, B>(a: A[], f: ((x: A, i: number) => Promise<B>)) => Promise<B[]>;
-    Array_asyncReduce: <A, B>(a: A[], b: B, f: ((y: B, x: A, i: number) => Promise<B>)) => Promise<B>;
-    Array_zip: <A, B>(a1: A[], a2: B[]) => [A, B][];
+    Array_asyncMap: <B>(as: any[][], f: (x: any[], i: number) => Promise<B>) => Promise<B[]>;
+    Array_asyncReduce: <B>(as: any[][], b: B, f: ((xs: any[], y: B, i: number) => Promise<B>)) => Promise<B>;
     newMap: <A>(opts: MapOpts<A>) => LinearMap<A>;
     mapRef: <A>(m: LinearMap<A>, f: string) => Promise<MaybeRep<A>>;
     mapSet: <A>(m: LinearMap<A>, f: string, v: A) => Promise<void>;
@@ -60,6 +61,7 @@ export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared<Ty>, Arit
     UInt_max: BigNumber;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
     digestEq: (x: unknown, y: unknown) => boolean;
+    digest_xor: (x: string, y: string) => string;
     tokenEq: (x: unknown, y: unknown) => boolean;
     digest: (t: Ty, a: unknown) => string;
     emptyContractInfo: (number | string);

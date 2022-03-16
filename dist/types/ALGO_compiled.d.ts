@@ -43,6 +43,8 @@ export declare const T_Data: (coMap: {
 }) => ALGO_Ty<CBR_Data>;
 export declare const addressEq: (x: any, y: any) => boolean;
 export declare const digestEq: (x: any, y: any) => boolean;
+export declare const digest_xor: (xd: string, yd: string) => string;
+export declare const bytes_xor: (x: string, y: string) => string;
 export declare type Token = CBR_UInt;
 export declare type Contract = CBR_UInt;
 export declare const tokenEq: (x: unknown, y: unknown) => boolean;
