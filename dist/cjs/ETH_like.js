@@ -1596,7 +1596,7 @@ function makeEthLike(ethLikeArgs) {
     ;
     function unsafeGetMnemonic(acc) {
         // @ts-ignore
-        var networkAccount = acc.networkAccount | acc;
+        var networkAccount = acc.networkAccount || acc;
         if (networkAccount._mnemonic) {
             return networkAccount._mnemonic().phrase;
         }

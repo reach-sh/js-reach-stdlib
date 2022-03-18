@@ -28,7 +28,7 @@ export declare function isWindowProvider(): boolean;
 export declare function canGetDefaultAccount(): boolean;
 declare const getProvider: () => Promise<ethers.providers.Provider>;
 export { getProvider };
-export declare function setProvider(provider: Promise<Provider>): void;
+export declare function setProvider(provider: Promise<Provider> | Provider): void;
 export { ethers };
 export declare const providerLib: {
     getProvider: () => Promise<ethers.providers.Provider>;
@@ -37,7 +37,7 @@ export declare const providerLib: {
     setProviderByEnv: typeof setProviderByEnv;
     providerEnvByName: typeof providerEnvByName;
     setWalletFallback: (wf: () => any) => void;
-    walletFallback: (opts: any) => () => never;
+    walletFallback: (opts: any) => () => ethers.providers.Provider;
 };
 export declare const standardUnit = "ETH";
 export declare const atomicUnit = "WEI";
