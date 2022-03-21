@@ -277,6 +277,7 @@ export declare type ISimTxn<Token, ContractInfo> = {
     pays: BigNumber;
     bills: BigNumber;
     toks: Array<Token>;
+    accs: Array<string>;
 } | {
     kind: 'info';
     tok: Token;

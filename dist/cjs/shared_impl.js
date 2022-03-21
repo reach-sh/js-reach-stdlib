@@ -500,7 +500,7 @@ exports.ensureConnectorAvailable = ensureConnectorAvailable;
 var checkVersion = function (actual, expected, label) {
     if (actual !== expected) {
         var older = (actual === undefined) || (actual < expected);
-        var more = older ? "update your compiler and recompile!" : "updated your standard library and rerun!";
+        var more = older ? "update your compiler and recompile!" : "update your standard library and rerun!";
         throw Error("This Reach compiled ".concat(label, " does not match the expectations of this Reach standard library: expected ").concat(expected, ", but got ").concat(actual, "; ").concat(more));
     }
 };

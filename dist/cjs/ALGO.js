@@ -1363,43 +1363,102 @@ var getAssetInfo = function (a) { return __awaiter(void 0, void 0, void 0, funct
     });
 }); };
 var getApplicationInfoM = function (idn) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, dhead, client, res_2, e_9, indexer, q, res;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var id, dhead, client, res, e_9, indexer, query, queryRes;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
                 id = (0, shared_user_1.bigNumberToNumber)(idn);
                 dhead = 'getApplicationInfo';
-                _c.label = 1;
+                _a.label = 1;
             case 1:
-                _c.trys.push([1, 5, , 6]);
+                _a.trys.push([1, 5, , 6]);
                 return [4 /*yield*/, ensureNodeCanRead()];
             case 2:
-                _c.sent();
+                _a.sent();
                 return [4 /*yield*/, getAlgodClient()];
             case 3:
-                client = _c.sent();
+                client = _a.sent();
                 return [4 /*yield*/, client.getApplicationByID(id)["do"]()];
             case 4:
-                res_2 = (_c.sent());
-                (0, shared_impl_1.debug)(dhead, 'node', res_2);
-                return [2 /*return*/, { val: res_2 }];
+                res = (_a.sent());
+                (0, shared_impl_1.debug)(dhead, 'node', res);
+                return [2 /*return*/, { val: res }];
             case 5:
-                e_9 = _c.sent();
+                e_9 = _a.sent();
                 (0, shared_impl_1.debug)(dhead, 'node err', e_9);
-                if (((_b = (_a = e_9 === null || e_9 === void 0 ? void 0 : e_9.response) === null || _a === void 0 ? void 0 : _a.body) === null || _b === void 0 ? void 0 : _b.message) === 'application does not exist') {
-                    return [2 /*return*/, { exn: e_9 }];
-                }
                 return [3 /*break*/, 6];
             case 6: return [4 /*yield*/, getIndexer()];
             case 7:
-                indexer = _c.sent();
-                q = indexer.lookupApplications(id);
-                return [4 /*yield*/, doQueryM_(dhead, q)];
+                indexer = _a.sent();
+                query = indexer.lookupApplications(id)
+                    .includeAll(true);
+                return [4 /*yield*/, doQueryM_(dhead, query)];
             case 8:
-                res = _c.sent();
-                (0, shared_impl_1.debug)(dhead, 'indexer', res);
-                return [2 /*return*/, 'exn' in res ? res : { val: res.val.application }];
+                queryRes = _a.sent();
+                if ('val' in queryRes) {
+                    (0, shared_impl_1.debug)(dhead, { application: queryRes.val.application });
+                    // If application was deleted, synthesize AppInfo from transaction data
+                    return [2 /*return*/, queryRes.val.application.deleted ? getDeletedApplicationInfoM(id) : { val: queryRes.val.application }];
+                }
+                else {
+                    return [2 /*return*/, queryRes];
+                }
+                return [2 /*return*/];
+        }
+    });
+}); };
+var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0, void 0, function () {
+    var dhead, indexer, query, queryRes, txn, appTxn;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                dhead = 'getDeletedApplicationInfoM';
+                return [4 /*yield*/, getIndexer()];
+            case 1:
+                indexer = _b.sent();
+                query = indexer.searchForTransactions()
+                    .txType('appl')
+                    .applicationID(id)
+                    .limit(1);
+                return [4 /*yield*/, doQueryM_(dhead, query)];
+            case 2:
+                queryRes = _b.sent();
+                if ('val' in queryRes) {
+                    if (queryRes.val.transactions.length === 0) {
+                        return [2 /*return*/, { exn: 'application does not exist' }];
+                    }
+                    txn = queryRes.val.transactions[0];
+                    appTxn = txn['application-transaction'];
+                    (0, shared_impl_1.debug)(dhead, { appTxn: appTxn });
+                    if (appTxn === undefined
+                        || txn['created-application-index'] !== BigInt(id)
+                        || appTxn['application-id'] !== BigInt(0)
+                        || appTxn['approval-program'] === undefined
+                        || appTxn['clear-state-program'] === undefined
+                        || appTxn['local-state-schema'] === undefined
+                        || appTxn['global-state-schema'] === undefined) {
+                        return [2 /*return*/, { exn: 'tried to synthesize AppInfo from deployment transaction, but the deployment transaction was wrong' }];
+                    }
+                    return [2 /*return*/, { val: {
+                                'id': txn['created-application-index'],
+                                'created-at-round': txn['confirmed-round'],
+                                'deleted': true,
+                                'params': {
+                                    'creator': txn['sender'],
+                                    'approval-program': appTxn['approval-program'],
+                                    'clear-state-program': appTxn['clear-state-program'],
+                                    'local-state-schema': appTxn['local-state-schema'],
+                                    'global-state-schema': appTxn['global-state-schema'],
+                                    'global-state': [],
+                                    'extra-program-pages': (_a = appTxn['extra-program-pages']) !== null && _a !== void 0 ? _a : BigInt(0)
+                                }
+                            } }];
+                }
+                else {
+                    return [2 /*return*/, queryRes];
+                }
+                return [2 /*return*/];
         }
     });
 }); };
@@ -1546,8 +1605,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 return [4 /*yield*/, getApplicationInfoM(ApplicationID)];
                                             case 1:
                                                 appInfoM = _a.sent();
-                                                if ('exn' in appInfoM) {
-                                                    (0, shared_impl_1.debug)(lab, { e: appInfoM.exn });
+                                                if ('exn' in appInfoM || appInfoM.val.deleted) {
                                                     return [2 /*return*/, undefined];
                                                 }
                                                 appInfo = appInfoM.val;
@@ -1945,6 +2003,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                     else if (t.kind === 'remote') {
                                                         recordApp(t.obj);
                                                         t.toks.map(recordAsset);
+                                                        t.accs.map(recordAccount);
                                                         howManyMoreFees += 1 + (0, shared_user_1.bigNumberToNumber)(t.pays) + (0, shared_user_1.bigNumberToNumber)(t.bills);
                                                         return;
                                                     }
@@ -2864,7 +2923,7 @@ var verifyContract = function (info, bin) { return __awaiter(void 0, void 0, voi
 }); };
 exports.verifyContract = verifyContract;
 var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0, void 0, void 0, function () {
-    var ApplicationID, _a, appApproval, appClear, mapDataKeys, stateKeys, dhead, chk, chkeq_x, chkeq_b, chkeq_bn_, chkeq_bn, chkeq_bs, appInfoM, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, iat, allocRound;
+    var ApplicationID, _a, appApproval, appClear, mapDataKeys, stateKeys, dhead, chk, chkeq_x, chkeq_bn_, chkeq_bn, chkeq_bs, appInfoM, appInfo, appInfo_p, Deployer, appInfo_LocalState, appInfo_GlobalState, iat, allocRound;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -2882,7 +2941,6 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
                     var es = (0, shared_impl_1.j2sf)(e);
                     chk(cmp(a, e), "".concat(msg, ": expected ").concat(es, ", got ").concat(as));
                 }; };
-                chkeq_b = chkeq_x(function (a, b) { return a === b; });
                 chkeq_bn_ = chkeq_x(function (a, b) { return a.eq(b); });
                 chkeq_bn = function (a, b, msg) { return chkeq_bn_((0, shared_user_1.bigNumberify)(a), (0, shared_user_1.bigNumberify)(b), msg); };
                 chkeq_bs = chkeq_x(function (a, b) { return (0, shared_impl_1.j2sf)(a) === (0, shared_impl_1.j2sf)(b); });
@@ -2894,6 +2952,7 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
                 }
                 appInfo = appInfoM.val;
                 appInfo_p = appInfo['params'];
+                (0, shared_impl_1.debug)(dhead, { appInfo_wanted: bin._Connectors.ALGO });
                 (0, shared_impl_1.debug)(dhead, { appInfo_p: appInfo_p });
                 chk(appInfo_p !== undefined, "Cannot lookup ApplicationId");
                 chkeq_bs(appInfo_p['approval-program'], appApproval, "Approval program does not match Reach backend");
@@ -2905,7 +2964,6 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
                 appInfo_GlobalState = appInfo_p['global-state-schema'];
                 chkeq_bn(appInfo_GlobalState['num-byte-slice'], appGlobalStateNumBytes + stateKeys, "Num of byte-slices in global state schema does not match Reach backend");
                 chkeq_bn(appInfo_GlobalState['num-uint'], appGlobalStateNumUInt, "Num of uints in global state schema does not match Reach backend");
-                chkeq_b(appInfo['deleted'] === true, false, "Application must not be deleted");
                 eq.init({ ApplicationID: ApplicationID });
                 return [4 /*yield*/, eq.deq(dhead)];
             case 2:
