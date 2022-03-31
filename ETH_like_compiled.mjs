@@ -332,6 +332,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var digestEq = shared_backend.eq;
   var digest_xor = shared_backend.digest_xor;
   var bytes_xor = shared_backend.bytes_xor;
+  var btoiLast8 = shared_backend.btoiLast8;
   var T_Token = T_Address;
   var tokenEq = addressEq;
   var typeDefs = {
@@ -357,6 +358,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     digestEq: digestEq,
     digest_xor: digest_xor,
     bytes_xor: bytes_xor,
+    btoiLast8: btoiLast8,
     tokenEq: tokenEq,
     digest: digest,
     UInt_max: UInt_max,

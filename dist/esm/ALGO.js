@@ -99,7 +99,7 @@ import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
 import { window, process } from './shim';
 import { sha512_256 } from 'js-sha512';
-export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mul, div = stdlib.div, protect = stdlib.protect, assert = stdlib.assert, Array_set = stdlib.Array_set, eq = stdlib.eq, ge = stdlib.ge, gt = stdlib.gt, le = stdlib.le, lt = stdlib.lt, bytesEq = stdlib.bytesEq, digestEq = stdlib.digestEq, digest_xor = stdlib.digest_xor, bytes_xor = stdlib.bytes_xor;
+export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mul, div = stdlib.div, protect = stdlib.protect, assert = stdlib.assert, Array_set = stdlib.Array_set, eq = stdlib.eq, ge = stdlib.ge, gt = stdlib.gt, le = stdlib.le, lt = stdlib.lt, bytesEq = stdlib.bytesEq, digestEq = stdlib.digestEq, digest_xor = stdlib.digest_xor, bytes_xor = stdlib.bytes_xor, btoiLast8 = stdlib.btoiLast8;
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound, handleFormat, formatWithDecimals } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
@@ -1367,7 +1367,7 @@ var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0
             case 1:
                 indexer = _b.sent();
                 query = indexer.searchForTransactions()
-                    .txType('appl')
+                    // .txType('appl')
                     .applicationID(id)
                     .limit(1);
                 return [4 /*yield*/, doQueryM_(dhead, query)];
@@ -1380,7 +1380,8 @@ var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0
                     txn = queryRes.val.transactions[0];
                     appTxn = txn['application-transaction'];
                     debug(dhead, { appTxn: appTxn });
-                    if (appTxn === undefined
+                    if (txn['tx-type'] !== 'appl'
+                        || appTxn === undefined
                         || txn['created-application-index'] !== BigInt(id)
                         || appTxn['application-id'] !== BigInt(0)
                         || appTxn['approval-program'] === undefined

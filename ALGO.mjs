@@ -140,7 +140,8 @@ export var add = stdlib.add,
   bytesEq = stdlib.bytesEq,
   digestEq = stdlib.digestEq,
   digest_xor = stdlib.digest_xor,
-  bytes_xor = stdlib.bytes_xor;
+  bytes_xor = stdlib.bytes_xor,
+  btoiLast8 = stdlib.btoiLast8;
 export * from './shared_user.mjs';
 import { setQueryLowerBound, getQueryLowerBound, handleFormat, formatWithDecimals } from './shared_impl.mjs';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
@@ -1544,7 +1545,7 @@ var getDeletedApplicationInfoM = function(id) {
         case 1:
           indexer = _b.sent();
           query = indexer.searchForTransactions()
-            .txType('appl')
+            // .txType('appl')
             .applicationID(id)
             .limit(1);
           return [4 /*yield*/ , doQueryM_(dhead, query)];
@@ -1557,7 +1558,8 @@ var getDeletedApplicationInfoM = function(id) {
             txn = queryRes.val.transactions[0];
             appTxn = txn['application-transaction'];
             debug(dhead, { appTxn: appTxn });
-            if (appTxn === undefined ||
+            if (txn['tx-type'] !== 'appl' ||
+              appTxn === undefined ||
               txn['created-application-index'] !== BigInt(id) ||
               appTxn['application-id'] !== BigInt(0) ||
               appTxn['approval-program'] === undefined ||

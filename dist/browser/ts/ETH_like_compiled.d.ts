@@ -44,6 +44,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     lt: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     bytesEq: (s1: string, s2: string) => boolean;
     bytes_xor: (x: string, y: string) => string;
+    btoiLast8: (b: string) => ethers.BigNumber;
     add: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     sub: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     mod: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;

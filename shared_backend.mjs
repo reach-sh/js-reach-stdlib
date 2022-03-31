@@ -230,6 +230,15 @@ export var bytes_xor = function(x, y) {
   var xors = xs.map(function(x, i) { return x ^ ys[i]; });
   return String.fromCharCode.apply(String, __spreadArray([], __read(xors), false));
 };
+export var btoiLast8 = function(b) {
+  var min = (b.length < 8) ? 0 : b.length - 8;
+  var bb = Buffer.from(b);
+  var res = bigNumberify(0);
+  for (var i = min; i < b.length; i++) {
+    res = res.mul(256).add(bb[i]);
+  }
+  return res;
+};
 export function Array_set(arr, idx, elem) {
   var arrp = arr.slice();
   arrp[idx] = elem;

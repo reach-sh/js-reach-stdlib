@@ -26,6 +26,7 @@ export declare const le: (a: num, b: num) => boolean;
 export declare const lt: (a: num, b: num) => boolean;
 export declare const digest_xor: (xd: string, yd: string) => string;
 export declare const bytes_xor: (x: string, y: string) => string;
+export declare const btoiLast8: (b: string) => BigNumber;
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
 export declare type MapRefT<A> = (f: string) => Promise<MaybeRep<A>>;
 export interface MapOpts<A> {

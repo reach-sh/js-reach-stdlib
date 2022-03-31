@@ -22,8 +22,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 exports.__esModule = true;
-exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = exports.ask = void 0;
+exports.ALGO_WalletConnect = exports.ALGO_MyAlgoConnect = exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = exports.ask = void 0;
 exports.ask = __importStar(require("./ask"));
 var loader_1 = require("./loader");
 __createBinding(exports, loader_1, "loadStdlib");
@@ -32,4 +35,8 @@ var ConnectorMode_1 = require("./ConnectorMode");
 __createBinding(exports, ConnectorMode_1, "getConnector");
 __createBinding(exports, ConnectorMode_1, "getConnectorMode");
 exports.rpc_server = __importStar(require("./rpc_server"));
+var ALGO_MyAlgoConnect_1 = __importDefault(require("./ALGO_MyAlgoConnect"));
+exports.ALGO_MyAlgoConnect = ALGO_MyAlgoConnect_1["default"];
+var ALGO_WalletConnect_1 = __importDefault(require("./ALGO_WalletConnect"));
+exports.ALGO_WalletConnect = ALGO_WalletConnect_1["default"];
 //# sourceMappingURL=index.js.map

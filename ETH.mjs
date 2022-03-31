@@ -69,6 +69,7 @@ export var add = reachStdlib.add,
   bytesEq = reachStdlib.bytesEq,
   digestEq = reachStdlib.digestEq,
   digest_xor = reachStdlib.digest_xor,
-  bytes_xor = reachStdlib.bytes_xor;
+  bytes_xor = reachStdlib.bytes_xor,
+  btoiLast8 = reachStdlib.btoiLast8;
 export * from './shared_user.mjs';
 //# sourceMappingURL=ETH.js.map

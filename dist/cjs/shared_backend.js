@@ -72,7 +72,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
-exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.bytes_xor = exports.digest_xor = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.bigNumberToNumber = void 0;
+exports.simTokenDestroy = exports.simTokenBurn = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.bigNumberToNumber = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -232,6 +232,16 @@ var bytes_xor = function (x, y) {
     return String.fromCharCode.apply(String, __spreadArray([], __read(xors), false));
 };
 exports.bytes_xor = bytes_xor;
+var btoiLast8 = function (b) {
+    var min = (b.length < 8) ? 0 : b.length - 8;
+    var bb = Buffer.from(b);
+    var res = (0, CBR_1.bigNumberify)(0);
+    for (var i = min; i < b.length; i++) {
+        res = res.mul(256).add(bb[i]);
+    }
+    return res;
+};
+exports.btoiLast8 = btoiLast8;
 function Array_set(arr, idx, elem) {
     var arrp = arr.slice();
     arrp[idx] = elem;

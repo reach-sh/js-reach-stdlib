@@ -257,6 +257,7 @@ export var addressEq = mkAddressEq(T_Address);
 export var digestEq = shared_backend.bytesEq;
 export var digest_xor = shared_backend.digest_xor;
 export var bytes_xor = shared_backend.bytes_xor;
+export var btoiLast8 = shared_backend.btoiLast8;
 var T_Token = T_UInt;
 export var tokenEq = function(x, y) {
   return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));

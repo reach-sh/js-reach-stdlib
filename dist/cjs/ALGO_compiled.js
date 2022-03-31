@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -252,6 +252,7 @@ exports.addressEq = (0, shared_impl_1.mkAddressEq)(exports.T_Address);
 exports.digestEq = shared_backend.bytesEq;
 exports.digest_xor = shared_backend.digest_xor;
 exports.bytes_xor = shared_backend.bytes_xor;
+exports.btoiLast8 = shared_backend.btoiLast8;
 var T_Token = exports.T_UInt;
 var tokenEq = function (x, y) {
     return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));

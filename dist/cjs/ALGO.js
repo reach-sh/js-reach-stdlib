@@ -113,8 +113,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.formatWithDecimals = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = void 0;
+exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.formatWithDecimals = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var algosdk_2 = require("algosdk");
@@ -134,7 +134,7 @@ var ALGO_compiled_1 = require("./ALGO_compiled");
 exports.addressFromHex = ALGO_compiled_1.addressFromHex;
 var shim_1 = require("./shim");
 var js_sha512_1 = require("js-sha512");
-exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq, exports.digest_xor = ALGO_compiled_1.stdlib.digest_xor, exports.bytes_xor = ALGO_compiled_1.stdlib.bytes_xor;
+exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq, exports.digest_xor = ALGO_compiled_1.stdlib.digest_xor, exports.bytes_xor = ALGO_compiled_1.stdlib.bytes_xor, exports.btoiLast8 = ALGO_compiled_1.stdlib.btoiLast8;
 __exportStar(require("./shared_user"), exports);
 var shared_impl_2 = require("./shared_impl");
 exports.setQueryLowerBound = shared_impl_2.setQueryLowerBound;
@@ -1418,7 +1418,7 @@ var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0
             case 1:
                 indexer = _b.sent();
                 query = indexer.searchForTransactions()
-                    .txType('appl')
+                    // .txType('appl')
                     .applicationID(id)
                     .limit(1);
                 return [4 /*yield*/, doQueryM_(dhead, query)];
@@ -1431,7 +1431,8 @@ var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0
                     txn = queryRes.val.transactions[0];
                     appTxn = txn['application-transaction'];
                     (0, shared_impl_1.debug)(dhead, { appTxn: appTxn });
-                    if (appTxn === undefined
+                    if (txn['tx-type'] !== 'appl'
+                        || appTxn === undefined
                         || txn['created-application-index'] !== BigInt(id)
                         || appTxn['application-id'] !== BigInt(0)
                         || appTxn['approval-program'] === undefined

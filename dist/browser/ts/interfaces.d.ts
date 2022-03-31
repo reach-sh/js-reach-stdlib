@@ -32,6 +32,7 @@ export interface Stdlib_Backend_Shared_User<Ty> {
     bytesEq: (s1: string, s2: string) => boolean;
     digest_xor: (x: string, y: string) => string;
     bytes_xor: (x: string, y: string) => string;
+    btoiLast8: (b: string) => BigNumber;
 }
 export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty> {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
