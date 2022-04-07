@@ -154,10 +154,79 @@ export var mkKont = function () {
     };
 };
 export var mkStdlibProxy = function (lib, ks) { return __awaiter(void 0, void 0, void 0, function () {
-    var account, token;
+    var account, token, reBigNumberify;
     return __generator(this, function (_a) {
         account = ks.account, token = ks.token;
-        return [2 /*return*/, __assign(__assign({}, lib), { newTestAccount: function (bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
+        reBigNumberify = mkReBigNumberify(lib);
+        return [2 /*return*/, __assign(__assign(__assign({}, Object.assign.apply(Object, __spreadArray([{}], __read(['atomicUnit',
+                'connector',
+                'standardUnit',
+                'minimumBalance'
+                // TODO these deserve special handling
+                ,
+                'T_Address',
+                'T_Array',
+                'T_Bool',
+                'T_Bytes',
+                'T_Data',
+                'T_Null',
+                'T_Object',
+                'T_Tuple',
+                'T_UInt'
+            ].map(function (p) {
+                var _a;
+                return (_a = {}, _a[p] = lib[p], _a);
+            })), false))), Object.assign.apply(Object, __spreadArray([{}], __read(['addressEq',
+                'Array_set',
+                'assert',
+                'bigNumberToBigInt',
+                'bigNumberToNumber',
+                'bigNumberify',
+                'btoiLast8',
+                'bytesEq',
+                'canFundFromFaucet',
+                'canonicalizeConnectorMode',
+                'digest',
+                'digestEq',
+                'formatCurrency',
+                'formatWithDecimals',
+                'getConnector',
+                'getConnectorMode',
+                'getNetworkSecs',
+                'getNetworkTime',
+                'hexToBigNumber',
+                'isHex',
+                'numberToFixedPoint',
+                'numberToInt',
+                'parseCurrency',
+                'parseFixedPoint',
+                'parseInt',
+                'protect',
+                'providerEnvByName',
+                'randomUInt',
+                'setMinMillisBetweenRequests',
+                'setProvider',
+                'setProviderByEnv',
+                'setProviderByName',
+                'setValidQueryWindow',
+                'stringToHex',
+                'unsafeAllowMultipleStdlibs',
+                'add',
+                'div',
+                'mod',
+                'mul',
+                'sub',
+                'eq',
+                'ge',
+                'gt',
+                'le',
+                'lt'
+            ].map(function (f) {
+                var _a;
+                return (_a = {}, _a[f] = lib[f], _a);
+            })), false))), { isBigNumber: function (n) {
+                    return lib.isBigNumber(reBigNumberify(n));
+                }, newTestAccount: function (bal) { return __awaiter(void 0, void 0, void 0, function () { var _a, _b; return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0:
                             _b = (_a = account).track;
@@ -208,34 +277,19 @@ export var mkStdlibProxy = function (lib, ks) { return __awaiter(void 0, void 0,
                             return [4 /*yield*/, lib.connectAccount(account.id(id).networkAccount)];
                         case 1: return [2 /*return*/, _b.apply(_a, [_c.sent()])];
                     }
-                }); }); }, balanceOf: function (id, token) { return __awaiter(void 0, void 0, void 0, function () {
-                    var t;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                t = token === undefined ? undefined
-                                    : token.id ? token.id // From `launchToken`
-                                        : token;
-                                return [4 /*yield*/, lib.balanceOf(account.id(id), t)];
-                            case 1: return [2 /*return*/, _a.sent()];
-                        }
-                    });
-                }); }, minimumBalanceOf: function (id) { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, lib.miniumBalanceOf(account.id(id))];
-                            case 1: return [2 /*return*/, _a.sent()];
-                        }
-                    });
-                }); }, transfer: function (from, to, bal) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                    return [2 /*return*/, lib.transfer(account.id(from), account.id(to), bal)];
-                }); }); }, assert: function (x) {
-                    return lib.assert(x);
-                }, 
-                // As of 2021-12-08 `launchToken` isn't officially documented
-                // These are unlike `Token` values but we'll track them together, with the
-                // intention that functions like `tokenAccept` should accept either
-                launchToken: function (id, name, sym, opts) {
+                }); }); }, balanceOf: function (id, tok) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, lib.balanceOf(account.id(id), tok)];
+                        case 1: return [2 /*return*/, _a.sent()];
+                    }
+                }); }); }, minimumBalanceOf: function (id) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, lib.minimumBalanceOf(account.id(id))];
+                        case 1: return [2 /*return*/, _a.sent()];
+                    }
+                }); }); }, transfer: function (from, to, bal, tok) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                    return [2 /*return*/, lib.transfer(account.id(from), account.id(to), bal, tok)];
+                }); }); }, launchToken: function (id, name, sym, opts) {
                     if (opts === void 0) { opts = {}; }
                     return __awaiter(void 0, void 0, void 0, function () {
                         var t;
@@ -253,11 +307,34 @@ export var mkStdlibProxy = function (lib, ks) { return __awaiter(void 0, void 0,
                     });
                 }, setQueryLowerBound: function (nt) {
                     return lib.setQueryLowerBound(lib.bigNumberify(nt));
+                }, formatAddress: function (id) {
+                    return lib.formatAddress(mkKor(lib, account)(id));
+                }, bigNumberToHex: function (n) {
+                    return lib.bigNumberToHex(reBigNumberify(n));
+                }, uintToBytes: function (n) {
+                    return lib.uintToBytes(reBigNumberify(n));
                 } })];
     });
 }); };
+// `isBigNumber` in stdlib uses type reflection which doesn't work here due
+// to `n` having been serialized into JSON
+export var mkReBigNumberify = function (l) { return function (n) {
+    return n && n.hex && n.type && n.type === 'BigNumber'
+        ? (function () { try {
+            return l.bigNumberify(n);
+        }
+        catch (e) {
+            return n;
+        } })()
+        : n;
+}; };
+var mkKor = function (l, k) { return function (i) {
+    return /^[0-9]+_[0-9a-f]{48}$/.test(i)
+        ? k.id(i)
+        : mkReBigNumberify(l)(i);
+}; };
 export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, function () {
-    var account, contract, token, kont, real_stdlib, rpc_stdlib, app, route_backend, reBigNumberify, rpc_acc, rpc_ctc, rpc_launchToken, safely, mkRPC, userDefinedField, mkUserDefined, ctcPs, _loop_1, b, do_kont, mkForget, p, fetchOrFail, opts, passphrase;
+    var account, contract, token, kont, real_stdlib, reBigNumberify, rpc_stdlib, app, route_backend, rpc_acc, rpc_ctc, rpc_launchToken, safely, mkRPC, userDefinedField, mkUserDefined, ctcPs, _loop_1, b, do_kont, mkForget, p, fetchOrFail, opts, passphrase;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -268,21 +345,12 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, loadStdlib()];
             case 1:
                 real_stdlib = _a.sent();
+                reBigNumberify = mkReBigNumberify(real_stdlib);
                 return [4 /*yield*/, mkStdlibProxy(real_stdlib, { account: account, token: token })];
             case 2:
                 rpc_stdlib = _a.sent();
                 app = express();
                 route_backend = express.Router();
-                reBigNumberify = function (n) {
-                    return n && n.hex && n.type && n.type === 'BigNumber'
-                        ? (function () { try {
-                            return real_stdlib.bigNumberify(n);
-                        }
-                        catch (e) {
-                            return n;
-                        } })()
-                        : n;
-                };
                 rpc_acc = {
                     contract: function (id) {
                         var args = [];
@@ -353,33 +421,34 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                         return [2 /*return*/, account.id(id).setDebugLabel(l) && id];
                     }); }); },
                     tokenAccept: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () {
-                        var t;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0:
-                                    t = token.id(tok);
-                                    return [4 /*yield*/, account.id(acc).tokenAccept(t.id ? t.id : t)];
+                                case 0: return [4 /*yield*/, account.id(acc).tokenAccept(tok)];
                                 case 1:
                                     _a.sent();
                                     return [2 /*return*/, null];
                             }
                         });
                     }); },
-                    tokenAccepted: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () {
-                        var t;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    t = token.id(tok);
-                                    return [4 /*yield*/, account.id(acc).tokenAccepted(t.id ? t.id : t)];
-                                case 1: return [2 /*return*/, _a.sent()];
-                            }
-                        });
-                    }); }
+                    tokenAccepted: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, account.id(acc).tokenAccepted(tok)];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    }); }); },
+                    tokenMetadata: function (acc, tok) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, account.id(acc).tokenMetadata(tok)];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
+                    }); }); }
                 };
                 rpc_ctc = {
                     getInfo: function (id) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, contract.id(id).getInfo()];
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, contract.id(id).getInfo()];
+                            case 1: return [2 /*return*/, _a.sent()];
+                        }
                     }); }); }
                 };
                 rpc_launchToken = {
@@ -427,16 +496,23 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                     var router = express.Router();
                     var _loop_2 = function (k) {
                         router.post("/".concat(k), safely(function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-                            var args, lab, ans, ret;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
+                            var args, lab, ans, _a, ret;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
                                         args = req.body;
                                         lab = "RPC /".concat(olab, "/").concat(k, " ").concat(j2s(args));
                                         debug(lab);
+                                        if (!(typeof obj[k] === 'function')) return [3 /*break*/, 2];
                                         return [4 /*yield*/, obj[k].apply(obj, __spreadArray([], __read(args), false))];
                                     case 1:
-                                        ans = _a.sent();
+                                        _a = _b.sent();
+                                        return [3 /*break*/, 3];
+                                    case 2:
+                                        _a = obj[k];
+                                        _b.label = 3;
+                                    case 3:
+                                        ans = _a;
                                         ret = ans === undefined ? null : ans;
                                         debug("".concat(lab, " ==> ").concat(j2s(ret)));
                                         res.json(ret);

@@ -166,6 +166,7 @@ var reqLock = new shared_impl_1.Lock();
 var currentReqNum = undefined;
 var currentReqLabel = undefined;
 var lastReqSentAt = undefined; // ms
+var appStateMinRefreshMillis = 1000;
 function httpEventHandler(e) {
     return __awaiter(this, void 0, void 0, function () {
         var en, waitMs;
@@ -1502,7 +1503,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                 var getInfo = setupViewArgs.getInfo;
                 var _theC = undefined;
                 return function () { return __awaiter(void 0, void 0, void 0, function () {
-                    var ctcInfo, _a, ApplicationID, Deployer, ctcAddr, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, getAppState, getGlobalState, canIWin, isin, isIsolatedNetwork, viewMapRef;
+                    var ctcInfo, _a, ApplicationID, Deployer, ctcAddr, getLocalState, didOptIn, doOptIn, ensuredOptIn, ensureOptIn, lastAppState, lastAppStateTime, getAppState, getAppStateFresh, getGlobalState, canIWin, isin, isIsolatedNetwork, viewMapRef;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
@@ -1597,7 +1598,27 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                         }
                                     });
                                 }); };
+                                lastAppState = undefined;
+                                lastAppStateTime = 0;
                                 getAppState = function () { return __awaiter(void 0, void 0, void 0, function () {
+                                    var now, minMillis;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                now = Date.now();
+                                                minMillis = isIsolatedNetwork() ? 0 : appStateMinRefreshMillis;
+                                                if (lastAppState && now - lastAppStateTime < minMillis) {
+                                                    return [2 /*return*/, lastAppState];
+                                                }
+                                                return [4 /*yield*/, getAppStateFresh()];
+                                            case 1:
+                                                lastAppState = _a.sent();
+                                                lastAppStateTime = now;
+                                                return [2 /*return*/, lastAppState];
+                                        }
+                                    });
+                                }); };
+                                getAppStateFresh = function () { return __awaiter(void 0, void 0, void 0, function () {
                                     var lab, appInfoM, appInfo, appSt;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {

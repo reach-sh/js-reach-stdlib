@@ -14,5 +14,6 @@ export declare const mkKont: () => {
     };
 };
 export declare const mkStdlibProxy: (lib: any, ks: any) => Promise<any>;
+export declare const mkReBigNumberify: (l: any) => (n: any) => any;
 export declare const serveRpc: (backend: any) => Promise<void>;
 //# sourceMappingURL=rpc_server.d.ts.map
