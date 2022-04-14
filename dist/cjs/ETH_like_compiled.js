@@ -69,7 +69,7 @@ var shared_impl_1 = require("./shared_impl");
 function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
     var T_Address = ethLikeCompiledArgs.T_Address;
-    var UInt_max = ethers_1.ethers.BigNumber.from(2).pow(256).sub(1);
+    var UInt_max = shared_impl_1.UInt256_max;
     var digest = (0, shared_impl_1.makeDigest)('keccak256', function (t, v) {
         // Note: abiCoder.encode doesn't correctly handle an empty tuple type
         if (t.paramType === 'tuple()') {
@@ -90,6 +90,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return T_Bool.canonicalize(b);
     };
     var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers_1.ethers.BigNumber.from(0), munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' });
+    var T_UInt256 = T_UInt;
     var V_UInt = function (n) {
         return T_UInt.canonicalize(n);
     };
@@ -311,6 +312,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         T_Null: T_Null,
         T_Bool: T_Bool,
         T_UInt: T_UInt,
+        T_UInt256: T_UInt256,
         T_Bytes: T_Bytes,
         T_Address: T_Address,
         T_Contract: T_Contract,

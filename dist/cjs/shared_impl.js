@@ -86,7 +86,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hexlify = void 0;
+exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hexlify = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -452,20 +452,64 @@ var makeRandom = function (width) {
     return { randomUInt: randomUInt, hasRandom: hasRandom };
 };
 exports.makeRandom = makeRandom;
+exports.UInt256_max = ethers_1.ethers.BigNumber.from(2).pow(256).sub(1);
 var makeArith = function (m) {
-    var check = function (x) {
+    var checkB = function (x) {
+        return (0, shared_backend_1.checkedBigNumberify)("internal", exports.UInt256_max, x);
+    };
+    var checkM = function (x) {
         return (0, shared_backend_1.checkedBigNumberify)("internal", m, x);
     };
-    var add = function (a, b) { return check((0, CBR_1.bigNumberify)(a).add((0, CBR_1.bigNumberify)(b))); };
-    var sub = function (a, b) { return check((0, CBR_1.bigNumberify)(a).sub((0, CBR_1.bigNumberify)(b))); };
-    var mod = function (a, b) { return check((0, CBR_1.bigNumberify)(a).mod((0, CBR_1.bigNumberify)(b))); };
-    var mul = function (a, b) { return check((0, CBR_1.bigNumberify)(a).mul((0, CBR_1.bigNumberify)(b))); };
-    var div = function (a, b) { return check((0, CBR_1.bigNumberify)(a).div((0, CBR_1.bigNumberify)(b))); };
+    var doBN = function (f, a, b) { return a[f](b); };
+    var getCheck = function (w) { return w ? checkB : checkM; };
+    var cast = function (from, to, x) {
+        var checkF = getCheck(from);
+        var checkT = getCheck(to);
+        return checkT(checkF((0, CBR_1.bigNumberify)(x)));
+    };
+    var liftX = function (check) { return function (f) { return function (a, b) { return check(doBN(f, (0, CBR_1.bigNumberify)(a), (0, CBR_1.bigNumberify)(b))); }; }; };
+    var liftB = liftX(checkB);
+    var liftM = liftX(checkM);
+    var add = liftM('add');
+    var sub = liftM('sub');
+    var mod = liftM('mod');
+    var mul = liftM('mul');
+    var div = liftM('div');
+    var band = liftM('and');
+    var bior = liftM('or');
+    var bxor = liftM('xor');
+    var add256 = liftB('add');
+    var sub256 = liftB('sub');
+    var mod256 = liftB('mod');
+    var mul256 = liftB('mul');
+    var div256 = liftB('div');
+    var band256 = liftB('and');
+    var bior256 = liftB('or');
+    var bxor256 = liftB('xor');
     var muldiv = function (a, b, c) {
         var prod = (0, CBR_1.bigNumberify)(a).mul((0, CBR_1.bigNumberify)(b));
-        return check(prod.div((0, CBR_1.bigNumberify)(c)));
+        return checkM(prod.div((0, CBR_1.bigNumberify)(c)));
     };
-    return { add: add, sub: sub, mod: mod, mul: mul, div: div, muldiv: muldiv };
+    return {
+        add: add,
+        sub: sub,
+        mod: mod,
+        mul: mul,
+        div: div,
+        band: band,
+        bior: bior,
+        bxor: bxor,
+        add256: add256,
+        sub256: sub256,
+        mod256: mod256,
+        mul256: mul256,
+        div256: div256,
+        band256: band256,
+        bior256: bior256,
+        bxor256: bxor256,
+        cast: cast,
+        muldiv: muldiv
+    };
 };
 exports.makeArith = makeArith;
 var argsSlice = function (args, cnt) {

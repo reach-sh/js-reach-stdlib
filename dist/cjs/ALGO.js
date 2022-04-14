@@ -113,8 +113,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b, _c;
 exports.__esModule = true;
-exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.formatWithDecimals = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.bytesEq = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.Array_set = exports.assert = exports.protect = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
-exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = void 0;
+exports.getValidQueryWindow = exports.MinTxnFee = exports.getTxnParams = exports.toWTxn = exports.signSendAndConfirm = exports.setMinMillisBetweenRequests = exports.setCustomHttpEventHandler = exports.setSigningMonitor = exports.formatWithDecimals = exports.addressFromHex = exports.getQueryLowerBound = exports.setQueryLowerBound = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.bytesEq = exports.Array_set = exports.assert = exports.protect = exports.muldiv = exports.cast = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.bxor256 = exports.bior256 = exports.band256 = exports.div256 = exports.mul256 = exports.mod256 = exports.sub256 = exports.add256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bxor = exports.bior = exports.band = exports.div = exports.mul = exports.mod = exports.sub = exports.add = exports.algosdk = exports.connector = void 0;
+exports.getTimeSecs = exports.getNetworkTime = exports.newAccountFromSecret = exports.newAccountFromMnemonic = exports.getDefaultAccount = exports.formatCurrency = exports.minimumBalance = exports.parseCurrency = exports.atomicUnit = exports.standardUnit = exports.newTestAccounts = exports.newTestAccount = exports.fundFromFaucet = exports.canFundFromFaucet = exports.createAccount = exports.balanceOf = exports.balancesOf = exports.minimumBalanceOf = exports.connectAccount = exports.transfer = exports.makeTransferTxn = exports.setFaucet = exports.getFaucet = exports.setProviderByName = exports.providerEnvByName = exports.setProviderByEnv = exports.setProvider = exports.getProvider = exports.walletFallback = exports.setWalletFallback = exports.hasRandom = exports.randomUInt = exports.T_Token = exports.T_Struct = exports.T_Digest = exports.T_Address = exports.T_Bytes = exports.T_Data = exports.T_Object = exports.T_Contract = exports.T_Array = exports.T_Tuple = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.tokenEq = exports.addressEq = exports.setValidQueryWindow = void 0;
+exports.reachStdlib = exports.launchToken = exports.unsafeGetMnemonic = exports.formatAddress = exports.verifyContract = exports.wait = exports.waitUntilSecs = exports.waitUntilTime = exports.getNetworkSecs = void 0;
 exports.connector = 'ALGO';
 var algosdk_1 = __importDefault(require("algosdk"));
 var algosdk_2 = require("algosdk");
@@ -134,7 +135,7 @@ var ALGO_compiled_1 = require("./ALGO_compiled");
 exports.addressFromHex = ALGO_compiled_1.addressFromHex;
 var shim_1 = require("./shim");
 var js_sha512_1 = require("js-sha512");
-exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq, exports.digest_xor = ALGO_compiled_1.stdlib.digest_xor, exports.bytes_xor = ALGO_compiled_1.stdlib.bytes_xor, exports.btoiLast8 = ALGO_compiled_1.stdlib.btoiLast8;
+exports.add = ALGO_compiled_1.stdlib.add, exports.sub = ALGO_compiled_1.stdlib.sub, exports.mod = ALGO_compiled_1.stdlib.mod, exports.mul = ALGO_compiled_1.stdlib.mul, exports.div = ALGO_compiled_1.stdlib.div, exports.band = ALGO_compiled_1.stdlib.band, exports.bior = ALGO_compiled_1.stdlib.bior, exports.bxor = ALGO_compiled_1.stdlib.bxor, exports.eq = ALGO_compiled_1.stdlib.eq, exports.ge = ALGO_compiled_1.stdlib.ge, exports.gt = ALGO_compiled_1.stdlib.gt, exports.le = ALGO_compiled_1.stdlib.le, exports.lt = ALGO_compiled_1.stdlib.lt, exports.add256 = ALGO_compiled_1.stdlib.add256, exports.sub256 = ALGO_compiled_1.stdlib.sub256, exports.mod256 = ALGO_compiled_1.stdlib.mod256, exports.mul256 = ALGO_compiled_1.stdlib.mul256, exports.div256 = ALGO_compiled_1.stdlib.div256, exports.band256 = ALGO_compiled_1.stdlib.band256, exports.bior256 = ALGO_compiled_1.stdlib.bior256, exports.bxor256 = ALGO_compiled_1.stdlib.bxor256, exports.eq256 = ALGO_compiled_1.stdlib.eq256, exports.ge256 = ALGO_compiled_1.stdlib.ge256, exports.gt256 = ALGO_compiled_1.stdlib.gt256, exports.le256 = ALGO_compiled_1.stdlib.le256, exports.lt256 = ALGO_compiled_1.stdlib.lt256, exports.cast = ALGO_compiled_1.stdlib.cast, exports.muldiv = ALGO_compiled_1.stdlib.muldiv, exports.protect = ALGO_compiled_1.stdlib.protect, exports.assert = ALGO_compiled_1.stdlib.assert, exports.Array_set = ALGO_compiled_1.stdlib.Array_set, exports.bytesEq = ALGO_compiled_1.stdlib.bytesEq, exports.digestEq = ALGO_compiled_1.stdlib.digestEq, exports.digest_xor = ALGO_compiled_1.stdlib.digest_xor, exports.bytes_xor = ALGO_compiled_1.stdlib.bytes_xor, exports.btoiLast8 = ALGO_compiled_1.stdlib.btoiLast8;
 __exportStar(require("./shared_user"), exports);
 var shared_impl_2 = require("./shared_impl");
 exports.setQueryLowerBound = shared_impl_2.setQueryLowerBound;
@@ -142,7 +143,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 exports.formatWithDecimals = shared_impl_2.formatWithDecimals;
 var _d = __read((0, shared_impl_1.makeSigningMonitor)(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
 exports.setSigningMonitor = setSigningMonitor;
-var reachBackendVersion = 11;
+var reachBackendVersion = 12;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
@@ -575,10 +576,11 @@ var doQueryM_ = function (dhead, query) { return __awaiter(void 0, void 0, void 
         }
     });
 }); };
-var doQuery_ = function (dhead, query, howMany) {
+var doQuery_ = function (dhead, query, howMany, failOk) {
     if (howMany === void 0) { howMany = 0; }
+    if (failOk === void 0) { failOk = (function (exn, howMany) { void howMany; return { exn: exn }; }); }
     return __awaiter(void 0, void 0, void 0, function () {
-        var res, e;
+        var res, e, fr;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -606,8 +608,15 @@ var doQuery_ = function (dhead, query, howMany) {
                         if ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.text) {
                             e = e.response.text;
                         }
-                        (0, shared_impl_1.debug)(dhead, 'RETRYING', { e: e });
-                        howMany++;
+                        fr = failOk(e, howMany);
+                        if ('exn' in fr) {
+                            (0, shared_impl_1.debug)(dhead, 'RETRYING', { e: e });
+                            howMany++;
+                        }
+                        else {
+                            (0, shared_impl_1.debug)(dhead, 'FAIL OK', { e: e, fr: fr });
+                            return [2 /*return*/, fr.val];
+                        }
                     }
                     else {
                         return [2 /*return*/, res.val];
@@ -708,7 +717,7 @@ var newEventQueue = function () {
     });
 };
 exports.addressEq = ALGO_compiled_1.stdlib.addressEq, exports.tokenEq = ALGO_compiled_1.stdlib.tokenEq, exports.digest = ALGO_compiled_1.stdlib.digest;
-exports.T_Null = ALGO_compiled_1.typeDefs.T_Null, exports.T_Bool = ALGO_compiled_1.typeDefs.T_Bool, exports.T_UInt = ALGO_compiled_1.typeDefs.T_UInt, exports.T_Tuple = ALGO_compiled_1.typeDefs.T_Tuple, exports.T_Array = ALGO_compiled_1.typeDefs.T_Array, exports.T_Contract = ALGO_compiled_1.typeDefs.T_Contract, exports.T_Object = ALGO_compiled_1.typeDefs.T_Object, exports.T_Data = ALGO_compiled_1.typeDefs.T_Data, exports.T_Bytes = ALGO_compiled_1.typeDefs.T_Bytes, exports.T_Address = ALGO_compiled_1.typeDefs.T_Address, exports.T_Digest = ALGO_compiled_1.typeDefs.T_Digest, exports.T_Struct = ALGO_compiled_1.typeDefs.T_Struct, exports.T_Token = ALGO_compiled_1.typeDefs.T_Token;
+exports.T_Null = ALGO_compiled_1.typeDefs.T_Null, exports.T_Bool = ALGO_compiled_1.typeDefs.T_Bool, exports.T_UInt = ALGO_compiled_1.typeDefs.T_UInt, exports.T_UInt256 = ALGO_compiled_1.typeDefs.T_UInt256, exports.T_Tuple = ALGO_compiled_1.typeDefs.T_Tuple, exports.T_Array = ALGO_compiled_1.typeDefs.T_Array, exports.T_Contract = ALGO_compiled_1.typeDefs.T_Contract, exports.T_Object = ALGO_compiled_1.typeDefs.T_Object, exports.T_Data = ALGO_compiled_1.typeDefs.T_Data, exports.T_Bytes = ALGO_compiled_1.typeDefs.T_Bytes, exports.T_Address = ALGO_compiled_1.typeDefs.T_Address, exports.T_Digest = ALGO_compiled_1.typeDefs.T_Digest, exports.T_Struct = ALGO_compiled_1.typeDefs.T_Struct, exports.T_Token = ALGO_compiled_1.typeDefs.T_Token;
 exports.randomUInt = (_a = (0, shared_impl_1.makeRandom)(8), _a.randomUInt), exports.hasRandom = _a.hasRandom;
 function waitIndexerFromEnv(env) {
     return __awaiter(this, void 0, void 0, function () {
@@ -1217,7 +1226,7 @@ function setProviderByName(pn) {
 }
 exports.setProviderByName = setProviderByName;
 // eslint-disable-next-line max-len
-var rawFaucetDefaultMnemonic = 'crisp casino index crack nose present cry chair brief shuffle humble marine loop fall unable task solar bright crack heavy blast south twist absorb similar';
+var rawFaucetDefaultMnemonic = 'guilt butter canyon devote inflict comfort lumber relief chat key fury absorb reject palm siege draw jelly lyrics melody palace use box joy ability result';
 exports.getFaucet = (_c = __read((0, shared_impl_1.replaceableThunk)(function () { return __awaiter(void 0, void 0, void 0, function () {
     var FAUCET;
     return __generator(this, function (_a) {
@@ -1308,7 +1317,7 @@ var reNetify = function (x) {
     return ethers_1.ethers.utils.arrayify('0x' + s);
 };
 var getAccountInfo = function (a) { return __awaiter(void 0, void 0, void 0, function () {
-    var dhead, client, req, res_1, e_8, indexer, q, res;
+    var dhead, client, req, res_1, e_8, indexer, q, failOk, res;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -1337,7 +1346,21 @@ var getAccountInfo = function (a) { return __awaiter(void 0, void 0, void 0, fun
             case 7:
                 indexer = _a.sent();
                 q = indexer.lookupAccountByID(a);
-                return [4 /*yield*/, doQuery_(dhead, q)];
+                failOk = function (x, howMany) {
+                    void howMany;
+                    if (typeof x === 'string' && x.includes('no accounts found for address')) {
+                        return { val: {
+                                'current-round': BigInt(0),
+                                'account': {
+                                    'amount': BigInt(0)
+                                }
+                            } };
+                    }
+                    else {
+                        return { exn: x };
+                    }
+                };
+                return [4 /*yield*/, doQuery_(dhead, q, 0, failOk)];
             case 8:
                 res = _a.sent();
                 (0, shared_impl_1.debug)(dhead, res);
@@ -1346,7 +1369,7 @@ var getAccountInfo = function (a) { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var getAssetInfo = function (a) { return __awaiter(void 0, void 0, void 0, function () {
-    var dhead, indexer, q, res;
+    var dhead, indexer, q, failOk, res;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -1355,7 +1378,18 @@ var getAssetInfo = function (a) { return __awaiter(void 0, void 0, void 0, funct
             case 1:
                 indexer = _a.sent();
                 q = indexer.lookupAssetByID(a);
-                return [4 /*yield*/, doQuery_(dhead, q)];
+                failOk = function (x, howMany) {
+                    // XXX This howMany > 10 is for tests. Maybe it would be better to
+                    // synchronize in the test with the indexer observing an event or use a
+                    // network wait.
+                    if (howMany > 10 && typeof x === 'string' && x.includes('no assets found for asset-id')) {
+                        throw Error("Asset ".concat(a, " does not exist"));
+                    }
+                    else {
+                        return { exn: x };
+                    }
+                };
+                return [4 /*yield*/, doQuery_(dhead, q, 0, failOk)];
             case 2:
                 res = _a.sent();
                 (0, shared_impl_1.debug)(dhead, res);
@@ -1941,7 +1975,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 // round, which we couldn't possibly be in, because it already
                                                 // happened.
                                                 (0, shared_impl_1.debug)(dhead, '--- TIMECHECK', { params: params, timeoutAt: timeoutAt });
-                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(isIsolatedNetwork, getTimeSecs, timeoutAt, (0, shared_user_1.bigNumberify)(params.firstRound).add(1))];
+                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(isIsolatedNetwork, exports.getTimeSecs, timeoutAt, (0, shared_user_1.bigNumberify)(params.firstRound).add(1))];
                                             case 2:
                                                 if (!_t.sent()) return [3 /*break*/, 4];
                                                 _o = {};
@@ -2217,7 +2251,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                     }
                                 }
                                 theRound = txn['confirmed-round'];
-                                return [4 /*yield*/, (0, shared_impl_1.retryLoop)([dhead, 'getTimeSecs'], function () { return getTimeSecs((0, shared_user_1.bigNumberify)(theRound)); })];
+                                return [4 /*yield*/, (0, shared_impl_1.retryLoop)([dhead, 'getTimeSecs'], function () { return (0, exports.getTimeSecs)((0, shared_user_1.bigNumberify)(theRound)); })];
                             case 1:
                                 theSecs = _a.sent();
                                 lr = makeLogRep(reachEvent(funcNum), out_tys);
@@ -2291,7 +2325,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                             case 0:
                                                 crp = cr_bn.add(1);
                                                 (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { timeoutAt: timeoutAt, cr_bn: cr_bn, crp: crp });
-                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(isIsolatedNetwork, getTimeSecs, timeoutAt, crp)];
+                                                return [4 /*yield*/, (0, shared_impl_1.checkTimeout)(isIsolatedNetwork, exports.getTimeSecs, timeoutAt, crp)];
                                             case 1:
                                                 r = _a.sent();
                                                 (0, shared_impl_1.debug)(dhead, 'TIMECHECK', { r: r, waitIfNotPresent: waitIfNotPresent });
@@ -2862,10 +2896,11 @@ var getTimeSecs = function (now_bn) { return __awaiter(void 0, void 0, void 0, f
         }
     });
 }); };
+exports.getTimeSecs = getTimeSecs;
 var getNetworkSecs = function () { return __awaiter(void 0, void 0, void 0, function () { var _a; return __generator(this, function (_b) {
     switch (_b.label) {
         case 0:
-            _a = getTimeSecs;
+            _a = exports.getTimeSecs;
             return [4 /*yield*/, (0, exports.getNetworkTime)()];
         case 1: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
         case 2: return [2 /*return*/, _b.sent()];
@@ -2915,7 +2950,7 @@ var stepSecs = function (target) { return __awaiter(void 0, void 0, void 0, func
             case 1: return [4 /*yield*/, _a.apply(void 0, [(_b.sent()).add(1)])];
             case 2:
                 now = _b.sent();
-                return [4 /*yield*/, getTimeSecs(now)];
+                return [4 /*yield*/, (0, exports.getTimeSecs)(now)];
             case 3: return [2 /*return*/, _b.sent()];
         }
     });
@@ -3021,9 +3056,10 @@ function unsafeGetMnemonic(acc) {
     return algosdk_1["default"].secretKeyToMnemonic(networkAccount.sk);
 }
 exports.unsafeGetMnemonic = unsafeGetMnemonic;
-var makeAssetCreateTxn = function (creator, supply, decimals, symbol, name, url, metadataHash, clawback, params) {
+var makeAssetCreateTxn = function (creator, supply, decimals, symbol, name, url, metadataHash, clawback, note, params) {
     return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParamsFromObject({
         from: creator,
+        note: note,
         total: (0, shared_user_1.bigNumberToBigInt)(supply),
         decimals: decimals,
         defaultFrozen: false,
@@ -3038,7 +3074,7 @@ var makeAssetCreateTxn = function (creator, supply, decimals, symbol, name, url,
 var launchToken = function (accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var addrCreator, supply, decimals, url, metadataHash, clawback, params, txnResult, assetIndex, id, mint, optOut;
+        var addrCreator, supply, decimals, url, metadataHash, clawback, note, params, txnResult, assetIndex, id, mint, optOut;
         var _a, _b, _c;
         return __generator(this, function (_d) {
             switch (_d.label) {
@@ -3049,10 +3085,11 @@ var launchToken = function (accCreator, name, sym, opts) {
                     url = (_b = opts.url) !== null && _b !== void 0 ? _b : '';
                     metadataHash = (_c = opts.metadataHash) !== null && _c !== void 0 ? _c : '';
                     clawback = opts.clawback ? cbr2algo_addr((0, exports.protect)(exports.T_Address, opts.clawback)) : undefined;
+                    note = opts.note || undefined;
                     return [4 /*yield*/, (0, exports.getTxnParams)('launchToken')];
                 case 1:
                     params = _d.sent();
-                    return [4 /*yield*/, sign_and_send_sync("launchToken ".concat((0, shared_impl_1.j2s)(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, (0, exports.toWTxn)(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, params)))];
+                    return [4 /*yield*/, sign_and_send_sync("launchToken ".concat((0, shared_impl_1.j2s)(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, (0, exports.toWTxn)(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, note, params)))];
                 case 2:
                     txnResult = _d.sent();
                     assetIndex = txnResult['created-asset-index'];

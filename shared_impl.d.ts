@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { CBR_Address } from './CBR';
-import { num, AnyBackendTy } from './shared_backend';
+import { AnyBackendTy } from './shared_backend';
 import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
+import type { Arith } from './interfaces';
 declare type BigNumber = ethers.BigNumber;
 export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
@@ -194,12 +195,12 @@ export declare const stdABIFilter: (x: any) => boolean;
 export declare const stdGetABI: (ABI: any) => (isFull?: boolean | undefined) => any;
 export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type TokenMetadata = {
-    name: string;
-    symbol: string;
-    url: string;
-    metadata: string;
+    name?: string;
+    symbol?: string;
+    url?: string;
+    metadata?: string;
     supply: BigNumber;
-    decimals: BigNumber;
+    decimals?: BigNumber;
 };
 export declare type LaunchTokenOpts = {
     'decimals'?: number;
@@ -207,6 +208,7 @@ export declare type LaunchTokenOpts = {
     'clawback'?: any;
     'url'?: string;
     'metadataHash'?: string;
+    'note'?: Uint8Array;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
@@ -318,14 +320,9 @@ export declare const makeRandom: (width: number) => {
         random: () => BigNumber;
     };
 };
-export declare const makeArith: (m: BigNumber) => {
-    add: (a: num, b: num) => BigNumber;
-    sub: (a: num, b: num) => BigNumber;
-    mod: (a: num, b: num) => BigNumber;
-    mul: (a: num, b: num) => BigNumber;
-    div: (a: num, b: num) => BigNumber;
-    muldiv: (a: num, b: num, c: num) => BigNumber;
-};
+export declare type UIntTy = boolean;
+export declare const UInt256_max: ethers.BigNumber;
+export declare const makeArith: (m: BigNumber) => Arith;
 export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
 export declare const argsSplit: <T>(args: T[], cnt: number) => [T[], T[]];
 export declare const objectMap: <A, B>(object: {

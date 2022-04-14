@@ -35,7 +35,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import * as shared_backend from './shared_backend';
-import { debug, labelMaps, makeDigest, mkAddressEq, makeArith, } from './shared_impl';
+import { debug, labelMaps, makeDigest, mkAddressEq, makeArith, UInt256_max, } from './shared_impl';
 import { bigNumberToNumber, bigNumberify, } from './shared_user';
 import algosdk from 'algosdk';
 import buffer from 'buffer';
@@ -59,6 +59,18 @@ export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { netSize: 8, 
         // if (getDEBUG()) console.log(nv);
         return ethers.BigNumber.from(nv.slice(0, 8));
     }, netName: 'uint64' });
+export var T_UInt256 = __assign(__assign({}, CBR.BT_UInt(UInt256_max)), { netSize: 32, toNet: function (bv) {
+        try {
+            return ethers.utils.zeroPad(ethers.utils.arrayify(bv), 32);
+        }
+        catch (e) {
+            throw new Error("toNet: ".concat(bv, " is out of range [0, ").concat(UInt256_max, "]"));
+        }
+    }, fromNet: function (nv) {
+        // debug(`fromNet: UInt`, nv);
+        // if (getDEBUG()) console.log(nv);
+        return ethers.BigNumber.from(nv.slice(0, 32));
+    }, netName: 'uint256' });
 /** @description For arbitrary utf8 strings */
 var stringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers.utils.toUtf8Bytes(bv)); },
@@ -222,6 +234,7 @@ export var typeDefs = {
     T_Null: T_Null,
     T_Bool: T_Bool,
     T_UInt: T_UInt,
+    T_UInt256: T_UInt256,
     T_Bytes: T_Bytes,
     T_Address: T_Address,
     T_Contract: T_Contract,

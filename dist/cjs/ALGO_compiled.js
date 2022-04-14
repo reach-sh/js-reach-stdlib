@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -88,6 +88,18 @@ exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize
         // if (getDEBUG()) console.log(nv);
         return ethers_1.ethers.BigNumber.from(nv.slice(0, 8));
     }, netName: 'uint64' });
+exports.T_UInt256 = __assign(__assign({}, CBR.BT_UInt(shared_impl_1.UInt256_max)), { netSize: 32, toNet: function (bv) {
+        try {
+            return ethers_1.ethers.utils.zeroPad(ethers_1.ethers.utils.arrayify(bv), 32);
+        }
+        catch (e) {
+            throw new Error("toNet: ".concat(bv, " is out of range [0, ").concat(shared_impl_1.UInt256_max, "]"));
+        }
+    }, fromNet: function (nv) {
+        // debug(`fromNet: UInt`, nv);
+        // if (getDEBUG()) console.log(nv);
+        return ethers_1.ethers.BigNumber.from(nv.slice(0, 32));
+    }, netName: 'uint256' });
 /** @description For arbitrary utf8 strings */
 var stringyNet = function (len) { return ({
     toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); },
@@ -262,6 +274,7 @@ exports.typeDefs = {
     T_Null: exports.T_Null,
     T_Bool: exports.T_Bool,
     T_UInt: exports.T_UInt,
+    T_UInt256: exports.T_UInt256,
     T_Bytes: exports.T_Bytes,
     T_Address: exports.T_Address,
     T_Contract: exports.T_Contract,

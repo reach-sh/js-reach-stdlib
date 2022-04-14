@@ -191,6 +191,11 @@ export var ge = function (a, b) { return bigNumberify(a).gte(bigNumberify(b)); }
 export var gt = function (a, b) { return bigNumberify(a).gt(bigNumberify(b)); };
 export var le = function (a, b) { return bigNumberify(a).lte(bigNumberify(b)); };
 export var lt = function (a, b) { return bigNumberify(a).lt(bigNumberify(b)); };
+export var eq256 = eq;
+export var ge256 = ge;
+export var gt256 = gt;
+export var le256 = le;
+export var lt256 = lt;
 export var digest_xor = function (xd, yd) {
     var clean = function (s) { return s.slice(0, 2) === '0x' ? s.slice(2) : s; };
     var xc = clean(xd);

@@ -2,7 +2,7 @@ import { ethers as real_ethers } from 'ethers';
 import type { // =>
 BigNumber } from 'ethers';
 import type { // =>
-CurrencyAmount, IAccount, IBackend, IContract, OnProgress } from './shared_impl';
+CurrencyAmount, IAccount, IBackend, IContract, OnProgress, LaunchTokenOpts } from './shared_impl';
 import type { // =>
 AnyETH_Ty, Token } from './ETH_like_compiled';
 export type { Token } from './ETH_like_compiled';
@@ -88,7 +88,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     formatAddress: (acc: string | NetworkAccount | Account) => string;
     formatWithDecimals: (amt: unknown, decimals: number) => string;
     unsafeGetMnemonic: (acc: Account | NetworkAccount) => string;
-    launchToken: (accCreator: Account, name: string, sym: string, opts?: any) => Promise<{
+    launchToken: (accCreator: Account, name: string, sym: string, opts?: LaunchTokenOpts) => Promise<{
         name: string;
         sym: string;
         id: any;
@@ -99,6 +99,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     setMinMillisBetweenRequests: () => void;
     setCustomHttpEventHandler: () => void;
     setSigningMonitor: import("./shared_impl").SetSigningMonitor;
+    getTimeSecs: (now_bn: BigNumber) => Promise<BigNumber>;
     getProvider: () => Promise<Provider>;
     setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;

@@ -38,12 +38,12 @@ import { ethers } from 'ethers';
 import * as shared_backend from './shared_backend';
 import * as CBR from './CBR';
 var bigNumberify = CBR.bigNumberify, bigNumberToNumber = CBR.bigNumberToNumber;
-import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, } from './shared_impl';
+import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, UInt256_max, } from './shared_impl';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
     var T_Address = ethLikeCompiledArgs.T_Address;
-    var UInt_max = ethers.BigNumber.from(2).pow(256).sub(1);
+    var UInt_max = UInt256_max;
     var digest = makeDigest('keccak256', function (t, v) {
         // Note: abiCoder.encode doesn't correctly handle an empty tuple type
         if (t.paramType === 'tuple()') {
@@ -64,6 +64,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return T_Bool.canonicalize(b);
     };
     var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers.BigNumber.from(0), munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' });
+    var T_UInt256 = T_UInt;
     var V_UInt = function (n) {
         return T_UInt.canonicalize(n);
     };
@@ -285,6 +286,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
         T_Null: T_Null,
         T_Bool: T_Bool,
         T_UInt: T_UInt,
+        T_UInt256: T_UInt256,
         T_Bytes: T_Bytes,
         T_Address: T_Address,
         T_Contract: T_Contract,

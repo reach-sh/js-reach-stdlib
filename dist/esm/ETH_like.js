@@ -92,7 +92,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 11;
+var reachBackendVersion = 12;
 var reachEthBackendVersion = 6;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -1123,61 +1123,75 @@ export function makeEthLike(ethLikeArgs) {
                         });
                     }); };
                     tokenMetadata = function (token) { return __awaiter(_this, void 0, void 0, function () {
-                        var tokCtc, md, go;
+                        var lab, tokCtc, get, md, go;
+                        var _a;
                         var _this = this;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0:
-                                    debug("tokenMetadata", token);
+                                    lab = "tokenMetadata";
+                                    debug(lab, token);
                                     tokCtc = new ethers.Contract(token, ReachToken_ABI, networkAccount);
-                                    md = {};
+                                    get = function (t, m) { return __awaiter(_this, void 0, void 0, function () {
+                                        var rv, v;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                                case 0:
+                                                    debug(lab, { m: m });
+                                                    return [4 /*yield*/, tokCtc[m]()];
+                                                case 1:
+                                                    rv = _a.sent();
+                                                    debug(lab, { m: m, rv: rv });
+                                                    v = t ? t.unmunge(rv) : rv;
+                                                    debug(lab, { m: m, v: v });
+                                                    return [2 /*return*/, v];
+                                            }
+                                        });
+                                    }); };
+                                    _a = {};
+                                    return [4 /*yield*/, get(T_UInt, 'totalSupply')];
+                                case 1:
+                                    md = (_a.supply = _b.sent(),
+                                        _a);
                                     go = function (t, f, m) {
                                         if (m === void 0) { m = f; }
                                         return __awaiter(_this, void 0, void 0, function () {
-                                            var rv, v, e_8;
-                                            return __generator(this, function (_a) {
-                                                switch (_a.label) {
+                                            var _a, _b, e_8;
+                                            return __generator(this, function (_c) {
+                                                switch (_c.label) {
                                                     case 0:
-                                                        debug('tokenMetadata', { f: f, m: m });
-                                                        _a.label = 1;
+                                                        _c.trys.push([0, 2, , 3]);
+                                                        _a = md;
+                                                        _b = f;
+                                                        return [4 /*yield*/, get(t, m)];
                                                     case 1:
-                                                        _a.trys.push([1, 3, , 4]);
-                                                        return [4 /*yield*/, tokCtc[m]()];
+                                                        _a[_b] = _c.sent();
+                                                        return [3 /*break*/, 3];
                                                     case 2:
-                                                        rv = _a.sent();
-                                                        debug('tokenMetadata', { f: f, m: m, rv: rv });
-                                                        v = t ? t.unmunge(rv) : rv;
-                                                        debug('tokenMetadata', { f: f, m: m, v: v });
-                                                        md[f] = v;
-                                                        return [3 /*break*/, 4];
-                                                    case 3:
-                                                        e_8 = _a.sent();
-                                                        debug('tokenMetadata', { f: f, m: m, e: e_8 });
-                                                        return [3 /*break*/, 4];
-                                                    case 4: return [2 /*return*/];
+                                                        e_8 = _c.sent();
+                                                        debug(lab, { f: f, m: m, e: e_8 });
+                                                        return [3 /*break*/, 3];
+                                                    case 3: return [2 /*return*/];
                                                 }
                                             });
                                         });
                                     };
                                     return [4 /*yield*/, go(false, 'name')];
-                                case 1:
-                                    _a.sent();
-                                    return [4 /*yield*/, go(false, 'symbol')];
                                 case 2:
-                                    _a.sent();
-                                    return [4 /*yield*/, go(false, 'url')];
+                                    _b.sent();
+                                    return [4 /*yield*/, go(false, 'symbol')];
                                 case 3:
-                                    _a.sent();
-                                    return [4 /*yield*/, go(false, 'metadata')];
+                                    _b.sent();
+                                    return [4 /*yield*/, go(false, 'url')];
                                 case 4:
-                                    _a.sent();
-                                    return [4 /*yield*/, go(T_UInt, 'supply', 'totalSupply')];
+                                    _b.sent();
+                                    return [4 /*yield*/, go(false, 'metadata')];
                                 case 5:
-                                    _a.sent();
+                                    _b.sent();
                                     return [4 /*yield*/, go(T_UInt, 'decimals')];
                                 case 6:
-                                    _a.sent();
-                                    debug("tokenMetadata", token, md);
+                                    _b.sent();
+                                    debug(lab, token, md);
                                     return [2 /*return*/, md];
                             }
                         });
@@ -1605,7 +1619,7 @@ export function makeEthLike(ethLikeArgs) {
     }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { doCall: doCall, getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { doCall: doCall, getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map

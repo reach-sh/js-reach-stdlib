@@ -18,6 +18,7 @@ export declare const digest: (t: any, v: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;
 export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;
+export declare const T_UInt256: ALGO_Ty<CBR_UInt>;
 /** @description For hex strings representing bytes */
 export declare const bytestringyNet: (len: number) => {
     netSize: number;
@@ -54,6 +55,7 @@ export declare const typeDefs: {
     T_Null: ALGO_Ty<null>;
     T_Bool: ALGO_Ty<boolean>;
     T_UInt: ALGO_Ty<ethers.BigNumber>;
+    T_UInt256: ALGO_Ty<ethers.BigNumber>;
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
     T_Address: ALGO_Ty<string>;
     T_Contract: ALGO_Ty<ethers.BigNumber>;

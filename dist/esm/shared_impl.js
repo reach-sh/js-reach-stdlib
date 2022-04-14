@@ -414,20 +414,64 @@ export var makeRandom = function (width) {
     };
     return { randomUInt: randomUInt, hasRandom: hasRandom };
 };
+export var UInt256_max = ethers.BigNumber.from(2).pow(256).sub(1);
 export var makeArith = function (m) {
-    var check = function (x) {
+    var checkB = function (x) {
+        return checkedBigNumberify("internal", UInt256_max, x);
+    };
+    var checkM = function (x) {
         return checkedBigNumberify("internal", m, x);
     };
-    var add = function (a, b) { return check(bigNumberify(a).add(bigNumberify(b))); };
-    var sub = function (a, b) { return check(bigNumberify(a).sub(bigNumberify(b))); };
-    var mod = function (a, b) { return check(bigNumberify(a).mod(bigNumberify(b))); };
-    var mul = function (a, b) { return check(bigNumberify(a).mul(bigNumberify(b))); };
-    var div = function (a, b) { return check(bigNumberify(a).div(bigNumberify(b))); };
+    var doBN = function (f, a, b) { return a[f](b); };
+    var getCheck = function (w) { return w ? checkB : checkM; };
+    var cast = function (from, to, x) {
+        var checkF = getCheck(from);
+        var checkT = getCheck(to);
+        return checkT(checkF(bigNumberify(x)));
+    };
+    var liftX = function (check) { return function (f) { return function (a, b) { return check(doBN(f, bigNumberify(a), bigNumberify(b))); }; }; };
+    var liftB = liftX(checkB);
+    var liftM = liftX(checkM);
+    var add = liftM('add');
+    var sub = liftM('sub');
+    var mod = liftM('mod');
+    var mul = liftM('mul');
+    var div = liftM('div');
+    var band = liftM('and');
+    var bior = liftM('or');
+    var bxor = liftM('xor');
+    var add256 = liftB('add');
+    var sub256 = liftB('sub');
+    var mod256 = liftB('mod');
+    var mul256 = liftB('mul');
+    var div256 = liftB('div');
+    var band256 = liftB('and');
+    var bior256 = liftB('or');
+    var bxor256 = liftB('xor');
     var muldiv = function (a, b, c) {
         var prod = bigNumberify(a).mul(bigNumberify(b));
-        return check(prod.div(bigNumberify(c)));
+        return checkM(prod.div(bigNumberify(c)));
     };
-    return { add: add, sub: sub, mod: mod, mul: mul, div: div, muldiv: muldiv };
+    return {
+        add: add,
+        sub: sub,
+        mod: mod,
+        mul: mul,
+        div: div,
+        band: band,
+        bior: bior,
+        bxor: bxor,
+        add256: add256,
+        sub256: sub256,
+        mod256: mod256,
+        mul256: mul256,
+        div256: div256,
+        band256: band256,
+        bior256: bior256,
+        bxor256: bxor256,
+        cast: cast,
+        muldiv: muldiv
+    };
 };
 export var argsSlice = function (args, cnt) {
     return cnt == 0 ? [] : args.slice(-1 * cnt);

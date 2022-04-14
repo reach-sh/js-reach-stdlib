@@ -129,14 +129,32 @@ export var add = stdlib.add,
   mod = stdlib.mod,
   mul = stdlib.mul,
   div = stdlib.div,
-  protect = stdlib.protect,
-  assert = stdlib.assert,
-  Array_set = stdlib.Array_set,
+  band = stdlib.band,
+  bior = stdlib.bior,
+  bxor = stdlib.bxor,
   eq = stdlib.eq,
   ge = stdlib.ge,
   gt = stdlib.gt,
   le = stdlib.le,
   lt = stdlib.lt,
+  add256 = stdlib.add256,
+  sub256 = stdlib.sub256,
+  mod256 = stdlib.mod256,
+  mul256 = stdlib.mul256,
+  div256 = stdlib.div256,
+  band256 = stdlib.band256,
+  bior256 = stdlib.bior256,
+  bxor256 = stdlib.bxor256,
+  eq256 = stdlib.eq256,
+  ge256 = stdlib.ge256,
+  gt256 = stdlib.gt256,
+  le256 = stdlib.le256,
+  lt256 = stdlib.lt256,
+  cast = stdlib.cast,
+  muldiv = stdlib.muldiv,
+  protect = stdlib.protect,
+  assert = stdlib.assert,
+  Array_set = stdlib.Array_set,
   bytesEq = stdlib.bytesEq,
   digestEq = stdlib.digestEq,
   digest_xor = stdlib.digest_xor,
@@ -149,7 +167,7 @@ var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 11;
+var reachBackendVersion = 12;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function() {
@@ -608,10 +626,11 @@ var doQueryM_ = function(dhead, query) {
     });
   });
 };
-var doQuery_ = function(dhead, query, howMany) {
+var doQuery_ = function(dhead, query, howMany, failOk) {
   if (howMany === void 0) { howMany = 0; }
+  if (failOk === void 0) { failOk = (function(exn, howMany) { void howMany; return { exn: exn }; }); }
   return __awaiter(void 0, void 0, void 0, function() {
-    var res, e;
+    var res, e, fr;
     var _a;
     return __generator(this, function(_b) {
       switch (_b.label) {
@@ -639,8 +658,14 @@ var doQuery_ = function(dhead, query, howMany) {
             if ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.text) {
               e = e.response.text;
             }
-            debug(dhead, 'RETRYING', { e: e });
-            howMany++;
+            fr = failOk(e, howMany);
+            if ('exn' in fr) {
+              debug(dhead, 'RETRYING', { e: e });
+              howMany++;
+            } else {
+              debug(dhead, 'FAIL OK', { e: e, fr: fr });
+              return [2 /*return*/ , fr.val];
+            }
           } else {
             return [2 /*return*/ , res.val];
           }
@@ -743,6 +768,7 @@ export var addressEq = stdlib.addressEq,
 export var T_Null = typeDefs.T_Null,
   T_Bool = typeDefs.T_Bool,
   T_UInt = typeDefs.T_UInt,
+  T_UInt256 = typeDefs.T_UInt256,
   T_Tuple = typeDefs.T_Tuple,
   T_Array = typeDefs.T_Array,
   T_Contract = typeDefs.T_Contract,
@@ -1334,7 +1360,7 @@ export function setProviderByName(pn) {
   return setProviderByEnv(providerEnvByName(pn));
 }
 // eslint-disable-next-line max-len
-var rawFaucetDefaultMnemonic = 'crisp casino index crack nose present cry chair brief shuffle humble marine loop fall unable task solar bright crack heavy blast south twist absorb similar';
+var rawFaucetDefaultMnemonic = 'guilt butter canyon devote inflict comfort lumber relief chat key fury absorb reject palm siege draw jelly lyrics melody palace use box joy ability result';
 export var getFaucet = (_c = __read(replaceableThunk(function() {
     return __awaiter(void 0, void 0, void 0, function() {
       var FAUCET;
@@ -1429,7 +1455,7 @@ var reNetify = function(x) {
 };
 var getAccountInfo = function(a) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, client, req, res_1, e_8, indexer, q, res;
+    var dhead, client, req, res_1, e_8, indexer, q, failOk, res;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -1459,7 +1485,22 @@ var getAccountInfo = function(a) {
         case 7:
           indexer = _a.sent();
           q = indexer.lookupAccountByID(a);
-          return [4 /*yield*/ , doQuery_(dhead, q)];
+          failOk = function(x, howMany) {
+            void howMany;
+            if (typeof x === 'string' && x.includes('no accounts found for address')) {
+              return {
+                val: {
+                  'current-round': BigInt(0),
+                  'account': {
+                    'amount': BigInt(0)
+                  }
+                }
+              };
+            } else {
+              return { exn: x };
+            }
+          };
+          return [4 /*yield*/ , doQuery_(dhead, q, 0, failOk)];
         case 8:
           res = _a.sent();
           debug(dhead, res);
@@ -1470,7 +1511,7 @@ var getAccountInfo = function(a) {
 };
 var getAssetInfo = function(a) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, indexer, q, res;
+    var dhead, indexer, q, failOk, res;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
@@ -1479,7 +1520,17 @@ var getAssetInfo = function(a) {
         case 1:
           indexer = _a.sent();
           q = indexer.lookupAssetByID(a);
-          return [4 /*yield*/ , doQuery_(dhead, q)];
+          failOk = function(x, howMany) {
+            // XXX This howMany > 10 is for tests. Maybe it would be better to
+            // synchronize in the test with the indexer observing an event or use a
+            // network wait.
+            if (howMany > 10 && typeof x === 'string' && x.includes('no assets found for asset-id')) {
+              throw Error("Asset ".concat(a, " does not exist"));
+            } else {
+              return { exn: x };
+            }
+          };
+          return [4 /*yield*/ , doQuery_(dhead, q, 0, failOk)];
         case 2:
           res = _a.sent();
           debug(dhead, res);
@@ -3071,7 +3122,7 @@ export var getNetworkTime = function() {
     });
   });
 };
-var getTimeSecs = function(now_bn) {
+export var getTimeSecs = function(now_bn) {
   return __awaiter(void 0, void 0, void 0, function() {
     var now, client, binfo, e_13, indexer, info;
     return __generator(this, function(_a) {
@@ -3290,9 +3341,10 @@ export function unsafeGetMnemonic(acc) {
   }
   return algosdk.secretKeyToMnemonic(networkAccount.sk);
 }
-var makeAssetCreateTxn = function(creator, supply, decimals, symbol, name, url, metadataHash, clawback, params) {
+var makeAssetCreateTxn = function(creator, supply, decimals, symbol, name, url, metadataHash, clawback, note, params) {
   return algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
     from: creator,
+    note: note,
     total: bigNumberToBigInt(supply),
     decimals: decimals,
     defaultFrozen: false,
@@ -3307,7 +3359,7 @@ var makeAssetCreateTxn = function(creator, supply, decimals, symbol, name, url, 
 export var launchToken = function(accCreator, name, sym, opts) {
   if (opts === void 0) { opts = {}; }
   return __awaiter(void 0, void 0, void 0, function() {
-    var addrCreator, supply, decimals, url, metadataHash, clawback, params, txnResult, assetIndex, id, mint, optOut;
+    var addrCreator, supply, decimals, url, metadataHash, clawback, note, params, txnResult, assetIndex, id, mint, optOut;
     var _a, _b, _c;
     return __generator(this, function(_d) {
       switch (_d.label) {
@@ -3318,10 +3370,11 @@ export var launchToken = function(accCreator, name, sym, opts) {
           url = (_b = opts.url) !== null && _b !== void 0 ? _b : '';
           metadataHash = (_c = opts.metadataHash) !== null && _c !== void 0 ? _c : '';
           clawback = opts.clawback ? cbr2algo_addr(protect(T_Address, opts.clawback)) : undefined;
+          note = opts.note || undefined;
           return [4 /*yield*/ , getTxnParams('launchToken')];
         case 1:
           params = _d.sent();
-          return [4 /*yield*/ , sign_and_send_sync("launchToken ".concat(j2s(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, toWTxn(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, params)))];
+          return [4 /*yield*/ , sign_and_send_sync("launchToken ".concat(j2s(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, toWTxn(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, note, params)))];
         case 2:
           txnResult = _d.sent();
           assetIndex = txnResult['created-asset-index'];
