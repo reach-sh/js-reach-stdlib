@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.ctcAddrEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -73,6 +73,7 @@ var CBR = __importStar(require("./CBR"));
 var BigNumber = ethers_1.ethers.BigNumber;
 var Buffer = buffer_1["default"].Buffer;
 exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
+;
 exports.digest = (0, shared_impl_1.makeDigest)('sha256', function (t, v) { return t.toNet(v); });
 exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'byte[0]' });
 exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'byte' });
@@ -266,6 +267,15 @@ exports.digest_xor = shared_backend.digest_xor;
 exports.bytes_xor = shared_backend.bytes_xor;
 exports.btoiLast8 = shared_backend.btoiLast8;
 var T_Token = exports.T_UInt;
+var ctcAddrEq = function (x, y) {
+    (0, shared_impl_1.debug)('ctcAddrEq', { x: x, y: y });
+    var ctc_x = exports.T_Contract.canonicalize(x);
+    var addr_y = exports.T_Address.canonicalize(y);
+    var addr_x = algosdk_1["default"].getApplicationAddress((0, shared_user_1.bigNumberToBigInt)(ctc_x));
+    (0, shared_impl_1.debug)('ctcAddrEq', { addr_x: addr_x, addr_y: addr_y });
+    return (0, exports.addressEq)(addr_x, addr_y);
+};
+exports.ctcAddrEq = ctcAddrEq;
 var tokenEq = function (x, y) {
     return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
 };
@@ -288,5 +298,5 @@ exports.typeDefs = {
 };
 exports.emptyContractInfo = 0;
 var arith = (0, shared_impl_1.makeArith)(exports.UInt_max);
-exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, digestEq: exports.digestEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
+exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, ctcAddrEq: exports.ctcAddrEq, digestEq: exports.digestEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

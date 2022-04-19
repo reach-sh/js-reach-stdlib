@@ -126,22 +126,22 @@ export var formatAssertInfo = function(ai) {
   if (typeof ai === 'string') {
     msg = ": ".concat(ai);
   } else {
-    if (ai.who) {
+    if ('who' in ai) {
       msg += ": ".concat(ai.who);
       delete ai.who;
     }
-    if (ai.msg !== undefined) {
+    if ('msg' in ai) {
       if (ai.msg !== null) {
         msg += ": ".concat(ai.msg);
       }
       delete ai.msg;
     }
-    if (ai.at) {
+    if ('at' in ai) {
       msg += "\n  at ".concat(ai.at);
       delete ai.at;
     }
     var rest = ":";
-    if (Array.isArray(ai.fs)) {
+    if ('fs' in ai && Array.isArray(ai.fs)) {
       try {
         for (var _c = __values(ai.fs), _d = _c.next(); !_d.done; _d = _c.next()) {
           var f = _d.value;

@@ -696,6 +696,8 @@ export var serveRpc = function (backend) { return __awaiter(void 0, void 0, void
                 app.use("/ctc/a", mkUserDefined('/ctc/a', 'a', contract, true));
                 app.use("/ctc/apis", mkUserDefined('/ctc/apis', 'apis', contract, true));
                 app.use("/ctc/safeApis", mkUserDefined('/ctc/safeApis', 'safeApis', contract, false));
+                app.use("/ctc/e", mkUserDefined('/ctc/e', 'e', contract, true));
+                app.use("/ctc/events", mkUserDefined('/ctc/events', 'events', contract, true));
                 // NOTE: it's important these are deferred in order to preserve middleware precedence
                 for (p in ctcPs) {
                     app.use(p, ctcPs[p]);

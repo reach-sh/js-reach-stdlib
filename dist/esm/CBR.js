@@ -16,7 +16,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 import { ethers } from 'ethers';
 import { checkedBigNumberify } from './shared_backend';
-import { j2s } from './shared_impl';
+import { j2s, labelMaps } from './shared_impl';
 var BigNumber = ethers.BigNumber;
 export var bigNumberify = function (x) {
     var xp = typeof x === 'number' ? x.toString() : x;
@@ -25,9 +25,11 @@ export var bigNumberify = function (x) {
 export var bigNumberToNumber = function (x) {
     return bigNumberify(x).toNumber();
 };
+;
 export var BV_Null = null;
 export var BT_Null = {
     name: 'Null',
+    defaultValue: BV_Null,
     canonicalize: function (val) {
         // Doesn't check with triple eq; we're being lenient here
         if (val != null) {
@@ -38,6 +40,7 @@ export var BT_Null = {
 };
 export var BT_Bool = {
     name: 'Bool',
+    defaultValue: false,
     canonicalize: function (val) {
         if (typeof (val) !== 'boolean') {
             throw Error("Expected boolean, but got ".concat(j2s(val)));
@@ -50,6 +53,7 @@ export var BV_Bool = function (val) {
 };
 export var BT_UInt = function (max) { return ({
     name: 'UInt',
+    defaultValue: ethers.BigNumber.from(0),
     canonicalize: function (uv) {
         try {
             // Note: going through toString handles a lot of numeric representations
@@ -75,6 +79,7 @@ export var BV_UInt = function (val, max) {
 };
 export var BT_Bytes = function (len) { return ({
     name: "Bytes(".concat(len, ")"),
+    defaultValue: ''.padEnd(len, '\0'),
     canonicalize: function (val) {
         var lenn = bigNumberToNumber(len);
         if (typeof (val) !== 'string') {
@@ -98,6 +103,7 @@ export var BT_Bytes = function (len) { return ({
 // That's probably best left to connector-specific code.
 export var BT_Digest = {
     name: 'Digest',
+    defaultValue: ''.padEnd(32, '\0'),
     canonicalize: function (val) {
         if (typeof val !== 'string') {
             throw Error("".concat(j2s(val), " is not a valid digest"));
@@ -111,6 +117,7 @@ export var BV_Digest = function (val) {
 };
 export var BT_Address = ({
     name: 'Address',
+    defaultValue: ''.padEnd(32, '\0'),
     canonicalize: function (val) {
         if (typeof val !== 'string') {
             throw Error("Address must be a string, but got: ".concat(j2s(val)));
@@ -132,6 +139,7 @@ export var BT_Array = function (ctc, size) {
     // TODO: check ctc, sz for sanity
     return {
         name: "Array(".concat(ctc.name, ", ").concat(size, ")"),
+        defaultValue: Array(size).fill(ctc.defaultValue),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
                 throw Error("Expected an Array, but got ".concat(j2s(args)));
@@ -156,6 +164,7 @@ export var BT_Tuple = function (ctcs) {
     // TODO: check ctcs for sanity
     return {
         name: "Tuple(".concat(ctcs.map(function (ctc) { return " ".concat(ctc.name, " "); }), ")"),
+        defaultValue: ctcs.map(function (ctc) { return ctc.defaultValue; }),
         canonicalize: function (args) {
             if (!Array.isArray(args)) {
                 throw Error("Expected a Tuple, but got ".concat(j2s(args)));
@@ -179,6 +188,14 @@ export var BT_Struct = function (ctcs) {
             var _b = __read(_a, 2), k = _b[0], ctc = _b[1];
             return " [".concat(k, ", ").concat(ctc.name, "] ");
         }), "])"),
+        defaultValue: (function () {
+            var obj = {};
+            ctcs.forEach(function (_a) {
+                var _b = __read(_a, 2), prop = _b[0], co = _b[1];
+                obj[prop] = co.defaultValue;
+            });
+            return obj;
+        })(),
         canonicalize: function (arg) {
             var obj = {};
             ctcs.forEach(function (_a, i) {
@@ -196,6 +213,13 @@ export var BT_Object = function (co) {
     // TODO: check co for sanity
     return {
         name: "Object(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
+        defaultValue: (function () {
+            var obj = {};
+            for (var prop in co) {
+                obj[prop] = co[prop].defaultValue;
+            }
+            return obj;
+        })(),
         canonicalize: function (vo) {
             if (typeof (vo) !== 'object') {
                 throw Error("Expected object, but got ".concat(j2s(vo)));
@@ -220,8 +244,14 @@ export var BV_Object = function (co) { return function (val) {
 }; };
 export var BT_Data = function (co) {
     // TODO: check co for sanity
+    var ascLabels = labelMaps(co).ascLabels;
     return {
         name: "Data(".concat(Object.keys(co).map(function (k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
+        defaultValue: (function () {
+            var label = ascLabels[0];
+            return [label, co[label].defaultValue];
+            // return {ty, val: [label, co[label].defaultValue]};
+        })(),
         canonicalize: function (io) {
             if (!(Array.isArray(io) && io.length == 2 && typeof io[0] == 'string')) {
                 throw Error("Expected an array of length two to represent a data instance, but got ".concat(j2s(io)));

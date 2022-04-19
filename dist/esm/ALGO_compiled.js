@@ -36,7 +36,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import * as shared_backend from './shared_backend';
 import { debug, labelMaps, makeDigest, mkAddressEq, makeArith, UInt256_max, } from './shared_impl';
-import { bigNumberToNumber, bigNumberify, } from './shared_user';
+import { bigNumberToNumber, bigNumberify, bigNumberToBigInt, } from './shared_user';
 import algosdk from 'algosdk';
 import buffer from 'buffer';
 import { ethers } from 'ethers';
@@ -44,6 +44,7 @@ import * as CBR from './CBR';
 var BigNumber = ethers.BigNumber;
 var Buffer = buffer.Buffer;
 export var UInt_max = BigNumber.from(2).pow(64).sub(1);
+;
 export var digest = makeDigest('sha256', function (t, v) { return t.toNet(v); });
 export var T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'byte[0]' });
 export var T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'byte' });
@@ -227,6 +228,14 @@ export var digest_xor = shared_backend.digest_xor;
 export var bytes_xor = shared_backend.bytes_xor;
 export var btoiLast8 = shared_backend.btoiLast8;
 var T_Token = T_UInt;
+export var ctcAddrEq = function (x, y) {
+    debug('ctcAddrEq', { x: x, y: y });
+    var ctc_x = T_Contract.canonicalize(x);
+    var addr_y = T_Address.canonicalize(y);
+    var addr_x = algosdk.getApplicationAddress(bigNumberToBigInt(ctc_x));
+    debug('ctcAddrEq', { addr_x: addr_x, addr_y: addr_y });
+    return addressEq(addr_x, addr_y);
+};
 export var tokenEq = function (x, y) {
     return T_Token.canonicalize(x).eq(T_Token.canonicalize(y));
 };
@@ -248,5 +257,5 @@ export var typeDefs = {
 };
 export var emptyContractInfo = 0;
 var arith = makeArith(UInt_max);
-export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
+export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

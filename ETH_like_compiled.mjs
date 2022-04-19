@@ -40,7 +40,7 @@ import * as shared_backend from './shared_backend.mjs';
 import * as CBR from './CBR.mjs';
 var bigNumberify = CBR.bigNumberify,
   bigNumberToNumber = CBR.bigNumberToNumber;
-import { labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, UInt256_max, } from './shared_impl.mjs';
+import { debug, labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, UInt256_max, } from './shared_impl.mjs';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   // ...............................................
@@ -59,12 +59,12 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   });
   var V_Null = null;
   // null is represented in solidity as false
-  var T_Null = __assign(__assign({}, CBR.BT_Null), { defaultValue: V_Null, munge: function(bv) { return (void(bv), false); }, unmunge: function(nv) { return (void(nv), V_Null); }, paramType: 'bool' });
-  var T_Bool = __assign(__assign({}, CBR.BT_Bool), { defaultValue: false, munge: function(bv) { return bv; }, unmunge: function(nv) { return V_Bool(nv); }, paramType: 'bool' });
+  var T_Null = __assign(__assign({}, CBR.BT_Null), { munge: function(bv) { return (void(bv), false); }, unmunge: function(nv) { return (void(nv), V_Null); }, paramType: 'bool' });
+  var T_Bool = __assign(__assign({}, CBR.BT_Bool), { munge: function(bv) { return bv; }, unmunge: function(nv) { return V_Bool(nv); }, paramType: 'bool' });
   var V_Bool = function(b) {
     return T_Bool.canonicalize(b);
   };
-  var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers.BigNumber.from(0), munge: function(bv) { return bigNumberify(bv); }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
+  var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function(bv) { return bigNumberify(bv); }, unmunge: function(nv) { return V_UInt(nv); }, paramType: 'uint256' });
   var T_UInt256 = T_UInt;
   var V_UInt = function(n) {
     return T_UInt.canonicalize(n);
@@ -96,7 +96,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   };
   var T_Bytes = function(len) {
     var me = __assign(__assign({}, CBR.BT_Bytes(len)), {
-      defaultValue: ''.padEnd(len, '\0'),
       munge: (function(bv) {
         return splitToChunks(Array.from(ethers.utils.toUtf8Bytes(bv)), 32);
       }),
@@ -132,7 +131,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var T_Array = function(ctc, size_i) {
     var size = bigNumberToNumber(bigNumberify(size_i));
     return __assign(__assign({}, CBR.BT_Array(ctc, size)), {
-      defaultValue: Array(size).fill(ctc.defaultValue),
       munge: function(bv) {
         if (size == 0) {
           return false;
@@ -158,7 +156,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   // XXX fix me Dan, I'm type checking wrong!
   var T_Tuple = function(ctcs) {
     return (__assign(__assign({}, CBR.BT_Tuple(ctcs)), {
-      defaultValue: ctcs.map(function(ctc) { return ctc.defaultValue; }),
       munge: function(bv) {
         if (ctcs.length == 0) {
           return false;
@@ -179,16 +176,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   };
   var T_Struct = function(ctcs) {
     return (__assign(__assign({}, CBR.BT_Struct(ctcs)), {
-      defaultValue: (function() {
-        var obj = {};
-        ctcs.forEach(function(_a) {
-          var _b = __read(_a, 2),
-            prop = _b[0],
-            co = _b[1];
-          obj[prop] = co.defaultValue;
-        });
-        return obj;
-      })(),
       munge: function(bv) {
         if (ctcs.length == 0) {
           return false;
@@ -226,13 +213,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   };
   var T_Object = function(co) {
     return (__assign(__assign({}, CBR.BT_Object(co)), {
-      defaultValue: (function() {
-        var obj = {};
-        for (var prop in co) {
-          obj[prop] = co[prop].defaultValue;
-        }
-        return obj;
-      })(),
       // CBR -> Net . ETH object fields are prefaced with "_"
       munge: function(bv) {
         var obj = {};
@@ -272,11 +252,6 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
       ascLabels = _a.ascLabels,
       labelMap = _a.labelMap;
     return __assign(__assign({}, CBR.BT_Data(co)), {
-      defaultValue: (function() {
-        var label = ascLabels[0];
-        return [label, co[label].defaultValue];
-        // return {ty, val: [label, co[label].defaultValue]};
-      })(),
       // Data representation in js is a 2-tuple:
       // [label, val]
       // where label : string
@@ -330,6 +305,10 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   };
   var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
   var addressEq = mkAddressEq(T_Address);
+  var ctcAddrEq = function(x, y) {
+    debug('ctcAddrEq', { x: x, y: y });
+    return addressEq(x, y);
+  };
   var digestEq = shared_backend.eq;
   var digest_xor = shared_backend.digest_xor;
   var bytes_xor = shared_backend.bytes_xor;
@@ -356,6 +335,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
   var emptyContractInfo = "0x00000000000000000000000000000000";
   var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), {
     addressEq: addressEq,
+    ctcAddrEq: ctcAddrEq,
     // @ts-ignore
     digestEq: digestEq,
     digest_xor: digest_xor,

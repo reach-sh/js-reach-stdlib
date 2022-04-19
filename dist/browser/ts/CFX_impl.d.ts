@@ -36,7 +36,7 @@ export declare const providerLib: {
     setProviderByEnv: typeof setProviderByEnv;
     providerEnvByName: typeof providerEnvByName;
     setWalletFallback: (wf: () => any) => void;
-    walletFallback: (opts: any) => () => never;
+    walletFallback: (opts: any) => () => {};
 };
 export declare const _warnTxNoBlockNumber = false;
 export declare const standardUnit = "CFX";

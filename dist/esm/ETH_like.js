@@ -92,8 +92,8 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 12;
-var reachEthBackendVersion = 6;
+var reachBackendVersion = 13;
+var reachEthBackendVersion = 7;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
 var reachOutputEvent = function (e) { return "_reach_oe_".concat(e); };
@@ -310,6 +310,7 @@ export function makeEthLike(ethLikeArgs) {
     var makeLogRepFor = function (getCtcAddress, iface, i, tys) {
         debug("hasLogFor", i, tys);
         return makeLogRep(getCtcAddress, iface, reachEvent(i), [
+            T_Address,
             T_Tuple([T_UInt, T_Tuple(tys)])
         ]);
     };
@@ -482,6 +483,7 @@ export function makeEthLike(ethLikeArgs) {
     var connectAccount = function (networkAccount) { return __awaiter(_this, void 0, void 0, function () {
         function setDebugLabel(newLabel) {
             label = newLabel;
+            debug('setDebugLabel', { newLabel: newLabel, address: address });
             // @ts-ignore
             return this;
         }
@@ -877,12 +879,14 @@ export function makeEthLike(ethLikeArgs) {
                                 });
                             }); };
                             var recvFrom = function (rfargs) { return __awaiter(_this, void 0, void 0, function () {
-                                var dhead, out_tys, didSend, funcNum, ok_r, theBlock, ethersC, getCtcAddress, ep, data, theBlockBN, rawFrom, from, theSecsBN, getOutput;
+                                var dhead, out_tys, didSend, funcNum, ok_r, theBlock, ethersC, getCtcAddress, ep, from, data, theBlockBN, theSecsBN, getOutput;
                                 var _this = this;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             dhead = rfargs.dhead, out_tys = rfargs.out_tys, didSend = rfargs.didSend, funcNum = rfargs.funcNum, ok_r = rfargs.ok_r;
+                                            debug(dhead, 'OKR', ok_r);
+                                            debug(dhead, 'OKR.L', ok_r.logs);
                                             theBlock = ok_r.blockNumber;
                                             debug(dhead, "AT", theBlock);
                                             return [4 /*yield*/, getC()];
@@ -893,11 +897,12 @@ export function makeEthLike(ethLikeArgs) {
                                             if (!ep) {
                                                 throw Error("no event log");
                                             }
-                                            data = ep[0][1];
+                                            debug(dhead, 'Event', ep);
+                                            from = ep[0];
+                                            data = ep[1][1];
                                             debug(dhead, "OKAY", data);
                                             theBlockBN = bigNumberify(theBlock);
-                                            rawFrom = ok_r.from;
-                                            from = T_Address.canonicalize(rawFrom);
+                                            debug(dhead, 'from', { from: from });
                                             return [4 /*yield*/, getTimeSecs(theBlockBN)];
                                         case 2:
                                             theSecsBN = _a.sent();
@@ -1437,7 +1442,7 @@ export function makeEthLike(ethLikeArgs) {
         });
     }); };
     var verifyContract_ = function (ctcInfo, backend, eq, label) { return __awaiter(_this, void 0, void 0, function () {
-        var dhead, _a, ABI, Bytecode, ctcAddress, iface, chk, creationBlock, tmpAccount, ctc, creation_time_raw, creation_time, e_10, chkeq, r0, e0rec, lr, ctorArg, provider, dt, actual, expected;
+        var dhead, _a, ABI, Bytecode, ctcAddress, iface, chk, creationBlock, tmpAccount, ctc, creation_time_raw, creation_time, e_10, chkeq, r0, e0rec, lr, ctorArg_r, ctorArg, provider, dt, actual, expected;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1490,11 +1495,14 @@ export function makeEthLike(ethLikeArgs) {
                     }
                     e0rec = r0.txn;
                     lr = makeLogRep(function () { return ctcAddress; }, iface, reachEvent(0));
-                    ctorArg = lr.parseA(e0rec);
-                    debug(dhead, { e0rec: e0rec, ctorArg: ctorArg });
-                    if (!ctorArg) {
+                    ctorArg_r = lr.parseA(e0rec);
+                    debug(dhead, { e0rec: e0rec, ctorArg_r: ctorArg_r });
+                    if (!ctorArg_r) {
                         chk(false, "Contract deployment doesn't have first event");
+                        throw Error("impossible");
                     }
+                    ctorArg = ctorArg_r.slice(1);
+                    debug(dhead, { ctorArg: ctorArg });
                     return [4 /*yield*/, getProvider()];
                 case 7:
                     provider = _b.sent();

@@ -143,7 +143,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 exports.formatWithDecimals = shared_impl_2.formatWithDecimals;
 var _d = __read((0, shared_impl_1.makeSigningMonitor)(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
 exports.setSigningMonitor = setSigningMonitor;
-var reachBackendVersion = 12;
+var reachBackendVersion = 13;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
@@ -578,7 +578,7 @@ var doQueryM_ = function (dhead, query) { return __awaiter(void 0, void 0, void 
 }); };
 var doQuery_ = function (dhead, query, howMany, failOk) {
     if (howMany === void 0) { howMany = 0; }
-    if (failOk === void 0) { failOk = (function (exn, howMany) { void howMany; return { exn: exn }; }); }
+    if (failOk === void 0) { failOk = (function (exn) { return { exn: exn }; }); }
     return __awaiter(void 0, void 0, void 0, function () {
         var res, e, fr;
         var _a;
@@ -608,7 +608,7 @@ var doQuery_ = function (dhead, query, howMany, failOk) {
                         if ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.text) {
                             e = e.response.text;
                         }
-                        fr = failOk(e, howMany);
+                        fr = failOk(e);
                         if ('exn' in fr) {
                             (0, shared_impl_1.debug)(dhead, 'RETRYING', { e: e });
                             howMany++;
@@ -1346,8 +1346,7 @@ var getAccountInfo = function (a) { return __awaiter(void 0, void 0, void 0, fun
             case 7:
                 indexer = _a.sent();
                 q = indexer.lookupAccountByID(a);
-                failOk = function (x, howMany) {
-                    void howMany;
+                failOk = function (x) {
                     if (typeof x === 'string' && x.includes('no accounts found for address')) {
                         return { val: {
                                 'current-round': BigInt(0),
@@ -1378,11 +1377,8 @@ var getAssetInfo = function (a) { return __awaiter(void 0, void 0, void 0, funct
             case 1:
                 indexer = _a.sent();
                 q = indexer.lookupAssetByID(a);
-                failOk = function (x, howMany) {
-                    // XXX This howMany > 10 is for tests. Maybe it would be better to
-                    // synchronize in the test with the indexer observing an event or use a
-                    // network wait.
-                    if (howMany > 10 && typeof x === 'string' && x.includes('no assets found for asset-id')) {
+                failOk = function (x) {
+                    if (typeof x === 'string' && x.includes('no assets found for asset-id')) {
                         throw Error("Asset ".concat(a, " does not exist"));
                     }
                     else {
@@ -1501,6 +1497,7 @@ var getDeletedApplicationInfoM = function (id) { return __awaiter(void 0, void 0
 var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0, void 0, function () {
     function setDebugLabel(newLabel) {
         label = newLabel;
+        (0, shared_impl_1.debug)("setDebugLabel", { newLabel: newLabel, pks: pks });
         // @ts-ignore
         return this;
     }
@@ -1937,8 +1934,8 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                         return __generator(this, function (_a) {
                                             void (o_mode);
                                             void (o_lab);
-                                            void (o_ctc);
-                                            return [2 /*return*/, o_val];
+                                            void (o_val);
+                                            return [2 /*return*/, o_ctc.defaultValue];
                                         });
                                     }); })
                                 };
@@ -2060,7 +2057,11 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                         recordApp(t.obj);
                                                         t.toks.map(recordAsset);
                                                         t.accs.map(recordAccount);
-                                                        howManyMoreFees += 1 + (0, shared_user_1.bigNumberToNumber)(t.pays) + (0, shared_user_1.bigNumberToNumber)(t.bills);
+                                                        howManyMoreFees +=
+                                                            1
+                                                                + (0, shared_user_1.bigNumberToNumber)(t.pays)
+                                                                + (0, shared_user_1.bigNumberToNumber)(t.bills)
+                                                                + (0, shared_user_1.bigNumberToNumber)(t.fees);
                                                         return;
                                                     }
                                                     else if (t.kind === 'api') {

@@ -167,7 +167,7 @@ var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 12;
+var reachBackendVersion = 13;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function() {
@@ -628,7 +628,7 @@ var doQueryM_ = function(dhead, query) {
 };
 var doQuery_ = function(dhead, query, howMany, failOk) {
   if (howMany === void 0) { howMany = 0; }
-  if (failOk === void 0) { failOk = (function(exn, howMany) { void howMany; return { exn: exn }; }); }
+  if (failOk === void 0) { failOk = (function(exn) { return { exn: exn }; }); }
   return __awaiter(void 0, void 0, void 0, function() {
     var res, e, fr;
     var _a;
@@ -658,7 +658,7 @@ var doQuery_ = function(dhead, query, howMany, failOk) {
             if ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.text) {
               e = e.response.text;
             }
-            fr = failOk(e, howMany);
+            fr = failOk(e);
             if ('exn' in fr) {
               debug(dhead, 'RETRYING', { e: e });
               howMany++;
@@ -1485,8 +1485,7 @@ var getAccountInfo = function(a) {
         case 7:
           indexer = _a.sent();
           q = indexer.lookupAccountByID(a);
-          failOk = function(x, howMany) {
-            void howMany;
+          failOk = function(x) {
             if (typeof x === 'string' && x.includes('no accounts found for address')) {
               return {
                 val: {
@@ -1520,11 +1519,8 @@ var getAssetInfo = function(a) {
         case 1:
           indexer = _a.sent();
           q = indexer.lookupAssetByID(a);
-          failOk = function(x, howMany) {
-            // XXX This howMany > 10 is for tests. Maybe it would be better to
-            // synchronize in the test with the indexer observing an event or use a
-            // network wait.
-            if (howMany > 10 && typeof x === 'string' && x.includes('no assets found for asset-id')) {
+          failOk = function(x) {
+            if (typeof x === 'string' && x.includes('no assets found for asset-id')) {
               throw Error("Asset ".concat(a, " does not exist"));
             } else {
               return { exn: x };
@@ -1649,6 +1645,7 @@ export var connectAccount = function(networkAccount) {
   return __awaiter(void 0, void 0, void 0, function() {
     function setDebugLabel(newLabel) {
       label = newLabel;
+      debug("setDebugLabel", { newLabel: newLabel, pks: pks });
       // @ts-ignore
       return this;
     }
@@ -2153,8 +2150,8 @@ export var connectAccount = function(networkAccount) {
                           return __generator(this, function(_a) {
                             void(o_mode);
                             void(o_lab);
-                            void(o_ctc);
-                            return [2 /*return*/ , o_val];
+                            void(o_val);
+                            return [2 /*return*/ , o_ctc.defaultValue];
                           });
                         });
                       })
@@ -2277,7 +2274,11 @@ export var connectAccount = function(networkAccount) {
                                 recordApp(t.obj);
                                 t.toks.map(recordAsset);
                                 t.accs.map(recordAccount);
-                                howManyMoreFees += 1 + bigNumberToNumber(t.pays) + bigNumberToNumber(t.bills);
+                                howManyMoreFees +=
+                                  1 +
+                                  bigNumberToNumber(t.pays) +
+                                  bigNumberToNumber(t.bills) +
+                                  bigNumberToNumber(t.fees);
                                 return;
                               } else if (t.kind === 'api') {
                                 whichApi = t.who;

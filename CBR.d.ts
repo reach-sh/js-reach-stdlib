@@ -19,10 +19,11 @@ export declare type CBR_Struct = {
     [key: string]: CBR_Val;
 };
 export declare type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple | CBR_Struct;
-export declare type BackendTy<T extends CBR_Val> = {
+export interface BackendTy<T extends CBR_Val> {
     name: string;
     canonicalize: (uv: unknown) => T;
-};
+    defaultValue: T;
+}
 export declare const BV_Null: CBR_Null;
 export declare const BT_Null: BackendTy<CBR_Null>;
 export declare const BT_Bool: BackendTy<CBR_Bool>;

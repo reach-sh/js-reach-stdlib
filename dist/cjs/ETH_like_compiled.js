@@ -84,12 +84,12 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     });
     var V_Null = null;
     // null is represented in solidity as false
-    var T_Null = __assign(__assign({}, CBR.BT_Null), { defaultValue: V_Null, munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' });
-    var T_Bool = __assign(__assign({}, CBR.BT_Bool), { defaultValue: false, munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' });
+    var T_Null = __assign(__assign({}, CBR.BT_Null), { munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' });
+    var T_Bool = __assign(__assign({}, CBR.BT_Bool), { munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' });
     var V_Bool = function (b) {
         return T_Bool.canonicalize(b);
     };
-    var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { defaultValue: ethers_1.ethers.BigNumber.from(0), munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' });
+    var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' });
     var T_UInt256 = T_UInt;
     var V_UInt = function (n) {
         return T_UInt.canonicalize(n);
@@ -121,7 +121,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     }
     ;
     var T_Bytes = function (len) {
-        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { defaultValue: ''.padEnd(len, '\0'), munge: (function (bv) {
+        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { munge: (function (bv) {
                 return splitToChunks(Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv)), 32);
             }), unmunge: (function (nvs) {
                 var nvs_s = nvs.map(function (nv) { return (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv))); });
@@ -148,7 +148,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var T_Array = function (ctc, size_i) {
         var size = bigNumberToNumber(bigNumberify(size_i));
-        return __assign(__assign({}, CBR.BT_Array(ctc, size)), { defaultValue: Array(size).fill(ctc.defaultValue), munge: function (bv) {
+        return __assign(__assign({}, CBR.BT_Array(ctc, size)), { munge: function (bv) {
                 if (size == 0) {
                     return false;
                 }
@@ -168,7 +168,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return T_Array(ctc, size).canonicalize(val);
     }; };
     // XXX fix me Dan, I'm type checking wrong!
-    var T_Tuple = function (ctcs) { return (__assign(__assign({}, CBR.BT_Tuple(ctcs)), { defaultValue: ctcs.map(function (ctc) { return ctc.defaultValue; }), munge: function (bv) {
+    var T_Tuple = function (ctcs) { return (__assign(__assign({}, CBR.BT_Tuple(ctcs)), { munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -181,14 +181,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Tuple = function (ctcs) { return function (val) {
         return T_Tuple(ctcs).canonicalize(val);
     }; };
-    var T_Struct = function (ctcs) { return (__assign(__assign({}, CBR.BT_Struct(ctcs)), { defaultValue: (function () {
-            var obj = {};
-            ctcs.forEach(function (_a) {
-                var _b = __read(_a, 2), prop = _b[0], co = _b[1];
-                obj[prop] = co.defaultValue;
-            });
-            return obj;
-        })(), munge: function (bv) {
+    var T_Struct = function (ctcs) { return (__assign(__assign({}, CBR.BT_Struct(ctcs)), { munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -212,13 +205,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Struct = function (ctcs) { return function (val) {
         return T_Struct(ctcs).canonicalize(val);
     }; };
-    var T_Object = function (co) { return (__assign(__assign({}, CBR.BT_Object(co)), { defaultValue: (function () {
-            var obj = {};
-            for (var prop in co) {
-                obj[prop] = co[prop].defaultValue;
-            }
-            return obj;
-        })(), 
+    var T_Object = function (co) { return (__assign(__assign({}, CBR.BT_Object(co)), { 
         // CBR -> Net . ETH object fields are prefaced with "_"
         munge: function (bv) {
             var obj = {};
@@ -250,11 +237,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var T_Data = function (co) {
         // TODO: not duplicate between this and CBR.ts
         var _a = (0, shared_impl_1.labelMaps)(co), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
-        return __assign(__assign({}, CBR.BT_Data(co)), { defaultValue: (function () {
-                var label = ascLabels[0];
-                return [label, co[label].defaultValue];
-                // return {ty, val: [label, co[label].defaultValue]};
-            })(), 
+        return __assign(__assign({}, CBR.BT_Data(co)), { 
             // Data representation in js is a 2-tuple:
             // [label, val]
             // where label : string
@@ -302,6 +285,10 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     }; };
     var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
     var addressEq = (0, shared_impl_1.mkAddressEq)(T_Address);
+    var ctcAddrEq = function (x, y) {
+        (0, shared_impl_1.debug)('ctcAddrEq', { x: x, y: y });
+        return addressEq(x, y);
+    };
     var digestEq = shared_backend.eq;
     var digest_xor = shared_backend.digest_xor;
     var bytes_xor = shared_backend.bytes_xor;
@@ -326,7 +313,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var arith = (0, shared_impl_1.makeArith)(UInt_max);
     var emptyContractInfo = "0x00000000000000000000000000000000";
-    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, 
+    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, 
         // @ts-ignore
         digestEq: digestEq, digest_xor: digest_xor, bytes_xor: bytes_xor, btoiLast8: btoiLast8, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
     // ...............................................

@@ -105,24 +105,32 @@ export function canGetDefaultAccount() {
 }
 export function _getDefaultNetworkAccount() {
   return __awaiter(this, void 0, void 0, function() {
-    var cp, addr, w, _a, _b;
-    return __generator(this, function(_c) {
-      switch (_c.label) {
+    var cp, w, _a, _b, _c, _d, _e, _f;
+    return __generator(this, function(_g) {
+      switch (_g.label) {
         case 0:
           return [4 /*yield*/ , getConfluxPortal()];
         case 1:
-          cp = _c.sent();
-          return [4 /*yield*/ , cp.enable()];
+          cp = _g.sent();
+          if (!cp._rwfb) return [3 /*break*/ , 2];
+          _a = cp._rwfb();
+          return [3 /*break*/ , 4];
         case 2:
-          addr = (_c.sent())[0];
-          w = new cfxers.BrowserWallet(cp, addr);
-          if (!w.provider) return [3 /*break*/ , 3];
-          return [2 /*return*/ , w];
+          _c = (_b = cfxers.BrowserWallet).bind;
+          _d = [void 0, cp];
+          return [4 /*yield*/ , cp.enable()];
         case 3:
-          _b = (_a = w).connect;
-          return [4 /*yield*/ , getProvider()];
+          _a = new(_c.apply(_b, _d.concat([(_g.sent())[0]])))();
+          _g.label = 4;
         case 4:
-          return [2 /*return*/ , _b.apply(_a, [_c.sent()])];
+          w = _a;
+          if (!w.provider) return [3 /*break*/ , 5];
+          return [2 /*return*/ , w];
+        case 5:
+          _f = (_e = w).connect;
+          return [4 /*yield*/ , getProvider()];
+        case 6:
+          return [2 /*return*/ , _f.apply(_e, [_g.sent()])];
       }
     });
   });
@@ -476,8 +484,18 @@ var setWalletFallback = function(wf) {
 };
 var walletFallback = function(opts) {
   return function() {
-    void(opts);
-    throw new Error("There is no wallet fallback for Conflux");
+    // XXX do cfx provider from opts
+    var p = {};
+    if (opts === null || opts === void 0 ? void 0 : opts.providerEnv) {
+      throw Error("providerEnv not supported in this context"); // yet
+    }
+    // TODO: reduce duplication with ETH_impl
+    // @ts-ignore
+    p._rwfb = function() {
+      var mnem = window.prompt("Please paste the mnemonic for your account, or enable ConfluxPortal and refresh the page.");
+      return mnem ? cfxers.Wallet.fromMnemonic(mnem) : cfxers.Wallet.createRandom();
+    };
+    return p;
   };
 };
 export { ethLikeCompiled };

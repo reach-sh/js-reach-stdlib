@@ -14,6 +14,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     typeDefs: TypeDefs<AnyETH_Ty>;
     stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
     UInt_max: ethers.BigNumber;
+    ctcAddrEq: (ctc_x: unknown, addr_y: unknown) => boolean;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
     digestEq: (x: unknown, y: unknown) => boolean;
     digest_xor: (x: string, y: string) => string;

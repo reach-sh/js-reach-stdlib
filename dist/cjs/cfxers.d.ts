@@ -78,7 +78,10 @@ export declare class Wallet implements IWallet {
     privateKey?: string;
     account?: cfxsdk.Account;
     provider?: providers.Provider;
-    constructor(privateKey?: string, provider?: providers.Provider);
+    _mnemonic?: () => {
+        phrase: string;
+    };
+    constructor(privateKey: string, provider?: providers.Provider, mnem?: any);
     connect(provider: providers.Provider): this;
     _requireConnected(): void;
     getAddress(): string;

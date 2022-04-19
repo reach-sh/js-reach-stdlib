@@ -821,9 +821,22 @@ var BrowserWallet = /** @class */ (function () {
     return BrowserWallet;
 }());
 exports.BrowserWallet = BrowserWallet;
+// Because Conflux doesn't like it when you add the same thing twice
+var accsByPk = {};
+function addAcc(conflux, privateKey) {
+    var acc = accsByPk[privateKey];
+    if (!acc) {
+        acc = conflux.wallet.addPrivateKey(privateKey);
+        accsByPk[privateKey] = acc;
+    }
+    return acc;
+}
 var Wallet = /** @class */ (function () {
-    function Wallet(privateKey, provider) {
+    function Wallet(privateKey, provider, mnem) {
         this.privateKey = privateKey;
+        if (mnem) {
+            this._mnemonic = function () { return ({ phrase: mnem }); };
+        }
         if (provider) {
             this.connect(provider);
         }
@@ -834,10 +847,10 @@ var Wallet = /** @class */ (function () {
         }
         this.provider = provider;
         if (this.privateKey) {
-            this.account = this.provider.conflux.wallet.addPrivateKey(this.privateKey);
+            this.account = addAcc(this.provider.conflux, this.privateKey);
         }
         else {
-            this.account = this.provider.conflux.wallet.addRandom();
+            throw Error("no privateKey given");
         }
         return this;
     };
@@ -949,11 +962,12 @@ var Wallet = /** @class */ (function () {
         });
     };
     Wallet.createRandom = function () {
-        return new Wallet();
+        var mnem = ethers_1.ethers.Wallet.createRandom()._mnemonic().phrase;
+        return Wallet.fromMnemonic(mnem);
     };
     Wallet.fromMnemonic = function (mnemonic, provider) {
         var sk = ethers_1.ethers.Wallet.fromMnemonic(mnemonic)._signingKey().privateKey;
-        return new Wallet(sk, provider);
+        return new Wallet(sk, provider, mnemonic);
     };
     return Wallet;
 }());
