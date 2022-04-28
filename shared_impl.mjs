@@ -133,6 +133,7 @@ export var setDEBUG = function(b) {
     throw Error("Expected bool, got ".concat(j2s(b)));
   }
 };
+export var hideWarnings = function() { return truthyEnv(process.env.REACH_NO_WARN); };
 export var getDEBUG = function() { return DEBUG; };
 export var debug = function() {
   var msgs = [];
@@ -238,6 +239,7 @@ export var stdContract = function(stdContractArgs) {
       getBalance = _a.getBalance,
       sendrecv = _a.sendrecv,
       recv = _a.recv,
+      getCurrentStep = _a.getCurrentStep,
       getState = _a.getState,
       apiMapRef = _a.apiMapRef;
     return {
@@ -251,6 +253,7 @@ export var stdContract = function(stdContractArgs) {
       getBalance: getBalance,
       sendrecv: sendrecv,
       recv: recv,
+      getCurrentStep: getCurrentStep,
       getState: getState,
       apiMapRef: apiMapRef
     };

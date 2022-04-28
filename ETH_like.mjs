@@ -117,7 +117,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 13;
+var reachBackendVersion = 14;
 var reachEthBackendVersion = 7;
 var reachPublish = function(m) { return "_reach_m".concat(m); };
 var reachEvent = function(e) { return "_reach_e".concat(e); };
@@ -772,16 +772,13 @@ export function makeEthLike(ethLikeArgs) {
                 var isAPI = false;
                 var getState = function(vibne, tys) {
                   return __awaiter(_this, void 0, void 0, function() {
-                    var ethersC, _a, vibna, vsbs, ty, res;
+                    var _a, vibna, vsbs, ty, res;
                     return __generator(this, function(_b) {
                       switch (_b.label) {
                         case 0:
                           isAPI = true;
-                          return [4 /*yield*/ , getC()];
+                          return [4 /*yield*/ , getGlobalState()];
                         case 1:
-                          ethersC = _b.sent();
-                          return [4 /*yield*/ , ethersC["_reachCurrentState"]()];
-                        case 2:
                           _a = __read.apply(void 0, [_b.sent(), 2]), vibna = _a[0], vsbs = _a[1];
                           debug("getState", { vibne: vibne, vibna: vibna, vsbs: vsbs });
                           if (!vibne.eq(vibna)) {
@@ -852,6 +849,22 @@ export function makeEthLike(ethLikeArgs) {
                         case 5:
                           debug(label, "canIWin", { ret: ret });
                           return [2 /*return*/ , ret];
+                      }
+                    });
+                  });
+                };
+                var getGlobalState = function() {
+                  return __awaiter(_this, void 0, void 0, function() {
+                    var ethersC;
+                    return __generator(this, function(_a) {
+                      switch (_a.label) {
+                        case 0:
+                          return [4 /*yield*/ , getC()];
+                        case 1:
+                          ethersC = _a.sent();
+                          return [4 /*yield*/ , ethersC["_reachCurrentState"]()];
+                        case 2:
+                          return [2 /*return*/ , _a.sent()];
                       }
                     });
                   });
@@ -1163,7 +1176,21 @@ export function makeEthLike(ethLikeArgs) {
                   if (mtok === void 0) { mtok = false; }
                   return balanceOfNetworkAccount(networkAccount, mtok);
                 };
-                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
+                var getCurrentStep = function() {
+                  return __awaiter(_this, void 0, void 0, function() {
+                    var _a, cs, _;
+                    return __generator(this, function(_b) {
+                      switch (_b.label) {
+                        case 0:
+                          return [4 /*yield*/ , getGlobalState()];
+                        case 1:
+                          _a = __read.apply(void 0, [_b.sent(), 2]), cs = _a[0], _ = _a[1];
+                          return [2 /*return*/ , cs];
+                      }
+                    });
+                  });
+                };
+                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
               };
               var setupView = function(setupViewArgs) {
                 var eq = newEventQueue();

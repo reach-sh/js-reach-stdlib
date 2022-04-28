@@ -104,9 +104,7 @@ function run(file) {
                     return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require("".concat(mountDir, "/").concat(file))); })];
                 case 1:
                     m = _a.sent();
-                    return [4 /*yield*/, (0, loader_1.loadStdlib)()];
-                case 2:
-                    stdlib = _a.sent();
+                    stdlib = (0, loader_1.loadStdlib)();
                     m.main.apply(m, __spreadArray([stdlib], __read(args), false));
                     return [2 /*return*/];
             }

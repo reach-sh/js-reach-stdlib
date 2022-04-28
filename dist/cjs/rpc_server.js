@@ -351,12 +351,10 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                 contract = (0, exports.mkKont)();
                 token = (0, exports.mkKont)();
                 kont = (0, exports.mkKont)();
-                return [4 /*yield*/, (0, loader_1.loadStdlib)()];
-            case 1:
-                real_stdlib = _a.sent();
+                real_stdlib = (0, loader_1.loadStdlib)();
                 reBigNumberify = (0, exports.mkReBigNumberify)(real_stdlib);
                 return [4 /*yield*/, (0, exports.mkStdlibProxy)(real_stdlib, { account: account, token: token })];
-            case 2:
+            case 1:
                 rpc_stdlib = _a.sent();
                 app = (0, express_1["default"])();
                 route_backend = express_1["default"].Router();

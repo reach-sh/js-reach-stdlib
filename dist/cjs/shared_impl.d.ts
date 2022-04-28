@@ -10,6 +10,7 @@ export type { Connector } from './ConnectorMode';
 export declare const j2sf: (x: any) => string;
 export declare const j2s: (x: any) => string;
 export declare const setDEBUG: (b: boolean) => void;
+export declare const hideWarnings: () => boolean;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
@@ -128,6 +129,7 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     sendrecv: (args: ISendRecvArgs<RawAddress, Token, ConnectorTy, ContractInfo>) => Promise<IRecv<RawAddress>>;
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
+    getCurrentStep: () => Promise<BigNumber>;
     apiMapRef: (i: number, ty: ConnectorTy) => MapRefT<any>;
 };
 export declare type ISetupArgs<ContractInfo, VerifyResult> = {
@@ -138,7 +140,7 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getBalance" | "sendrecv" | "recv" | "getState" | "apiMapRef");
+declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef");
 export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;

@@ -456,12 +456,10 @@ export var serveRpc = function(backend) {
           contract = mkKont();
           token = mkKont();
           kont = mkKont();
-          return [4 /*yield*/ , loadStdlib()];
-        case 1:
-          real_stdlib = _a.sent();
+          real_stdlib = loadStdlib();
           reBigNumberify = mkReBigNumberify(real_stdlib);
           return [4 /*yield*/ , mkStdlibProxy(real_stdlib, { account: account, token: token })];
-        case 2:
+        case 1:
           rpc_stdlib = _a.sent();
           app = express();
           route_backend = express.Router();

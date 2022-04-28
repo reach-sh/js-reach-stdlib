@@ -111,6 +111,7 @@ export var setDEBUG = function (b) {
         throw Error("Expected bool, got ".concat(j2s(b)));
     }
 };
+export var hideWarnings = function () { return truthyEnv(process.env.REACH_NO_WARN); };
 export var getDEBUG = function () { return DEBUG; };
 export var debug = function () {
     var msgs = [];
@@ -195,7 +196,7 @@ export var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState, apiMapRef = _a.apiMapRef;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -207,6 +208,7 @@ export var stdContract = function (stdContractArgs) {
             getBalance: getBalance,
             sendrecv: sendrecv,
             recv: recv,
+            getCurrentStep: getCurrentStep,
             getState: getState,
             apiMapRef: apiMapRef
         };

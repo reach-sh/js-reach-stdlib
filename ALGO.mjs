@@ -118,7 +118,7 @@ import * as RHC from './ALGO_ReachHTTPClient.mjs';
 import * as UTBC from './ALGO_UTBC.mjs';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version.mjs';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, } from './shared_impl.mjs';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, } from './shared_impl.mjs';
 import { isBigNumber, bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user.mjs';
 import waitPort from './waitPort.mjs';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled.mjs';
@@ -167,7 +167,7 @@ var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 13;
+var reachBackendVersion = 14;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function() {
@@ -575,7 +575,7 @@ function must_be_supported(bin) {
   var unsupported = algob.unsupported,
     warnings = algob.warnings;
   var render = function(x) { return x.map(function(s) { return " * ".concat(s); }).join('\n'); };
-  if (warnings.length > 0) {
+  if (warnings.length > 0 && !hideWarnings()) {
     console.error("This Reach application is dangerous to run on Algorand for the following reasons:\n".concat(render(warnings)));
   }
   if (unsupported.length > 0) {
@@ -914,7 +914,7 @@ var checkAccounts = function(addr, got) {
       "Got: ".concat(JSON.stringify(got)));
   }
 };
-var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
+var doWalletFallback_signOnly = function(opts, getAddr, signTxns_) {
   var p = undefined;
   var base = opts['providerEnv'] || 'LocalHost';
   var _env = typeof base === 'string' ? providerEnvByName(base) : base;
@@ -989,12 +989,13 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
       });
     });
   };
-  var signAndPostTxns = function(txns, sopts) {
+  var signTxns = function(txns, sopts) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var to_sign, signed, _a, stxns, bs;
+      var to_sign, signed, _a, stxns;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
+            // XXX arguably p isn't needed here
             if (!p) {
               throw new Error("must call enable");
             };
@@ -1011,7 +1012,7 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
             _a = [];
             return [3 /*break*/ , 3];
           case 1:
-            return [4 /*yield*/ , signTxns(to_sign)];
+            return [4 /*yield*/ , signTxns_(to_sign)];
           case 2:
             _a = _b.sent();
             _b.label = 3;
@@ -1028,17 +1029,48 @@ var doWalletFallback_signOnly = function(opts, getAddr, signTxns) {
               }
               return s;
             });
-            bs = stxns.map(function(stxn) { return Buffer.from(stxn, 'base64'); });
-            debug("fallBack: signAndPostTxns", bs);
-            return [4 /*yield*/ , p.algodClient.sendRawTransaction(bs)["do"]()];
-          case 4:
-            _b.sent();
-            return [2 /*return*/ , {}];
+            return [2 /*return*/ , stxns];
         }
       });
     });
   };
-  return { _env: _env, enable: enable, enableNetwork: enableNetwork, enableAccounts: enableAccounts, getAlgodv2Client: getAlgodv2Client, getIndexerClient: getIndexerClient, signAndPostTxns: signAndPostTxns };
+  var postTxns = function(stxns, popts) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var bs;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            if (!p) {
+              throw new Error("must call enable");
+            };
+            void(popts);
+            bs = stxns.map(function(stxn) { return Buffer.from(stxn, 'base64'); });
+            debug("fallBack: signAndPostTxns", bs);
+            return [4 /*yield*/ , p.algodClient.sendRawTransaction(bs)["do"]()];
+          case 1:
+            _a.sent();
+            return [2 /*return*/ , {}]; // TODO
+        }
+      });
+    });
+  };
+  var signAndPostTxns = function(txns, spopts) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var stxns;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/ , signTxns(txns, spopts)];
+          case 1:
+            stxns = _a.sent();
+            return [4 /*yield*/ , postTxns(stxns, spopts)];
+          case 2:
+            return [2 /*return*/ , _a.sent()];
+        }
+      });
+    });
+  };
+  return { _env: _env, enable: enable, enableNetwork: enableNetwork, enableAccounts: enableAccounts, getAlgodv2Client: getAlgodv2Client, getIndexerClient: getIndexerClient, signTxns: signTxns, postTxns: postTxns, signAndPostTxns: signAndPostTxns };
 };
 var walletFallback_mnemonic = function(opts) {
   return function() {
@@ -1933,6 +1965,32 @@ export var connectAccount = function(networkAccount) {
             });
           };
         };
+        var getCurrentStep_ = function(getC) {
+          return __awaiter(void 0, void 0, void 0, function() {
+            var _a, getAppState, getGlobalState, appSt, gs;
+            return __generator(this, function(_b) {
+              switch (_b.label) {
+                case 0:
+                  return [4 /*yield*/ , getC()];
+                case 1:
+                  _a = _b.sent(), getAppState = _a.getAppState, getGlobalState = _a.getGlobalState;
+                  return [4 /*yield*/ , getAppState()];
+                case 2:
+                  appSt = _b.sent();
+                  if (!appSt) {
+                    throw Error("getCurrentStep_: no appSt");
+                  }
+                  return [4 /*yield*/ , getGlobalState(appSt)];
+                case 3:
+                  gs = _b.sent();
+                  if (!gs) {
+                    throw Error("getCurrentStep_: no gs");
+                  }
+                  return [2 /*return*/ , gs[0]];
+              }
+            });
+          });
+        };
         var getState_ = function(getC, lookup) {
           return __awaiter(void 0, void 0, void 0, function() {
             var _a, getAppState, getGlobalState, appSt, gs, vvn, vi, vtys, vty, vvs;
@@ -2000,6 +2058,18 @@ export var connectAccount = function(networkAccount) {
                   case 1:
                     ApplicationID = (_a.sent()).ApplicationID;
                     return [2 /*return*/ , ApplicationID];
+                }
+              });
+            });
+          };
+          var getCurrentStep = function() {
+            return __awaiter(void 0, void 0, void 0, function() {
+              return __generator(this, function(_a) {
+                switch (_a.label) {
+                  case 0:
+                    return [4 /*yield*/ , getCurrentStep_(getC)];
+                  case 1:
+                    return [2 /*return*/ , _a.sent()];
                 }
               });
             });
@@ -2605,7 +2675,7 @@ export var connectAccount = function(networkAccount) {
               });
             });
           };
-          return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, getState: getState, sendrecv: sendrecv, recv: recv, apiMapRef: apiMapRef };
+          return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, getState: getState, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, apiMapRef: apiMapRef };
         };
         var readStateBytes = function(prefix, key, src) {
           debug({ prefix: prefix, key: key });
@@ -2671,7 +2741,7 @@ export var connectAccount = function(networkAccount) {
                 args[_i] = arguments[_i];
               }
               return __awaiter(void 0, void 0, void 0, function() {
-                var decode, vi_1, _a, _, vvs, vres, e_12;
+                var decode, step, vi, vtys_1, _a, _, vvs, vres, e_12;
                 return __generator(this, function(_b) {
                   switch (_b.label) {
                     case 0:
@@ -2679,24 +2749,24 @@ export var connectAccount = function(networkAccount) {
                       decode = vim.decode;
                       _b.label = 1;
                     case 1:
-                      _b.trys.push([1, 4, , 5]);
-                      vi_1 = 0;
-                      return [4 /*yield*/ , getState_(getC, function(vibna) {
-                        vi_1 = bigNumberToNumber(vibna);
-                        var vtys = vs[vi_1];
-                        if (!vtys) {
-                          throw Error("no views for state ".concat(vibna));
-                        }
-                        return vtys;
-                      })];
+                      _b.trys.push([1, 5, , 6]);
+                      return [4 /*yield*/ , getCurrentStep_(getC)];
                     case 2:
-                      _a = __read.apply(void 0, [_b.sent(), 2]), _ = _a[0], vvs = _a[1];
-                      return [4 /*yield*/ , decode(vi_1, vvs, args)];
+                      step = _b.sent();
+                      vi = bigNumberToNumber(step);
+                      vtys_1 = vs[vi];
+                      if (!vtys_1) {
+                        throw Error("no views for state ".concat(step));
+                      }
+                      return [4 /*yield*/ , getState_(getC, function(_) { return vtys_1; })];
                     case 3:
+                      _a = __read.apply(void 0, [_b.sent(), 2]), _ = _a[0], vvs = _a[1];
+                      return [4 /*yield*/ , decode(vi, vvs, args)];
+                    case 4:
                       vres = _b.sent();
                       debug({ vres: vres });
                       return [2 /*return*/ , isSafe ? ['Some', vres] : vres];
-                    case 4:
+                    case 5:
                       e_12 = _b.sent();
                       debug("getView1", v, k, 'error', e_12);
                       if (isSafe) {
@@ -2704,8 +2774,8 @@ export var connectAccount = function(networkAccount) {
                       } else {
                         throw Error("View ".concat(v, ".").concat(k, " is not set."));
                       }
-                      return [3 /*break*/ , 5];
-                    case 5:
+                      return [3 /*break*/ , 6];
+                    case 6:
                       return [2 /*return*/ ];
                   }
                 });

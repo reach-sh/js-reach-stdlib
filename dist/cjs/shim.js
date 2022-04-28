@@ -24,6 +24,10 @@ var processShim = (function () {
             },
             stdout: {
                 write: function () { }
+            },
+            argv: [],
+            exit: function (ec) {
+                console.warn("Ignoring attempt to exit with code", ec);
             }
         };
     }

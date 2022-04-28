@@ -34,4 +34,6 @@ export declare const numberToInt: (n: number) => {
     sign: boolean;
     i: ethers.BigNumber;
 };
+export declare const withDisconnect: <T>(f: () => Promise<T>) => Promise<T>;
+export declare const disconnect: <T>(t: T) => never;
 //# sourceMappingURL=shared_user.d.ts.map

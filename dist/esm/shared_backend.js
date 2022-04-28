@@ -98,30 +98,34 @@ var objectIsEmpty = function (obj) {
         && Object.keys(obj).length === 0
         && Object.getPrototypeOf(obj) === Object.prototype);
 };
+function hasProp(data, prop) {
+    return prop in data;
+}
 export var formatAssertInfo = function (ai) {
     var e_1, _b;
-    if (ai === void 0) { ai = {}; }
     var msg = '';
     if (typeof ai === 'string') {
         msg = ": ".concat(ai);
     }
-    else {
-        if ('who' in ai) {
+    else if (ai === null || ai === undefined) {
+    }
+    else if (typeof ai === 'object') {
+        if (hasProp(ai, 'who')) {
             msg += ": ".concat(ai.who);
             delete ai.who;
         }
-        if ('msg' in ai) {
+        if (hasProp(ai, 'msg')) {
             if (ai.msg !== null) {
                 msg += ": ".concat(ai.msg);
             }
             delete ai.msg;
         }
-        if ('at' in ai) {
+        if (hasProp(ai, 'at')) {
             msg += "\n  at ".concat(ai.at);
             delete ai.at;
         }
         var rest = ":";
-        if ('fs' in ai && Array.isArray(ai.fs)) {
+        if (hasProp(ai, 'fs') && Array.isArray(ai.fs)) {
             try {
                 for (var _c = __values(ai.fs), _d = _c.next(); !_d.done; _d = _c.next()) {
                     var f = _d.value;

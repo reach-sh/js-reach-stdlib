@@ -86,7 +86,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hexlify = void 0;
+exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hexlify = void 0;
+exports.apiStateMismatchError = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -132,6 +133,8 @@ var setDEBUG = function (b) {
     }
 };
 exports.setDEBUG = setDEBUG;
+var hideWarnings = function () { return truthyEnv(shim_1.process.env.REACH_NO_WARN); };
+exports.hideWarnings = hideWarnings;
 var getDEBUG = function () { return DEBUG; };
 exports.getDEBUG = getDEBUG;
 var debug = function () {
@@ -221,7 +224,7 @@ var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getState = _a.getState, apiMapRef = _a.apiMapRef;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -233,6 +236,7 @@ var stdContract = function (stdContractArgs) {
             getBalance: getBalance,
             sendrecv: sendrecv,
             recv: recv,
+            getCurrentStep: getCurrentStep,
             getState: getState,
             apiMapRef: apiMapRef
         };

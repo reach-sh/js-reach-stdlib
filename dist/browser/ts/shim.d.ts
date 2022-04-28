@@ -1,6 +1,8 @@
 declare type Process = {
     env: Env;
     stdout: Stdout;
+    argv: string[];
+    exit: (ec: number) => void;
 };
 export declare type Env = {
     [key: string]: string | undefined;

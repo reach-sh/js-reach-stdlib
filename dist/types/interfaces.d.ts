@@ -127,6 +127,8 @@ export interface Stdlib_User_Shared {
         sign: boolean;
         i: num;
     };
+    withDisconnect: <T>(f: () => Promise<T>) => Promise<T>;
+    disconnect: (t: any) => void;
 }
 export interface Stdlib_User_Base<Ty> extends Stdlib_Backend_Shared_User<Ty>, Stdlib_User_Shared, Arith, TypeDefs<Ty> {
     addressEq: (addr1: string, addr2: string) => boolean;

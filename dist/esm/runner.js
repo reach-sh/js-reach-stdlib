@@ -78,9 +78,7 @@ export function run(file) {
                     return [4 /*yield*/, import("".concat(mountDir, "/").concat(file))];
                 case 1:
                     m = _a.sent();
-                    return [4 /*yield*/, loadStdlib()];
-                case 2:
-                    stdlib = _a.sent();
+                    stdlib = loadStdlib();
                     m.main.apply(m, __spreadArray([stdlib], __read(args), false));
                     return [2 /*return*/];
             }

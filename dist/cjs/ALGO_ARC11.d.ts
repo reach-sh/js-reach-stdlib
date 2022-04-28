@@ -24,7 +24,7 @@ export interface WalletTransaction {
     message?: string;
     stxn?: string;
 }
-export declare type SignTxnFunction = (txns: WalletTransaction[], opts?: any) => Promise<(string | null)[]>;
+export declare type SignTxnsFunction = (txns: WalletTransaction[], opts?: any) => Promise<(string | null)[]>;
 export declare type PostTxnsFunction = (stxns: string[]) => Promise<PostTxnsResult>;
 export interface PostTxnsResult {
     txId?: string;
@@ -36,6 +36,8 @@ export interface WindowAlgorand {
     enable: EnableFunction;
     enableNetwork?: EnableNetworkFunction;
     enableAccounts?: EnableAccountsFunction;
+    signTxns?: SignTxnsFunction;
+    postTxns?: PostTxnsFunction;
     signAndPostTxns: SignAndPostTxnsFunction;
     getAlgodv2Client: GetAlgodv2ClientFunction;
     getIndexerClient: GetIndexerClientFunction;
