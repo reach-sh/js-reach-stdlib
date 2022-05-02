@@ -99,13 +99,13 @@ import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
 import { window, process } from './shim';
 import { sha512_256 } from 'js-sha512';
-export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mul, div = stdlib.div, band = stdlib.band, bior = stdlib.bior, bxor = stdlib.bxor, eq = stdlib.eq, ge = stdlib.ge, gt = stdlib.gt, le = stdlib.le, lt = stdlib.lt, add256 = stdlib.add256, sub256 = stdlib.sub256, mod256 = stdlib.mod256, mul256 = stdlib.mul256, div256 = stdlib.div256, band256 = stdlib.band256, bior256 = stdlib.bior256, bxor256 = stdlib.bxor256, eq256 = stdlib.eq256, ge256 = stdlib.ge256, gt256 = stdlib.gt256, le256 = stdlib.le256, lt256 = stdlib.lt256, cast = stdlib.cast, muldiv = stdlib.muldiv, protect = stdlib.protect, assert = stdlib.assert, Array_set = stdlib.Array_set, bytesEq = stdlib.bytesEq, digestEq = stdlib.digestEq, digest_xor = stdlib.digest_xor, bytes_xor = stdlib.bytes_xor, btoiLast8 = stdlib.btoiLast8;
+export var add = stdlib.add, sub = stdlib.sub, mod = stdlib.mod, mul = stdlib.mul, div = stdlib.div, band = stdlib.band, bior = stdlib.bior, bxor = stdlib.bxor, eq = stdlib.eq, ge = stdlib.ge, gt = stdlib.gt, le = stdlib.le, lt = stdlib.lt, add256 = stdlib.add256, sub256 = stdlib.sub256, mod256 = stdlib.mod256, mul256 = stdlib.mul256, div256 = stdlib.div256, band256 = stdlib.band256, bior256 = stdlib.bior256, bxor256 = stdlib.bxor256, eq256 = stdlib.eq256, ge256 = stdlib.ge256, gt256 = stdlib.gt256, le256 = stdlib.le256, lt256 = stdlib.lt256, sqrt = stdlib.sqrt, sqrt256 = stdlib.sqrt256, cast = stdlib.cast, muldiv = stdlib.muldiv, protect = stdlib.protect, assert = stdlib.assert, Array_set = stdlib.Array_set, bytesEq = stdlib.bytesEq, digestEq = stdlib.digestEq, digest_xor = stdlib.digest_xor, bytes_xor = stdlib.bytes_xor, btoiLast8 = stdlib.btoiLast8;
 export * from './shared_user';
 import { setQueryLowerBound, getQueryLowerBound, handleFormat, formatWithDecimals } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound, addressFromHex, formatWithDecimals };
 var _d = __read(makeSigningMonitor(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 14;
+var reachBackendVersion = 15;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {

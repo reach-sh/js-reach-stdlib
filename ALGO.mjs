@@ -150,6 +150,8 @@ export var add = stdlib.add,
   gt256 = stdlib.gt256,
   le256 = stdlib.le256,
   lt256 = stdlib.lt256,
+  sqrt = stdlib.sqrt,
+  sqrt256 = stdlib.sqrt256,
   cast = stdlib.cast,
   muldiv = stdlib.muldiv,
   protect = stdlib.protect,
@@ -167,7 +169,7 @@ var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 14;
+var reachBackendVersion = 15;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function() {

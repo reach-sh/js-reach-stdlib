@@ -59,6 +59,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     band: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     bior: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     bxor: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
+    sqrt: (n1: shared_backend.num, n2: shared_backend.num) => ethers.BigNumber;
     add256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     sub256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     mod256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
@@ -67,6 +68,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     band256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     bior256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     bxor256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
+    sqrt256: (n1: shared_backend.num, n2: shared_backend.num) => ethers.BigNumber;
     muldiv: (x: shared_backend.num, y: shared_backend.num, z: shared_backend.num) => ethers.BigNumber;
     cast: (from: boolean, to: boolean, x: shared_backend.num) => ethers.BigNumber;
     T_Null: AnyETH_Ty;

@@ -456,6 +456,23 @@ var makeRandom = function (width) {
     return { randomUInt: randomUInt, hasRandom: hasRandom };
 };
 exports.makeRandom = makeRandom;
+var bnSqrt = function (y) {
+    var acc = [y, y.div(2).add(1)];
+    var ans = undefined;
+    while (ans === undefined) {
+        var _a = __read(acc, 2), z = _a[0], x = _a[1];
+        if (x.lt(2)) {
+            ans = x;
+        }
+        else if (x.lt(z)) {
+            acc = [x, y.div(x).add(x).div(2)];
+        }
+        else {
+            ans = x;
+        }
+    }
+    return ans;
+};
 exports.UInt256_max = ethers_1.ethers.BigNumber.from(2).pow(256).sub(1);
 var makeArith = function (m) {
     var checkB = function (x) {
@@ -464,16 +481,27 @@ var makeArith = function (m) {
     var checkM = function (x) {
         return (0, shared_backend_1.checkedBigNumberify)("internal", m, x);
     };
-    var doBN = function (f, a, b) { return a[f](b); };
+    var doBN2 = function (f, a, b) { return a[f](b); };
     var getCheck = function (w) { return w ? checkB : checkM; };
     var cast = function (from, to, x) {
         var checkF = getCheck(from);
         var checkT = getCheck(to);
         return checkT(checkF((0, CBR_1.bigNumberify)(x)));
     };
-    var liftX = function (check) { return function (f) { return function (a, b) { return check(doBN(f, (0, CBR_1.bigNumberify)(a), (0, CBR_1.bigNumberify)(b))); }; }; };
-    var liftB = liftX(checkB);
-    var liftM = liftX(checkM);
+    var liftX2 = function (check) { return function (f) { return function (a, b) { return check(doBN2(f, (0, CBR_1.bigNumberify)(a), (0, CBR_1.bigNumberify)(b))); }; }; };
+    var liftB = liftX2(checkB);
+    var liftM = liftX2(checkM);
+    var doBN1 = function (f, a) {
+        if (f === 'sqrt') {
+            return bnSqrt(a);
+        }
+        else {
+            throw Error('impossible BNOp1');
+        }
+    };
+    var liftX1 = function (check) { return function (f) { return function (a) { return check(doBN1(f, (0, CBR_1.bigNumberify)(a))); }; }; };
+    var liftB1 = liftX1(checkB);
+    var liftM1 = liftX1(checkM);
     var add = liftM('add');
     var sub = liftM('sub');
     var mod = liftM('mod');
@@ -482,6 +510,7 @@ var makeArith = function (m) {
     var band = liftM('and');
     var bior = liftM('or');
     var bxor = liftM('xor');
+    var sqrt = liftM1('sqrt');
     var add256 = liftB('add');
     var sub256 = liftB('sub');
     var mod256 = liftB('mod');
@@ -490,6 +519,7 @@ var makeArith = function (m) {
     var band256 = liftB('and');
     var bior256 = liftB('or');
     var bxor256 = liftB('xor');
+    var sqrt256 = liftB1('sqrt');
     var muldiv = function (a, b, c) {
         var prod = (0, CBR_1.bigNumberify)(a).mul((0, CBR_1.bigNumberify)(b));
         return checkM(prod.div((0, CBR_1.bigNumberify)(c)));
@@ -503,6 +533,7 @@ var makeArith = function (m) {
         band: band,
         bior: bior,
         bxor: bxor,
+        sqrt: sqrt,
         add256: add256,
         sub256: sub256,
         mod256: mod256,
@@ -511,6 +542,7 @@ var makeArith = function (m) {
         band256: band256,
         bior256: bior256,
         bxor256: bxor256,
+        sqrt256: sqrt256,
         cast: cast,
         muldiv: muldiv
     };
