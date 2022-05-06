@@ -1849,6 +1849,7 @@ export var connectAccount = function(networkAccount) {
                               now = Date.now();
                               minMillis = isIsolatedNetwork() ? 0 : appStateMinRefreshMillis;
                               if (lastAppState && now - lastAppStateTime < minMillis) {
+                                debug('getAppState cached');
                                 return [2 /*return*/ , lastAppState];
                               }
                               return [4 /*yield*/ , getAppStateFresh()];
@@ -1866,7 +1867,7 @@ export var connectAccount = function(networkAccount) {
                         return __generator(this, function(_a) {
                           switch (_a.label) {
                             case 0:
-                              lab = "getAppState";
+                              lab = "getAppStateFresh";
                               return [4 /*yield*/ , getApplicationInfoM(ApplicationID)];
                             case 1:
                               appInfoM = _a.sent();

@@ -268,7 +268,12 @@ var run = function (opts) { return __awaiter(void 0, void 0, void 0, function ()
                     var id = _a.id, time = _a.time, err = _a.err;
                     var mtime = time ? " time=\"".concat(time, "\"") : "";
                     var mfail = err ? "<failure>".concat(err, "</failure>") : "";
-                    xml.push("<testcase name=\"".concat(id, "\"").concat(mtime, ">").concat(mfail, "</testcase>"));
+                    var idr = id.replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&apos;');
+                    xml.push("<testcase name=\"".concat(idr, "\"").concat(mtime, ">").concat(mfail, "</testcase>"));
                 });
                 xml.push('</testsuite>');
                 xmlb = Buffer.from(xml.join(''));

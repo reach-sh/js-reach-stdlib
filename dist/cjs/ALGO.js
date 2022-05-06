@@ -1666,6 +1666,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                 now = Date.now();
                                                 minMillis = isIsolatedNetwork() ? 0 : appStateMinRefreshMillis;
                                                 if (lastAppState && now - lastAppStateTime < minMillis) {
+                                                    (0, shared_impl_1.debug)('getAppState cached');
                                                     return [2 /*return*/, lastAppState];
                                                 }
                                                 return [4 /*yield*/, getAppStateFresh()];
@@ -1681,7 +1682,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
-                                                lab = "getAppState";
+                                                lab = "getAppStateFresh";
                                                 return [4 /*yield*/, getApplicationInfoM(ApplicationID)];
                                             case 1:
                                                 appInfoM = _a.sent();

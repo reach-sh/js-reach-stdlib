@@ -7,4 +7,5 @@ export { ALGO_MyAlgoConnect };
 import ALGO_WalletConnect from './ALGO_WalletConnect.mjs';
 export { ALGO_WalletConnect };
 export * as test from './test.mjs';
+export * as util from './util.mjs';
 //# sourceMappingURL=index.js.map
