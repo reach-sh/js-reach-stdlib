@@ -7,6 +7,7 @@ import type { Arith } from './interfaces';
 declare type BigNumber = ethers.BigNumber;
 export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
+export declare const hasProp: (o: unknown, p: string) => unknown;
 export declare const j2sf: (x: any) => string;
 export declare const j2s: (x: any) => string;
 export declare const setDEBUG: (b: boolean) => void;
@@ -255,7 +256,6 @@ export declare type ISimTxn<Token, ContractInfo> = {
 } | {
     kind: 'from';
     to: string;
-    amt: BigNumber;
     tok: Token | undefined;
 } | {
     kind: 'halt';

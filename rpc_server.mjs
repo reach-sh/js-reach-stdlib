@@ -99,7 +99,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import express from 'express';
 import { loadStdlib, } from './loader.mjs';
-import { debug, j2s, } from './shared_impl.mjs';
+import { debug, j2s, hasProp, } from './shared_impl.mjs';
 var withApiKey = function() {
   var key = process.env.REACH_RPC_KEY;
   if (!key) {
@@ -696,7 +696,7 @@ export var serveRpc = function(backend) {
             return router;
           };
           userDefinedField = function(a, m) {
-            return a && a.hasOwnProperty && a.hasOwnProperty(m) && a[m] || null;
+            return hasProp(a, m) && a[m] || null;
           };
           mkUserDefined = function(olab, prop, k, unsafe) {
             var router = express.Router();

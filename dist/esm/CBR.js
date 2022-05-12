@@ -16,7 +16,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 import { ethers } from 'ethers';
 import { checkedBigNumberify } from './shared_backend';
-import { j2s, labelMaps } from './shared_impl';
+import { j2s, labelMaps, hasProp } from './shared_impl';
 var BigNumber = ethers.BigNumber;
 export var bigNumberify = function (x) {
     var xp = typeof x === 'number' ? x.toString() : x;
@@ -226,10 +226,8 @@ export var BT_Object = function (co) {
             }
             var obj = {};
             for (var prop in co) {
-                // This is dumb but it's how ESLint says to do it
-                // https://eslint.org/docs/rules/no-prototype-builtins
-                if (!{}.hasOwnProperty.call(vo, prop)) {
-                    throw Error("Expected prop ".concat(prop, ", but didn't found it in ").concat(Object.keys(vo)));
+                if (!hasProp(vo, prop)) {
+                    throw Error("Expected prop ".concat(prop, ", but didn't find it in ").concat(Object.keys(vo)));
                 }
                 obj[prop] = co[prop].canonicalize(vo[prop]);
             }
@@ -257,7 +255,7 @@ export var BT_Data = function (co) {
                 throw Error("Expected an array of length two to represent a data instance, but got ".concat(j2s(io)));
             }
             var vn = io[0];
-            if (!{}.hasOwnProperty.call(co, vn)) {
+            if (!hasProp(co, vn)) {
                 throw Error("Expected a variant in ".concat(Object.keys(co), ", but got ").concat(vn));
             }
             return [vn, co[vn].canonicalize(io[1])];

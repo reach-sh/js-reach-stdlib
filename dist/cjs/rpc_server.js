@@ -534,7 +534,7 @@ var serveRpc = function (backend) { return __awaiter(void 0, void 0, void 0, fun
                     return router;
                 };
                 userDefinedField = function (a, m) {
-                    return a && a.hasOwnProperty && a.hasOwnProperty(m) && a[m] || null;
+                    return (0, shared_impl_1.hasProp)(a, m) && a[m] || null;
                 };
                 mkUserDefined = function (olab, prop, k, unsafe) {
                     var router = express_1["default"].Router();

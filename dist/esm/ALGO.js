@@ -93,7 +93,7 @@ import * as RHC from './ALGO_ReachHTTPClient';
 import * as UTBC from './ALGO_UTBC';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, } from './shared_impl';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, } from './shared_impl';
 import { isBigNumber, bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user';
 import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
@@ -382,12 +382,12 @@ export var signSendAndConfirm = function (acc, txns) { return __awaiter(void 0, 
             case 4:
                 e_4 = _b.sent();
                 es = "".concat(e_4);
-                if ('response' in e_4) {
+                if (hasProp(e_4, 'response')) {
                     r = e_4.response;
-                    if ('body' in r) {
+                    if (hasProp(r, 'body')) {
                         e_4.response = r.body;
                     }
-                    else if ('text' in r) {
+                    else if (hasProp(r, 'text')) {
                         e_4.response = r.text;
                     }
                     else {
@@ -1172,6 +1172,22 @@ export function setProviderByEnv(env) {
     setProvider(makeProviderByEnv(env));
 }
 ;
+function algonodeEnv(net) {
+    // works for MainNet, TestNet, and BetaNet
+    // https://algonode.io/api/#node-api
+    var prefix = "https://".concat(net.toLowerCase(), "-");
+    var suffix = ".algonode.cloud";
+    return {
+        ALGO_SERVER: "".concat(prefix, "api").concat(suffix),
+        ALGO_PORT: "",
+        ALGO_TOKEN: "",
+        ALGO_INDEXER_SERVER: "".concat(prefix, "idx").concat(suffix),
+        ALGO_INDEXER_PORT: "",
+        ALGO_INDEXER_TOKEN: "",
+        REACH_ISOLATED_NETWORK: 'no',
+        ALGO_NODE_WRITE_ONLY: 'yes'
+    };
+}
 function randlabsProviderEnv(net) {
     var prefix = net === 'MainNet' ? '' : "".concat(net.toLowerCase(), ".");
     var RANDLABS_BASE = "".concat(prefix, "algoexplorerapi.io");
@@ -1189,12 +1205,15 @@ function randlabsProviderEnv(net) {
 }
 export function providerEnvByName(pn) {
     switch (pn) {
-        case 'MainNet': return randlabsProviderEnv('MainNet');
-        case 'TestNet': return randlabsProviderEnv('TestNet');
-        case 'BetaNet': return randlabsProviderEnv('BetaNet');
+        case 'MainNet': return algonodeEnv('MainNet');
+        case 'TestNet': return algonodeEnv('TestNet');
+        case 'BetaNet': return algonodeEnv('BetaNet');
         case 'randlabs/MainNet': return randlabsProviderEnv('MainNet');
         case 'randlabs/TestNet': return randlabsProviderEnv('TestNet');
         case 'randlabs/BetaNet': return randlabsProviderEnv('BetaNet');
+        case 'algonode/MainNet': return algonodeEnv('MainNet');
+        case 'algonode/TestNet': return algonodeEnv('TestNet');
+        case 'algonode/BetaNet': return algonodeEnv('BetaNet');
         case 'LocalHost': return localhostProviderEnv;
         default: throw Error("Unrecognized provider name: ".concat(pn));
     }
@@ -1476,12 +1495,13 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
         // @ts-ignore
         return this;
     }
-    var thisAcc, label, pks, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc;
+    var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc;
     return __generator(this, function (_a) {
         thisAcc = networkAccount;
         label = thisAcc.addr.substring(2, 6);
         pks = T_Address.canonicalize(thisAcc);
         debug(label, 'connectAccount');
+        createTag = 0;
         selfAddress = function () {
             return pks;
         };
@@ -1849,7 +1869,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); }; };
                 var sendrecv = function (srargs) { return __awaiter(void 0, void 0, void 0, function () {
-                    var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, ai, ApplicationID_1, ctcInfo, _h, ApplicationID, ctcAddr, Deployer, ensureOptIn, canIWin, isIsolatedNetwork, _j, value, toks, _k, _svs, msg, _l, _svs_tys, msg_tys, fake_res, sim_r, amt, isHalt, mapRefs, _loop_1, state_1;
+                    var funcNum, evt_cnt, lct, tys, args, pay, out_tys, onlyIf, soloSend, timeoutAt, sim_p, isCtor, doRecv, funcName, dhead, trustedRecv, _a, appApproval, appClear, extraPages, Deployer_1, createRes, _b, _c, _d, _e, _f, _g, ai, ApplicationID_1, ctcInfo, _h, ApplicationID, ctcAddr, Deployer, ensureOptIn, canIWin, isIsolatedNetwork, _j, value, toks, curTime, curSecs, _k, _svs, msg, _l, _svs_tys, msg_tys, fake_res, sim_r, amt, isHalt, mapRefs, _loop_1, state_1;
                     return __generator(this, function (_m) {
                         switch (_m.label) {
                             case 0:
@@ -1906,7 +1926,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             appLocalStateNumUInt, appLocalStateNumBytes + mapDataKeys,
                                             appGlobalStateNumUInt, appGlobalStateNumBytes + stateKeys,
                                             undefined, undefined, undefined, undefined,
-                                            NOTE_Reach, undefined, undefined, extraPages]))])]))];
+                                            NOTE_Reach_tag(createTag++), undefined, undefined, extraPages]))])]))];
                             case 4:
                                 createRes = _m.sent();
                                 ai = createRes['created-application-index'];
@@ -1925,6 +1945,12 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                 _j = __read(pay, 2), value = _j[0], toks = _j[1];
                                 void (toks); // <-- rely on simulation because of ordering
                                 debug(dhead, '--- START');
+                                return [4 /*yield*/, getNetworkTime()];
+                            case 7:
+                                curTime = _m.sent();
+                                return [4 /*yield*/, getTimeSecs(curTime)];
+                            case 8:
+                                curSecs = _m.sent();
                                 _k = __read(argsSplit(args, evt_cnt), 2), _svs = _k[0], msg = _k[1];
                                 _l = __read(argsSplit(tys, evt_cnt), 2), _svs_tys = _l[0], msg_tys = _l[1];
                                 void (_svs);
@@ -1933,8 +1959,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     didSend: true,
                                     didTimeout: false,
                                     data: msg,
-                                    time: bigNumberify(0),
-                                    secs: bigNumberify(0),
+                                    time: curTime,
+                                    secs: curSecs,
                                     value: value,
                                     from: pks,
                                     getOutput: (function (o_mode, o_lab, o_ctc, o_val) { return __awaiter(void 0, void 0, void 0, function () {
@@ -1947,7 +1973,7 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     }); })
                                 };
                                 return [4 /*yield*/, sim_p(fake_res)];
-                            case 7:
+                            case 9:
                                 sim_r = _m.sent();
                                 debug(dhead, '--- SIMULATE', sim_r);
                                 if (isCtor) {
@@ -1961,12 +1987,12 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                     });
                                 }
                                 isHalt = sim_r.isHalt;
-                                if (!hasMaps) return [3 /*break*/, 9];
+                                if (!hasMaps) return [3 /*break*/, 11];
                                 return [4 /*yield*/, ensureOptIn()];
-                            case 8:
+                            case 10:
                                 _m.sent();
-                                _m.label = 9;
-                            case 9:
+                                _m.label = 11;
+                            case 11:
                                 mapRefs = sim_r.mapRefs;
                                 _loop_1 = function () {
                                     var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, whichApi, processSimTxn, addCompanion, readCI, companionCalls, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_10, jes, _r, _s;
@@ -2228,16 +2254,16 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                         }
                                     });
                                 };
-                                _m.label = 10;
-                            case 10:
-                                if (!true) return [3 /*break*/, 12];
+                                _m.label = 12;
+                            case 12:
+                                if (!true) return [3 /*break*/, 14];
                                 return [5 /*yield**/, _loop_1()];
-                            case 11:
+                            case 13:
                                 state_1 = _m.sent();
                                 if (typeof state_1 === "object")
                                     return [2 /*return*/, state_1.value];
-                                return [3 /*break*/, 10];
-                            case 12: return [2 /*return*/];
+                                return [3 /*break*/, 12];
+                            case 14: return [2 /*return*/];
                         }
                     });
                 }); };

@@ -79,6 +79,10 @@ import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, assert, formatAssertInfo, } from './shared_backend';
 import { process } from './shim';
 export { hexlify } from './shared_backend';
+// This is dumb but it's how ESLint says to do it
+// `hasOwnProperty` is important for denying access to prototype fields
+// https://eslint.org/docs/rules/no-prototype-builtins
+export var hasProp = function (o, p) { return o && {}.hasOwnProperty.call(o, p); };
 export var j2sf = function (x) {
     // We're removing duplicated values, so we can remove cyclic references
     var seen = [];
