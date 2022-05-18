@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { CBR_Address } from './CBR';
-import { AnyBackendTy } from './shared_backend';
+import { AnyBackendTy, MaybeRep } from './shared_backend';
 import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
 import type { Arith } from './interfaces';
@@ -119,6 +119,7 @@ export declare type EventMap = {
     [key: string]: any;
 };
 export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+    getContractCompanion: () => Promise<MaybeRep<ContractInfo>>;
     getContractInfo: () => Promise<ContractInfo>;
     getContractAddress: () => Promise<CBR_Address>;
     getBalance: () => Promise<BigNumber>;
@@ -141,7 +142,7 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef");
+declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getContractCompanion" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef");
 export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
@@ -238,6 +239,8 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     getGasLimit: () => BigNumber;
     setStorageLimit: (nsl: unknown) => void;
     getStorageLimit: () => BigNumber;
+    balanceOf: (token?: Token) => Promise<BigNumber>;
+    balancesOf: (tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
 };
 export declare const stdAccount_unsupported: <NetworkAccount, Backend, Contract, ContractInfo, Token>(conn: string) => Pick<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "setGasLimit" | "getGasLimit" | "setStorageLimit" | "getStorageLimit">;
 export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
@@ -282,6 +285,7 @@ export declare type ISimTxn<Token, ContractInfo> = {
     bills: BigNumber;
     toks: Array<Token>;
     accs: Array<string>;
+    apps: Array<ContractInfo>;
     fees: BigNumber;
 } | {
     kind: 'info';
@@ -323,7 +327,7 @@ export declare const makeRandom: (width: number) => {
         random: () => BigNumber;
     };
 };
-export declare type UIntTy = boolean;
+export declare type UIntTy = 'UInt' | 'UInt256';
 export declare const UInt256_max: ethers.BigNumber;
 export declare const makeArith: (m: BigNumber) => Arith;
 export declare const argsSlice: <T>(args: T[], cnt: number) => T[];

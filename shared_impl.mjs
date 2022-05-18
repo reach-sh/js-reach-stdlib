@@ -240,6 +240,7 @@ export var stdContract = function(stdContractArgs) {
     var _a = _setup(setupArgs),
       getContractInfo = _a.getContractInfo,
       getContractAddress = _a.getContractAddress,
+      getContractCompanion = _a.getContractCompanion,
       getBalance = _a.getBalance,
       sendrecv = _a.sendrecv,
       recv = _a.recv,
@@ -254,6 +255,7 @@ export var stdContract = function(stdContractArgs) {
       waitUntilSecs: waitUntilSecs,
       getContractInfo: getContractInfo,
       getContractAddress: getContractAddress,
+      getContractCompanion: getContractCompanion,
       getBalance: getBalance,
       sendrecv: sendrecv,
       recv: recv,
@@ -515,10 +517,12 @@ export var makeArith = function(m) {
   };
   var doBN2 = function(f, a, b) { return a[f](b); };
   var getCheck = function(w) { return w ? checkB : checkM; };
-  var cast = function(from, to, x) {
+  var cast = function(from, to, x, trunc) {
     var checkF = getCheck(from);
     var checkT = getCheck(to);
-    return checkT(checkF(bigNumberify(x)));
+    var bigX = bigNumberify(x);
+    var maybeTruncated = trunc ? bigX.and(m) : bigX;
+    return checkT(checkF(maybeTruncated));
   };
   var liftX2 = function(check) { return function(f) { return function(a, b) { return check(doBN2(f, bigNumberify(a), bigNumberify(b))); }; }; };
   var liftB = liftX2(checkB);

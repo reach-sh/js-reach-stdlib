@@ -143,7 +143,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 exports.formatWithDecimals = shared_impl_2.formatWithDecimals;
 var _d = __read((0, shared_impl_1.makeSigningMonitor)(), 2), setSigningMonitor = _d[0], notifySend = _d[1];
 exports.setSigningMonitor = setSigningMonitor;
-var reachBackendVersion = 15;
+var reachBackendVersion = 16;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
@@ -1547,7 +1547,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
         // @ts-ignore
         return this;
     }
-    var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc;
+    var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc, accObj, acc, balanceOf_, balancesOf_;
     return __generator(this, function (_a) {
         thisAcc = networkAccount;
         label = thisAcc.addr.substring(2, 6);
@@ -1879,6 +1879,18 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         }
                     });
                 }); };
+                var getContractCompanion = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        if (hasCompanion) {
+                            return [2 /*return*/, ['None', null]];
+                        }
+                        else {
+                            // @ts-ignore
+                            return [2 /*return*/, ['Some', companionApp]];
+                        }
+                        return [2 /*return*/];
+                    });
+                }); };
                 var getCurrentStep = function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         switch (_a.label) {
@@ -2142,6 +2154,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                                                         recordApp(t.obj);
                                                         t.toks.map(recordAsset);
                                                         t.accs.map(recordAccount);
+                                                        t.apps.map(recordApp);
                                                         howManyMoreFees +=
                                                             1
                                                                 + (0, shared_user_1.bigNumberToNumber)(t.pays)
@@ -2469,7 +2482,7 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
                         });
                     });
                 };
-                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, getState: getState, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, apiMapRef: apiMapRef };
+                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getState: getState, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, apiMapRef: apiMapRef };
             };
             var readStateBytes = function (prefix, key, src) {
                 (0, shared_impl_1.debug)({ prefix: prefix, key: key });
@@ -2684,7 +2697,11 @@ var connectAccount = function (networkAccount) { return __awaiter(void 0, void 0
             });
         }); };
         unsupportedAcc = (0, shared_impl_1.stdAccount_unsupported)(exports.connector);
-        return [2 /*return*/, (0, shared_impl_1.stdAccount)(__assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: ALGO_compiled_1.stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract }))];
+        accObj = __assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: ALGO_compiled_1.stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract });
+        acc = accObj;
+        balanceOf_ = function (token) { return (0, exports.balanceOf)(acc, token); };
+        balancesOf_ = function (tokens) { return (0, exports.balancesOf)(acc, tokens); };
+        return [2 /*return*/, (0, shared_impl_1.stdAccount)(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_ }))];
     });
 }); };
 exports.connectAccount = connectAccount;

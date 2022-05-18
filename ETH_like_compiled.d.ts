@@ -70,7 +70,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     bxor256: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     sqrt256: (n1: shared_backend.num, n2: shared_backend.num) => ethers.BigNumber;
     muldiv: (x: shared_backend.num, y: shared_backend.num, z: shared_backend.num) => ethers.BigNumber;
-    cast: (from: boolean, to: boolean, x: shared_backend.num) => ethers.BigNumber;
+    cast: (from: import("./shared_impl").UIntTy, to: import("./shared_impl").UIntTy, x: shared_backend.num, truncate: boolean) => ethers.BigNumber;
     T_Null: AnyETH_Ty;
     T_Bool: AnyETH_Ty;
     T_UInt: AnyETH_Ty;

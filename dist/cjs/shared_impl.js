@@ -229,7 +229,7 @@ var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getContractCompanion = _a.getContractCompanion, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -238,6 +238,7 @@ var stdContract = function (stdContractArgs) {
             waitUntilSecs: waitUntilSecs,
             getContractInfo: getContractInfo,
             getContractAddress: getContractAddress,
+            getContractCompanion: getContractCompanion,
             getBalance: getBalance,
             sendrecv: sendrecv,
             recv: recv,
@@ -488,10 +489,12 @@ var makeArith = function (m) {
     };
     var doBN2 = function (f, a, b) { return a[f](b); };
     var getCheck = function (w) { return w ? checkB : checkM; };
-    var cast = function (from, to, x) {
+    var cast = function (from, to, x, trunc) {
         var checkF = getCheck(from);
         var checkT = getCheck(to);
-        return checkT(checkF((0, CBR_1.bigNumberify)(x)));
+        var bigX = (0, CBR_1.bigNumberify)(x);
+        var maybeTruncated = trunc ? bigX.and(m) : bigX;
+        return checkT(checkF(maybeTruncated));
     };
     var liftX2 = function (check) { return function (f) { return function (a, b) { return check(doBN2(f, (0, CBR_1.bigNumberify)(a), (0, CBR_1.bigNumberify)(b))); }; }; };
     var liftB = liftX2(checkB);

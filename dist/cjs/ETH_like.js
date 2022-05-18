@@ -99,7 +99,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 15;
+var reachBackendVersion = 16;
 var reachEthBackendVersion = 7;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -494,7 +494,7 @@ function makeEthLike(ethLikeArgs) {
             // @ts-ignore
             return this;
         }
-        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokenAccept, tokenMetadata;
+        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokenAccept, tokenMetadata, accObj, acc, balanceOf_, balancesOf_;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1029,6 +1029,11 @@ function makeEthLike(ethLikeArgs) {
                                 if (mtok === void 0) { mtok = false; }
                                 return balanceOfNetworkAccount(networkAccount, mtok);
                             };
+                            var getContractCompanion = function () { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    return [2 /*return*/, ['None', null]];
+                                });
+                            }); };
                             var getCurrentStep = function () { return __awaiter(_this, void 0, void 0, function () {
                                 var _a, cs, _;
                                 return __generator(this, function (_b) {
@@ -1040,7 +1045,7 @@ function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); };
-                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
+                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
                         };
                         var setupView = function (setupViewArgs) {
                             var eq = newEventQueue();
@@ -1228,7 +1233,11 @@ function makeEthLike(ethLikeArgs) {
                             }
                         });
                     }); };
-                    return [2 /*return*/, (0, shared_impl_1.stdAccount)({ networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit })];
+                    accObj = { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
+                    acc = accObj;
+                    balanceOf_ = function (token) { return balanceOf(acc, token); };
+                    balancesOf_ = function (tokens) { return balancesOf(acc, tokens); };
+                    return [2 /*return*/, (0, shared_impl_1.stdAccount)(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_ }))];
             }
         });
     }); };
