@@ -1510,13 +1510,14 @@ var reNetify = function(x) {
   var s = Buffer.from(x, 'base64').toString('hex');
   return ethers.utils.arrayify('0x' + s);
 };
-var getAccountInfo = function(a) {
+var getAccountInfo = function(acc) { return getAddressInfo(extractAddr(acc)); };
+var getAddressInfo = function(a) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var dhead, client, req, res_1, e_8, indexer, q, failOk, res;
+    var dhead, client, req, res_1, e_8, indexer, failOk, query, res;
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
-          dhead = 'getAccountInfo';
+          dhead = 'getAddressInfo';
           _a.label = 1;
         case 1:
           _a.trys.push([1, 5, , 6]);
@@ -1541,7 +1542,6 @@ var getAccountInfo = function(a) {
           return [4 /*yield*/ , getIndexer()];
         case 7:
           indexer = _a.sent();
-          q = indexer.lookupAccountByID(a);
           failOk = function(x) {
             if (typeof x === 'string' && x.includes('no accounts found for address')) {
               return {
@@ -1556,7 +1556,8 @@ var getAccountInfo = function(a) {
               return { exn: x };
             }
           };
-          return [4 /*yield*/ , doQuery_(dhead, q, 0, failOk)];
+          query = indexer.lookupAccountByID(a);
+          return [4 /*yield*/ , doQuery_(dhead, query, 0, failOk)];
         case 8:
           res = _a.sent();
           debug(dhead, res);
@@ -1780,21 +1781,38 @@ export var connectAccount = function(networkAccount) {
                     debug(label, 'getC', { ApplicationID: ApplicationID });
                     ctcAddr = algosdk.getApplicationAddress(bigNumberToBigInt(ApplicationID));
                     debug(label, 'getC', { ctcAddr: ctcAddr });
-                    getLocalState = function(a) {
+                    getLocalState = function(addr) {
                       return __awaiter(void 0, void 0, void 0, function() {
-                        var ai, alss, fmtApplicationID, als;
-                        return __generator(this, function(_a) {
-                          switch (_a.label) {
+                        var dhead, client, query, accAppInfo, indexer, query, appLocalStatesRes, appsLocalStates, appLocalState;
+                        var _a, _b;
+                        return __generator(this, function(_c) {
+                          switch (_c.label) {
                             case 0:
-                              return [4 /*yield*/ , getAccountInfo(a)];
+                              dhead = 'getLocalState';
+                              return [4 /*yield*/ , nodeCanRead()];
                             case 1:
-                              ai = _a.sent();
-                              debug("getLocalState", ai);
-                              alss = ai['apps-local-state'] || [];
-                              fmtApplicationID = bigNumberToBigInt(ApplicationID);
-                              als = alss.find(function(x) { return (x.id === fmtApplicationID); });
-                              debug("getLocalState", als);
-                              return [2 /*return*/ , als ? als['key-value'] : undefined];
+                              if (!_c.sent()) return [3 /*break*/ , 4];
+                              return [4 /*yield*/ , getAlgodClient()];
+                            case 2:
+                              client = _c.sent();
+                              query = client.accountApplicationInformation(addr, bigNumberToNumber(ApplicationID));
+                              return [4 /*yield*/ , doQuery_('contract.getLocalState', query, 0, function(_) { return { val: undefined }; })];
+                            case 3:
+                              accAppInfo = _c.sent();
+                              return [2 /*return*/ , (_a = accAppInfo === null || accAppInfo === void 0 ? void 0 : accAppInfo['app-local-state']) === null || _a === void 0 ? void 0 : _a['key-value']];
+                            case 4:
+                              return [4 /*yield*/ , getIndexer()];
+                            case 5:
+                              indexer = _c.sent();
+                              query = indexer
+                                .lookupAccountAppLocalStates(addr)
+                                .applicationID(bigNumberToNumber(ApplicationID));
+                              return [4 /*yield*/ , doQuery_(dhead, query)];
+                            case 6:
+                              appLocalStatesRes = _c.sent();
+                              appsLocalStates = (_b = appLocalStatesRes['apps-local-states']) !== null && _b !== void 0 ? _b : [];
+                              appLocalState = appsLocalStates.find(function(app) { return ApplicationID.eq(app['id']); });
+                              return [2 /*return*/ , appLocalState === null || appLocalState === void 0 ? void 0 : appLocalState['key-value']];
                           }
                         });
                       });
@@ -2961,13 +2979,12 @@ export var connectAccount = function(networkAccount) {
 };
 export var minimumBalanceOf = function(acc) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var addr, ai, createdAppCount, optinAppCount, numByteSlice, numUInt, assetCount, accMinBalance;
+    var ai, createdAppCount, optinAppCount, numByteSlice, numUInt, assetCount, accMinBalance;
     var _a, _b, _c, _d, _e, _f, _g;
     return __generator(this, function(_h) {
       switch (_h.label) {
         case 0:
-          addr = extractAddr(acc);
-          return [4 /*yield*/ , getAccountInfo(addr)];
+          return [4 /*yield*/ , getAccountInfo(acc)];
         case 1:
           ai = _h.sent();
           if (ai.amount === BigInt(0)) {
@@ -2993,25 +3010,135 @@ export var minimumBalanceOf = function(acc) {
 };
 var balancesOfM = function(acc, tokens) {
   return __awaiter(void 0, void 0, void 0, function() {
-    var addr, accountInfo, accountAssets, balanceOfSingleToken;
-    return __generator(this, function(_a) {
-      switch (_a.label) {
+    var client, query_1, accountInfoM, accountInfo_1, accountAssets_1, tokenBalances_1, indexer, addr, query, accountAssets, tokenBalances;
+    var _a;
+    return __generator(this, function(_b) {
+      switch (_b.label) {
         case 0:
-          addr = extractAddr(acc);
-          return [4 /*yield*/ , getAccountInfo(addr)];
+          return [4 /*yield*/ , nodeCanRead()];
         case 1:
-          accountInfo = _a.sent();
-          accountAssets = accountInfo.assets || [];
-          balanceOfSingleToken = function(token) {
-            if (token) {
-              var tokenId_1 = bigNumberify(token);
-              var tokenAsset = accountAssets.find(function(asset) { return tokenId_1.eq(asset['asset-id']); });
-              return tokenAsset ? bigNumberify(tokenAsset['amount']) : false;
-            } else {
-              return bigNumberify(accountInfo.amount);
-            }
-          };
-          return [2 /*return*/ , tokens.map(balanceOfSingleToken)];
+          if (!_b.sent()) return [3 /*break*/ , 4];
+          return [4 /*yield*/ , getAlgodClient()];
+        case 2:
+          client = _b.sent();
+          query_1 = client.accountInformation(extractAddr(acc));
+          return [4 /*yield*/ , doQueryM_('balancesOfM', query_1)];
+        case 3:
+          accountInfoM = _b.sent();
+          if ('val' in accountInfoM) {
+            accountInfo_1 = accountInfoM['val'];
+            accountAssets_1 = (_a = accountInfo_1['assets']) !== null && _a !== void 0 ? _a : [];
+            tokenBalances_1 = tokens.map(function(t) {
+              var _a;
+              if (t === null) {
+                return bigNumberify(accountInfo_1['amount']);
+              } else {
+                var bal = (_a = accountAssets_1.find(function(asset) { return t.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
+                return bal ? bigNumberify(bal) : false;
+              }
+            });
+            return [2 /*return*/ , tokenBalances_1];
+          }
+          _b.label = 4;
+        case 4:
+          return [4 /*yield*/ , getIndexer()];
+        case 5:
+          indexer = _b.sent();
+          addr = extractAddr(acc);
+          query = indexer.lookupAccountAssets(addr);
+          return [4 /*yield*/ , doQuery_('balancesOfM', query)];
+        case 6:
+          accountAssets = (_b.sent())['assets'];
+          tokenBalances = tokens.map(function(t) {
+            return __awaiter(void 0, void 0, void 0, function() {
+              var bal;
+              var _a;
+              return __generator(this, function(_b) {
+                switch (_b.label) {
+                  case 0:
+                    if (!(t === null)) return [3 /*break*/ , 2];
+                    return [4 /*yield*/ , balanceOfM(acc, t)];
+                  case 1:
+                    return [2 /*return*/ , _b.sent()];
+                  case 2:
+                    bal = (_a = accountAssets.find(function(asset) { return t.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
+                    return [2 /*return*/ , bal ? bigNumberify(bal) : false];
+                }
+              });
+            });
+          });
+          return [2 /*return*/ , Promise.all(tokenBalances)];
+      }
+    });
+  });
+};
+var balanceOfM = function(acc, token) {
+  return __awaiter(void 0, void 0, void 0, function() {
+    var dhead, addr, client, query, accountInfo, query, accountAssetInfoM, indexer, query, accountInfoM, tokenId, client, query, accountAssetInfoM, assetHolding;
+    var _a, _b;
+    return __generator(this, function(_c) {
+      switch (_c.label) {
+        case 0:
+          dhead = 'balanceOfM';
+          addr = extractAddr(acc);
+          return [4 /*yield*/ , nodeCanRead()];
+        case 1:
+          if (!_c.sent()) return [3 /*break*/ , 7];
+          return [4 /*yield*/ , getAlgodClient()];
+        case 2:
+          client = _c.sent();
+          if (!(token == null)) return [3 /*break*/ , 4];
+          query = client.accountInformation(addr).exclude('all');
+          return [4 /*yield*/ , doQuery_(dhead, query)];
+        case 3:
+          accountInfo = _c.sent();
+          return [2 /*return*/ , bigNumberify(accountInfo['amount'])];
+        case 4:
+          query = client.accountAssetInformation(addr, bigNumberToNumber(token));
+          return [4 /*yield*/ , doQueryM_(dhead, query)];
+        case 5:
+          accountAssetInfoM = _c.sent();
+          if ('val' in accountAssetInfoM) {
+            return [2 /*return*/ , bigNumberify((_b = (_a = accountAssetInfoM['val']['asset-holding']) === null || _a === void 0 ? void 0 : _a['amount']) !== null && _b !== void 0 ? _b : 0)];
+          } else {
+            return [2 /*return*/ , false];
+          }
+          _c.label = 6;
+        case 6:
+          return [3 /*break*/ , 13];
+        case 7:
+          return [4 /*yield*/ , getIndexer()];
+        case 8:
+          indexer = _c.sent();
+          if (!(token == null)) return [3 /*break*/ , 10];
+          query = indexer.lookupAccountByID(addr).exclude('all');
+          return [4 /*yield*/ , doQueryM_(dhead, query)];
+        case 9:
+          accountInfoM = _c.sent();
+          if ('val' in accountInfoM) {
+            return [2 /*return*/ , bigNumberify(accountInfoM['val']['account']['amount'])];
+          } else {
+            return [2 /*return*/ , false];
+          }
+          return [3 /*break*/ , 13];
+        case 10:
+          tokenId = bigNumberToNumber(token);
+          return [4 /*yield*/ , getAlgodClient()];
+        case 11:
+          client = _c.sent();
+          query = client.accountAssetInformation(addr, tokenId);
+          return [4 /*yield*/ , doQueryM_(dhead, query)];
+        case 12:
+          accountAssetInfoM = _c.sent();
+          if ('val' in accountAssetInfoM) {
+            assetHolding = accountAssetInfoM['val']['asset-holding'];
+            return [2 /*return*/ , assetHolding ? bigNumberify(assetHolding['amount']) : false];
+          } else {
+            return [2 /*return*/ , false];
+          }
+          _c.label = 13;
+        case 13:
+          return [2 /*return*/ ];
       }
     });
   });
@@ -3023,25 +3150,7 @@ export var balancesOf = function(acc, tokens) {
         case 0:
           return [4 /*yield*/ , balancesOfM(acc, tokens)];
         case 1:
-          return [2 /*return*/ , (_a.sent()).map(function(bal) {
-            if (bal === false) {
-              return bigNumberify(0);
-            } else {
-              return bal;
-            }
-          })];
-      }
-    });
-  });
-};
-var balanceOfM = function(acc, token) {
-  return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_a) {
-      switch (_a.label) {
-        case 0:
-          return [4 /*yield*/ , balancesOfM(acc, [token || null])];
-        case 1:
-          return [2 /*return*/ , (_a.sent())[0]];
+          return [2 /*return*/ , (_a.sent()).map(function(bal) { return bal == false ? bigNumberify(0) : bal; })];
       }
     });
   });
@@ -3051,9 +3160,9 @@ export var balanceOf = function(acc, token) {
     return __generator(this, function(_a) {
       switch (_a.label) {
         case 0:
-          return [4 /*yield*/ , balancesOf(acc, [token || null])];
+          return [4 /*yield*/ , balanceOfM(acc, token || null)];
         case 1:
-          return [2 /*return*/ , (_a.sent())[0]];
+          return [2 /*return*/ , (_a.sent()) || bigNumberify(0)];
       }
     });
   });
