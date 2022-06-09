@@ -252,6 +252,14 @@ export declare type ISimRes<Token, ContractInfo> = {
     mapRefs: Array<string>;
     isHalt: boolean;
 };
+export declare type ISimRemote<Token, ContractInfo> = {
+    pays: BigNumber;
+    bills: BigNumber;
+    toks: Array<Token>;
+    accs: Array<string>;
+    apps: Array<ContractInfo>;
+    fees: BigNumber;
+};
 export declare type ISimTxn<Token, ContractInfo> = {
     kind: 'to' | 'init';
     amt: BigNumber;
@@ -281,18 +289,17 @@ export declare type ISimTxn<Token, ContractInfo> = {
 } | {
     kind: 'remote';
     obj: ContractInfo;
-    pays: BigNumber;
-    bills: BigNumber;
-    toks: Array<Token>;
-    accs: Array<string>;
-    apps: Array<ContractInfo>;
-    fees: BigNumber;
+    remote: ISimRemote<Token, ContractInfo>;
 } | {
     kind: 'info';
     tok: Token;
 } | {
     kind: 'api';
     who: string;
+} | {
+    kind: 'contractNew';
+    cns: any;
+    remote: ISimRemote<Token, ContractInfo>;
 };
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk

@@ -169,7 +169,7 @@ var _d = __read(makeSigningMonitor(), 2),
   setSigningMonitor = _d[0],
   notifySend = _d[1];
 export { setSigningMonitor };
-var reachBackendVersion = 16;
+var reachBackendVersion = 17;
 var reachAlgoBackendVersion = 10;
 // module-wide config
 var customHttpEventHandler = function() {
@@ -589,6 +589,7 @@ function must_be_supported(bin) {
 export var MinTxnFee = 1000;
 var MaxAppTxnAccounts = 4;
 var MinBalance = 100000;
+var MaxAppProgramLen = 2048;
 var SchemaMinBalancePerEntry = 25000;
 var SchemaBytesMinBalance = 25000;
 var SchemaUintMinBalance = 3500;
@@ -2313,7 +2314,7 @@ export var connectAccount = function(networkAccount) {
                   case 11:
                     mapRefs = sim_r.mapRefs;
                     _loop_1 = function() {
-                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, whichApi, processSimTxn, addCompanion, readCI, companionCalls, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_10, jes, _r, _s;
+                      var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, whichApi, processRemote, processSimTxn, addCompanion, readCI, companionCalls, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_10, jes, _r, _s;
                       return __generator(this, function(_t) {
                         switch (_t.label) {
                           case 0:
@@ -2387,9 +2388,28 @@ export var connectAccount = function(networkAccount) {
                             howManyMoreFees = 0;
                             txnExtraTxns = [];
                             sim_i = 0;
+                            processRemote = function(dr) {
+                              dr.toks.map(recordAsset);
+                              dr.accs.map(recordAccount);
+                              dr.apps.map(recordApp);
+                              howManyMoreFees +=
+                                1 +
+                                bigNumberToNumber(dr.pays) +
+                                bigNumberToNumber(dr.bills) +
+                                bigNumberToNumber(dr.fees);
+                              return;
+                            };
                             processSimTxn = function(t) {
                               var txn;
-                              if (t.kind === 'tokenNew') {
+                              if (t.kind === 'contractNew') {
+                                processSimTxn({
+                                  kind: 'to',
+                                  amt: minimumBalance_app_create(t.cns[connector]),
+                                  tok: undefined
+                                });
+                                processRemote(t.remote);
+                                return;
+                              } else if (t.kind === 'tokenNew') {
                                 processSimTxn({
                                   kind: 'to',
                                   amt: minimumBalance,
@@ -2406,14 +2426,7 @@ export var connectAccount = function(networkAccount) {
                                 return;
                               } else if (t.kind === 'remote') {
                                 recordApp(t.obj);
-                                t.toks.map(recordAsset);
-                                t.accs.map(recordAccount);
-                                t.apps.map(recordApp);
-                                howManyMoreFees +=
-                                  1 +
-                                  bigNumberToNumber(t.pays) +
-                                  bigNumberToNumber(t.bills) +
-                                  bigNumberToNumber(t.fees);
+                                processRemote(t.remote);
                                 return;
                               } else if (t.kind === 'api') {
                                 whichApi = t.who;
@@ -3278,6 +3291,17 @@ var schemaBytesMinBalance = bigNumberify(SchemaBytesMinBalance);
 var schemaUintMinBalance = bigNumberify(SchemaUintMinBalance);
 var appFlatParamsMinBalance = bigNumberify(AppFlatParamsMinBalance);
 var appFlatOptInMinBalance = bigNumberify(AppFlatOptInMinBalance);
+var minimumBalance_app_create = function(cns) {
+  var code = cns.code,
+    opts = cns.opts;
+  var approval = code.approval,
+    clearState = code.clearState;
+  var totalLen = approval.length + clearState.length;
+  var ai_ExtraProgramPages = Math.ceil(totalLen / MaxAppProgramLen) - 1;
+  var ai_GlobalNumByteSlice = opts.globalBytes,
+    ai_GlobalNumUint = opts.globalUints;
+  return bigNumberify(100000 * (1 + ai_ExtraProgramPages) + (25000 + 3500) * ai_GlobalNumUint + (25000 + 25000) * ai_GlobalNumByteSlice);
+};
 /**
  * @description  Format currency by network
  */

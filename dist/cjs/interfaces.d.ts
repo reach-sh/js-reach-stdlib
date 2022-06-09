@@ -56,6 +56,7 @@ export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty
     simTokenDestroy: any;
     bytesConcat: (b1: string, b2: string) => string;
     fromSome: <A>(mo: MaybeRep<A>, da: A) => A;
+    simContractNew: any;
 }
 export interface Arith {
     add: (x: num, y: num) => BigNumber;

@@ -417,6 +417,11 @@ export var simTokenNew = function(sim_r, n, s, u, m, p, d, ctr) {
   // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
   return ctr;
 };
+export var simContractNew = function(sim_r, cns, remote, ctr) {
+  sim_r.txns.push({ kind: 'contractNew', cns: cns, remote: remote });
+  // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
+  return ctr;
+};
 export var simTokenBurn = function(sim_r, tok, amt) {
   sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });
 };

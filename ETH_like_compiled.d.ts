@@ -36,6 +36,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     simTokenDestroy: any;
     bytesConcat: (b1: string, b2: string) => string;
     fromSome: <A_6>(mo: shared_backend.MaybeRep<A_6>, da: A_6) => A_6;
+    simContractNew: any;
     assert: (b: boolean, message: string) => void;
     Array_set: <A_7>(arr: A_7[], idx: number, val: A_7) => A_7[];
     eq: (n1: shared_backend.num, n2: shared_backend.num) => boolean;

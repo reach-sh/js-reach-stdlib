@@ -117,7 +117,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 16;
+var reachBackendVersion = 17;
 var reachEthBackendVersion = 7;
 var reachPublish = function(m) { return "_reach_m".concat(m); };
 var reachEvent = function(e) { return "_reach_e".concat(e); };

@@ -61,6 +61,7 @@ export declare const simMapDupe: <A>(sim_r: any, mapi: number, mapo: LinearMap<A
 export declare const simMapRef: <A>(sim_r: any, mapi: number, f: string) => Promise<MaybeRep<A>>;
 export declare const simMapSet: <A>(sim_r: any, mapi: number, f: string, nv: A) => Promise<void>;
 export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p: any, d: any, ctr: any) => any;
+export declare const simContractNew: (sim_r: any, cns: any, remote: any, ctr: any) => any;
 export declare const simTokenBurn: (sim_r: any, tok: any, amt: any) => void;
 export declare const simTokenDestroy: (sim_r: any, tok: any) => void;
 //# sourceMappingURL=shared_backend.d.ts.map
