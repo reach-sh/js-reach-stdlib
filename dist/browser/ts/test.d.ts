@@ -11,6 +11,6 @@ export interface RunOpts {
     howManyAtOnce?: number;
     exitOnFail?: boolean;
 }
-export declare const run: (opts?: RunOpts | undefined) => Promise<void>;
+export declare const run: (opts?: RunOpts) => Promise<void>;
 export declare const makeChkExport: (stdlib: any, backend: any) => any;
 //# sourceMappingURL=test.d.ts.map

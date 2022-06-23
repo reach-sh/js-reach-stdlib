@@ -196,7 +196,7 @@ export declare type EventStream<T> = {
 };
 export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pick<ISetupViewArgs<ContractInfo, VerifyResult>, "setTrustedVerifyResult" | "getTrustedVerifyResult">, doVerify: () => Promise<VerifyResult>) => Promise<VerifyResult>;
 export declare const stdABIFilter: (x: any) => boolean;
-export declare const stdGetABI: (ABI: any) => (isFull?: boolean | undefined) => any;
+export declare const stdGetABI: (ABI: any) => (isFull?: boolean) => any;
 export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
 export declare type TokenMetadata = {
     name?: string;
@@ -356,7 +356,7 @@ export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Pro
     parallel: NewTestAccounts<X>;
     serial: NewTestAccounts<X>;
 };
-export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress) => Promise<BigNumber>;
 export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTime: BigNumber) => Promise<boolean>;
 declare type Pred<X> = (x: X) => boolean;
 declare type AsyncPred<X> = (x: X) => Promise<boolean>;

@@ -76,7 +76,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     newTestAccounts: (k: number, bal: any) => Promise<Account[]>;
     getNetworkTime: () => Promise<BigNumber>;
     waitUntilTime: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
-    wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+    wait: (delta: BigNumber, onProgress?: OnProgress) => Promise<BigNumber>;
     getNetworkSecs: () => Promise<BigNumber>;
     waitUntilSecs: (target: real_ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<real_ethers.BigNumber>;
     verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<VerifyResult>;

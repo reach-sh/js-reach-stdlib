@@ -111,7 +111,7 @@ export declare const transfer: (from: Account, to: Account, value: unknown, toke
 export declare const connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
 export declare const minimumBalanceOf: (acc: Account) => Promise<BigNumber>;
 export declare const balancesOf: (acc: Account, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
-export declare const balanceOf: (acc: Account, token?: ethers.BigNumber | undefined) => Promise<BigNumber>;
+export declare const balanceOf: (acc: Account, token?: Token) => Promise<BigNumber>;
 export declare const createAccount: () => Promise<Account>;
 export declare const canFundFromFaucet: () => Promise<boolean>;
 export declare const fundFromFaucet: (account: Account, value: unknown) => Promise<void>;
@@ -148,7 +148,7 @@ export declare const getTimeSecs: (now_bn: BigNumber) => Promise<BigNumber>;
 export declare const getNetworkSecs: () => Promise<BigNumber>;
 export declare const waitUntilTime: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
 export declare const waitUntilSecs: (target: ethers.BigNumber, onProgress?: OnProgress | undefined) => Promise<ethers.BigNumber>;
-export declare const wait: (delta: BigNumber, onProgress?: OnProgress | undefined) => Promise<BigNumber>;
+export declare const wait: (delta: BigNumber, onProgress?: OnProgress) => Promise<BigNumber>;
 declare type VerifyResult = {
     ApplicationID: BigNumber;
     Deployer: Address;
