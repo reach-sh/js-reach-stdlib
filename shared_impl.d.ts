@@ -435,4 +435,5 @@ export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifyS
 export declare const handleFormat: (amt: unknown, decimals: number, splitValue?: number) => string;
 export declare const formatWithDecimals: (amt: unknown, decimals: number) => string;
 export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber, as: BigNumber) => Error;
+export declare const makeParseCurrency: (defaultDecs: number) => (amt: CurrencyAmount, decimals?: number) => BigNumber;
 //# sourceMappingURL=shared_impl.d.ts.map

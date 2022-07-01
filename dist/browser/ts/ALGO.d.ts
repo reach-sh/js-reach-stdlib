@@ -6,7 +6,7 @@ import type { Transaction, SuggestedParams } from 'algosdk';
 import type { ARC11_Wallet, WalletTransaction } from './ALGO_ARC11';
 import type { BaseHTTPClient } from 'algosdk';
 import * as RHC from './ALGO_ReachHTTPClient';
-import { CurrencyAmount, OnProgress, IBackend, IAccount, IContract, LaunchTokenOpts } from './shared_impl';
+import { OnProgress, IBackend, IAccount, IContract, LaunchTokenOpts } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty, addressFromHex } from './ALGO_compiled';
 export type { Token } from './ALGO_compiled';
@@ -124,11 +124,12 @@ export declare const atomicUnit = "\u03BCALGO";
 /**
  * @description  Parse currency by network
  * @param amt  value in the {@link standardUnit} for the token.
+ * @param {number} [decimals] how many "decimal places" the target currency has. Defaults to the network standard.
  * @returns  the amount in the {@link atomicUnit} of the token.
  * @example  parseCurrency(100).toString() // => '100000000'
  * @example  parseCurrency(100, 3).toString() // => '100000'
  */
-export declare function parseCurrency(amt: CurrencyAmount, decimals?: number): BigNumber;
+export declare const parseCurrency: (amt: import("./shared_impl").CurrencyAmount, decimals?: number) => ethers.BigNumber;
 export declare const minimumBalance: BigNumber;
 /**
  * @description  Format currency by network

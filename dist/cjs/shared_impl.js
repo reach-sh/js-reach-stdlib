@@ -87,7 +87,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 exports.__esModule = true;
 exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
-exports.apiStateMismatchError = exports.formatWithDecimals = void 0;
+exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -1120,4 +1120,17 @@ var apiStateMismatchError = function (bin, es, as) {
         + (el == al ? "\n(This means that the commit() is in the continuation of impure control-flow.)" : ""));
 };
 exports.apiStateMismatchError = apiStateMismatchError;
+var makeParseCurrency = function (defaultDecs) { return function (amt, decimals) {
+    if (decimals === void 0) { decimals = defaultDecs; }
+    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
+        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
+    }
+    var _a = __read(amt.toString().split('.')), amtL = _a[0], amtR = _a[1], amtMore = _a.slice(2);
+    if (amtMore.length > 0) {
+        throw Error("malformed input: parseCurrency('".concat(amt, "')"));
+    }
+    var amtStr = "".concat(amtL, ".").concat((amtR || '').slice(0, decimals));
+    return (0, CBR_1.bigNumberify)(ethers_1.ethers.utils.parseUnits(amtStr, decimals));
+}; };
+exports.makeParseCurrency = makeParseCurrency;
 //# sourceMappingURL=shared_impl.js.map

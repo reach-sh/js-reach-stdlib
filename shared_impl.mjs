@@ -1178,4 +1178,21 @@ export var apiStateMismatchError = function(bin, es, as) {
     "\nState ".concat(as, " corresponds to the commit() at ").concat(al) +
     (el == al ? "\n(This means that the commit() is in the continuation of impure control-flow.)" : ""));
 };
+export var makeParseCurrency = function(defaultDecs) {
+  return function(amt, decimals) {
+    if (decimals === void 0) { decimals = defaultDecs; }
+    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
+      throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
+    }
+    var _a = __read(amt.toString().split('.')),
+      amtL = _a[0],
+      amtR = _a[1],
+      amtMore = _a.slice(2);
+    if (amtMore.length > 0) {
+      throw Error("malformed input: parseCurrency('".concat(amt, "')"));
+    }
+    var amtStr = "".concat(amtL, ".").concat((amtR || '').slice(0, decimals));
+    return bigNumberify(ethers.utils.parseUnits(amtStr, decimals));
+  };
+};
 //# sourceMappingURL=shared_impl.js.map

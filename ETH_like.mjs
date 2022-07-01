@@ -109,7 +109,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
 import Timeout from 'await-timeout';
 import real_ethers from 'ethers';
 import { assert, protect, } from './shared_backend.mjs';
-import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, } from './shared_impl.mjs';
+import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, makeParseCurrency, } from './shared_impl.mjs';
 import { bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
 import { setQueryLowerBound, getQueryLowerBound, formatWithDecimals } from './shared_impl.mjs';
@@ -1789,12 +1789,11 @@ export function makeEthLike(ethLikeArgs) {
   /**
    * @description  Parse currency by network
    * @param amt  value in the {@link standardUnit} for the network.
+   * @param {number} [decimals] how many "decimal places" the target currency has. Defaults to the network standard.
    * @returns  the amount in the {@link atomicUnit} of the network.
    * @example  parseCurrency(100).toString() // => '100000000000000000000'
    */
-  function parseCurrency(amt) {
-    return bigNumberify(real_ethers.utils.parseUnits(amt.toString(), standardDigits));
-  }
+  var parseCurrency = makeParseCurrency(standardDigits);
   var zeroBn = bigNumberify(0);
   var minimumBalance = zeroBn;
   /**

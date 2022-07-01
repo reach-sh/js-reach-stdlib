@@ -1559,12 +1559,11 @@ function makeEthLike(ethLikeArgs) {
     /**
      * @description  Parse currency by network
      * @param amt  value in the {@link standardUnit} for the network.
+     * @param {number} [decimals] how many "decimal places" the target currency has. Defaults to the network standard.
      * @returns  the amount in the {@link atomicUnit} of the network.
      * @example  parseCurrency(100).toString() // => '100000000000000000000'
      */
-    function parseCurrency(amt) {
-        return (0, shared_user_1.bigNumberify)(ethers_1.ethers.utils.parseUnits(amt.toString(), standardDigits));
-    }
+    var parseCurrency = (0, shared_impl_1.makeParseCurrency)(standardDigits);
     var zeroBn = (0, shared_user_1.bigNumberify)(0);
     var minimumBalance = zeroBn;
     /**

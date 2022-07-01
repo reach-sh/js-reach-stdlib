@@ -2991,24 +2991,12 @@ exports.atomicUnit = 'μALGO';
 /**
  * @description  Parse currency by network
  * @param amt  value in the {@link standardUnit} for the token.
+ * @param {number} [decimals] how many "decimal places" the target currency has. Defaults to the network standard.
  * @returns  the amount in the {@link atomicUnit} of the token.
  * @example  parseCurrency(100).toString() // => '100000000'
  * @example  parseCurrency(100, 3).toString() // => '100000'
  */
-function parseCurrency(amt, decimals) {
-    if (decimals === void 0) { decimals = 6; }
-    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
-    }
-    // @ts-ignore
-    var numericAmt = (0, shared_user_1.isBigNumber)(amt) ? amt.toNumber()
-        : typeof amt === 'string' ? parseFloat(amt)
-            : typeof amt === 'bigint' ? Number(amt)
-                : amt;
-    var value = numericAmt * (Math.pow(10, decimals));
-    return (0, shared_user_1.bigNumberify)(Math.floor(value));
-}
-exports.parseCurrency = parseCurrency;
+exports.parseCurrency = (0, shared_impl_1.makeParseCurrency)(6);
 exports.minimumBalance = (0, shared_user_1.bigNumberify)(MinBalance);
 var schemaMinBalancePerEntry = (0, shared_user_1.bigNumberify)(SchemaMinBalancePerEntry);
 var schemaBytesMinBalance = (0, shared_user_1.bigNumberify)(SchemaBytesMinBalance);

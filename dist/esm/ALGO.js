@@ -93,8 +93,8 @@ import * as RHC from './ALGO_ReachHTTPClient';
 import * as UTBC from './ALGO_UTBC';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, } from './shared_impl';
-import { isBigNumber, bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, makeParseCurrency, } from './shared_impl';
+import { bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user';
 import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
 import { window, process } from './shim';
@@ -2931,23 +2931,12 @@ export var atomicUnit = 'μALGO';
 /**
  * @description  Parse currency by network
  * @param amt  value in the {@link standardUnit} for the token.
+ * @param {number} [decimals] how many "decimal places" the target currency has. Defaults to the network standard.
  * @returns  the amount in the {@link atomicUnit} of the token.
  * @example  parseCurrency(100).toString() // => '100000000'
  * @example  parseCurrency(100, 3).toString() // => '100000'
  */
-export function parseCurrency(amt, decimals) {
-    if (decimals === void 0) { decimals = 6; }
-    if (!(Number.isInteger(decimals) && 0 <= decimals)) {
-        throw Error("Expected decimals to be a nonnegative integer, but got ".concat(decimals, "."));
-    }
-    // @ts-ignore
-    var numericAmt = isBigNumber(amt) ? amt.toNumber()
-        : typeof amt === 'string' ? parseFloat(amt)
-            : typeof amt === 'bigint' ? Number(amt)
-                : amt;
-    var value = numericAmt * (Math.pow(10, decimals));
-    return bigNumberify(Math.floor(value));
-}
+export var parseCurrency = makeParseCurrency(6);
 export var minimumBalance = bigNumberify(MinBalance);
 var schemaMinBalancePerEntry = bigNumberify(SchemaMinBalancePerEntry);
 var schemaBytesMinBalance = bigNumberify(SchemaBytesMinBalance);

@@ -2,7 +2,7 @@ import { ethers as real_ethers } from 'ethers';
 import type { // =>
 BigNumber } from 'ethers';
 import type { // =>
-CurrencyAmount, IAccount, IBackend, IContract, OnProgress, LaunchTokenOpts } from './shared_impl';
+IAccount, IBackend, IContract, OnProgress, LaunchTokenOpts } from './shared_impl';
 import type { // =>
 AnyETH_Ty, Token } from './ETH_like_compiled';
 export type { Token } from './ETH_like_compiled';
@@ -82,7 +82,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     verifyContract: (ctcInfo: ContractInfo, backend: Backend) => Promise<VerifyResult>;
     standardUnit: string;
     atomicUnit: string;
-    parseCurrency: (amt: CurrencyAmount) => BigNumber;
+    parseCurrency: (amt: import("./shared_impl").CurrencyAmount, decimals?: number) => real_ethers.BigNumber;
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
     formatAddress: (acc: string | NetworkAccount | Account) => string;
