@@ -728,7 +728,7 @@ var makeEventQueue = function (ctorArgs) {
         customIgnore.push(pred);
     };
     var notIgnored = function (txn) { return (!alwaysIgnored(txn)); };
-    var peq = function (lab, didTimeout) { return __awaiter(void 0, void 0, void 0, function () {
+    var peq = function (lab, didTimeout, limsug) { return __awaiter(void 0, void 0, void 0, function () {
         var dhead, updateCtime, howMany, _loop_1, state_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -749,7 +749,7 @@ var makeEventQueue = function (ctorArgs) {
                         var _b, txns, gtime, r_1, cmpTxn, cis, ci, t, _c;
                         return __generator(this, function (_d) {
                             switch (_d.label) {
-                                case 0: return [4 /*yield*/, getTxns(dhead, initArgs, ctime, howMany++)];
+                                case 0: return [4 /*yield*/, getTxns(dhead, initArgs, ctime, howMany++, limsug)];
                                 case 1:
                                     _b = _d.sent(), txns = _b.txns, gtime = _b.gtime;
                                     if (txns.length === 0 && gtime) {
@@ -807,11 +807,11 @@ var makeEventQueue = function (ctorArgs) {
             }
         });
     }); };
-    var deq = function (dhead) { return __awaiter(void 0, void 0, void 0, function () {
+    var deq = function (dhead, limsug) { return __awaiter(void 0, void 0, void 0, function () {
         var r;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, peq(dhead, neverTrue)];
+                case 0: return [4 /*yield*/, peq(dhead, neverTrue, limsug)];
                 case 1:
                     r = _a.sent();
                     if (r.timeout) {
@@ -1112,11 +1112,15 @@ var apiStateMismatchError = function (bin, es, as) {
     var formatLoc = function (s) {
         return (0, shared_backend_1.formatAssertInfo)(bin._stateSourceMap[s.toNumber()]);
     };
-    var el = formatLoc(es);
+    var msg = function (s, l) { return "\nState ".concat(s, " corresponds to the commit() at ").concat(l); };
+    var el = Array.isArray(es)
+        ? es.map(function (s) { return msg(s, formatLoc(s)); })
+        : msg(es, formatLoc(es));
     var al = formatLoc(as);
-    return Error("Expected the DApp to be in state ".concat(es, ", but it was actually in state ").concat(as, ".\n")
-        + "\nState ".concat(es, " corresponds to the commit() at ").concat(el)
-        + "\nState ".concat(as, " corresponds to the commit() at ").concat(al)
+    var fmtEs = Array.isArray(es) ? "[" + es + "]" : es;
+    return Error("Expected the DApp to be in state(s) ".concat(fmtEs, ", but it was actually in state ").concat(as, ".\n")
+        + el
+        + msg(as, al)
         + (el == al ? "\n(This means that the commit() is in the continuation of impure control-flow.)" : ""));
 };
 exports.apiStateMismatchError = apiStateMismatchError;

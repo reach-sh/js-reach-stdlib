@@ -371,8 +371,8 @@ export interface IEventQueue<EQInitArgs, RawTxn, ProcTxn> {
     isInited: () => boolean;
     init: (args: EQInitArgs) => void;
     pushIgnore: (pred: Pred<RawTxn>) => void;
-    peq: (lab: string, didTimeout: AsyncPred<Time>) => Promise<EQPeqResult<ProcTxn>>;
-    deq: (dhead: string) => Promise<ProcTxn>;
+    peq: (lab: string, didTimeout: AsyncPred<Time>, limsug?: number) => Promise<EQPeqResult<ProcTxn>>;
+    deq: (dhead: string, limsug?: number) => Promise<ProcTxn>;
 }
 export interface EQGetTxnsR<RawTxn> {
     txns: Array<RawTxn>;
@@ -381,7 +381,7 @@ export interface EQGetTxnsR<RawTxn> {
 export interface EQCtorArgs<EQInitArgs, RawTxn, ProcTxn> {
     raw2proc: (t: RawTxn) => ProcTxn;
     alwaysIgnored: Pred<RawTxn>;
-    getTxns: (dhead: string, initArgs: EQInitArgs, ctime: Time, howMany: number) => Promise<EQGetTxnsR<RawTxn>>;
+    getTxns: (dhead: string, initArgs: EQInitArgs, ctime: Time, howMany: number, limsug?: number) => Promise<EQGetTxnsR<RawTxn>>;
     getTxnTime: (x: RawTxn) => Time;
 }
 export declare const makeEventQueue: <EQInitArgs, RawTxn, ProcTxn>(ctorArgs: EQCtorArgs<EQInitArgs, RawTxn, ProcTxn>) => IEventQueue<EQInitArgs, RawTxn, ProcTxn>;
@@ -434,6 +434,6 @@ export declare type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, 
 export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifySend<A, B>];
 export declare const handleFormat: (amt: unknown, decimals: number, splitValue?: number) => string;
 export declare const formatWithDecimals: (amt: unknown, decimals: number) => string;
-export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber, as: BigNumber) => Error;
+export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber | BigNumber[], as: BigNumber) => Error;
 export declare const makeParseCurrency: (defaultDecs: number) => (amt: CurrencyAmount, decimals?: number) => BigNumber;
 //# sourceMappingURL=shared_impl.d.ts.map

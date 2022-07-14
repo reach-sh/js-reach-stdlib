@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { bigNumberToNumber } from './CBR';
-export { bigNumberToNumber, };
+import { apiStateMismatchError } from './shared_impl';
+export { bigNumberToNumber, apiStateMismatchError, };
 declare type BigNumber = ethers.BigNumber;
 export declare type num = BigNumber | number;
 export declare type MaybeRep<A> = ['Some', A] | ['None', null];

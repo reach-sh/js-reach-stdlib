@@ -668,7 +668,7 @@ var apiOnly = function (txn) {
     }
 };
 var newEventQueue = function () {
-    var getTxns = function (dhead, initArgs, ctime, howMany) { return __awaiter(void 0, void 0, void 0, function () {
+    var getTxns = function (dhead, initArgs, ctime, howMany, limsug) { return __awaiter(void 0, void 0, void 0, function () {
         var ApplicationID, indexer, mtime, appn, query, q, res, txns, walkTxns, gtime;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -684,6 +684,10 @@ var newEventQueue = function () {
                         .applicationID(appn)
                         //.txType('appl')
                         .minRound(mtime);
+                    // TODO: ignore limsug on randlabs?
+                    if (limsug) {
+                        query = query.limit(limsug);
+                    }
                     q = query;
                     return [4 /*yield*/, doQuery_(dhead, q, howMany)];
                 case 2:
@@ -3239,7 +3243,7 @@ var verifyContract_ = function (label, info, bin, eq) { return __awaiter(void 0,
                 chkeq_bn(appInfo_GlobalState['num-byte-slice'], appGlobalStateNumBytes + stateKeys, "Num of byte-slices in global state schema does not match Reach backend");
                 chkeq_bn(appInfo_GlobalState['num-uint'], appGlobalStateNumUInt, "Num of uints in global state schema does not match Reach backend");
                 eq.init({ ApplicationID: ApplicationID });
-                return [4 /*yield*/, eq.deq(dhead)];
+                return [4 /*yield*/, eq.deq(dhead, 1)];
             case 2:
                 iat = _b.sent();
                 (0, shared_impl_1.debug)({ iat: iat });
