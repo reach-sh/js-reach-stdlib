@@ -1766,22 +1766,21 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); };
             };
-            var getCurrentStep_ = function (getC) { return __awaiter(void 0, void 0, void 0, function () {
-                var _a, getAppState, getGlobalState, appSt, gs;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
-                        case 0: return [4 /*yield*/, getC()];
-                        case 1:
-                            _a = _b.sent(), getAppState = _a.getAppState, getGlobalState = _a.getGlobalState;
+            var getCurrentStep_ = function (ch) { return __awaiter(void 0, void 0, void 0, function () {
+                var getAppState, getGlobalState, appSt, gs;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            getAppState = ch.getAppState, getGlobalState = ch.getGlobalState;
                             return [4 /*yield*/, getAppState()];
-                        case 2:
-                            appSt = _b.sent();
+                        case 1:
+                            appSt = _a.sent();
                             if (!appSt) {
                                 throw Error("getCurrentStep_: no appSt");
                             }
                             return [4 /*yield*/, getGlobalState(appSt)];
-                        case 3:
-                            gs = _b.sent();
+                        case 2:
+                            gs = _a.sent();
                             if (!gs) {
                                 throw Error("getCurrentStep_: no gs");
                             }
@@ -1863,10 +1862,14 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                     });
                 }); };
                 var getCurrentStep = function () { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, getCurrentStep_(getC)];
-                            case 1: return [2 /*return*/, _a.sent()];
+                    var _a;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                _a = getCurrentStep_;
+                                return [4 /*yield*/, getC()];
+                            case 1: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
+                            case 2: return [2 /*return*/, _b.sent()];
                         }
                     });
                 }); };
@@ -2530,17 +2533,20 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                             args[_i] = arguments[_i];
                         }
                         return __awaiter(void 0, void 0, void 0, function () {
-                            var decode, step, vi, vtys_1, _a, _, vvs, vres, e_12;
+                            var decode, ch, step, vi, vtys_1, _a, _, vvs, vres, e_12;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
                                         debug('getView1', v, k, args);
                                         decode = vim.decode;
-                                        _b.label = 1;
+                                        return [4 /*yield*/, getC()];
                                     case 1:
-                                        _b.trys.push([1, 5, , 6]);
-                                        return [4 /*yield*/, getCurrentStep_(getC)];
+                                        ch = _b.sent();
+                                        _b.label = 2;
                                     case 2:
+                                        _b.trys.push([2, 6, , 7]);
+                                        return [4 /*yield*/, getCurrentStep_(ch)];
+                                    case 3:
                                         step = _b.sent();
                                         vi = bigNumberToNumber(step);
                                         vtys_1 = vs[vi];
@@ -2548,14 +2554,14 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                             throw Error("no views for state ".concat(step));
                                         }
                                         return [4 /*yield*/, getState_(getC, function (_) { return vtys_1; })];
-                                    case 3:
+                                    case 4:
                                         _a = __read.apply(void 0, [_b.sent(), 2]), _ = _a[0], vvs = _a[1];
                                         return [4 /*yield*/, decode(vi, vvs, args)];
-                                    case 4:
+                                    case 5:
                                         vres = _b.sent();
                                         debug({ vres: vres });
                                         return [2 /*return*/, isSafe ? ['Some', vres] : vres];
-                                    case 5:
+                                    case 6:
                                         e_12 = _b.sent();
                                         debug("getView1", v, k, 'error', e_12);
                                         if (isSafe) {
@@ -2564,8 +2570,8 @@ export var connectAccount = function (networkAccount) { return __awaiter(void 0,
                                         else {
                                             throw Error("View ".concat(v, ".").concat(k, " is not set."));
                                         }
-                                        return [3 /*break*/, 6];
-                                    case 6: return [2 /*return*/];
+                                        return [3 /*break*/, 7];
+                                    case 7: return [2 /*return*/];
                                 }
                             });
                         });
