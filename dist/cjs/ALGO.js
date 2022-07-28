@@ -2777,11 +2777,14 @@ var minimumBalanceOf = function (acc) { return __awaiter(void 0, void 0, void 0,
 }); };
 exports.minimumBalanceOf = minimumBalanceOf;
 var balancesOfM = function (acc, tokens) { return __awaiter(void 0, void 0, void 0, function () {
-    var client, query_1, accountInfoM, accountInfo_1, accountAssets_1, tokenBalances_1, indexer, addr, query, accountAssets, tokenBalances;
+    var bn, tokenbs, client, query_1, accountInfoM, accountInfo_1, accountAssets_1, tokenBalances_1, indexer, addr, query, accountAssets, tokenBalances;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, nodeCanRead()];
+            case 0:
+                bn = shared_user_1.bigNumberify;
+                tokenbs = tokens.map(function (tr) { return tr == null ? tr : bn(tr); });
+                return [4 /*yield*/, nodeCanRead()];
             case 1:
                 if (!_b.sent()) return [3 /*break*/, 4];
                 return [4 /*yield*/, getAlgodClient()];
@@ -2794,14 +2797,14 @@ var balancesOfM = function (acc, tokens) { return __awaiter(void 0, void 0, void
                 if ('val' in accountInfoM) {
                     accountInfo_1 = accountInfoM['val'];
                     accountAssets_1 = (_a = accountInfo_1['assets']) !== null && _a !== void 0 ? _a : [];
-                    tokenBalances_1 = tokens.map(function (t) {
+                    tokenBalances_1 = tokenbs.map(function (tb) {
                         var _a;
-                        if (t === null) {
-                            return (0, shared_user_1.bigNumberify)(accountInfo_1['amount']);
+                        if (tb === null) {
+                            return bn(accountInfo_1['amount']);
                         }
                         else {
-                            var bal = (_a = accountAssets_1.find(function (asset) { return t.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
-                            return bal ? (0, shared_user_1.bigNumberify)(bal) : false;
+                            var bal = (_a = accountAssets_1.find(function (asset) { return tb.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
+                            return bal ? bn(bal) : false;
                         }
                     });
                     return [2 /*return*/, tokenBalances_1];
@@ -2815,18 +2818,18 @@ var balancesOfM = function (acc, tokens) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, doQuery_('balancesOfM', query)];
             case 6:
                 accountAssets = (_b.sent())['assets'];
-                tokenBalances = tokens.map(function (t) { return __awaiter(void 0, void 0, void 0, function () {
+                tokenBalances = tokenbs.map(function (tb) { return __awaiter(void 0, void 0, void 0, function () {
                     var bal;
                     var _a;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
-                                if (!(t === null)) return [3 /*break*/, 2];
-                                return [4 /*yield*/, balanceOfM(acc, t)];
+                                if (!(tb === null)) return [3 /*break*/, 2];
+                                return [4 /*yield*/, balanceOfM(acc, tb)];
                             case 1: return [2 /*return*/, _b.sent()];
                             case 2:
-                                bal = (_a = accountAssets.find(function (asset) { return t.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
-                                return [2 /*return*/, bal ? (0, shared_user_1.bigNumberify)(bal) : false];
+                                bal = (_a = accountAssets.find(function (asset) { return tb.eq(asset['asset-id']); })) === null || _a === void 0 ? void 0 : _a['amount'];
+                                return [2 /*return*/, bal ? bn(bal) : false];
                         }
                     });
                 }); });
@@ -3283,42 +3286,43 @@ function unsafeGetMnemonic(acc) {
     return algosdk_1["default"].secretKeyToMnemonic(networkAccount.sk);
 }
 exports.unsafeGetMnemonic = unsafeGetMnemonic;
-var makeAssetCreateTxn = function (creator, supply, decimals, symbol, name, url, metadataHash, clawback, note, params) {
-    return algosdk_1["default"].makeAssetCreateTxnWithSuggestedParamsFromObject({
-        from: creator,
-        note: note,
-        total: (0, shared_user_1.bigNumberToBigInt)(supply),
-        decimals: decimals,
-        defaultFrozen: false,
-        unitName: symbol,
-        assetName: name,
-        assetURL: url,
-        assetMetadataHash: metadataHash,
-        clawback: clawback,
-        suggestedParams: params
-    });
-};
 var launchToken = function (accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var addrCreator, supply, decimals, url, metadataHash, clawback, note, params, txnResult, assetIndex, id, mint, optOut;
-        var _a, _b, _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var addrCreator, supply, decimals, url, assetMetadataHash, f_addr, clawback, freeze, reserve, note, defaultFrozen, suggestedParams, txnResult, assetIndex, id, mint, optOut;
+        var _a, _b, _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     addrCreator = accCreator.networkAccount.addr;
                     supply = opts.supply ? (0, shared_user_1.bigNumberify)(opts.supply) : (0, shared_user_1.bigNumberify)(2).pow(64).sub(1);
                     decimals = (_a = opts.decimals) !== null && _a !== void 0 ? _a : 6;
                     url = (_b = opts.url) !== null && _b !== void 0 ? _b : '';
-                    metadataHash = (_c = opts.metadataHash) !== null && _c !== void 0 ? _c : '';
-                    clawback = opts.clawback ? cbr2algo_addr((0, exports.protect)(exports.T_Address, opts.clawback)) : undefined;
+                    assetMetadataHash = (_c = opts.metadataHash) !== null && _c !== void 0 ? _c : '';
+                    f_addr = function (x) { return x ? cbr2algo_addr((0, exports.protect)(exports.T_Address, x)) : undefined; };
+                    clawback = f_addr(opts.clawback);
+                    freeze = f_addr(opts.freeze);
+                    reserve = f_addr(opts.reserve);
                     note = opts.note || undefined;
+                    defaultFrozen = (_d = opts.defaultFrozen) !== null && _d !== void 0 ? _d : false;
                     return [4 /*yield*/, (0, exports.getTxnParams)('launchToken')];
                 case 1:
-                    params = _d.sent();
-                    return [4 /*yield*/, sign_and_send_sync("launchToken ".concat((0, shared_impl_1.j2s)(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, (0, exports.toWTxn)(makeAssetCreateTxn(addrCreator, supply, decimals, sym, name, url, metadataHash, clawback, note, params)))];
+                    suggestedParams = _e.sent();
+                    return [4 /*yield*/, sign_and_send_sync("launchToken ".concat((0, shared_impl_1.j2s)(accCreator), " ").concat(name, " ").concat(sym), accCreator.networkAccount, (0, exports.toWTxn)(algosdk_1["default"].makeAssetCreateTxnWithSuggestedParamsFromObject({
+                            assetMetadataHash: assetMetadataHash,
+                            assetName: name, assetURL: url,
+                            clawback: clawback,
+                            decimals: decimals,
+                            defaultFrozen: defaultFrozen,
+                            freeze: freeze,
+                            note: note,
+                            reserve: reserve,
+                            suggestedParams: suggestedParams,
+                            total: (0, shared_user_1.bigNumberToBigInt)(supply), unitName: sym,
+                            from: addrCreator
+                        })))];
                 case 2:
-                    txnResult = _d.sent();
+                    txnResult = _e.sent();
                     assetIndex = txnResult['created-asset-index'];
                     if (!assetIndex)
                         throw Error("".concat(sym, " no asset-index!"));

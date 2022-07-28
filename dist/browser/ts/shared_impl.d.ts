@@ -210,6 +210,9 @@ export declare type LaunchTokenOpts = {
     'decimals'?: number;
     'supply'?: unknown;
     'clawback'?: any;
+    'freeze'?: any;
+    'reserve'?: any;
+    'defaultFrozen'?: boolean;
     'url'?: string;
     'metadataHash'?: string;
     'note'?: Uint8Array;
