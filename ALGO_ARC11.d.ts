@@ -32,6 +32,7 @@ export interface PostTxnsResult {
 export declare type SignAndPostTxnsFunction = (txns: WalletTransaction[], opts?: any) => Promise<PostTxnsResult>;
 export declare type GetAlgodv2ClientFunction = () => Promise<BaseHTTPClient>;
 export declare type GetIndexerClientFunction = () => Promise<BaseHTTPClient>;
+export declare type DisconnectFunction = () => Promise<void>;
 export interface WindowAlgorand {
     enable: EnableFunction;
     enableNetwork?: EnableNetworkFunction;
@@ -41,6 +42,7 @@ export interface WindowAlgorand {
     signAndPostTxns: SignAndPostTxnsFunction;
     getAlgodv2Client: GetAlgodv2ClientFunction;
     getIndexerClient: GetIndexerClientFunction;
+    disconnect?: DisconnectFunction;
 }
 export declare type ARC11_Wallet = WindowAlgorand & {
     _env?: any;

@@ -60,9 +60,10 @@ import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "algorand-walletconnect-qrcode-modal";
 import { Signal } from "./shared_impl";
 var ALGO_WalletConnect = /** @class */ (function() {
-  function ALGO_WalletConnect() {
+  function ALGO_WalletConnect(wc) {
+    if (wc === void 0) { wc = false; }
     console.log("AWC ctor");
-    this.wc = false;
+    this.wc = wc;
     this.connected = new Signal();
   }
   ALGO_WalletConnect.prototype.ensureWC = function() {
@@ -92,6 +93,20 @@ var ALGO_WalletConnect = /** @class */ (function() {
       });
     });
   };;
+  ALGO_WalletConnect.prototype.disconnect = function() {
+    return __awaiter(this, void 0, void 0, function() {
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            console.log("AWC killSession");
+            return [4 /*yield*/ , this.wc.killSession()];
+          case 1:
+            _a.sent();
+            return [2 /*return*/ ];
+        }
+      });
+    });
+  };
   ALGO_WalletConnect.prototype.ensureSession = function() {
     return __awaiter(this, void 0, void 0, function() {
       return __generator(this, function(_a) {
@@ -169,5 +184,5 @@ var ALGO_WalletConnect = /** @class */ (function() {
   };
   return ALGO_WalletConnect;
 }());
-export default ALGO_WalletConnect;;
+export default ALGO_WalletConnect;
 //# sourceMappingURL=ALGO_WalletConnect.js.map

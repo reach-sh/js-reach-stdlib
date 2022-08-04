@@ -2,8 +2,9 @@ import { Signal } from "./shared_impl";
 export default class ALGO_WalletConnect {
     wc: any;
     connected: Signal;
-    constructor();
+    constructor(wc?: any);
     ensureWC(): Promise<void>;
+    disconnect(): Promise<void>;
     ensureSession(): Promise<void>;
     getAddr(): Promise<string>;
     signTxns(txns: string[]): Promise<string[]>;

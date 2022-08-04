@@ -65,4 +65,5 @@ export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p
 export declare const simContractNew: (sim_r: any, cns: any, remote: any, ctr: any) => any;
 export declare const simTokenBurn: (sim_r: any, tok: any, amt: any) => void;
 export declare const simTokenDestroy: (sim_r: any, tok: any) => void;
+export declare const simTokenAccepted_: (sim_r: any, addr: any, tok: any) => void;
 //# sourceMappingURL=shared_backend.d.ts.map

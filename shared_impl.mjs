@@ -246,7 +246,8 @@ export var stdContract = function(stdContractArgs) {
       recv = _a.recv,
       getCurrentStep = _a.getCurrentStep,
       getState = _a.getState,
-      apiMapRef = _a.apiMapRef;
+      apiMapRef = _a.apiMapRef,
+      simTokenAccepted = _a.simTokenAccepted;
     return {
       selfAddress: selfAddress,
       iam: iam,
@@ -261,7 +262,8 @@ export var stdContract = function(stdContractArgs) {
       recv: recv,
       getCurrentStep: getCurrentStep,
       getState: getState,
-      apiMapRef: apiMapRef
+      apiMapRef: apiMapRef,
+      simTokenAccepted: simTokenAccepted
     };
   };
   var ctcC = { _initialize: _initialize };

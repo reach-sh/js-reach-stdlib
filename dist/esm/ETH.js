@@ -1,11 +1,28 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 import { makeEthLike } from './ETH_like';
 import * as ethImpl from './ETH_impl';
-export * from './ETH_compiled';
-export var connector = 'ETH';
-export * as ethers from 'ethers';
-var ethLike = makeEthLike(ethImpl);
-// The following should be identical to CFX.ts
-export var doCall = ethLike.doCall, getQueryLowerBound = ethLike.getQueryLowerBound, setQueryLowerBound = ethLike.setQueryLowerBound, getValidQueryWindow = ethLike.getValidQueryWindow, setValidQueryWindow = ethLike.setValidQueryWindow, getProvider = ethLike.getProvider, setProvider = ethLike.setProvider, randomUInt = ethLike.randomUInt, hasRandom = ethLike.hasRandom, setProviderByEnv = ethLike.setProviderByEnv, setProviderByName = ethLike.setProviderByName, providerEnvByName = ethLike.providerEnvByName, setWalletFallback = ethLike.setWalletFallback, walletFallback = ethLike.walletFallback, balanceOf = ethLike.balanceOf, balancesOf = ethLike.balancesOf, minimumBalanceOf = ethLike.minimumBalanceOf, transfer = ethLike.transfer, connectAccount = ethLike.connectAccount, newAccountFromSecret = ethLike.newAccountFromSecret, newAccountFromMnemonic = ethLike.newAccountFromMnemonic, getDefaultAccount = ethLike.getDefaultAccount, getFaucet = ethLike.getFaucet, setFaucet = ethLike.setFaucet, createAccount = ethLike.createAccount, canFundFromFaucet = ethLike.canFundFromFaucet, fundFromFaucet = ethLike.fundFromFaucet, newTestAccount = ethLike.newTestAccount, newTestAccounts = ethLike.newTestAccounts, getNetworkTime = ethLike.getNetworkTime, waitUntilTime = ethLike.waitUntilTime, wait = ethLike.wait, getNetworkSecs = ethLike.getNetworkSecs, getTimeSecs = ethLike.getTimeSecs, waitUntilSecs = ethLike.waitUntilSecs, verifyContract = ethLike.verifyContract, standardUnit = ethLike.standardUnit, atomicUnit = ethLike.atomicUnit, parseCurrency = ethLike.parseCurrency, minimumBalance = ethLike.minimumBalance, formatCurrency = ethLike.formatCurrency, formatAddress = ethLike.formatAddress, formatWithDecimals = ethLike.formatWithDecimals, unsafeGetMnemonic = ethLike.unsafeGetMnemonic, launchToken = ethLike.launchToken, reachStdlib = ethLike.reachStdlib, setMinMillisBetweenRequests = ethLike.setMinMillisBetweenRequests, setCustomHttpEventHandler = ethLike.setCustomHttpEventHandler, setSigningMonitor = ethLike.setSigningMonitor;
-export var add = reachStdlib.add, sub = reachStdlib.sub, mod = reachStdlib.mod, mul = reachStdlib.mul, div = reachStdlib.div, band = reachStdlib.band, bior = reachStdlib.bior, bxor = reachStdlib.bxor, eq = reachStdlib.eq, ge = reachStdlib.ge, gt = reachStdlib.gt, le = reachStdlib.le, lt = reachStdlib.lt, add256 = reachStdlib.add256, sub256 = reachStdlib.sub256, mod256 = reachStdlib.mod256, mul256 = reachStdlib.mul256, div256 = reachStdlib.div256, band256 = reachStdlib.band256, bior256 = reachStdlib.bior256, bxor256 = reachStdlib.bxor256, eq256 = reachStdlib.eq256, ge256 = reachStdlib.ge256, gt256 = reachStdlib.gt256, le256 = reachStdlib.le256, lt256 = reachStdlib.lt256, sqrt = reachStdlib.sqrt, sqrt256 = reachStdlib.sqrt256, cast = reachStdlib.cast, muldiv = reachStdlib.muldiv, protect = reachStdlib.protect, assert = reachStdlib.assert, Array_set = reachStdlib.Array_set, bytesEq = reachStdlib.bytesEq, digestEq = reachStdlib.digestEq, digest_xor = reachStdlib.digest_xor, bytes_xor = reachStdlib.bytes_xor, btoiLast8 = reachStdlib.btoiLast8;
-export * from './shared_user';
+import * as ethers from 'ethers';
+import * as shared_user from './shared_user';
+import * as ETH_compiled from './ETH_compiled';
+import * as ETH_compiled_impl from './ETH_compiled_impl';
+var _ETH_compiled_impl = ETH_compiled_impl;
+void (_ETH_compiled_impl);
+export var load = function () {
+    var ethers_ = ethers;
+    var ethImpl_ = ethImpl;
+    var ethLike = makeEthLike(ethImpl_);
+    var ETH_compiled_ = ETH_compiled;
+    var connector = 'ETH';
+    return __assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), ETH_compiled_), { connector: connector });
+};
 //# sourceMappingURL=ETH.js.map

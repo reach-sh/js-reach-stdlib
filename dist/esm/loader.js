@@ -33,19 +33,20 @@ export function loadStdlib(connectorModeOrEnv) {
     var connector = getConnector(connectorMode);
     // Remember the connector to prevent users from accidentally using multiple stdlibs
     doStdlibLoad(connector);
-    var stdlib;
+    var stdlib_x;
     switch (connector) {
         case 'ETH':
-            stdlib = stdlib_ETH;
+            stdlib_x = stdlib_ETH;
             break;
         case 'ALGO':
-            stdlib = stdlib_ALGO;
+            stdlib_x = stdlib_ALGO;
             break;
         case 'CFX':
-            stdlib = stdlib_CFX;
+            stdlib_x = stdlib_CFX;
             break;
         default: throw Error("impossible: unknown connector ".concat(connector));
     }
+    var stdlib = stdlib_x.load();
     // also just inject ourselves into the window for ease of use
     window.reach = stdlib;
     return stdlib;

@@ -133,6 +133,7 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
     getCurrentStep: () => Promise<BigNumber>;
     apiMapRef: (i: number, ty: ConnectorTy) => MapRefT<any>;
+    simTokenAccepted: (sim_r: any, addr: any, tok: any) => Promise<boolean>;
 };
 export declare type ISetupArgs<ContractInfo, VerifyResult> = {
     setInfo: (info: ContractInfo) => void;
@@ -142,7 +143,7 @@ export declare type ISetupArgs<ContractInfo, VerifyResult> = {
 };
 export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
 export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getContractCompanion" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef");
+declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getContractCompanion" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef" | "simTokenAccepted");
 export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
@@ -205,6 +206,12 @@ export declare type TokenMetadata = {
     metadata?: string;
     supply: BigNumber;
     decimals?: BigNumber;
+    clawback?: string;
+    creator?: string;
+    defaultFrozen?: boolean;
+    freeze?: string;
+    manager?: string;
+    reserve?: string;
 };
 export declare type LaunchTokenOpts = {
     'decimals'?: number;
@@ -289,6 +296,10 @@ export declare type ISimTxn<Token, ContractInfo> = {
 } | {
     kind: 'tokenDestroy';
     tok: Token;
+} | {
+    kind: 'tokenAccepted';
+    tok: Token;
+    addr: string;
 } | {
     kind: 'remote';
     obj: ContractInfo;

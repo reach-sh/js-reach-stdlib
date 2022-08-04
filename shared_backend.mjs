@@ -428,4 +428,7 @@ export var simTokenBurn = function(sim_r, tok, amt) {
 export var simTokenDestroy = function(sim_r, tok) {
   sim_r.txns.push({ kind: 'tokenDestroy', tok: tok });
 };
+export var simTokenAccepted_ = function(sim_r, addr, tok) {
+  sim_r.txns.push({ kind: 'tokenAccepted', addr: addr, tok: tok });
+};
 //# sourceMappingURL=shared_backend.js.map

@@ -50,6 +50,7 @@ declare type AccountTransferable = Account | {
     getStorageLimit?: () => BigNumber;
 };
 export declare function makeEthLike<Provider extends EthersLikeProvider, ProviderEnv, ProviderName>(ethLikeArgs: EthLikeArgs<Provider, ProviderEnv, ProviderName>): {
+    ethers: import("./ETH_like_interfaces").EthersLike;
     doCall: (dhead: string, ctc: EthersLikeContract, funcName: string, args: Array<any>, value: BigNumber, gasLimit: BigNumber | undefined, storageLimit: BigNumber | undefined) => Promise<TransactionReceipt>;
     getQueryLowerBound: typeof getQueryLowerBound;
     setQueryLowerBound: typeof setQueryLowerBound;

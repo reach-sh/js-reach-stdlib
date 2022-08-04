@@ -229,7 +229,7 @@ var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getContractCompanion = _a.getContractCompanion, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getContractCompanion = _a.getContractCompanion, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef, simTokenAccepted = _a.simTokenAccepted;
         return {
             selfAddress: selfAddress,
             iam: iam,
@@ -244,7 +244,8 @@ var stdContract = function (stdContractArgs) {
             recv: recv,
             getCurrentStep: getCurrentStep,
             getState: getState,
-            apiMapRef: apiMapRef
+            apiMapRef: apiMapRef,
+            simTokenAccepted: simTokenAccepted
         };
     };
     var ctcC = { _initialize: _initialize };

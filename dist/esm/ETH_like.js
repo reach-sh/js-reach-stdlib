@@ -83,7 +83,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import Timeout from 'await-timeout';
 import { ethers as real_ethers } from 'ethers';
-import { assert, protect, } from './shared_backend';
+import { assert, protect, simTokenAccepted_, } from './shared_backend';
 import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, makeParseCurrency, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, } from './shared_user';
 import ETHstdlib from './stdlib_sol';
@@ -92,7 +92,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 17;
+var reachBackendVersion = 18;
 var reachEthBackendVersion = 7;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -696,6 +696,12 @@ export function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); }; };
+                            var simTokenAccepted = function (sim_r, addr, tok) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    simTokenAccepted_(sim_r, addr, tok);
+                                    return [2 /*return*/, true];
+                                });
+                            }); };
                             var canIWin = function (lct) { return __awaiter(_this, void 0, void 0, function () {
                                 var ethersC, ret, val, e_4;
                                 return __generator(this, function (_a) {
@@ -1038,7 +1044,7 @@ export function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); };
-                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef };
+                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef, simTokenAccepted: simTokenAccepted };
                         };
                         var setupView = function (setupViewArgs) {
                             var eq = newEventQueue();
@@ -1655,7 +1661,7 @@ export function makeEthLike(ethLikeArgs) {
     }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { doCall: doCall, getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { ethers: ethers, doCall: doCall, getQueryLowerBound: getQueryLowerBound, setQueryLowerBound: setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs });
     return ethLike;
 }
 //# sourceMappingURL=ETH_like.js.map
