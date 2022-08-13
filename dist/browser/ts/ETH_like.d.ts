@@ -101,6 +101,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     setCustomHttpEventHandler: () => void;
     setSigningMonitor: import("./shared_impl").SetSigningMonitor;
     getTimeSecs: (now_bn: BigNumber) => Promise<BigNumber>;
+    tokensAccepted: (_addr: Address) => Promise<Array<Token>>;
     getProvider: () => Promise<Provider>;
     setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;

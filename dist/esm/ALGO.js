@@ -103,7 +103,7 @@ import * as shared_impl from './shared_impl';
 ;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 18;
+var reachBackendVersion = 19;
 var reachAlgoBackendVersion = 10;
 ;
 ;
@@ -1540,7 +1540,7 @@ export var load = function () {
             // @ts-ignore
             return this;
         }
-        var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokenAccept, tokenMetadata, unsupportedAcc, accObj, acc, balanceOf_, balancesOf_;
+        var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, unsupportedAcc, accObj, acc, balanceOf_, balancesOf_;
         return __generator(this, function (_a) {
             thisAcc = networkAccount;
             label = thisAcc.addr.substring(2, 6);
@@ -2686,6 +2686,7 @@ export var load = function () {
                     }
                 });
             }); };
+            tokensAccepted_ = function () { return tokensAccepted(extractAddr(networkAccount)); };
             tokenAccept = function (token) { return __awaiter(void 0, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2743,11 +2744,38 @@ export var load = function () {
                 });
             }); };
             unsupportedAcc = stdAccount_unsupported(connector);
-            accObj = __assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract });
+            accObj = __assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract });
             acc = accObj;
             balanceOf_ = function (token) { return balanceOf(acc, token); };
             balancesOf_ = function (tokens) { return balancesOf(acc, tokens); };
             return [2 /*return*/, stdAccount(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_ }))];
+        });
+    }); };
+    var tokensAccepted = function (addr_) { return __awaiter(void 0, void 0, void 0, function () {
+        var addr, assetHoldings, accountInfo, indexer, query;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    addr = cbr2algo_addr(protect(T_Address, addr_));
+                    return [4 /*yield*/, nodeCanRead()];
+                case 1:
+                    if (!_b.sent()) return [3 /*break*/, 3];
+                    return [4 /*yield*/, getAddressInfo(addr)];
+                case 2:
+                    accountInfo = _b.sent();
+                    assetHoldings = (_a = accountInfo['assets']) !== null && _a !== void 0 ? _a : [];
+                    return [3 /*break*/, 6];
+                case 3: return [4 /*yield*/, getIndexer()];
+                case 4:
+                    indexer = _b.sent();
+                    query = indexer.lookupAccountAssets(addr);
+                    return [4 /*yield*/, doQuery_('tokensAccepted', query)];
+                case 5:
+                    assetHoldings = (_b.sent())['assets'];
+                    _b.label = 6;
+                case 6: return [2 /*return*/, assetHoldings.map(function (ah) { return bigNumberify(ah["asset-id"]); })];
+            }
         });
     }); };
     var minimumBalanceOf = function (acc) { return __awaiter(void 0, void 0, void 0, function () {
@@ -3333,6 +3361,6 @@ export var load = function () {
             });
         });
     };
-    return __assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit });
+    return __assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit, tokensAccepted: tokensAccepted });
 };
 //# sourceMappingURL=ALGO.js.map

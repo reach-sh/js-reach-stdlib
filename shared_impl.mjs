@@ -517,16 +517,32 @@ export var makeArith = function(m) {
   var checkM = function(x) {
     return checkedBigNumberify("internal", m, x);
   };
-  var doBN2 = function(f, a, b) { return a[f](b); };
-  var getCheck = function(w) { return w ? checkB : checkM; };
-  var cast = function(from, to, x, trunc) {
+  var doBN2 = function(f, a, b, pre, post) {
+    if (pre === void 0) { pre = undefined; }
+    if (post === void 0) { post = undefined; }
+    if (pre && !(pre[1](a, b))) {
+      throw Error("Precondition failed: ".concat(pre[0]));
+    }
+    var r = a[f](b);
+    if (post && !(post[1](r))) {
+      throw Error("Postcondition failed: ".concat(post[0]));
+    }
+    return r;
+  };
+  var getCheck = function(w) { return w === 'UInt256' ? checkB : checkM; };
+  var cast = function(from, to, x, trunc, chkOverflow) {
     var checkF = getCheck(from);
-    var checkT = getCheck(to);
+    var checkT = chkOverflow ? getCheck(to) : (function(x) { return x; });
     var bigX = bigNumberify(x);
     var maybeTruncated = trunc ? bigX.and(m) : bigX;
     return checkT(checkF(maybeTruncated));
   };
-  var liftX2 = function(check) { return function(f) { return function(a, b) { return check(doBN2(f, bigNumberify(a), bigNumberify(b))); }; }; };
+  var liftX2 = function(check) {
+    return function(f, pre) {
+      if (pre === void 0) { pre = undefined; }
+      return function(a, b) { return check(doBN2(f, bigNumberify(a), bigNumberify(b), pre)); };
+    };
+  };
   var liftB = liftX2(checkB);
   var liftM = liftX2(checkM);
   var doBN1 = function(f, a) {
@@ -539,27 +555,44 @@ export var makeArith = function(m) {
   var liftX1 = function(check) { return function(f) { return function(a) { return check(doBN1(f, bigNumberify(a))); }; }; };
   var liftB1 = liftX1(checkB);
   var liftM1 = liftX1(checkM);
+  var addPreC = function(max) { return ["add overflow", function(x, y) { return x.lte(max.sub(y)); }]; };
+  var subPreC = ["sub wraparound", function(x, y) { return x.gte(y); }];
+  var mulPreC = function(max) { return ["mul overflow", function(x, y) { return x.eq(bigNumberify(0)) || y.eq(bigNumberify(0)) || x.lte(max.div(y)); }]; };
+  var divPreC = ["div by zero", function(_, y) { return y.gt(0); }];
   var add = liftM('add');
+  var safeAdd = liftM('add', addPreC(m));
   var sub = liftM('sub');
+  var safeSub = liftM('sub', subPreC);
   var mod = liftM('mod');
+  var safeMod = liftM('mod', divPreC);
   var mul = liftM('mul');
+  var safeMul = liftM('mul', mulPreC(m));
   var div = liftM('div');
+  var safeDiv = liftM('div', divPreC);
   var band = liftM('and');
   var bior = liftM('or');
   var bxor = liftM('xor');
   var sqrt = liftM1('sqrt');
   var add256 = liftB('add');
+  var safeAdd256 = liftB('add', addPreC(UInt256_max));
   var sub256 = liftB('sub');
+  var safeSub256 = liftB('sub', subPreC);
   var mod256 = liftB('mod');
+  var safeMod256 = liftB('mod', divPreC);
   var mul256 = liftB('mul');
+  var safeMul256 = liftB('mul', mulPreC(UInt256_max));
   var div256 = liftB('div');
+  var safeDiv256 = liftB('div', divPreC);
   var band256 = liftB('and');
   var bior256 = liftB('or');
   var bxor256 = liftB('xor');
   var sqrt256 = liftB1('sqrt');
   var muldiv = function(a, b, c) {
     var prod = bigNumberify(a).mul(bigNumberify(b));
-    return checkM(prod.div(bigNumberify(c)));
+    return prod.div(bigNumberify(c));
+  };
+  var safeMuldiv = function(a, b, c) {
+    return checkM(muldiv(a, b, c));
   };
   return {
     add: add,
@@ -580,8 +613,19 @@ export var makeArith = function(m) {
     bior256: bior256,
     bxor256: bxor256,
     sqrt256: sqrt256,
+    safeAdd256: safeAdd256,
+    safeSub256: safeSub256,
+    safeMod256: safeMod256,
+    safeMul256: safeMul256,
+    safeDiv256: safeDiv256,
     cast: cast,
-    muldiv: muldiv
+    muldiv: muldiv,
+    safeMuldiv: safeMuldiv,
+    safeAdd: safeAdd,
+    safeSub: safeSub,
+    safeMod: safeMod,
+    safeDiv: safeDiv,
+    safeMul: safeMul
   };
 };
 export var argsSlice = function(args, cnt) {

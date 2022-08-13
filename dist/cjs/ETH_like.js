@@ -99,7 +99,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 18;
+var reachBackendVersion = 19;
 var reachEthBackendVersion = 7;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -494,7 +494,7 @@ function makeEthLike(ethLikeArgs) {
             // @ts-ignore
             return this;
         }
-        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokenAccept, tokenMetadata, accObj, acc, balanceOf_, balancesOf_;
+        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, accObj, acc, balanceOf_, balancesOf_;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1159,6 +1159,7 @@ function makeEthLike(ethLikeArgs) {
                             return [2 /*return*/, true];
                         });
                     }); };
+                    tokensAccepted_ = function () { return tokensAccepted(networkAccount.address); };
                     tokenAccept = function (token) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             (0, shared_impl_1.debug)("tokenAccept: Unnecessary on ETHlike", token);
@@ -1239,12 +1240,18 @@ function makeEthLike(ethLikeArgs) {
                             }
                         });
                     }); };
-                    accObj = { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
+                    accObj = { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
                     acc = accObj;
                     balanceOf_ = function (token) { return balanceOf(acc, token); };
                     balancesOf_ = function (tokens) { return balancesOf(acc, tokens); };
                     return [2 /*return*/, (0, shared_impl_1.stdAccount)(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_ }))];
             }
+        });
+    }); };
+    var tokensAccepted = function (_addr) { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            (0, shared_impl_1.debug)("tokensAccepted: Unnecessary on ETHlike");
+            return [2 /*return*/, []];
         });
     }); };
     var newAccountFromSecret = function (secret) { return __awaiter(_this, void 0, void 0, function () {
@@ -1668,7 +1675,7 @@ function makeEthLike(ethLikeArgs) {
     }
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { ethers: ethers, doCall: doCall, getQueryLowerBound: shared_impl_2.getQueryLowerBound, setQueryLowerBound: shared_impl_2.setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: shared_impl_2.formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { ethers: ethers, doCall: doCall, getQueryLowerBound: shared_impl_2.getQueryLowerBound, setQueryLowerBound: shared_impl_2.setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: shared_impl_2.formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs, tokensAccepted: tokensAccepted });
     return ethLike;
 }
 exports.makeEthLike = makeEthLike;

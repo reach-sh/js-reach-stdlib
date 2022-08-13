@@ -60,25 +60,36 @@ export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty
 }
 export interface Arith {
     add: (x: num, y: num) => BigNumber;
+    safeAdd: (x: num, y: num) => BigNumber;
     sub: (x: num, y: num) => BigNumber;
+    safeSub: (x: num, y: num) => BigNumber;
     mod: (x: num, y: num) => BigNumber;
+    safeMod: (x: num, y: num) => BigNumber;
     mul: (x: num, y: num) => BigNumber;
+    safeMul: (x: num, y: num) => BigNumber;
     div: (x: num, y: num) => BigNumber;
+    safeDiv: (x: num, y: num) => BigNumber;
     band: (x: num, y: num) => BigNumber;
     bior: (x: num, y: num) => BigNumber;
     bxor: (x: num, y: num) => BigNumber;
     sqrt: (n1: num, n2: num) => BigNumber;
     add256: (x: num, y: num) => BigNumber;
+    safeAdd256: (x: num, y: num) => BigNumber;
     sub256: (x: num, y: num) => BigNumber;
+    safeSub256: (x: num, y: num) => BigNumber;
     mod256: (x: num, y: num) => BigNumber;
+    safeMod256: (x: num, y: num) => BigNumber;
     mul256: (x: num, y: num) => BigNumber;
+    safeMul256: (x: num, y: num) => BigNumber;
     div256: (x: num, y: num) => BigNumber;
+    safeDiv256: (x: num, y: num) => BigNumber;
     band256: (x: num, y: num) => BigNumber;
     bior256: (x: num, y: num) => BigNumber;
     bxor256: (x: num, y: num) => BigNumber;
     sqrt256: (n1: num, n2: num) => BigNumber;
+    safeMuldiv: (x: num, y: num, z: num) => BigNumber;
     muldiv: (x: num, y: num, z: num) => BigNumber;
-    cast: (from: UIntTy, to: UIntTy, x: num, truncate: boolean) => BigNumber;
+    cast: (from: UIntTy, to: UIntTy, x: num, truncate: boolean, chkOverflow: boolean) => BigNumber;
 }
 export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared<Ty>, Arith, TypeDefs<Ty> {
     UInt_max: BigNumber;
@@ -186,6 +197,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     setMinMillisBetweenRequests: (n: number) => void;
     setCustomHttpEventHandler: (h: (e: any) => Promise<void>) => void;
     setSigningMonitor: SetSigningMonitor;
+    tokensAccepted: (acc: Address) => Promise<Array<Token>>;
 }
 export {};
 //# sourceMappingURL=interfaces.d.ts.map
