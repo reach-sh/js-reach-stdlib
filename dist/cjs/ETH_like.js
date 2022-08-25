@@ -99,8 +99,8 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 19;
-var reachEthBackendVersion = 7;
+var reachBackendVersion = 23;
+var reachEthBackendVersion = 8;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
 var reachOutputEvent = function (e) { return "_reach_oe_".concat(e); };
@@ -453,40 +453,37 @@ function makeEthLike(ethLikeArgs) {
         });
     }); };
     /** @description Arg order follows "src before dst" convention */
-    var transfer = function (from, to, value, token) {
-        if (token === void 0) { token = false; }
-        return __awaiter(_this, void 0, void 0, function () {
-            var sender, receiver, _a, valueb, dhead, txn, tokCtc, gl, sl;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        sender = from.networkAccount;
-                        if (!(typeof to == 'string')) return [3 /*break*/, 1];
-                        _a = to;
-                        return [3 /*break*/, 3];
-                    case 1: return [4 /*yield*/, getAddr(to)];
-                    case 2:
-                        _a = _b.sent();
-                        _b.label = 3;
-                    case 3:
-                        receiver = _a;
-                        valueb = (0, shared_user_1.bigNumberify)(value);
-                        dhead = 'transfer';
-                        if (!!token) return [3 /*break*/, 5];
-                        txn = { to: receiver, value: valueb };
-                        (0, shared_impl_1.debug)('sender.sendTransaction(', txn, ')');
-                        return [4 /*yield*/, doTxn(dhead, sender.sendTransaction(txn))];
-                    case 4: return [2 /*return*/, _b.sent()];
-                    case 5:
-                        tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
-                        gl = from.getGasLimit ? from.getGasLimit() : undefined;
-                        sl = from.getStorageLimit ? from.getStorageLimit() : undefined;
-                        return [4 /*yield*/, doCall(dhead, tokCtc, "transfer", [receiver, valueb], zeroBn, gl, sl)];
-                    case 6: return [2 /*return*/, _b.sent()];
-                }
-            });
+    var transfer = function (from, to, value, token) { return __awaiter(_this, void 0, void 0, function () {
+        var sender, receiver, _a, valueb, dhead, txn, tokCtc, gl, sl;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    sender = from.networkAccount;
+                    if (!(typeof to == 'string')) return [3 /*break*/, 1];
+                    _a = to;
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, getAddr(to)];
+                case 2:
+                    _a = _b.sent();
+                    _b.label = 3;
+                case 3:
+                    receiver = _a;
+                    valueb = (0, shared_user_1.bigNumberify)(value);
+                    dhead = 'transfer';
+                    if (!!token) return [3 /*break*/, 5];
+                    txn = { to: receiver, value: valueb };
+                    (0, shared_impl_1.debug)('sender.sendTransaction(', txn, ')');
+                    return [4 /*yield*/, doTxn(dhead, sender.sendTransaction(txn))];
+                case 4: return [2 /*return*/, _b.sent()];
+                case 5:
+                    tokCtc = new ethers.Contract(token, ERC20_ABI, sender);
+                    gl = from.getGasLimit ? from.getGasLimit() : undefined;
+                    sl = from.getStorageLimit ? from.getStorageLimit() : undefined;
+                    return [4 /*yield*/, doCall(dhead, tokCtc, "transfer", [receiver, valueb], zeroBn, gl, sl)];
+                case 6: return [2 /*return*/, _b.sent()];
+            }
         });
-    };
+    }); };
     var connectAccount = function (networkAccount) { return __awaiter(_this, void 0, void 0, function () {
         function setDebugLabel(newLabel) {
             label = newLabel;
@@ -1079,26 +1076,28 @@ function makeEthLike(ethLikeArgs) {
                                         args[_i] = arguments[_i];
                                     }
                                     return __awaiter(_this, void 0, void 0, function () {
-                                        var ty, ethersC, vnv, vkn, val, uv, e_7;
+                                        var dom, rng, ethersC, vnv, vkn, mungedArgs, val, uv, e_7;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
                                                     void (vs);
-                                                    ty = vim.ty;
+                                                    dom = vim.dom, rng = vim.rng;
                                                     return [4 /*yield*/, getC()];
                                                 case 1:
                                                     ethersC = _a.sent();
                                                     vnv = views_namesm[v];
                                                     vkn = (typeof vnv === 'string') ? vnv : vnv[k];
-                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'args', args, vkn, ty);
+                                                    mungedArgs = args.map(function (arg, i) { return dom[i].munge(arg); });
+                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'args', args, vkn, dom, rng);
+                                                    (0, shared_impl_1.debug)(label, "getView1 mungedArgs = ".concat(mungedArgs));
                                                     _a.label = 2;
                                                 case 2:
                                                     _a.trys.push([2, 4, , 5]);
-                                                    return [4 /*yield*/, ethersC[vkn].apply(ethersC, __spreadArray([], __read(args), false))];
+                                                    return [4 /*yield*/, ethersC[vkn].apply(ethersC, __spreadArray([], __read(mungedArgs), false))];
                                                 case 3:
                                                     val = _a.sent();
                                                     (0, shared_impl_1.debug)(label, 'getView1', v, k, 'val', val);
-                                                    uv = ty.unmunge(val);
+                                                    uv = rng.unmunge(val);
                                                     return [2 /*return*/, isSafe ? ['Some', uv] : uv];
                                                 case 4:
                                                     e_7 = _a.sent();

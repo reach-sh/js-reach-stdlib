@@ -29,6 +29,8 @@ export var
   T_UInt = stdlib.T_UInt,
   T_UInt256 = stdlib.T_UInt256,
   T_Bytes = stdlib.T_Bytes,
+  T_BytesDyn = stdlib.T_BytesDyn,
+  T_StringDyn = stdlib.T_StringDyn,
   T_Address = stdlib.T_Address,
   T_Contract = stdlib.T_Contract,
   T_Digest = stdlib.T_Digest,

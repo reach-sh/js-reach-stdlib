@@ -200,6 +200,9 @@ export var ge256 = ge;
 export var gt256 = gt;
 export var le256 = le;
 export var lt256 = lt;
+export var stringDynConcat = function (s1, s2) { return "".concat(s1).concat(s2); };
+export var uintToStringDyn = function (n1) { return n1.toString(); };
+export var uintToStringDyn256 = uintToStringDyn;
 export var digest_xor = function (xd, yd) {
     var clean = function (s) { return s.slice(0, 2) === '0x' ? s.slice(2) : s; };
     var xc = clean(xd);

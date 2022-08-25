@@ -100,6 +100,26 @@ export var BT_Bytes = function(len) {
     }
   });
 };
+export var BT_BytesDyn = ({
+  name: "BytesDyn",
+  defaultValue: '',
+  canonicalize: function(val) {
+    if (typeof(val) !== 'string') {
+      throw Error("BytesDyn expected string, but got ".concat(j2s(val)));
+    }
+    return val;
+  }
+});
+export var BT_StringDyn = ({
+  name: "StringDyn",
+  defaultValue: '',
+  canonicalize: function(val) {
+    if (typeof(val) !== 'string') {
+      throw Error("StringDyn expected string, but got ".concat(j2s(val)));
+    }
+    return val;
+  }
+});
 // TODO: check digest length, or something similar?
 // That's probably best left to connector-specific code.
 export var BT_Digest = {

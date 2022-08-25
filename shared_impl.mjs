@@ -157,7 +157,7 @@ export var debug = function() {
   }
 };
 var isUntaggedView = function(x) {
-  return 'ty' in x && 'decode' in x;
+  return 'dom' in x && 'rng' in x && 'decode' in x;
 };
 export var stdVerifyContract = function(stdArgs, doVerify) {
   return __awaiter(void 0, void 0, void 0, function() {
@@ -465,15 +465,21 @@ export var envDefaultNoEmpty = function(v, d) {
   return v2 === '' ? d : v2;
 };
 export var makeDigest = function(mode, prep) {
-  return function(t, v) {
+  return function(ts_, vs_) {
+    var _a = __read(Array.isArray(ts_) ? [ts_, vs_] : [
+        [ts_],
+        [vs_]
+      ], 2),
+      ts = _a[0],
+      vs = _a[1];
     void(hexlify);
     // const args = [t, v];
     // debug('digest(', args, ') =>');
-    var kekCat = prep(t, v);
+    var kekCat = prep(ts, vs);
     // debug('digest(', args, ') => internal(', hexlify(kekCat), ')');
     var f = mode === 'keccak256' ? ethers.utils.keccak256 : ethers.utils.sha256;
     var r = f(kekCat);
-    debug('digest', { mode: mode, prep: prep, t: t, v: v, kekCat: kekCat, f: f, r: r });
+    debug('digest', { mode: mode, prep: prep, ts: ts, vs: vs, kekCat: kekCat, f: f, r: r });
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
   };

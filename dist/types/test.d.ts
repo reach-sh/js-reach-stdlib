@@ -10,6 +10,7 @@ export declare const one: (lab: string, j: Job<void>) => void;
 export interface RunOpts {
     howManyAtOnce?: number;
     exitOnFail?: boolean;
+    noVarOutput?: boolean;
 }
 export declare const run: (opts?: RunOpts) => Promise<void>;
 export declare const makeChkExport: (stdlib: any, backend: any) => any;

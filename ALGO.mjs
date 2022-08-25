@@ -126,7 +126,7 @@ import * as shared_user from './shared_user.mjs';
 import * as shared_impl from './shared_impl.mjs';;;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 19;
+var reachBackendVersion = 23;
 var reachAlgoBackendVersion = 10;;;
 export var load = function() {
   var connector = 'ALGO';
@@ -1454,21 +1454,17 @@ export var load = function() {
   var NOTE_Reach_str = "Reach ".concat(VERSION);
   var NOTE_Reach = str2note(NOTE_Reach_str);
   var NOTE_Reach_tag = function(tag) { return tag ? str2note(NOTE_Reach_str + " ".concat(tag, ")")) : NOTE_Reach; };
-  var makeTransferTxn = function(from, to, value, token, ps, closeTo, tag) {
-    if (closeTo === void 0) { closeTo = undefined; }
-    if (tag === void 0) { tag = undefined; }
+  var makeTransferTxn = function(from, to, value, token, ps, closeTo, tag, note) {
     var valuen = bigNumberToBigInt(value);
-    var note = NOTE_Reach_tag(tag);
+    var note_ = note !== null && note !== void 0 ? note : NOTE_Reach_tag(tag);
     var txn = token ?
-      algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, note, bigNumberToNumber(token), ps) :
-      algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note, ps);
+      algosdk.makeAssetTransferTxnWithSuggestedParams(from, to, closeTo, undefined, valuen, note_, bigNumberToNumber(token), ps) :
+      algosdk.makePaymentTxnWithSuggestedParams(from, to, valuen, closeTo, note_, ps);
     return txn;
   };
-  var transfer = function(from, to, value, token, tag) {
-    if (token === void 0) { token = undefined; }
-    if (tag === void 0) { tag = undefined; }
+  var transfer = function(from, to, value, token, opts) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var sender, receiver, valuebn, ps, txn;
+      var sender, receiver, valuebn, ps, closeTo, txn;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -1478,7 +1474,8 @@ export var load = function() {
             return [4 /*yield*/ , getTxnParams('transfer')];
           case 1:
             ps = _a.sent();
-            txn = toWTxn(makeTransferTxn(sender.addr, receiver, valuebn, token, ps, undefined, tag));
+            closeTo = (opts === null || opts === void 0 ? void 0 : opts.closeTo) ? cbr2algo_addr(protect(T_Address, opts.closeTo)) : undefined;
+            txn = toWTxn(makeTransferTxn(sender.addr, receiver, valuebn, token, ps, closeTo, opts === null || opts === void 0 ? void 0 : opts.tag, opts === null || opts === void 0 ? void 0 : opts.note));
             return [4 /*yield*/ , sign_and_send_sync("transfer ".concat(j2s(from), " ").concat(j2s(to), " ").concat(valuebn), sender, txn)];
           case 2:
             return [2 /*return*/ , _a.sent()];
@@ -3307,7 +3304,7 @@ export var load = function() {
             faucet = _a.sent();
             debug('fundFromFaucet');
             tag = Math.round(Math.random() * (Math.pow(2, 32)));
-            return [4 /*yield*/ , transfer(faucet, account, value, undefined, tag)];
+            return [4 /*yield*/ , transfer(faucet, account, value, undefined, { tag: tag })];
           case 2:
             _a.sent();
             return [2 /*return*/ ];
@@ -3662,7 +3659,7 @@ export var load = function() {
   var launchToken = function(accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(void 0, void 0, void 0, function() {
-      var addrCreator, supply, decimals, url, assetMetadataHash, f_addr, clawback, freeze, reserve, note, defaultFrozen, suggestedParams, txnResult, assetIndex, id, mint, optOut;
+      var addrCreator, supply, decimals, url, assetMetadataHash, f_addr, clawback, freeze, reserve, defaultFrozen, suggestedParams, txnResult, assetIndex, id, mint, optOut;
       var _a, _b, _c, _d;
       return __generator(this, function(_e) {
         switch (_e.label) {
@@ -3676,7 +3673,6 @@ export var load = function() {
             clawback = f_addr(opts.clawback);
             freeze = f_addr(opts.freeze);
             reserve = f_addr(opts.reserve);
-            note = opts.note || undefined;
             defaultFrozen = (_d = opts.defaultFrozen) !== null && _d !== void 0 ? _d : false;
             return [4 /*yield*/ , getTxnParams('launchToken')];
           case 1:
@@ -3689,7 +3685,7 @@ export var load = function() {
               decimals: decimals,
               defaultFrozen: defaultFrozen,
               freeze: freeze,
-              note: note,
+              note: opts.note,
               reserve: reserve,
               suggestedParams: suggestedParams,
               total: bigNumberToBigInt(supply),

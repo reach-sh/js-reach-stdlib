@@ -70,17 +70,20 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
     var T_Address = ethLikeCompiledArgs.T_Address;
     var UInt_max = shared_impl_1.UInt256_max;
-    var digest = (0, shared_impl_1.makeDigest)('keccak256', function (t, v) {
+    var digest = (0, shared_impl_1.makeDigest)('keccak256', function (ts, vs) {
         // Note: abiCoder.encode doesn't correctly handle an empty tuple type
-        if (t.paramType === 'tuple()') {
-            if (Array.isArray(v) && v.length === 0) {
-                return v;
+        if (Array.isArray(ts) && ts.length === 0) {
+            if (Array.isArray(vs) && vs.length === 0) {
+                return vs;
             }
             else {
-                throw Error("impossible: digest tuple() with non-empty array: ".concat((0, shared_impl_1.j2s)(v)));
+                throw Error("impossible: digest tuple() with non-empty array: ".concat((0, shared_impl_1.j2s)(vs)));
             }
         }
-        return ethers_1.ethers.utils.defaultAbiCoder.encode([t.paramType], [t.munge(v)]);
+        var pts = ts.map(function (t) { return t.paramType; });
+        var mvs = ts.map(function (t, i) { return t.munge(vs[i]); });
+        (0, shared_impl_1.debug)('digest prep', { ts: ts, vs: vs, pts: pts, mvs: mvs });
+        return ethers_1.ethers.utils.defaultAbiCoder.encode(pts, mvs);
     });
     var V_Null = null;
     // null is represented in solidity as false
@@ -120,11 +123,14 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return cs;
     }
     ;
+    var byteChunkSize = 32;
     var T_Bytes = function (len) {
         var me = __assign(__assign({}, CBR.BT_Bytes(len)), { munge: (function (bv) {
-                return splitToChunks(Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv)), 32);
+                var bs = Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv));
+                return (len <= byteChunkSize) ? bs : splitToChunks(bs, byteChunkSize);
             }), unmunge: (function (nvs) {
-                var nvs_s = nvs.map(function (nv) { return (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv))); });
+                var go = function (nv) { return (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv))); };
+                var nvs_s = (len <= byteChunkSize) ? go(nvs) : nvs.map(go);
                 var nvss = "".concat.apply("", __spreadArray([], __read(nvs_s), false));
                 // debug(me.name, nvs, nvss);
                 return me.canonicalize(nvss);
@@ -132,14 +138,33 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 var n = len;
                 var fs = [];
                 while (0 < n) {
-                    var ell = Math.min(32, n);
+                    var ell = Math.min(byteChunkSize, n);
                     fs.push("bytes".concat(ell));
                     n = n - ell;
                 }
-                return "tuple(".concat(fs.join(','), ")");
+                return (len <= byteChunkSize)
+                    ? fs[0]
+                    : "tuple(".concat(fs.join(','), ")");
             })() });
         return me;
     };
+    var T_BytesDyn = (function () {
+        var me = __assign(__assign({}, CBR.BT_BytesDyn), { munge: (function (bv) {
+                return Array.from(ethers_1.ethers.utils.toUtf8Bytes(bv));
+            }), unmunge: (function (nv) {
+                var nv_s = (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv)));
+                return me.canonicalize(nv_s);
+            }), paramType: 'bytes' });
+        return me;
+    })();
+    var T_StringDyn = (function () {
+        var me = __assign(__assign({}, CBR.BT_StringDyn), { munge: (function (bv) {
+                return bv;
+            }), unmunge: (function (nv) {
+                return nv;
+            }), paramType: 'string' });
+        return me;
+    })();
     var T_Digest = __assign(__assign({}, CBR.BT_Digest), { defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
         // XXX likely not the correct unmunge type?
         unmunge: function (nv) { return V_Digest(nv.toHexString()); }, paramType: 'uint256' });
@@ -301,6 +326,8 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         T_UInt: T_UInt,
         T_UInt256: T_UInt256,
         T_Bytes: T_Bytes,
+        T_BytesDyn: T_BytesDyn,
+        T_StringDyn: T_StringDyn,
         T_Address: T_Address,
         T_Contract: T_Contract,
         T_Digest: T_Digest,

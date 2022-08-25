@@ -16,7 +16,7 @@ var __read = (this && this.__read) || function (o, n) {
     return ar;
 };
 exports.__esModule = true;
-exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
+exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_StringDyn = exports.BT_BytesDyn = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
 var shared_impl_1 = require("./shared_impl");
@@ -108,6 +108,26 @@ var BT_Bytes = function (len) { return ({
     }
 }); };
 exports.BT_Bytes = BT_Bytes;
+exports.BT_BytesDyn = ({
+    name: "BytesDyn",
+    defaultValue: '',
+    canonicalize: function (val) {
+        if (typeof (val) !== 'string') {
+            throw Error("BytesDyn expected string, but got ".concat((0, shared_impl_1.j2s)(val)));
+        }
+        return val;
+    }
+});
+exports.BT_StringDyn = ({
+    name: "StringDyn",
+    defaultValue: '',
+    canonicalize: function (val) {
+        if (typeof (val) !== 'string') {
+            throw Error("StringDyn expected string, but got ".concat((0, shared_impl_1.j2s)(val)));
+        }
+        return val;
+    }
+});
 // TODO: check digest length, or something similar?
 // That's probably best left to connector-specific code.
 exports.BT_Digest = {

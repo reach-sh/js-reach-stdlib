@@ -19,7 +19,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     digestEq: (x: unknown, y: unknown) => boolean;
     digest_xor: (x: string, y: string) => string;
     tokenEq: (x: unknown, y: unknown) => boolean;
-    digest: (t: AnyETH_Ty, a: unknown) => string;
+    digest: (ts: AnyETH_Ty[], vs: unknown[]) => string;
     emptyContractInfo: string | number;
     checkedBigNumberify: (at: string, max: ethers.BigNumber, n: any) => ethers.BigNumber;
     protect: (t: any, v: unknown, ai?: string | undefined) => unknown;
@@ -52,6 +52,9 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     bytesEq: (s1: string, s2: string) => boolean;
     bytes_xor: (x: string, y: string) => string;
     btoiLast8: (b: string) => ethers.BigNumber;
+    stringDynConcat: (s1: string, s2: string) => string;
+    uintToStringDyn: (n1: shared_backend.num) => string;
+    uintToStringDyn256: (n1: shared_backend.num) => string;
     add: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     safeAdd: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
     sub: (x: shared_backend.num, y: shared_backend.num) => ethers.BigNumber;
@@ -88,6 +91,8 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     T_UInt: AnyETH_Ty;
     T_UInt256: AnyETH_Ty;
     T_Bytes: (len: number) => AnyETH_Ty;
+    T_BytesDyn: AnyETH_Ty;
+    T_StringDyn: AnyETH_Ty;
     T_Address: AnyETH_Ty;
     T_Contract: AnyETH_Ty;
     T_Digest: AnyETH_Ty;

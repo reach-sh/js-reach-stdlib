@@ -235,13 +235,15 @@ var one = function (lab, j) {
 exports.one = one;
 ;
 var run = function (opts) { return __awaiter(void 0, void 0, void 0, function () {
-    var exitOnFail, stop, howManyAtOnce, active, j, xml, xmlb, logVar, failed;
+    var exitOnFail, stop, howManyAtOnce, noVarOutput, varOutput, active, j, failed, xml_1, xmlb, logVar;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 exitOnFail = (opts === null || opts === void 0 ? void 0 : opts.exitOnFail) === undefined ? true : opts.exitOnFail;
                 stop = function () { return (exitOnFail && fails > 0); };
                 howManyAtOnce = (opts === null || opts === void 0 ? void 0 : opts.howManyAtOnce) || 1;
+                noVarOutput = (opts === null || opts === void 0 ? void 0 : opts.noVarOutput) === undefined ? false : opts.noVarOutput;
+                varOutput = !noVarOutput;
                 console.log("".concat(jobs.length, " jobs scheduled, running..."));
                 _a.label = 1;
             case 1:
@@ -261,31 +263,33 @@ var run = function (opts) { return __awaiter(void 0, void 0, void 0, function ()
                 return [3 /*break*/, 1];
             case 3:
                 console.log('Done running');
-                xml = [];
-                xml.push('<?xml version="1.0" encoding="UTF-8"?>');
-                xml.push('<testsuite>');
-                cases.forEach(function (_a) {
-                    var id = _a.id, time = _a.time, err = _a.err;
-                    var mtime = time ? " time=\"".concat(time, "\"") : "";
-                    var mfail = err ? "<failure>".concat(err, "</failure>") : "";
-                    var idr = id.replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&apos;');
-                    xml.push("<testcase name=\"".concat(idr, "\"").concat(mtime, ">").concat(mfail, "</testcase>"));
-                });
-                xml.push('</testsuite>');
-                xmlb = Buffer.from(xml.join(''));
-                logVar = function (k, v) {
-                    return console.log("var ".concat(k, "='").concat(v, "'"));
-                };
-                logVar("RESULTS_B64", xmlb.toString('base64'));
                 failed = fails !== 0;
-                logVar("SUMMARY", failed ?
-                    "".concat(fails, " of ").concat(tests, " tests failed!") :
-                    "".concat(tests, " tests passed!"));
-                logVar("STATUS", failed ? ':warning: FAIL' : ':pizza: OKAY');
+                if (varOutput) {
+                    xml_1 = [];
+                    xml_1.push('<?xml version="1.0" encoding="UTF-8"?>');
+                    xml_1.push('<testsuite>');
+                    cases.forEach(function (_a) {
+                        var id = _a.id, time = _a.time, err = _a.err;
+                        var mtime = time ? " time=\"".concat(time, "\"") : "";
+                        var mfail = err ? "<failure>".concat(err, "</failure>") : "";
+                        var idr = id.replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&apos;');
+                        xml_1.push("<testcase name=\"".concat(idr, "\"").concat(mtime, ">").concat(mfail, "</testcase>"));
+                    });
+                    xml_1.push('</testsuite>');
+                    xmlb = Buffer.from(xml_1.join(''));
+                    logVar = function (k, v) {
+                        return console.log("var ".concat(k, "='").concat(v, "'"));
+                    };
+                    logVar("RESULTS_B64", xmlb.toString('base64'));
+                    logVar("SUMMARY", failed ?
+                        "".concat(fails, " of ").concat(tests, " tests failed!") :
+                        "".concat(tests, " tests passed!"));
+                    logVar("STATUS", failed ? ':warning: FAIL' : ':pizza: OKAY');
+                }
                 shim_1.process.exit(failed ? 1 : 0);
                 return [2 /*return*/];
         }

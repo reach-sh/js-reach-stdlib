@@ -72,7 +72,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
-exports.simTokenAccepted_ = exports.simTokenDestroy = exports.simTokenBurn = exports.simContractNew = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
+exports.simTokenAccepted_ = exports.simTokenDestroy = exports.simTokenBurn = exports.simContractNew = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.uintToStringDyn256 = exports.uintToStringDyn = exports.stringDynConcat = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -218,6 +218,11 @@ exports.ge256 = exports.ge;
 exports.gt256 = exports.gt;
 exports.le256 = exports.le;
 exports.lt256 = exports.lt;
+var stringDynConcat = function (s1, s2) { return "".concat(s1).concat(s2); };
+exports.stringDynConcat = stringDynConcat;
+var uintToStringDyn = function (n1) { return n1.toString(); };
+exports.uintToStringDyn = uintToStringDyn;
+exports.uintToStringDyn256 = exports.uintToStringDyn;
 var digest_xor = function (xd, yd) {
     var clean = function (s) { return s.slice(0, 2) === '0x' ? s.slice(2) : s; };
     var xc = clean(xd);

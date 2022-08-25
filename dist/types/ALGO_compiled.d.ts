@@ -12,7 +12,7 @@ export interface ALGO_Ty<BV extends CBR_Val> extends BackendTy<BV> {
     fromNet(nv: NV): BV;
     netName: string;
 }
-export declare const digest: (t: any, v: any) => string;
+export declare const digest: (ts_: any, vs_: any) => string;
 export declare const T_Null: ALGO_Ty<CBR_Null>;
 export declare const T_Bool: ALGO_Ty<CBR_Bool>;
 export declare const T_UInt: ALGO_Ty<CBR_UInt>;
@@ -25,6 +25,8 @@ export declare const bytestringyNet: (len: number) => {
     fromNet: (nv: NV) => string;
 };
 export declare const T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
+export declare const T_BytesDyn: ALGO_Ty<CBR_Bytes>;
+export declare const T_StringDyn: ALGO_Ty<CBR_Bytes>;
 export declare const T_Digest: ALGO_Ty<CBR_Digest>;
 export declare const addressToHex: (x: string) => string;
 export declare const addressFromHex: (hexAddr: string) => string;
@@ -56,6 +58,8 @@ export declare const typeDefs: {
     T_UInt: ALGO_Ty<ethers.BigNumber>;
     T_UInt256: ALGO_Ty<ethers.BigNumber>;
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
+    T_BytesDyn: ALGO_Ty<string>;
+    T_StringDyn: ALGO_Ty<string>;
     T_Address: ALGO_Ty<string>;
     T_Contract: ALGO_Ty<ethers.BigNumber>;
     T_Digest: ALGO_Ty<string>;

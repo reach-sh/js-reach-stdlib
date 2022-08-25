@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.ctcAddrEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
+exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq = exports.ctcAddrEq = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.digestEq = exports.addressEq = exports.T_Data = exports.T_Object = exports.T_Struct = exports.T_Tuple = exports.T_Array = exports.T_Contract = exports.T_Address = exports.extractAddr = exports.addressFromHex = exports.addressToHex = exports.T_Digest = exports.T_StringDyn = exports.T_BytesDyn = exports.T_Bytes = exports.bytestringyNet = exports.T_UInt256 = exports.T_UInt = exports.T_Bool = exports.T_Null = exports.digest = exports.UInt_max = void 0;
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
@@ -74,7 +74,7 @@ var BigNumber = ethers_1.ethers.BigNumber;
 var Buffer = buffer_1["default"].Buffer;
 exports.UInt_max = BigNumber.from(2).pow(64).sub(1);
 ;
-exports.digest = (0, shared_impl_1.makeDigest)('sha256', function (t, v) { return t.toNet(v); });
+exports.digest = (0, shared_impl_1.makeDigest)('sha256', function (ts, vs) { return (0, exports.T_Tuple)(ts).toNet(vs); });
 exports.T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'byte[0]' });
 exports.T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'byte' });
 exports.T_UInt = __assign(__assign({}, CBR.BT_UInt(exports.UInt_max)), { netSize: 8, toNet: function (bv) {
@@ -120,6 +120,8 @@ var bytestringyNet = function (len) { return ({
 exports.bytestringyNet = bytestringyNet;
 var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len), netName: "byte[".concat(len, "]") })); };
 exports.T_Bytes = T_Bytes;
+exports.T_BytesDyn = (__assign(__assign({}, CBR.BT_BytesDyn), { toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "byte[]" }));
+exports.T_StringDyn = (__assign(__assign({}, CBR.BT_StringDyn), { toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "string" }));
 exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), (0, exports.bytestringyNet)(32)), { netName: "digest" });
 var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk_1["default"].decodeAddress(x).publicKey).toString('hex');
@@ -286,6 +288,8 @@ exports.typeDefs = {
     T_UInt: exports.T_UInt,
     T_UInt256: exports.T_UInt256,
     T_Bytes: exports.T_Bytes,
+    T_BytesDyn: exports.T_BytesDyn,
+    T_StringDyn: exports.T_StringDyn,
     T_Address: exports.T_Address,
     T_Contract: exports.T_Contract,
     T_Digest: exports.T_Digest,

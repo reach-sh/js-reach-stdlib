@@ -45,7 +45,7 @@ var BigNumber = ethers.BigNumber;
 var Buffer = buffer.Buffer;
 export var UInt_max = BigNumber.from(2).pow(64).sub(1);
 ;
-export var digest = makeDigest('sha256', function (t, v) { return t.toNet(v); });
+export var digest = makeDigest('sha256', function (ts, vs) { return T_Tuple(ts).toNet(vs); });
 export var T_Null = __assign(__assign({}, CBR.BT_Null), { netSize: 0, toNet: function (bv) { return (void (bv), new Uint8Array([])); }, fromNet: function (nv) { return (void (nv), null); }, netName: 'byte[0]' });
 export var T_Bool = __assign(__assign({}, CBR.BT_Bool), { netSize: 1, toNet: function (bv) { return new Uint8Array([bv ? 1 : 0]); }, fromNet: function (nv) { return nv[0] == 1; }, netName: 'byte' });
 export var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { netSize: 8, toNet: function (bv) {
@@ -89,6 +89,8 @@ export var bytestringyNet = function (len) { return ({
     }
 }); };
 export var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: bigNumberToNumber(len), netName: "byte[".concat(len, "]") })); };
+export var T_BytesDyn = (__assign(__assign({}, CBR.BT_BytesDyn), { toNet: function (bv) { return (ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "byte[]" }));
+export var T_StringDyn = (__assign(__assign({}, CBR.BT_StringDyn), { toNet: function (bv) { return (ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "string" }));
 export var T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), bytestringyNet(32)), { netName: "digest" });
 export var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk.decodeAddress(x).publicKey).toString('hex');
@@ -245,6 +247,8 @@ export var typeDefs = {
     T_UInt: T_UInt,
     T_UInt256: T_UInt256,
     T_Bytes: T_Bytes,
+    T_BytesDyn: T_BytesDyn,
+    T_StringDyn: T_StringDyn,
     T_Address: T_Address,
     T_Contract: T_Contract,
     T_Digest: T_Digest,

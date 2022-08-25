@@ -1,12 +1,14 @@
 import type { num, MaybeRep, MapOpts, LinearMap, AnyBackendTy } from './shared_backend';
 import type { BigNumber } from 'ethers';
-import { IAccount, LaunchTokenOpts, IContract, IBackend, SetSigningMonitor, UIntTy } from './shared_impl';
+import { IAccount, LaunchTokenOpts, IContract, IBackend, SetSigningMonitor, UIntTy, TransferOpts } from './shared_impl';
 export interface TypeDefs<Ty> {
     T_Null: Ty;
     T_Bool: Ty;
     T_UInt: Ty;
     T_UInt256: Ty;
     T_Bytes: (len: number) => Ty;
+    T_BytesDyn: Ty;
+    T_StringDyn: Ty;
     T_Address: Ty;
     T_Contract: Ty;
     T_Digest: Ty;
@@ -39,6 +41,9 @@ export interface Stdlib_Backend_Shared_User<Ty> {
     digest_xor: (x: string, y: string) => string;
     bytes_xor: (x: string, y: string) => string;
     btoiLast8: (b: string) => BigNumber;
+    stringDynConcat: (s1: string, s2: string) => string;
+    uintToStringDyn: (n1: num) => string;
+    uintToStringDyn256: (n1: num) => string;
 }
 export interface Stdlib_Backend_Shared<Ty> extends Stdlib_Backend_Shared_User<Ty> {
     checkedBigNumberify: (at: string, max: BigNumber, n: any) => BigNumber;
@@ -98,7 +103,7 @@ export interface Stdlib_Backend_Base<Ty> extends Stdlib_Backend_Shared<Ty>, Arit
     digestEq: (x: unknown, y: unknown) => boolean;
     digest_xor: (x: string, y: string) => string;
     tokenEq: (x: unknown, y: unknown) => boolean;
-    digest: (t: Ty, a: unknown) => string;
+    digest: (ts: Ty[], vs: unknown[]) => string;
     emptyContractInfo: (number | string);
 }
 export interface Stdlib_Backend<Ty> extends Stdlib_Backend_Base<Ty> {
@@ -146,7 +151,7 @@ export interface Stdlib_User_Shared {
 }
 export interface Stdlib_User_Base<Ty> extends Stdlib_Backend_Shared_User<Ty>, Stdlib_User_Shared, Arith, TypeDefs<Ty> {
     addressEq: (addr1: string, addr2: string) => boolean;
-    digest: (t: any, a: unknown) => string;
+    digest: (ts: any[], vs: any[]) => string;
 }
 export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, ContractInfo, Address, NetworkAccount, Ty extends AnyBackendTy, Backend extends IBackend<Ty>, Account extends IAccount<NetworkAccount, Backend, IContract<ContractInfo, Address, Token, Ty>, ContractInfo, Token>> extends Stdlib_User_Base<Ty>, ProviderLib<Provider, ProviderEnv, ProviderName> {
     getValidQueryWindow: () => number | true;
@@ -164,7 +169,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     balanceOf: (acc: Account, token?: Token) => Promise<BigNumber>;
     balancesOf: (acc: Account, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
     minimumBalanceOf: (acc: Account) => Promise<BigNumber>;
-    transfer: (from: Account, to: Account, val?: BigNumber, token?: Token) => Promise<unknown>;
+    transfer: (from: Account, to: Account, amount: any, token?: Token, opts?: TransferOpts) => Promise<unknown>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: string) => Promise<Account>;
     newAccountFromMnemonic: (phrase: string) => Promise<Account>;

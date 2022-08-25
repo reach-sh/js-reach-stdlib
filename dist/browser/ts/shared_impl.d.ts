@@ -15,7 +15,8 @@ export declare const hideWarnings: () => boolean;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
-    ty: ConnectorTy;
+    dom: [ConnectorTy];
+    rng: ConnectorTy;
     decode: (i: number, svs: Array<any>, args: Array<any>) => Promise<any>;
 };
 export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
@@ -214,15 +215,20 @@ export declare type TokenMetadata = {
     reserve?: string;
 };
 export declare type LaunchTokenOpts = {
-    'decimals'?: number;
-    'supply'?: unknown;
-    'clawback'?: any;
-    'freeze'?: any;
-    'reserve'?: any;
-    'defaultFrozen'?: boolean;
-    'url'?: string;
-    'metadataHash'?: string;
-    'note'?: Uint8Array;
+    decimals?: number;
+    supply?: unknown;
+    url?: string;
+    metadataHash?: string;
+    clawback?: any;
+    freeze?: any;
+    defaultFrozen?: boolean;
+    reserve?: any;
+    note?: Uint8Array;
+};
+export declare type TransferOpts = {
+    closeTo?: any;
+    note?: Uint8Array;
+    tag?: number;
 };
 export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
@@ -340,7 +346,7 @@ export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;
 export declare const envDefaultNoEmpty: <T>(v: string | undefined | null, d: T) => string | T;
 declare type DigestMode = 'keccak256' | 'sha256';
-export declare const makeDigest: (mode: DigestMode, prep: any) => (t: any, v: any) => string;
+export declare const makeDigest: (mode: DigestMode, prep: any) => (ts_: any, vs_: any) => string;
 export declare const hexToString: typeof ethers.utils.toUtf8String;
 export declare const hexToBigNumber: (h: string) => BigNumber;
 export declare const makeRandom: (width: number) => {
