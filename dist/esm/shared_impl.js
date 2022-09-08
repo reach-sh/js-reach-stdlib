@@ -409,7 +409,14 @@ export var makeDigest = function (mode, prep) { return function (ts_, vs_) {
     // debug('keccak(', args, ') => internal(', hexlify(kekCat), ') => ', r);
     return r;
 }; };
-export var hexToString = ethers.utils.toUtf8String;
+export var hexToString = function (x) {
+    try {
+        return ethers.utils.toUtf8String(x);
+    }
+    catch (_) {
+        return ethers.utils.arrayify(x);
+    }
+};
 var byteToHex = function (b) { return (b & 0xFF).toString(16).padStart(2, '0'); };
 var byteArrayToHex = function (b) { return Array.from(b, byteToHex).join(''); };
 var hexTo0x = function (h) { return '0x' + h.replace(/^0x/, ''); };
@@ -1115,4 +1122,10 @@ export var makeParseCurrency = function (defaultDecs) { return function (amt, de
     var amtStr = "".concat(amtL, ".").concat((amtR || '').slice(0, decimals));
     return bigNumberify(ethers.utils.parseUnits(amtStr, decimals));
 }; };
+export var canonicalToBytes = function (bv) {
+    return (typeof bv == 'string')
+        ? ethers.utils.toUtf8Bytes(bv)
+        : bv;
+};
+export var isUint8Array = function (val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };
 //# sourceMappingURL=shared_impl.js.map

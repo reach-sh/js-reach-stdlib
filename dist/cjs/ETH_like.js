@@ -99,7 +99,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 23;
+var reachBackendVersion = 24;
 var reachEthBackendVersion = 8;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -1247,7 +1247,7 @@ function makeEthLike(ethLikeArgs) {
             }
         });
     }); };
-    var tokensAccepted = function (_addr) { return __awaiter(_this, void 0, void 0, function () {
+    var tokensAccepted = function (_) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             (0, shared_impl_1.debug)("tokensAccepted: Unnecessary on ETHlike");
             return [2 /*return*/, []];
@@ -1340,7 +1340,9 @@ function makeEthLike(ethLikeArgs) {
         var f, faucet;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, _specialFundFromFaucet()];
+                case 0:
+                    console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+                    return [4 /*yield*/, _specialFundFromFaucet()];
                 case 1:
                     f = _a.sent();
                     if (!f) return [3 /*break*/, 3];
@@ -1603,13 +1605,12 @@ function makeEthLike(ethLikeArgs) {
         var _a, _b;
         if (opts === void 0) { opts = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var addr, remoteCtc, remoteABI, remoteBytecode, factory, supply, decimals, url, metadataHash, contract, deploy_r, id, mint, optOut;
+            var remoteCtc, remoteABI, remoteBytecode, factory, supply, decimals, url, metadataHash, contract, deploy_r, id, mint, optOut;
             var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         (0, shared_impl_1.debug)("Launching token, ".concat(name, " (").concat(sym, ")"));
-                        addr = function (acc) { return acc.networkAccount.address; };
                         remoteCtc = stdlib_sol_1["default"]["contracts"]["sol/stdlib.sol:ReachToken"];
                         remoteABI = remoteCtc["abi"];
                         remoteBytecode = remoteCtc["bin"];
@@ -1629,14 +1630,17 @@ function makeEthLike(ethLikeArgs) {
                         (0, shared_impl_1.debug)("".concat(sym, ": saw deploy: ").concat(deploy_r.blockNumber));
                         id = contract.address;
                         (0, shared_impl_1.debug)("".concat(sym, ": deployed: ").concat(id));
-                        mint = function (accTo, amt) { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
+                        mint = function (to, amt) { return __awaiter(_this, void 0, void 0, function () {
+                            var addrTo;
+                            var _a;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
-                                        (0, shared_impl_1.debug)("".concat(sym, ": transferring ").concat(amt, " ").concat(sym, " for ").concat(addr(accTo)));
-                                        return [4 /*yield*/, transfer(accCreator, accTo, amt, id)];
+                                        addrTo = typeof to === "string" ? to : (_a = to === null || to === void 0 ? void 0 : to.networkAccount) === null || _a === void 0 ? void 0 : _a.address;
+                                        (0, shared_impl_1.debug)("".concat(sym, ": transferring ").concat(amt, " ").concat(sym, " for ").concat(addrTo));
+                                        return [4 /*yield*/, transfer(accCreator, to, amt, id)];
                                     case 1:
-                                        _a.sent();
+                                        _b.sent();
                                         return [2 /*return*/];
                                 }
                             });

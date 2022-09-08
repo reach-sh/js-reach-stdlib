@@ -187,6 +187,9 @@ export function protect(ctc, v, ai) {
     throw Error("Protect failed: expected ".concat(ctc.name, " but got ").concat(j2s(v)).concat(formatAssertInfo(ai), "\n").concat(j2s(e)));
   }
 };
+export function bytesFromHex(v) {
+  return ethers.utils.arrayify(v);
+}
 var _b = ethers.utils,
   toUtf8Bytes = _b.toUtf8Bytes,
   isHexString = _b.isHexString;
@@ -226,7 +229,7 @@ export var digest_xor = function(xd, yd) {
   var parseHex = function(xs) {
     var ret = [];
     for (var i = 0; i < xs.length; i += 2) {
-      ret.push(hexToInt(xs.substr(i, 2)));
+      ret.push(hexToInt(xs.substring(i, i + 2)));
     }
     return ret;
   };

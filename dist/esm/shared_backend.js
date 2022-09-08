@@ -173,6 +173,9 @@ export function protect(ctc, v, ai) {
     }
 }
 ;
+export function bytesFromHex(v) {
+    return ethers.utils.arrayify(v);
+}
 var _b = ethers.utils, toUtf8Bytes = _b.toUtf8Bytes, isHexString = _b.isHexString;
 export var hexlify = ethers.utils.hexlify;
 export var isHex = isHexString;
@@ -210,7 +213,7 @@ export var digest_xor = function (xd, yd) {
     var parseHex = function (xs) {
         var ret = [];
         for (var i = 0; i < xs.length; i += 2) {
-            ret.push(hexToInt(xs.substr(i, 2)));
+            ret.push(hexToInt(xs.substring(i, i + 2)));
         }
         return ret;
     };

@@ -72,7 +72,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
-exports.simTokenAccepted_ = exports.simTokenDestroy = exports.simTokenBurn = exports.simContractNew = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.uintToStringDyn256 = exports.uintToStringDyn = exports.stringDynConcat = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
+exports.simTokenAccepted_ = exports.simTokenDestroy = exports.simTokenBurn = exports.simContractNew = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.uintToStringDyn256 = exports.uintToStringDyn = exports.stringDynConcat = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.bytesFromHex = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -183,6 +183,10 @@ function protect(ctc, v, ai) {
 }
 exports.protect = protect;
 ;
+function bytesFromHex(v) {
+    return ethers_1.ethers.utils.arrayify(v);
+}
+exports.bytesFromHex = bytesFromHex;
 var _b = ethers_1.ethers.utils, toUtf8Bytes = _b.toUtf8Bytes, isHexString = _b.isHexString;
 exports.hexlify = ethers_1.ethers.utils.hexlify;
 exports.isHex = isHexString;
@@ -230,7 +234,7 @@ var digest_xor = function (xd, yd) {
     var parseHex = function (xs) {
         var ret = [];
         for (var i = 0; i < xs.length; i += 2) {
-            ret.push(hexToInt(xs.substr(i, 2)));
+            ret.push(hexToInt(xs.substring(i, i + 2)));
         }
         return ret;
     };

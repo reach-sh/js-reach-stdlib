@@ -21,6 +21,7 @@ export declare const formatAssertInfo: (ai: AssertInfo) => string;
 export declare const assert: (d: any, ai?: any) => void;
 export declare const checkedBigNumberify: (at: string, m: BigNumber, x: any) => BigNumber;
 export declare function protect(ctc: AnyBackendTy, v: unknown, ai?: unknown): any;
+export declare function bytesFromHex(v: any): Uint8Array;
 export declare const hexlify: typeof ethers.utils.hexlify;
 export declare const isHex: typeof ethers.utils.isHexString;
 export declare const stringToHex: (x: string) => string;

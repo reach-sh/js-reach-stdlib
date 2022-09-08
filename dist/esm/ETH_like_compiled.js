@@ -25,20 +25,11 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 import { ethers } from 'ethers';
 import * as shared_backend from './shared_backend';
 import * as CBR from './CBR';
 var bigNumberify = CBR.bigNumberify, bigNumberToNumber = CBR.bigNumberToNumber;
-import { debug, labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, UInt256_max, } from './shared_impl';
+import { debug, labelMaps, makeDigest, hexToString, mkAddressEq, makeArith, j2s, UInt256_max, canonicalToBytes, } from './shared_impl';
 // TODO: restore return type annotation once types are in place
 export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     // ...............................................
@@ -100,14 +91,16 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var byteChunkSize = 32;
     var T_Bytes = function (len) {
         var me = __assign(__assign({}, CBR.BT_Bytes(len)), { munge: (function (bv) {
-                var bs = Array.from(ethers.utils.toUtf8Bytes(bv));
+                var bs = Array.from(canonicalToBytes(bv));
                 return (len <= byteChunkSize) ? bs : splitToChunks(bs, byteChunkSize);
             }), unmunge: (function (nvs) {
-                var go = function (nv) { return hexToString(ethers.utils.hexlify(unBigInt(nv))); };
-                var nvs_s = (len <= byteChunkSize) ? go(nvs) : nvs.map(go);
-                var nvss = "".concat.apply("", __spreadArray([], __read(nvs_s), false));
-                // debug(me.name, nvs, nvss);
-                return me.canonicalize(nvss);
+                var go = function (nv, i) {
+                    var r = ethers.utils.hexlify(unBigInt(nv));
+                    return (i > 0 && r.startsWith('0x')) ? r.slice(2) : r;
+                };
+                return hexToString((len <= byteChunkSize)
+                    ? go(nvs, 0)
+                    : nvs.map(go).join(''));
             }), paramType: (function () {
                 var n = len;
                 var fs = [];
@@ -124,7 +117,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var T_BytesDyn = (function () {
         var me = __assign(__assign({}, CBR.BT_BytesDyn), { munge: (function (bv) {
-                return Array.from(ethers.utils.toUtf8Bytes(bv));
+                return Array.from(canonicalToBytes(bv));
             }), unmunge: (function (nv) {
                 var nv_s = hexToString(ethers.utils.hexlify(unBigInt(nv)));
                 return me.canonicalize(nv_s);
@@ -133,7 +126,7 @@ export function makeEthLikeCompiled(ethLikeCompiledArgs) {
     })();
     var T_StringDyn = (function () {
         var me = __assign(__assign({}, CBR.BT_StringDyn), { munge: (function (bv) {
-                return bv;
+                return typeof bv == 'string' ? bv : ethers.utils.toUtf8String(bv);
             }), unmunge: (function (nv) {
                 return nv;
             }), paramType: 'string' });

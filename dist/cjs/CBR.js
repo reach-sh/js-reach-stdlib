@@ -89,21 +89,27 @@ var BT_Bytes = function (len) { return ({
     name: "Bytes(".concat(len, ")"),
     defaultValue: ''.padEnd(len, '\0'),
     canonicalize: function (val) {
-        var lenn = (0, exports.bigNumberToNumber)(len);
-        if (typeof (val) !== 'string') {
-            throw Error("Bytes expected string, but got ".concat((0, shared_impl_1.j2s)(val)));
-        }
-        var checkLen = function (label, alen, fill) {
-            if (val.length > alen) {
-                throw Error("Bytes(".concat(len, ") must be a ").concat(label, "string less than or equal to ").concat(alen, ", but given ").concat(label, "string of length ").concat(val.length));
+        if (typeof (val) == 'string') {
+            var lenn = (0, exports.bigNumberToNumber)(len);
+            var checkLen = function (label, alen, fill) {
+                var v = val;
+                if (v.length > alen) {
+                    throw Error("Bytes(".concat(len, ") must be a ").concat(label, "string less than or equal to ").concat(alen, ", but given ").concat(label, "string of length ").concat(v.length));
+                }
+                return v.padEnd(alen, fill);
+            };
+            if (val.slice(0, 2) === '0x') {
+                return checkLen('hex ', lenn * 2 + 2, '0');
             }
-            return val.padEnd(alen, fill);
-        };
-        if (val.slice(0, 2) === '0x') {
-            return checkLen('hex ', lenn * 2 + 2, '0');
+            else {
+                return checkLen('', lenn, '\0');
+            }
+        }
+        else if ((0, shared_impl_1.isUint8Array)(val)) {
+            return val;
         }
         else {
-            return checkLen('', lenn, '\0');
+            throw Error("Bytes expected string or Uint8Array, but got ".concat((0, shared_impl_1.j2s)(val)));
         }
     }
 }); };
@@ -112,10 +118,15 @@ exports.BT_BytesDyn = ({
     name: "BytesDyn",
     defaultValue: '',
     canonicalize: function (val) {
-        if (typeof (val) !== 'string') {
-            throw Error("BytesDyn expected string, but got ".concat((0, shared_impl_1.j2s)(val)));
+        if (typeof val == 'string') {
+            return val;
         }
-        return val;
+        else if ((0, shared_impl_1.isUint8Array)(val)) {
+            return val;
+        }
+        else {
+            throw Error("BytesDyn expected string or Uint8Array, but got ".concat((0, shared_impl_1.j2s)(val)));
+        }
     }
 });
 exports.BT_StringDyn = ({

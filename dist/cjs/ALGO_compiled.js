@@ -103,8 +103,17 @@ exports.T_UInt256 = __assign(__assign({}, CBR.BT_UInt(shared_impl_1.UInt256_max)
     }, netName: 'uint256' });
 /** @description For arbitrary utf8 strings */
 var stringyNet = function (len) { return ({
-    toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); },
-    fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv.slice(0, len))); }
+    toNet: shared_impl_1.canonicalToBytes,
+    fromNet: function (nv) {
+        var nvp = nv.slice(0, len);
+        // XXX temporary while we do not distingiush between raw bytes / utf8 strings.
+        try {
+            return ethers_1.ethers.utils.toUtf8String(nvp);
+        }
+        catch (_) {
+            return ethers_1.ethers.utils.arrayify(nvp);
+        }
+    }
 }); };
 /** @description For hex strings representing bytes */
 var bytestringyNet = function (len) { return ({
@@ -120,8 +129,8 @@ var bytestringyNet = function (len) { return ({
 exports.bytestringyNet = bytestringyNet;
 var T_Bytes = function (len) { return (__assign(__assign(__assign({}, CBR.BT_Bytes(len)), stringyNet(len)), { netSize: (0, shared_user_1.bigNumberToNumber)(len), netName: "byte[".concat(len, "]") })); };
 exports.T_Bytes = T_Bytes;
-exports.T_BytesDyn = (__assign(__assign({}, CBR.BT_BytesDyn), { toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "byte[]" }));
-exports.T_StringDyn = (__assign(__assign({}, CBR.BT_StringDyn), { toNet: function (bv) { return (ethers_1.ethers.utils.toUtf8Bytes(bv)); }, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "string" }));
+exports.T_BytesDyn = (__assign(__assign({}, CBR.BT_BytesDyn), { toNet: shared_impl_1.canonicalToBytes, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "byte[]" }));
+exports.T_StringDyn = (__assign(__assign({}, CBR.BT_StringDyn), { toNet: shared_impl_1.canonicalToBytes, fromNet: function (nv) { return (ethers_1.ethers.utils.toUtf8String(nv)); }, netSize: 32, netName: "string" }));
 exports.T_Digest = __assign(__assign(__assign({}, CBR.BT_Digest), (0, exports.bytestringyNet)(32)), { netName: "digest" });
 var addressToHex = function (x) {
     return '0x' + Buffer.from(algosdk_1["default"].decodeAddress(x).publicKey).toString('hex');

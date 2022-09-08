@@ -58,8 +58,8 @@ export declare const typeDefs: {
     T_UInt: ALGO_Ty<ethers.BigNumber>;
     T_UInt256: ALGO_Ty<ethers.BigNumber>;
     T_Bytes: (len: number) => ALGO_Ty<CBR_Bytes>;
-    T_BytesDyn: ALGO_Ty<string>;
-    T_StringDyn: ALGO_Ty<string>;
+    T_BytesDyn: ALGO_Ty<CBR_Bytes>;
+    T_StringDyn: ALGO_Ty<CBR_Bytes>;
     T_Address: ALGO_Ty<string>;
     T_Contract: ALGO_Ty<ethers.BigNumber>;
     T_Digest: ALGO_Ty<string>;

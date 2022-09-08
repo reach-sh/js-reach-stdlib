@@ -65,14 +65,14 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     balanceOf: (acc: Account | Address, token?: Token | false) => Promise<BigNumber>;
     balancesOf: (acc: Account | Address, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
     minimumBalanceOf: (acc: Account | Address) => Promise<BigNumber>;
-    transfer: (from: AccountTransferable, to: AccountTransferable, value: any, token?: Token) => Promise<TransactionReceipt>;
+    transfer: (from: AccountTransferable, to: AccountTransferable | Address, value: any, token?: Token) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: string) => Promise<Account>;
     newAccountFromMnemonic: (phrase: string) => Promise<Account>;
     getDefaultAccount: () => Promise<Account>;
     createAccount: () => Promise<Account>;
     canFundFromFaucet: () => Promise<boolean>;
-    fundFromFaucet: (account: AccountTransferable, value: any) => Promise<any>;
+    fundFromFaucet: (account: AccountTransferable | Address, value: any) => Promise<any>;
     newTestAccount: (startingBalance: any) => Promise<Account>;
     newTestAccounts: (k: number, bal: any) => Promise<Account[]>;
     getNetworkTime: () => Promise<BigNumber>;
@@ -86,14 +86,14 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     parseCurrency: (amt: import("./shared_impl").CurrencyAmount, decimals?: number) => real_ethers.BigNumber;
     minimumBalance: real_ethers.BigNumber;
     formatCurrency: (amt: any, decimals?: number) => string;
-    formatAddress: (acc: string | NetworkAccount | Account) => string;
+    formatAddress: (acc: string | NetworkAccount | Account | Address) => string;
     formatWithDecimals: (amt: unknown, decimals: number) => string;
     unsafeGetMnemonic: (acc: Account | NetworkAccount) => string;
     launchToken: (accCreator: Account, name: string, sym: string, opts?: LaunchTokenOpts) => Promise<{
         name: string;
         sym: string;
         id: any;
-        mint: (accTo: Account, amt: any) => Promise<void>;
+        mint: (to: Account | Address, amt: any) => Promise<void>;
         optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
     }>;
     reachStdlib: Stdlib_Backend<AnyETH_Ty>;
@@ -101,7 +101,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     setCustomHttpEventHandler: () => void;
     setSigningMonitor: import("./shared_impl").SetSigningMonitor;
     getTimeSecs: (now_bn: BigNumber) => Promise<BigNumber>;
-    tokensAccepted: (_addr: Address) => Promise<Array<Token>>;
+    tokensAccepted: (_: Account | Address) => Promise<Array<Token>>;
     getProvider: () => Promise<Provider>;
     setProvider: (p: Promise<Provider>) => void;
     setProviderByEnv: (env: ProviderEnv) => void;

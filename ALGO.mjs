@@ -126,7 +126,7 @@ import * as shared_user from './shared_user.mjs';
 import * as shared_impl from './shared_impl.mjs';;;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 23;
+var reachBackendVersion = 24;
 var reachAlgoBackendVersion = 10;;;
 export var load = function() {
   var connector = 'ALGO';
@@ -214,6 +214,10 @@ export var load = function() {
   // Parse CBR into Public Key
   var cbr2algo_addr = function(x) {
     return algosdk.encodeAddress(Buffer.from(x.slice(2), 'hex'));
+  };
+  // Takes a CBR Account or CBR Address and converts it into an Algod acceptable pubkey
+  var extractAddrConvert = function(a) {
+    return cbr2algo_addr(protect(T_Address, extractAddr(a)));
   };
   var txnFromAddress = function(t) {
     return algosdk.encodeAddress(t.from.publicKey);
@@ -1469,7 +1473,7 @@ export var load = function() {
         switch (_a.label) {
           case 0:
             sender = from.networkAccount;
-            receiver = extractAddr(to);
+            receiver = extractAddrConvert(to);
             valuebn = bigNumberify(value);
             return [4 /*yield*/ , getTxnParams('transfer')];
           case 1:
@@ -1524,13 +1528,13 @@ export var load = function() {
     var s = Buffer.from(x, 'base64').toString('hex');
     return ethers.utils.arrayify('0x' + s);
   };
-  var getAccountInfo = function(acc) { return getAddressInfo(extractAddr(acc)); };
-  var getAddressInfo = function(a) {
+  var getAccountInfo = function(acc) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var dhead, client, req, res_1, e_8, indexer, failOk, query, res;
+      var addr, dhead, client, req, res_1, e_8, indexer, failOk, query, res;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
+            addr = extractAddrConvert(acc);
             dhead = 'getAddressInfo';
             _a.label = 1;
           case 1:
@@ -1541,7 +1545,7 @@ export var load = function() {
             return [4 /*yield*/ , getAlgodClient()];
           case 3:
             client = _a.sent();
-            req = client.accountInformation(a);
+            req = client.accountInformation(addr);
             debug(dhead, req);
             return [4 /*yield*/ , req["do"]()];
           case 4:
@@ -1570,7 +1574,7 @@ export var load = function() {
                 return { exn: x };
               }
             };
-            query = indexer.lookupAccountByID(a);
+            query = indexer.lookupAccountByID(addr);
             return [4 /*yield*/ , doQuery_(dhead, query, 0, failOk)];
           case 8:
             res = _a.sent();
@@ -3028,18 +3032,18 @@ export var load = function() {
       });
     });
   };
-  var tokensAccepted = function(addr_) {
+  var tokensAccepted = function(acc) {
     return __awaiter(void 0, void 0, void 0, function() {
       var addr, assetHoldings, accountInfo, indexer, query;
       var _a;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
-            addr = cbr2algo_addr(protect(T_Address, addr_));
+            addr = extractAddrConvert(acc);
             return [4 /*yield*/ , nodeCanRead()];
           case 1:
             if (!_b.sent()) return [3 /*break*/ , 3];
-            return [4 /*yield*/ , getAddressInfo(addr)];
+            return [4 /*yield*/ , getAccountInfo(addr)];
           case 2:
             accountInfo = _b.sent();
             assetHoldings = (_a = accountInfo['assets']) !== null && _a !== void 0 ? _a : [];
@@ -3092,20 +3096,21 @@ export var load = function() {
   };
   var balancesOfM = function(acc, tokens) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var bn, tokenbs, client, query_1, accountInfoM, accountInfo_1, accountAssets_1, tokenBalances_1, indexer, addr, query, accountAssets, tokenBalances;
+      var bn, tokenbs, addr, client, query_1, accountInfoM, accountInfo_1, accountAssets_1, tokenBalances_1, indexer, query, accountAssets, tokenBalances;
       var _a;
       return __generator(this, function(_b) {
         switch (_b.label) {
           case 0:
             bn = bigNumberify;
             tokenbs = tokens.map(function(tr) { return tr == null ? tr : bn(tr); });
+            addr = extractAddrConvert(acc);
             return [4 /*yield*/ , nodeCanRead()];
           case 1:
             if (!_b.sent()) return [3 /*break*/ , 4];
             return [4 /*yield*/ , getAlgodClient()];
           case 2:
             client = _b.sent();
-            query_1 = client.accountInformation(extractAddr(acc));
+            query_1 = client.accountInformation(addr);
             return [4 /*yield*/ , doQueryM_('balancesOfM', query_1)];
           case 3:
             accountInfoM = _b.sent();
@@ -3128,7 +3133,6 @@ export var load = function() {
             return [4 /*yield*/ , getIndexer()];
           case 5:
             indexer = _b.sent();
-            addr = extractAddr(acc);
             query = indexer.lookupAccountAssets(addr);
             return [4 /*yield*/ , doQuery_('balancesOfM', query)];
           case 6:
@@ -3163,7 +3167,7 @@ export var load = function() {
         switch (_a.label) {
           case 0:
             dhead = 'balanceOfM';
-            addr = extractAddr(acc);
+            addr = extractAddrConvert(acc);
             if (!(token == null)) return [3 /*break*/ , 8];
             return [4 /*yield*/ , nodeCanRead()];
           case 1:
@@ -3293,18 +3297,19 @@ export var load = function() {
       });
     });
   };
-  var fundFromFaucet = function(account, value) {
+  var fundFromFaucet = function(acc, value) {
     return __awaiter(void 0, void 0, void 0, function() {
       var faucet, tag;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
+            console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
             return [4 /*yield*/ , getFaucet()];
           case 1:
             faucet = _a.sent();
             debug('fundFromFaucet');
             tag = Math.round(Math.random() * (Math.pow(2, 32)));
-            return [4 /*yield*/ , transfer(faucet, account, value, undefined, { tag: tag })];
+            return [4 /*yield*/ , transfer(faucet, acc, value, undefined, { tag: tag })];
           case 2:
             _a.sent();
             return [2 /*return*/ ];
@@ -3698,7 +3703,7 @@ export var load = function() {
             if (!assetIndex)
               throw Error("".concat(sym, " no asset-index!"));
             id = bigNumberify(assetIndex);
-            mint = function(accTo, amt) { return transfer(accCreator, accTo, amt, id); };
+            mint = function(to, amt) { return transfer(accCreator, to, amt, id); };
             optOut = function(accFrom, accTo) {
               if (accTo === void 0) { accTo = accCreator; }
               return __awaiter(void 0, void 0, void 0, function() {

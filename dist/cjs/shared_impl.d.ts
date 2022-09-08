@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { CBR_Address } from './CBR';
+import { CBR_Address, CBR_Bytes } from './CBR';
 import { AnyBackendTy, MaybeRep } from './shared_backend';
 import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
@@ -347,7 +347,7 @@ export declare const envDefault: <T>(v: string | undefined | null, d: T) => stri
 export declare const envDefaultNoEmpty: <T>(v: string | undefined | null, d: T) => string | T;
 declare type DigestMode = 'keccak256' | 'sha256';
 export declare const makeDigest: (mode: DigestMode, prep: any) => (ts_: any, vs_: any) => string;
-export declare const hexToString: typeof ethers.utils.toUtf8String;
+export declare const hexToString: (x: any) => string | Uint8Array;
 export declare const hexToBigNumber: (h: string) => BigNumber;
 export declare const makeRandom: (width: number) => {
     randomUInt: () => BigNumber;
@@ -457,4 +457,6 @@ export declare const handleFormat: (amt: unknown, decimals: number, splitValue?:
 export declare const formatWithDecimals: (amt: unknown, decimals: number) => string;
 export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber | BigNumber[], as: BigNumber) => Error;
 export declare const makeParseCurrency: (defaultDecs: number) => (amt: CurrencyAmount, decimals?: number) => BigNumber;
+export declare const canonicalToBytes: (bv: CBR_Bytes) => Uint8Array;
+export declare const isUint8Array: (val: any) => boolean;
 //# sourceMappingURL=shared_impl.d.ts.map

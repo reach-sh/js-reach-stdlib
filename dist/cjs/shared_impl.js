@@ -87,7 +87,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 exports.__esModule = true;
 exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
-exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = void 0;
+exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -448,7 +448,15 @@ var makeDigest = function (mode, prep) { return function (ts_, vs_) {
     return r;
 }; };
 exports.makeDigest = makeDigest;
-exports.hexToString = ethers_1.ethers.utils.toUtf8String;
+var hexToString = function (x) {
+    try {
+        return ethers_1.ethers.utils.toUtf8String(x);
+    }
+    catch (_) {
+        return ethers_1.ethers.utils.arrayify(x);
+    }
+};
+exports.hexToString = hexToString;
 var byteToHex = function (b) { return (b & 0xFF).toString(16).padStart(2, '0'); };
 var byteArrayToHex = function (b) { return Array.from(b, byteToHex).join(''); };
 var hexTo0x = function (h) { return '0x' + h.replace(/^0x/, ''); };
@@ -1181,4 +1189,12 @@ var makeParseCurrency = function (defaultDecs) { return function (amt, decimals)
     return (0, CBR_1.bigNumberify)(ethers_1.ethers.utils.parseUnits(amtStr, decimals));
 }; };
 exports.makeParseCurrency = makeParseCurrency;
+var canonicalToBytes = function (bv) {
+    return (typeof bv == 'string')
+        ? ethers_1.ethers.utils.toUtf8Bytes(bv)
+        : bv;
+};
+exports.canonicalToBytes = canonicalToBytes;
+var isUint8Array = function (val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };
+exports.isUint8Array = isUint8Array;
 //# sourceMappingURL=shared_impl.js.map
