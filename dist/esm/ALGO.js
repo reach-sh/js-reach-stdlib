@@ -104,7 +104,7 @@ import * as shared_impl from './shared_impl';
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
 var reachBackendVersion = 24;
-var reachAlgoBackendVersion = 10;
+var reachAlgoBackendVersion = 11;
 ;
 ;
 export var load = function () {
@@ -2135,8 +2135,6 @@ export var load = function () {
                                                         var appn = bigNumberToNumber(app);
                                                         if (!foreignArr.includes(appn)) {
                                                             foreignArr.push(appn);
-                                                            var addr = algosdk.getApplicationAddress(bigNumberToBigInt(app));
-                                                            recordAccount_(addr);
                                                         }
                                                     };
                                                     assetsArr = [];
@@ -3037,7 +3035,9 @@ export var load = function () {
     var appFlatOptInMinBalance = bigNumberify(AppFlatOptInMinBalance);
     var minimumBalance_app_create = function (cns) {
         var code = cns.code, opts = cns.opts;
-        var approval = code.approval, clearState = code.clearState;
+        var approvalB64 = code.approvalB64, clearStateB64 = code.clearStateB64;
+        var approval = Buffer.from(approvalB64, 'base64');
+        var clearState = Buffer.from(clearStateB64, 'base64');
         var totalLen = approval.length + clearState.length;
         var ai_ExtraProgramPages = Math.ceil(totalLen / MaxAppProgramLen) - 1;
         var ai_GlobalNumByteSlice = opts.globalBytes, ai_GlobalNumUint = opts.globalUints;
