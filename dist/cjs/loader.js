@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 exports.__esModule = true;
-exports.loadStdlib = exports.getConnector = exports.getConnectorMode = exports.unsafeAllowMultipleStdlibs = void 0;
+exports.Reach = exports.loadStdlib = exports.getConnector = exports.getConnectorMode = exports.unsafeAllowMultipleStdlibs = void 0;
 var stdlib_ETH = __importStar(require("./ETH"));
 var stdlib_ALGO = __importStar(require("./ALGO"));
 var stdlib_CFX = __importStar(require("./CFX"));
@@ -80,4 +80,8 @@ function loadStdlib(connectorModeOrEnv) {
     return stdlib;
 }
 exports.loadStdlib = loadStdlib;
+function Reach(connectorModeOrEnv) {
+    Object.assign(this, loadStdlib(connectorModeOrEnv));
+}
+exports.Reach = Reach;
 //# sourceMappingURL=loader.js.map

@@ -3,7 +3,7 @@ import algosdk from 'algosdk';
 import { ethers } from 'ethers';
 import type { WalletTransaction } from './ALGO_ARC11';
 import type { BaseHTTPClient } from 'algosdk';
-import { IBackend, IAccount, IContract } from './shared_impl';
+import { IBackend, IAccount, IContract, SecretKey } from './shared_impl';
 import { CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
 export type { Token } from './ALGO_compiled';
@@ -11,7 +11,6 @@ declare type BigNumber = ethers.BigNumber;
 declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
 export declare type Ty = AnyALGO_Ty;
 export declare type Address = string;
-declare type SecretKey = Uint8Array;
 export declare type NetworkAccount = {
     addr: Address;
     sk?: SecretKey;
@@ -73,7 +72,7 @@ interface ALGOHacks {
     makeTransferTxn: any;
     setFaucet: any;
 }
-interface ALGOStdlib extends Stdlib_User<Provider, ProviderEnv, ProviderName, Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Account>, ALGOHacks {
+interface ALGOStdlib extends Stdlib_User<Provider, ProviderEnv, ProviderName, Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Contract, Account>, ALGOHacks {
 }
 export declare const load: () => ALGOStdlib;
 //# sourceMappingURL=ALGO.d.ts.map

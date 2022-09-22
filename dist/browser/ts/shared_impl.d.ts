@@ -3,7 +3,7 @@ import { CBR_Address, CBR_Bytes } from './CBR';
 import { AnyBackendTy, MaybeRep } from './shared_backend';
 import type { MapRefT } from './shared_backend';
 export { hexlify } from './shared_backend';
-import type { Arith } from './interfaces';
+import type { Arith, Stdlib_User } from './interfaces';
 declare type BigNumber = ethers.BigNumber;
 export declare type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
@@ -195,6 +195,9 @@ export declare type EventStream<T> = {
     seekNow: () => void;
     lastTime: () => Time;
     monitor: (f: any) => void;
+};
+export declare const stdlibShared: <ContractInfo, Backend extends IBackend<any>, Account extends IAccount<any, any, any, any, any>, Contract extends IContract<ContractInfo, any, any, any>, ConnectorStdlib extends Omit<Stdlib_User<any, any, any, any, ContractInfo, any, any, any, Backend, Contract, Account>, "contract">>(connectorStdlib: ConnectorStdlib) => ConnectorStdlib & {
+    contract: (bin: Backend, ctcInfo?: Promise<ContractInfo> | undefined) => Promise<Contract>;
 };
 export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pick<ISetupViewArgs<ContractInfo, VerifyResult>, "setTrustedVerifyResult" | "getTrustedVerifyResult">, doVerify: () => Promise<VerifyResult>) => Promise<VerifyResult>;
 export declare const stdABIFilter: (x: any) => boolean;
@@ -459,4 +462,9 @@ export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber |
 export declare const makeParseCurrency: (defaultDecs: number) => (amt: CurrencyAmount, decimals?: number) => BigNumber;
 export declare const canonicalToBytes: (bv: CBR_Bytes) => Uint8Array;
 export declare const isUint8Array: (val: any) => boolean;
+export declare type SecretKeyInput = Uint8Array | string;
+export declare type SecretKey = Uint8Array;
+export declare type Mnemonic = string;
+export declare const protectSecretKey: (secret: SecretKeyInput, numBytes: number) => SecretKey;
+export declare const protectMnemonic: (phrase: Mnemonic, numWords?: number) => Mnemonic;
 //# sourceMappingURL=shared_impl.d.ts.map

@@ -26,11 +26,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.util = exports.test = exports.ALGO_MakePeraConnect = exports.ALGO_WalletConnect = exports.ALGO_MyAlgoConnect = exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = exports.ask = void 0;
+exports.util = exports.test = exports.ALGO_MakePeraConnect = exports.ALGO_WalletConnect = exports.ALGO_MyAlgoConnect = exports.rpc_server = exports.getConnectorMode = exports.getConnector = exports.Reach = exports.unsafeAllowMultipleStdlibs = exports.loadStdlib = exports.ask = void 0;
 exports.ask = __importStar(require("./ask"));
 var loader_1 = require("./loader");
 __createBinding(exports, loader_1, "loadStdlib");
 __createBinding(exports, loader_1, "unsafeAllowMultipleStdlibs");
+__createBinding(exports, loader_1, "Reach");
 var ConnectorMode_1 = require("./ConnectorMode");
 __createBinding(exports, ConnectorMode_1, "getConnector");
 __createBinding(exports, ConnectorMode_1, "getConnectorMode");

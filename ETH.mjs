@@ -16,6 +16,7 @@ import * as ethers from 'ethers';
 import * as shared_user from './shared_user.mjs';
 import * as ETH_compiled from './ETH_compiled.mjs';
 import * as ETH_compiled_impl from './ETH_compiled_impl.mjs';
+import { stdlibShared } from './shared_impl.mjs';
 var _ETH_compiled_impl = ETH_compiled_impl;
 void(_ETH_compiled_impl);
 export var load = function() {
@@ -24,6 +25,6 @@ export var load = function() {
   var ethLike = makeEthLike(ethImpl_);
   var ETH_compiled_ = ETH_compiled;
   var connector = 'ETH';
-  return __assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), ETH_compiled_), { connector: connector });
+  return stdlibShared(__assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), ETH_compiled_), { connector: connector }));
 };
 //# sourceMappingURL=ETH.js.map

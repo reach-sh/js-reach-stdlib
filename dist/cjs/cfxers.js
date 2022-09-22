@@ -833,7 +833,7 @@ function addAcc(conflux, privateKey) {
 }
 var Wallet = /** @class */ (function () {
     function Wallet(privateKey, provider, mnem) {
-        this.privateKey = privateKey;
+        this.privateKey = '0x' + Buffer.from((0, shared_impl_1.protectSecretKey)(privateKey, 32)).toString('hex');
         if (mnem) {
             this._mnemonic = function () { return ({ phrase: mnem }); };
         }

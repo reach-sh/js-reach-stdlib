@@ -90,7 +90,7 @@ import * as RHC from './ALGO_ReachHTTPClient';
 import * as UTBC from './ALGO_UTBC';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, makeParseCurrency, } from './shared_impl';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, makeParseCurrency, stdlibShared, protectMnemonic, protectSecretKey } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user';
 import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
@@ -2584,21 +2584,21 @@ export var load = function () {
                                 args[_i] = arguments[_i];
                             }
                             return __awaiter(void 0, void 0, void 0, function () {
-                                var decode, ch, step, vi, vtys_1, _a, _, vvs, vres, e_12;
-                                return __generator(this, function (_b) {
-                                    switch (_b.label) {
+                                var decode, ch, step, vi, vtys_1, vvs, vres, e_12;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
                                         case 0:
                                             debug('getView1', v, k, args);
                                             decode = vim.decode;
                                             return [4 /*yield*/, getC()];
                                         case 1:
-                                            ch = _b.sent();
-                                            _b.label = 2;
+                                            ch = _a.sent();
+                                            _a.label = 2;
                                         case 2:
-                                            _b.trys.push([2, 6, , 7]);
+                                            _a.trys.push([2, 6, , 7]);
                                             return [4 /*yield*/, getCurrentStep_(ch)];
                                         case 3:
-                                            step = _b.sent();
+                                            step = _a.sent();
                                             vi = bigNumberToNumber(step);
                                             vtys_1 = vs[vi];
                                             if (!vtys_1) {
@@ -2606,22 +2606,19 @@ export var load = function () {
                                             }
                                             return [4 /*yield*/, getState_(getC, function (_) { return vtys_1; })];
                                         case 4:
-                                            _a = __read.apply(void 0, [_b.sent(), 2]), _ = _a[0], vvs = _a[1];
+                                            vvs = (_a.sent())[1];
                                             return [4 /*yield*/, decode(vi, vvs, args)];
                                         case 5:
-                                            vres = _b.sent();
+                                            vres = _a.sent();
                                             debug({ vres: vres });
                                             return [2 /*return*/, isSafe ? ['Some', vres] : vres];
                                         case 6:
-                                            e_12 = _b.sent();
+                                            e_12 = _a.sent();
                                             debug("getView1", v, k, 'error', e_12);
-                                            if (isSafe) {
-                                                return [2 /*return*/, ['None', null]];
-                                            }
-                                            else {
+                                            if (!isSafe) {
                                                 throw Error("View ".concat(v, ".").concat(k, " is not set."));
                                             }
-                                            return [3 /*break*/, 7];
+                                            return [2 /*return*/, ['None', null]];
                                         case 7: return [2 /*return*/];
                                     }
                                 });
@@ -2986,7 +2983,9 @@ export var load = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+                    if (!hideWarnings()) {
+                        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+                    }
                     return [4 /*yield*/, getFaucet()];
                 case 1:
                     faucet = _a.sent();
@@ -3066,31 +3065,17 @@ export var load = function () {
         });
     }
     /**
-     * @param mnemonic 25 words, space-separated
+     * @param mnemonic 25 words, whitespace-separated
      */
-    var newAccountFromMnemonic = function (mnemonic) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, connectAccount(algosdk.mnemonicToSecretKey(mnemonic))];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
-        });
-    }); };
+    var newAccountFromMnemonic = function (phrase) {
+        return connectAccount(algosdk.mnemonicToSecretKey(protectMnemonic(phrase, 25)));
+    };
     /**
      * @param secret a Uint8Array, or its hex string representation
      */
-    var newAccountFromSecret = function (secret) { return __awaiter(void 0, void 0, void 0, function () {
-        var sk, mnemonic;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    sk = ethers.utils.arrayify(secret);
-                    mnemonic = algosdk.secretKeyToMnemonic(sk);
-                    return [4 /*yield*/, newAccountFromMnemonic(mnemonic)];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
-        });
-    }); };
+    var newAccountFromSecret = function (sk) {
+        return newAccountFromMnemonic(algosdk.secretKeyToMnemonic(protectSecretKey(sk, 32)));
+    };
     var getNetworkTime = function () { return __awaiter(void 0, void 0, void 0, function () {
         var indexer, hc;
         return __generator(this, function (_a) {
@@ -3361,6 +3346,6 @@ export var load = function () {
             });
         });
     };
-    return __assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit, tokensAccepted: tokensAccepted });
+    return stdlibShared(__assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit, tokensAccepted: tokensAccepted }));
 };
 //# sourceMappingURL=ALGO.js.map

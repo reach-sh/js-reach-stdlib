@@ -86,8 +86,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.handleFormat = exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
-exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = void 0;
+exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.stdlibShared = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
+exports.protectMnemonic = exports.protectSecretKey = exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -163,6 +163,13 @@ exports.debug = debug;
 var isUntaggedView = function (x) {
     return 'dom' in x && 'rng' in x && 'decode' in x;
 };
+var stdlibShared = function (connectorStdlib) {
+    var contract = function (bin, ctcInfo) {
+        return connectorStdlib.createAccount().then(function (acc) { return acc.contract(bin, ctcInfo); });
+    };
+    return __assign(__assign({}, connectorStdlib), { contract: contract });
+};
+exports.stdlibShared = stdlibShared;
 var stdVerifyContract = function (stdArgs, doVerify) { return __awaiter(void 0, void 0, void 0, function () {
     var getTrustedVerifyResult, setTrustedVerifyResult, r;
     return __generator(this, function (_a) {
@@ -1197,4 +1204,20 @@ var canonicalToBytes = function (bv) {
 exports.canonicalToBytes = canonicalToBytes;
 var isUint8Array = function (val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };
 exports.isUint8Array = isUint8Array;
+var protectSecretKey = function (secret, numBytes) {
+    var bytes = ethers_1.ethers.utils.arrayify(secret);
+    if (bytes.length !== numBytes) {
+        throw Error("Malformed secret key, expected ".concat(numBytes, " bytes but got ").concat(bytes.length));
+    }
+    return bytes;
+};
+exports.protectSecretKey = protectSecretKey;
+var protectMnemonic = function (phrase, numWords) {
+    var words = phrase.trim().split(/\s+/);
+    if (numWords && words.length !== numWords) {
+        throw Error("Malformed mnemonic, expected ".concat(numWords, " words but got ").concat(words.length));
+    }
+    return words.join(" ");
+};
+exports.protectMnemonic = protectMnemonic;
 //# sourceMappingURL=shared_impl.js.map

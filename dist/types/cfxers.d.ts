@@ -2,6 +2,7 @@ import cfxsdk from 'js-conflux-sdk';
 import { ethers } from 'ethers';
 declare const BigNumber: typeof ethers.BigNumber, utils: typeof ethers.utils;
 export { BigNumber, utils };
+import { SecretKeyInput } from './shared_impl';
 declare type BigNumber = ethers.BigNumber;
 declare type EpochNumber = cfxsdk.EpochNumber;
 declare type Conflux = cfxsdk.Conflux;
@@ -81,7 +82,7 @@ export declare class Wallet implements IWallet {
     _mnemonic?: () => {
         phrase: string;
     };
-    constructor(privateKey: string, provider?: providers.Provider, mnem?: any);
+    constructor(privateKey: SecretKeyInput, provider?: providers.Provider, mnem?: any);
     connect(provider: providers.Provider): this;
     _requireConnected(): void;
     getAddress(): string;

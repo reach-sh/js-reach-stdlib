@@ -1,4 +1,5 @@
 import { ethers as real_ethers } from 'ethers';
+import { SecretKeyInput, Mnemonic } from './shared_impl';
 import type { // =>
 BigNumber } from 'ethers';
 import type { // =>
@@ -67,8 +68,8 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     minimumBalanceOf: (acc: Account | Address) => Promise<BigNumber>;
     transfer: (from: AccountTransferable, to: AccountTransferable | Address, value: any, token?: Token) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
-    newAccountFromSecret: (secret: string) => Promise<Account>;
-    newAccountFromMnemonic: (phrase: string) => Promise<Account>;
+    newAccountFromSecret: (secret: SecretKeyInput) => Promise<Account>;
+    newAccountFromMnemonic: (phrase: Mnemonic) => Promise<Account>;
     getDefaultAccount: () => Promise<Account>;
     createAccount: () => Promise<Account>;
     canFundFromFaucet: () => Promise<boolean>;

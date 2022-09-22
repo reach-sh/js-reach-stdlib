@@ -1076,7 +1076,7 @@ function makeEthLike(ethLikeArgs) {
                                         args[_i] = arguments[_i];
                                     }
                                     return __awaiter(_this, void 0, void 0, function () {
-                                        var dom, rng, ethersC, vnv, vkn, mungedArgs, val, uv, e_7;
+                                        var dom, rng, ethersC, vnv, vkn, mungedArgs, val, e_7, uv;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -1096,20 +1096,18 @@ function makeEthLike(ethLikeArgs) {
                                                     return [4 /*yield*/, ethersC[vkn].apply(ethersC, __spreadArray([], __read(mungedArgs), false))];
                                                 case 3:
                                                     val = _a.sent();
-                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'val', val);
-                                                    uv = rng.unmunge(val);
-                                                    return [2 /*return*/, isSafe ? ['Some', uv] : uv];
+                                                    return [3 /*break*/, 5];
                                                 case 4:
                                                     e_7 = _a.sent();
                                                     (0, shared_impl_1.debug)(label, 'getView1', v, k, 'error', e_7);
-                                                    if (isSafe) {
-                                                        return [2 /*return*/, ['None', null]];
+                                                    if (!isSafe) {
+                                                        throw Error("View ".concat(k ? "".concat(v, ".").concat(k) : v, " is not set."));
                                                     }
-                                                    else {
-                                                        throw Error("View ".concat(v, ".").concat(k, " is not set."));
-                                                    }
-                                                    return [3 /*break*/, 5];
-                                                case 5: return [2 /*return*/];
+                                                    return [2 /*return*/, ['None', null]];
+                                                case 5:
+                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'val', val);
+                                                    uv = rng.unmunge(val);
+                                                    return [2 /*return*/, isSafe ? ['Some', uv] : uv];
                                             }
                                         });
                                     });
@@ -1254,32 +1252,27 @@ function makeEthLike(ethLikeArgs) {
         });
     }); };
     var newAccountFromSecret = function (secret) { return __awaiter(_this, void 0, void 0, function () {
-        var provider, networkAccount, acc;
+        var provider, wallet, networkAccount;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, getProvider()];
                 case 1:
                     provider = _a.sent();
-                    networkAccount = (new ethers.Wallet(secret)).connect(provider);
-                    return [4 /*yield*/, connectAccount(networkAccount)];
-                case 2:
-                    acc = _a.sent();
-                    return [2 /*return*/, acc];
+                    wallet = new ethers.Wallet((0, shared_impl_1.protectSecretKey)(secret, 32));
+                    networkAccount = wallet.connect(provider);
+                    return [2 /*return*/, connectAccount(networkAccount)];
             }
         });
     }); };
     var newAccountFromMnemonic = function (phrase) { return __awaiter(_this, void 0, void 0, function () {
-        var provider, networkAccount, acc;
+        var provider, networkAccount;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, getProvider()];
                 case 1:
                     provider = _a.sent();
-                    networkAccount = ethers.Wallet.fromMnemonic(phrase).connect(provider);
-                    return [4 /*yield*/, connectAccount(networkAccount)];
-                case 2:
-                    acc = _a.sent();
-                    return [2 /*return*/, acc];
+                    networkAccount = ethers.Wallet.fromMnemonic((0, shared_impl_1.protectMnemonic)(phrase)).connect(provider);
+                    return [2 /*return*/, connectAccount(networkAccount)];
             }
         });
     }); };
@@ -1341,7 +1334,9 @@ function makeEthLike(ethLikeArgs) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+                    if (!(0, shared_impl_1.hideWarnings)()) {
+                        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+                    }
                     return [4 /*yield*/, _specialFundFromFaucet()];
                 case 1:
                     f = _a.sent();

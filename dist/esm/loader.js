@@ -51,4 +51,7 @@ export function loadStdlib(connectorModeOrEnv) {
     window.reach = stdlib;
     return stdlib;
 }
+export function Reach(connectorModeOrEnv) {
+    Object.assign(this, loadStdlib(connectorModeOrEnv));
+}
 //# sourceMappingURL=loader.js.map

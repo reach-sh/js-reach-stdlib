@@ -159,6 +159,12 @@ export var debug = function() {
 var isUntaggedView = function(x) {
   return 'dom' in x && 'rng' in x && 'decode' in x;
 };
+export var stdlibShared = function(connectorStdlib) {
+  var contract = function(bin, ctcInfo) {
+    return connectorStdlib.createAccount().then(function(acc) { return acc.contract(bin, ctcInfo); });
+  };
+  return __assign(__assign({}, connectorStdlib), { contract: contract });
+};
 export var stdVerifyContract = function(stdArgs, doVerify) {
   return __awaiter(void 0, void 0, void 0, function() {
     var getTrustedVerifyResult, setTrustedVerifyResult, r;
@@ -1263,4 +1269,18 @@ export var canonicalToBytes = function(bv) {
     bv;
 };
 export var isUint8Array = function(val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };
+export var protectSecretKey = function(secret, numBytes) {
+  var bytes = ethers.utils.arrayify(secret);
+  if (bytes.length !== numBytes) {
+    throw Error("Malformed secret key, expected ".concat(numBytes, " bytes but got ").concat(bytes.length));
+  }
+  return bytes;
+};
+export var protectMnemonic = function(phrase, numWords) {
+  var words = phrase.trim().split(/\s+/);
+  if (numWords && words.length !== numWords) {
+    throw Error("Malformed mnemonic, expected ".concat(numWords, " words but got ").concat(words.length));
+  }
+  return words.join(" ");
+};
 //# sourceMappingURL=shared_impl.js.map

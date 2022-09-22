@@ -41,6 +41,7 @@ var ethers = __importStar(require("./cfxers"));
 var shared_user = __importStar(require("./shared_user"));
 var CFX_compiled = __importStar(require("./CFX_compiled"));
 var ETH_compiled_impl = __importStar(require("./ETH_compiled_impl"));
+var shared_impl_1 = require("./shared_impl");
 var _ETH_compiled_impl = ETH_compiled_impl;
 void (_ETH_compiled_impl);
 var load = function () {
@@ -49,7 +50,7 @@ var load = function () {
     var ethLike = (0, ETH_like_1.makeEthLike)(cfxImpl_);
     var CFX_compiled_ = CFX_compiled;
     var connector = 'CFX';
-    return __assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), CFX_compiled_), { connector: connector });
+    return (0, shared_impl_1.stdlibShared)(__assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), CFX_compiled_), { connector: connector }));
 };
 exports.load = load;
 //# sourceMappingURL=CFX.js.map

@@ -89,7 +89,7 @@ import { ethers } from 'ethers';
 var BigNumber = ethers.BigNumber, utils = ethers.utils;
 export { BigNumber, utils };
 import { address_cfxStandardize, defaultEpochTag } from './CFX_util';
-import { debug, j2s } from './shared_impl';
+import { debug, j2s, protectSecretKey } from './shared_impl';
 import { T_Address } from './CFX_compiled_impl';
 var attachBlockNumbers = function (conflux, xs) { return __awaiter(void 0, void 0, void 0, function () {
     var actuallyLookup, cache, lookup, attachBlockNumber, out, _a, _b, _i, i, _c, _d;
@@ -826,7 +826,7 @@ function addAcc(conflux, privateKey) {
 }
 var Wallet = /** @class */ (function () {
     function Wallet(privateKey, provider, mnem) {
-        this.privateKey = privateKey;
+        this.privateKey = '0x' + Buffer.from(protectSecretKey(privateKey, 32)).toString('hex');
         if (mnem) {
             this._mnemonic = function () { return ({ phrase: mnem }); };
         }

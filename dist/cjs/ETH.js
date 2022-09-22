@@ -41,6 +41,7 @@ var ethers = __importStar(require("ethers"));
 var shared_user = __importStar(require("./shared_user"));
 var ETH_compiled = __importStar(require("./ETH_compiled"));
 var ETH_compiled_impl = __importStar(require("./ETH_compiled_impl"));
+var shared_impl_1 = require("./shared_impl");
 var _ETH_compiled_impl = ETH_compiled_impl;
 void (_ETH_compiled_impl);
 var load = function () {
@@ -49,7 +50,7 @@ var load = function () {
     var ethLike = (0, ETH_like_1.makeEthLike)(ethImpl_);
     var ETH_compiled_ = ETH_compiled;
     var connector = 'ETH';
-    return __assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), ETH_compiled_), { connector: connector });
+    return (0, shared_impl_1.stdlibShared)(__assign(__assign(__assign(__assign(__assign(__assign({}, ethers_), ethLike), ethLike.reachStdlib), shared_user), ETH_compiled_), { connector: connector }));
 };
 exports.load = load;
 //# sourceMappingURL=ETH.js.map
