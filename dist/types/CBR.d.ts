@@ -23,6 +23,7 @@ export interface BackendTy<T extends CBR_Val> {
     name: string;
     canonicalize: (uv: unknown) => T;
     defaultValue: T;
+    toString: () => string;
 }
 export declare const BV_Null: CBR_Null;
 export declare const BT_Null: BackendTy<CBR_Null>;

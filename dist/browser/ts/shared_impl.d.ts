@@ -159,6 +159,9 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
     getViews: () => ViewMap;
     getContractAddress: () => Promise<CBR_Address>;
     getABI: (x?: boolean) => unknown;
+    getInternalState: () => Promise<{
+        [key: string]: any;
+    }>;
     participants: ParticipantMap;
     p: ParticipantMap;
     views: ViewMap;

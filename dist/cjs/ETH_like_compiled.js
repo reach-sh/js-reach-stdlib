@@ -77,13 +77,16 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return ethers_1.ethers.utils.defaultAbiCoder.encode(pts, mvs);
     });
     var V_Null = null;
+    var instEthTy = function (ty) {
+        return (__assign(__assign({}, ty), { toString: function () { return ty.paramType; } }));
+    };
     // null is represented in solidity as false
-    var T_Null = __assign(__assign({}, CBR.BT_Null), { munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' });
-    var T_Bool = __assign(__assign({}, CBR.BT_Bool), { munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' });
+    var T_Null = instEthTy(__assign(__assign({}, CBR.BT_Null), { munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' }));
+    var T_Bool = instEthTy(__assign(__assign({}, CBR.BT_Bool), { munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' }));
     var V_Bool = function (b) {
         return T_Bool.canonicalize(b);
     };
-    var T_UInt = __assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' });
+    var T_UInt = instEthTy(__assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' }));
     var T_UInt256 = T_UInt;
     var V_UInt = function (n) {
         return T_UInt.canonicalize(n);
@@ -139,7 +142,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                     ? fs[0]
                     : "tuple(".concat(fs.join(','), ")");
             })() });
-        return me;
+        return instEthTy(me);
     };
     var T_BytesDyn = (function () {
         var me = __assign(__assign({}, CBR.BT_BytesDyn), { munge: (function (bv) {
@@ -148,7 +151,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 var nv_s = (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv)));
                 return me.canonicalize(nv_s);
             }), paramType: 'bytes' });
-        return me;
+        return instEthTy(me);
     })();
     var T_StringDyn = (function () {
         var me = __assign(__assign({}, CBR.BT_StringDyn), { munge: (function (bv) {
@@ -156,17 +159,17 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
             }), unmunge: (function (nv) {
                 return nv;
             }), paramType: 'string' });
-        return me;
+        return instEthTy(me);
     })();
-    var T_Digest = __assign(__assign({}, CBR.BT_Digest), { defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
+    var T_Digest = instEthTy(__assign(__assign({}, CBR.BT_Digest), { defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
         // XXX likely not the correct unmunge type?
-        unmunge: function (nv) { return V_Digest(nv.toHexString()); }, paramType: 'uint256' });
+        unmunge: function (nv) { return V_Digest(nv.toHexString()); }, paramType: 'uint256' }));
     var V_Digest = function (s) {
         return T_Digest.canonicalize(s);
     };
     var T_Array = function (ctc, size_i) {
         var size = bigNumberToNumber(bigNumberify(size_i));
-        return __assign(__assign({}, CBR.BT_Array(ctc, size)), { munge: function (bv) {
+        return instEthTy(__assign(__assign({}, CBR.BT_Array(ctc, size)), { munge: function (bv) {
                 if (size == 0) {
                     return false;
                 }
@@ -180,13 +183,13 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 else {
                     return V_Array(ctc, size)(nv.map(function (arg) { return ctc.unmunge(arg); }));
                 }
-            }, paramType: "".concat(ctc.paramType, "[").concat(size, "]") });
+            }, paramType: "".concat(ctc.paramType, "[").concat(size, "]") }));
     };
     var V_Array = function (ctc, size) { return function (val) {
         return T_Array(ctc, size).canonicalize(val);
     }; };
     // XXX fix me Dan, I'm type checking wrong!
-    var T_Tuple = function (ctcs) { return (__assign(__assign({}, CBR.BT_Tuple(ctcs)), { munge: function (bv) {
+    var T_Tuple = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Tuple(ctcs)), { munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -199,7 +202,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Tuple = function (ctcs) { return function (val) {
         return T_Tuple(ctcs).canonicalize(val);
     }; };
-    var T_Struct = function (ctcs) { return (__assign(__assign({}, CBR.BT_Struct(ctcs)), { munge: function (bv) {
+    var T_Struct = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Struct(ctcs)), { munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -223,7 +226,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Struct = function (ctcs) { return function (val) {
         return T_Struct(ctcs).canonicalize(val);
     }; };
-    var T_Object = function (co) { return (__assign(__assign({}, CBR.BT_Object(co)), { 
+    var T_Object = function (co) { return instEthTy(__assign(__assign({}, CBR.BT_Object(co)), { 
         // CBR -> Net . ETH object fields are prefaced with "_"
         munge: function (bv) {
             var obj = {};
@@ -255,7 +258,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var T_Data = function (co) {
         // TODO: not duplicate between this and CBR.ts
         var _a = (0, shared_impl_1.labelMaps)(co), ascLabels = _a.ascLabels, labelMap = _a.labelMap;
-        return __assign(__assign({}, CBR.BT_Data(co)), { 
+        return instEthTy(__assign(__assign({}, CBR.BT_Data(co)), { 
             // Data representation in js is a 2-tuple:
             // [label, val]
             // where label : string
@@ -296,12 +299,12 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
                 var optionTys = ascLabels.map(function (label) { return "".concat(co[label].paramType, " _").concat(label); });
                 var tupFields = ["".concat(T_UInt.paramType, " which")].concat(optionTys).join(',');
                 return "tuple(".concat(tupFields, ")");
-            })() });
+            })() }));
     };
     var V_Data = function (co) { return function (val) {
         return T_Data(co).canonicalize(val);
     }; };
-    var T_Contract = __assign(__assign({}, T_Address), { name: 'Contract' });
+    var T_Contract = instEthTy(__assign(__assign({}, T_Address), { name: 'Contract' }));
     var addressEq = (0, shared_impl_1.mkAddressEq)(T_Address);
     var ctcAddrEq = function (x, y) {
         (0, shared_impl_1.debug)('ctcAddrEq', { x: x, y: y });

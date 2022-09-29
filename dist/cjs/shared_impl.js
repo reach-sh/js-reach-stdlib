@@ -269,6 +269,16 @@ var stdContract = function (stdContractArgs) {
     };
     var views = mkViews(true);
     var unsafeViews = mkViews(false);
+    var getInternalState = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var views;
+        return __generator(this, function (_a) {
+            views = bin._getViews({ reachStdlib: stdlib }, viewLib).views;
+            return [2 /*return*/, (0, exports.objectMap)(views, function (_, tys) {
+                    // @ts-ignore
+                    return stdlib.T_Tuple(tys);
+                })];
+        });
+    }); };
     var participants = (0, exports.objectMap)(bin._Participants, (function (pn, p) {
         void (pn);
         return (function (io) {
@@ -345,7 +355,7 @@ var stdContract = function (stdContractArgs) {
                 return createEventStream(k + "_" + kp, vp);
             }));
     }));
-    return __assign(__assign({}, ctcC), { getABI: getABI, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, views: views, v: views, getViews: function () {
+    return __assign(__assign({}, ctcC), { getABI: getABI, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });

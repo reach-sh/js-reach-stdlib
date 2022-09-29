@@ -36,6 +36,7 @@ export var T_Address = __assign(__assign({}, CBR.BT_Address), {
   defaultValue: '0x' + Array(40).fill('0').join(''),
   munge: function(bv) { return bv; },
   unmunge: function(nv) { return T_Address.canonicalize(nv); },
-  paramType: 'address'
+  paramType: 'address',
+  toString: function() { return 'address'; }
 });
 //# sourceMappingURL=ETH_compiled_impl.js.map
