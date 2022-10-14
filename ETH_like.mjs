@@ -109,7 +109,7 @@ var __spreadArray = (this && this.__spreadArray) || function(to, from, pack) {
 import Timeout from 'await-timeout';
 import real_ethers from 'ethers';
 import { assert, protect, simTokenAccepted_, } from './shared_backend.mjs';
-import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, hideWarnings, makeParseCurrency, protectMnemonic, protectSecretKey, } from './shared_impl.mjs';
+import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, hideWarnings, makeParseCurrency, protectMnemonic, protectSecretKey, mkGetEventTys, } from './shared_impl.mjs';
 import { bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
 import { setQueryLowerBound, getQueryLowerBound, formatWithDecimals } from './shared_impl.mjs';
@@ -117,7 +117,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 24;
+var reachBackendVersion = 25;
 var reachEthBackendVersion = 8;
 var reachPublish = function(m) { return "_reach_m".concat(m); };
 var reachEvent = function(e) { return "_reach_e".concat(e); };
@@ -1306,7 +1306,8 @@ export function makeEthLike(ethLikeArgs) {
                 return { createEventStream: createEventStream };
               };
               var getABI = stdGetABI(ABI);
-              return stdContract({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+              var getEventTys = mkGetEventTys(bin, stdlib);
+              return stdContract({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
             };;
             tokenAccepted = function(token) {
               return __awaiter(_this, void 0, void 0, function() {

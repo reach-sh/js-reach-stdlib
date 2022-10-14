@@ -199,6 +199,7 @@ export var stdGetABI = function(ABI) {
 export var stdContract = function(stdContractArgs) {
   var bin = stdContractArgs.bin,
     getABI = stdContractArgs.getABI,
+    getEventTys = stdContractArgs.getEventTys,
     waitUntilTime = stdContractArgs.waitUntilTime,
     waitUntilSecs = stdContractArgs.waitUntilSecs,
     selfAddress = stdContractArgs.selfAddress,
@@ -377,6 +378,7 @@ export var stdContract = function(stdContractArgs) {
   }));
   return __assign(__assign({}, ctcC), {
     getABI: getABI,
+    getEventTys: getEventTys,
     getInfo: getInfo,
     getContractAddress: (function() { return _initialize().getContractAddress(); }),
     participants: participants,
@@ -1295,5 +1297,10 @@ export var protectMnemonic = function(phrase, numWords) {
     throw Error("Malformed mnemonic, expected ".concat(numWords, " words but got ").concat(words.length));
   }
   return words.join(" ");
+};
+export var mkGetEventTys = function(bin, stdlib) {
+  return function() {
+    return bin._getEvents({ reachStdlib: stdlib });
+  };
 };
 //# sourceMappingURL=shared_impl.js.map

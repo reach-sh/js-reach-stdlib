@@ -90,7 +90,7 @@ import * as RHC from './ALGO_ReachHTTPClient';
 import * as UTBC from './ALGO_UTBC';
 var Buffer = buffer.Buffer;
 import { VERSION } from './version';
-import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, makeParseCurrency, stdlibShared, protectMnemonic, protectSecretKey } from './shared_impl';
+import { apiStateMismatchError, stdContract, stdVerifyContract, stdABIFilter, stdAccount, stdAccount_unsupported, debug, envDefault, argsSplit, makeRandom, replaceableThunk, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, truthyEnv, Lock, retryLoop, makeEventQueue, makeEventStream, makeSigningMonitor, j2sf, j2s, hideWarnings, hasProp, makeParseCurrency, stdlibShared, protectMnemonic, protectSecretKey, mkGetEventTys, } from './shared_impl';
 import { bigNumberify, bigNumberToNumber, bigNumberToBigInt, } from './shared_user';
 import waitPort from './waitPort';
 import { addressFromHex, stdlib, typeDefs, extractAddr, bytestringyNet, } from './ALGO_compiled';
@@ -103,7 +103,7 @@ import * as shared_impl from './shared_impl';
 ;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 24;
+var reachBackendVersion = 25;
 var reachAlgoBackendVersion = 11;
 ;
 ;
@@ -2053,8 +2053,9 @@ export var load = function () {
                                             return __generator(this, function (_a) {
                                                 void (o_mode);
                                                 void (o_lab);
-                                                void (o_val);
-                                                return [2 /*return*/, o_ctc.defaultValue];
+                                                // When user doesn't provide remote().ALGO({ simReturnVal: ... }), it gets turned
+                                                // into undefined. Turn it back into a sensible default value.
+                                                return [2 /*return*/, o_val !== undefined ? o_val : o_ctc.defaultValue];
                                             });
                                         }); })
                                     };
@@ -2664,7 +2665,8 @@ export var load = function () {
                         return name;
                     }))
                 }); };
-                return stdContract({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+                var getEventTys = mkGetEventTys(bin, stdlib);
+                return stdContract({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
             };
             me_na = { networkAccount: networkAccount };
             tokenAccepted = function (token) { return __awaiter(void 0, void 0, void 0, function () {

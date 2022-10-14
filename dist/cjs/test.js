@@ -181,7 +181,7 @@ var chkErr = function (id, exp, f, xtra) {
                         }
                     }
                     es = clean(es);
-                    (0, exports.chk)(id, es.includes(exps), true, __assign(__assign({}, xtra), { e: e_1, es: es, exps: exps }));
+                    (0, exports.chk)(id, !!es.match(exps), true, __assign(__assign({}, xtra), { e: e_1, es: es, exps: exps }));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }

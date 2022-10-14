@@ -87,7 +87,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 exports.__esModule = true;
 exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.stdlibShared = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
-exports.protectMnemonic = exports.protectSecretKey = exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = void 0;
+exports.mkGetEventTys = exports.protectMnemonic = exports.protectSecretKey = exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -201,7 +201,7 @@ var stdGetABI = function (ABI) { return function (isFull) {
 }; };
 exports.stdGetABI = stdGetABI;
 var stdContract = function (stdContractArgs) {
-    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, getEventTys = stdContractArgs.getEventTys, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
             throw Error("Cannot set info(".concat((0, exports.j2s)(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
@@ -355,7 +355,7 @@ var stdContract = function (stdContractArgs) {
                 return createEventStream(k + "_" + kp, vp);
             }));
     }));
-    return __assign(__assign({}, ctcC), { getABI: getABI, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
+    return __assign(__assign({}, ctcC), { getABI: getABI, getEventTys: getEventTys, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
@@ -1230,4 +1230,8 @@ var protectMnemonic = function (phrase, numWords) {
     return words.join(" ");
 };
 exports.protectMnemonic = protectMnemonic;
+var mkGetEventTys = function (bin, stdlib) { return function () {
+    return bin._getEvents({ reachStdlib: stdlib });
+}; };
+exports.mkGetEventTys = mkGetEventTys;
 //# sourceMappingURL=shared_impl.js.map

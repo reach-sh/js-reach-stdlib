@@ -132,7 +132,7 @@ var shared_impl = __importStar(require("./shared_impl"));
 ;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 24;
+var reachBackendVersion = 25;
 var reachAlgoBackendVersion = 11;
 ;
 ;
@@ -2082,8 +2082,9 @@ var load = function () {
                                             return __generator(this, function (_a) {
                                                 void (o_mode);
                                                 void (o_lab);
-                                                void (o_val);
-                                                return [2 /*return*/, o_ctc.defaultValue];
+                                                // When user doesn't provide remote().ALGO({ simReturnVal: ... }), it gets turned
+                                                // into undefined. Turn it back into a sensible default value.
+                                                return [2 /*return*/, o_val !== undefined ? o_val : o_ctc.defaultValue];
                                             });
                                         }); })
                                     };
@@ -2693,7 +2694,8 @@ var load = function () {
                         return name;
                     }))
                 }); };
-                return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: ALGO_compiled_1.stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+                var getEventTys = (0, shared_impl_1.mkGetEventTys)(bin, ALGO_compiled_1.stdlib);
+                return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: ALGO_compiled_1.stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
             };
             me_na = { networkAccount: networkAccount };
             tokenAccepted = function (token) { return __awaiter(void 0, void 0, void 0, function () {

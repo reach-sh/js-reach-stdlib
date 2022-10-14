@@ -171,7 +171,7 @@ export var stdGetABI = function (ABI) { return function (isFull) {
     return isFull ? ABI : ABI.filter(stdABIFilter);
 }; };
 export var stdContract = function (stdContractArgs) {
-    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, getEventTys = stdContractArgs.getEventTys, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
     var _a = (function () {
         var _setInfo = function (info) {
             throw Error("Cannot set info(".concat(j2s(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
@@ -325,7 +325,7 @@ export var stdContract = function (stdContractArgs) {
                 return createEventStream(k + "_" + kp, vp);
             }));
     }));
-    return __assign(__assign({}, ctcC), { getABI: getABI, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
+    return __assign(__assign({}, ctcC), { getABI: getABI, getEventTys: getEventTys, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });
@@ -1158,4 +1158,7 @@ export var protectMnemonic = function (phrase, numWords) {
     }
     return words.join(" ");
 };
+export var mkGetEventTys = function (bin, stdlib) { return function () {
+    return bin._getEvents({ reachStdlib: stdlib });
+}; };
 //# sourceMappingURL=shared_impl.js.map

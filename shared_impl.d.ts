@@ -53,7 +53,7 @@ export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
         [key: number]: any;
     };
     _getEvents: (stdlib: Object) => ({
-        [n: string]: [any];
+        [n: string]: ConnectorTy[];
     });
 };
 export declare type OnProgress = (obj: {
@@ -149,6 +149,7 @@ export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy exten
 export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
     getABI: (x?: boolean) => unknown;
+    getEventTys: () => Record<string, ConnectorTy[]>;
     setupView: ISetupView<ContractInfo, VerifyResult, ConnectorTy>;
     setupEvents: ISetupEvent<ContractInfo, VerifyResult>;
     givenInfoP: (Promise<ContractInfo> | undefined);
@@ -159,6 +160,7 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
     getViews: () => ViewMap;
     getContractAddress: () => Promise<CBR_Address>;
     getABI: (x?: boolean) => unknown;
+    getEventTys: () => Record<string, ConnectorTy[]>;
     getInternalState: () => Promise<{
         [key: string]: any;
     }>;
@@ -470,4 +472,7 @@ export declare type SecretKey = Uint8Array;
 export declare type Mnemonic = string;
 export declare const protectSecretKey: (secret: SecretKeyInput, numBytes: number) => SecretKey;
 export declare const protectMnemonic: (phrase: Mnemonic, numWords?: number) => Mnemonic;
+export declare const mkGetEventTys: <BackendTy extends AnyBackendTy>(bin: IBackend<BackendTy>, stdlib: any) => () => {
+    [n: string]: BackendTy[];
+};
 //# sourceMappingURL=shared_impl.d.ts.map

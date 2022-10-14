@@ -99,7 +99,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 24;
+var reachBackendVersion = 25;
 var reachEthBackendVersion = 8;
 var reachPublish = function (m) { return "_reach_m".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -1147,7 +1147,8 @@ function makeEthLike(ethLikeArgs) {
                             return { createEventStream: createEventStream };
                         };
                         var getABI = (0, shared_impl_1.stdGetABI)(ABI);
-                        return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+                        var getEventTys = (0, shared_impl_1.mkGetEventTys)(bin, stdlib);
+                        return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
                     };
                     ;
                     tokenAccepted = function (token) { return __awaiter(_this, void 0, void 0, function () {
