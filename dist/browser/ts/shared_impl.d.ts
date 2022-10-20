@@ -154,11 +154,13 @@ export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Tok
     setupEvents: ISetupEvent<ContractInfo, VerifyResult>;
     givenInfoP: (Promise<ContractInfo> | undefined);
     _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
+    doAppOptIn: (ctc: ContractInfo) => Promise<void>;
 } & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
 export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     getViews: () => ViewMap;
     getContractAddress: () => Promise<CBR_Address>;
+    appOptIn: () => Promise<void>;
     getABI: (x?: boolean) => unknown;
     getEventTys: () => Record<string, ConnectorTy[]>;
     getInternalState: () => Promise<{
@@ -255,7 +257,9 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
     contract: (bin: Backend, ctcInfoP?: Promise<ContractInfo>) => Contract;
     stdlib: Object;
     getAddress: () => string;
+    getDebugLabel: () => string;
     setDebugLabel: (lab: string) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+    appOptedIn: (ctc: ContractInfo) => Promise<boolean>;
     tokenAccept: (token: Token) => Promise<void>;
     tokenAccepted: (token: Token) => Promise<boolean>;
     tokensAccepted: () => Promise<Array<Token>>;

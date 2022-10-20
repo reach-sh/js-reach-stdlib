@@ -208,7 +208,8 @@ export var stdContract = function(stdContractArgs) {
     setupView = stdContractArgs.setupView,
     setupEvents = stdContractArgs.setupEvents,
     _setup = stdContractArgs._setup,
-    givenInfoP = stdContractArgs.givenInfoP;
+    givenInfoP = stdContractArgs.givenInfoP,
+    doAppOptIn = stdContractArgs.doAppOptIn;
   var _a = (function() {
       var _setInfo = function(info) {
         throw Error("Cannot set info(".concat(j2s(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
@@ -376,7 +377,24 @@ export var stdContract = function(stdContractArgs) {
         return createEventStream(k + "_" + kp, vp);
       }));
   }));
+  var appOptIn = function() {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var _a;
+      return __generator(this, function(_b) {
+        switch (_b.label) {
+          case 0:
+            _a = doAppOptIn;
+            return [4 /*yield*/ , getInfo()];
+          case 1:
+            return [4 /*yield*/ , _a.apply(void 0, [_b.sent()])];
+          case 2:
+            return [2 /*return*/ , _b.sent()];
+        }
+      });
+    });
+  };
   return __assign(__assign({}, ctcC), {
+    appOptIn: appOptIn,
     getABI: getABI,
     getEventTys: getEventTys,
     getInfo: getInfo,

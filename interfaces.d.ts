@@ -203,6 +203,7 @@ export interface Stdlib_User<Provider, ProviderEnv, ProviderName, Token, Contrac
     setCustomHttpEventHandler: (h: (e: any) => Promise<void>) => void;
     setSigningMonitor: SetSigningMonitor;
     tokensAccepted: (acc: Account | Address) => Promise<Array<Token>>;
+    appOptedIn: (acc: Account | Address, ctc: ContractInfo) => Promise<boolean>;
     contract: (bin: Backend, ctcInfo?: Promise<ContractInfo>) => Promise<Contract>;
 }
 export {};

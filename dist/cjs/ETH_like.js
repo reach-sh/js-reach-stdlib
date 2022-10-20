@@ -239,7 +239,7 @@ function makeEthLike(ethLikeArgs) {
                         e_1 = _a.sent();
                         es = "".concat(e_1);
                         (0, shared_impl_1.debug)(dhead, "err", e_1, es);
-                        if (es.includes('Unable to find block hash')) {
+                        if (es.includes('Unable to find block hash') || es.includes('after last accepted block')) {
                             (0, shared_impl_1.debug)(dhead, 'ignore');
                             toBlock = undefined;
                         }
@@ -491,7 +491,10 @@ function makeEthLike(ethLikeArgs) {
             // @ts-ignore
             return this;
         }
-        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, accObj, acc, balanceOf_, balancesOf_;
+        function getDebugLabel() {
+            return label;
+        }
+        var _a, address, shad, label, iam, selfAddress, gasLimit, setGasLimit, getGasLimit, storageLimit, setStorageLimit, getStorageLimit, contract, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, appOptedIn, accObj, acc, balanceOf_, balancesOf_;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
@@ -1148,7 +1151,7 @@ function makeEthLike(ethLikeArgs) {
                         };
                         var getABI = (0, shared_impl_1.stdGetABI)(ABI);
                         var getEventTys = (0, shared_impl_1.mkGetEventTys)(bin, stdlib);
-                        return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+                        return (0, shared_impl_1.stdContract)({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP, doAppOptIn: doAppOptIn });
                     };
                     ;
                     tokenAccepted = function (token) { return __awaiter(_this, void 0, void 0, function () {
@@ -1238,7 +1241,13 @@ function makeEthLike(ethLikeArgs) {
                             }
                         });
                     }); };
-                    accObj = { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit };
+                    appOptedIn = function (_ctc) { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            return [2 /*return*/, true];
+                        });
+                    }); };
+                    accObj = { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, getDebugLabel: getDebugLabel, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract, setGasLimit: setGasLimit, getGasLimit: getGasLimit, setStorageLimit: setStorageLimit, getStorageLimit: getStorageLimit, appOptedIn: appOptedIn
+                    };
                     acc = accObj;
                     balanceOf_ = function (token) { return balanceOf(acc, token); };
                     balancesOf_ = function (tokens) { return balancesOf(acc, tokens); };
@@ -1672,9 +1681,19 @@ function makeEthLike(ethLikeArgs) {
     function setCustomHttpEventHandler() {
         console.warn("setCustomHttpEventHandler is not supported on this connector");
     }
+    var doAppOptIn = function (_ctc) { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/];
+        });
+    }); };
+    var appOptedIn = function (_acc, _ctc) { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, true];
+        });
+    }); };
     // TODO: restore type ann once types are in place
     // const ethLike: EthLike = {
-    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { ethers: ethers, doCall: doCall, getQueryLowerBound: shared_impl_2.getQueryLowerBound, setQueryLowerBound: shared_impl_2.setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: shared_impl_2.formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs, tokensAccepted: tokensAccepted });
+    var ethLike = __assign(__assign(__assign({}, ethLikeCompiled), providerLib), { ethers: ethers, doCall: doCall, getQueryLowerBound: shared_impl_2.getQueryLowerBound, setQueryLowerBound: shared_impl_2.setQueryLowerBound, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, getFaucet: getFaucet, setFaucet: setFaucet, randomUInt: randomUInt, hasRandom: hasRandom, balanceOf: balanceOf, balancesOf: balancesOf, minimumBalanceOf: minimumBalanceOf, appOptedIn: appOptedIn, doAppOptIn: doAppOptIn, transfer: transfer, connectAccount: connectAccount, newAccountFromSecret: newAccountFromSecret, newAccountFromMnemonic: newAccountFromMnemonic, getDefaultAccount: getDefaultAccount, createAccount: createAccount, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getNetworkTime: getNetworkTime, waitUntilTime: waitUntilTime, wait: wait, getNetworkSecs: getNetworkSecs, waitUntilSecs: waitUntilSecs, verifyContract: verifyContract, standardUnit: standardUnit, atomicUnit: atomicUnit, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, formatAddress: formatAddress, formatWithDecimals: shared_impl_2.formatWithDecimals, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, reachStdlib: reachStdlib, setMinMillisBetweenRequests: setMinMillisBetweenRequests, setCustomHttpEventHandler: setCustomHttpEventHandler, setSigningMonitor: setSigningMonitor, getTimeSecs: getTimeSecs, tokensAccepted: tokensAccepted });
     return ethLike;
 }
 exports.makeEthLike = makeEthLike;

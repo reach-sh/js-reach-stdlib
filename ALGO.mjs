@@ -1717,6 +1717,42 @@ export var load = function() {
       });
     });
   };
+  var getLocalState_ = function(addr, ApplicationID) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var dhead, client, query, accAppInfo, indexer, query, appLocalStatesRes, appsLocalStates, appLocalState;
+      var _a, _b;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
+          case 0:
+            dhead = 'getLocalState';
+            return [4 /*yield*/ , nodeCanRead()];
+          case 1:
+            if (!_c.sent()) return [3 /*break*/ , 4];
+            return [4 /*yield*/ , getAlgodClient()];
+          case 2:
+            client = _c.sent();
+            query = client.accountApplicationInformation(addr, bigNumberToNumber(ApplicationID));
+            return [4 /*yield*/ , doQuery_('contract.getLocalState', query, 0, function(_) { return { val: undefined }; })];
+          case 3:
+            accAppInfo = _c.sent();
+            return [2 /*return*/ , (_a = accAppInfo === null || accAppInfo === void 0 ? void 0 : accAppInfo['app-local-state']) === null || _a === void 0 ? void 0 : _a['key-value']];
+          case 4:
+            return [4 /*yield*/ , getIndexer()];
+          case 5:
+            indexer = _c.sent();
+            query = indexer
+              .lookupAccountAppLocalStates(addr)
+              .applicationID(bigNumberToNumber(ApplicationID));
+            return [4 /*yield*/ , doQuery_(dhead, query)];
+          case 6:
+            appLocalStatesRes = _c.sent();
+            appsLocalStates = (_b = appLocalStatesRes['apps-local-states']) !== null && _b !== void 0 ? _b : [];
+            appLocalState = appsLocalStates.find(function(app) { return ApplicationID.eq(app['id']); });
+            return [2 /*return*/ , appLocalState === null || appLocalState === void 0 ? void 0 : appLocalState['key-value']];
+        }
+      });
+    });
+  };
   var connectAccount = function(networkAccount) {
     return __awaiter(void 0, void 0, void 0, function() {
       function setDebugLabel(newLabel) {
@@ -1725,7 +1761,11 @@ export var load = function() {
         // @ts-ignore
         return this;
       }
-      var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, unsupportedAcc, accObj, acc, balanceOf_, balancesOf_;
+
+      function getDebugLabel() {
+        return label;
+      }
+      var thisAcc, label, pks, createTag, selfAddress, iam, contract, me_na, tokenAccepted, tokensAccepted_, tokenAccept, tokenMetadata, unsupportedAcc, accObj, acc, balanceOf_, balancesOf_, appOptedIn;
       return __generator(this, function(_a) {
         thisAcc = networkAccount;
         label = thisAcc.addr.substring(2, 6);
@@ -1801,36 +1841,12 @@ export var load = function() {
                       debug(label, 'getC', { ctcAddr: ctcAddr });
                       getLocalState = function(addr) {
                         return __awaiter(void 0, void 0, void 0, function() {
-                          var dhead, client, query, accAppInfo, indexer, query, appLocalStatesRes, appsLocalStates, appLocalState;
-                          var _a, _b;
-                          return __generator(this, function(_c) {
-                            switch (_c.label) {
+                          return __generator(this, function(_a) {
+                            switch (_a.label) {
                               case 0:
-                                dhead = 'getLocalState';
-                                return [4 /*yield*/ , nodeCanRead()];
+                                return [4 /*yield*/ , getLocalState_(addr, ApplicationID)];
                               case 1:
-                                if (!_c.sent()) return [3 /*break*/ , 4];
-                                return [4 /*yield*/ , getAlgodClient()];
-                              case 2:
-                                client = _c.sent();
-                                query = client.accountApplicationInformation(addr, bigNumberToNumber(ApplicationID));
-                                return [4 /*yield*/ , doQuery_('contract.getLocalState', query, 0, function(_) { return { val: undefined }; })];
-                              case 3:
-                                accAppInfo = _c.sent();
-                                return [2 /*return*/ , (_a = accAppInfo === null || accAppInfo === void 0 ? void 0 : accAppInfo['app-local-state']) === null || _a === void 0 ? void 0 : _a['key-value']];
-                              case 4:
-                                return [4 /*yield*/ , getIndexer()];
-                              case 5:
-                                indexer = _c.sent();
-                                query = indexer
-                                  .lookupAccountAppLocalStates(addr)
-                                  .applicationID(bigNumberToNumber(ApplicationID));
-                                return [4 /*yield*/ , doQuery_(dhead, query)];
-                              case 6:
-                                appLocalStatesRes = _c.sent();
-                                appsLocalStates = (_b = appLocalStatesRes['apps-local-states']) !== null && _b !== void 0 ? _b : [];
-                                appLocalState = appsLocalStates.find(function(app) { return ApplicationID.eq(app['id']); });
-                                return [2 /*return*/ , appLocalState === null || appLocalState === void 0 ? void 0 : appLocalState['key-value']];
+                                return [2 /*return*/ , _a.sent()];
                             }
                           });
                         });
@@ -1840,37 +1856,21 @@ export var load = function() {
                           return __generator(this, function(_a) {
                             switch (_a.label) {
                               case 0:
-                                return [4 /*yield*/ , getLocalState(thisAcc.addr)];
+                                return [4 /*yield*/ , doAccountAppOptedIn(thisAcc.addr, ApplicationID)];
                               case 1:
-                                return [2 /*return*/ , ((_a.sent()) !== undefined)];
+                                return [2 /*return*/ , (_a.sent())];
                             }
                           });
                         });
                       };
                       doOptIn = function() {
                         return __awaiter(void 0, void 0, void 0, function() {
-                          var dhead, _a, _b, _c, _d, _e, _f;
-                          return __generator(this, function(_g) {
-                            switch (_g.label) {
+                          return __generator(this, function(_a) {
+                            switch (_a.label) {
                               case 0:
-                                dhead = "".concat(label, " doOptIn");
-                                debug(dhead);
-                                _a = sign_and_send_sync;
-                                _b = [dhead,
-                                  thisAcc
-                                ];
-                                _c = toWTxn;
-                                _e = (_d = algosdk).makeApplicationOptInTxn;
-                                _f = [thisAcc.addr];
-                                return [4 /*yield*/ , getTxnParams(dhead)];
+                                return [4 /*yield*/ , doAccountAppOptIn(thisAcc, ApplicationID)];
                               case 1:
-                                return [4 /*yield*/ , _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_g.sent(), bigNumberToNumber(ApplicationID),
-                                  undefined, undefined, undefined, undefined,
-                                  NOTE_Reach
-                                ]))])]))];
-                              case 2:
-                                _g.sent();
-                                return [2 /*return*/ ];
+                                return [2 /*return*/ , (_a.sent())];
                             }
                           });
                         });
@@ -2941,7 +2941,19 @@ export var load = function() {
             });
           };
           var getEventTys = mkGetEventTys(bin, stdlib);
-          return stdContract({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP });
+          var doAppOptIn = function(ctc) {
+            return __awaiter(void 0, void 0, void 0, function() {
+              return __generator(this, function(_a) {
+                switch (_a.label) {
+                  case 0:
+                    return [4 /*yield*/ , doAccountAppOptIn(networkAccount, ctc)];
+                  case 1:
+                    return [2 /*return*/ , _a.sent()];
+                }
+              });
+            });
+          };
+          return stdContract({ bin: bin, getABI: getABI, getEventTys: getEventTys, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, selfAddress: selfAddress, iam: iam, stdlib: stdlib, setupView: setupView, setupEvents: setupEvents, _setup: _setup, givenInfoP: givenInfoP, doAppOptIn: doAppOptIn });
         };
         me_na = { networkAccount: networkAccount };
         tokenAccepted = function(token) {
@@ -3022,11 +3034,23 @@ export var load = function() {
           });
         };
         unsupportedAcc = stdAccount_unsupported(connector);
-        accObj = __assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract });
+        accObj = __assign(__assign({}, unsupportedAcc), { networkAccount: networkAccount, getAddress: selfAddress, stdlib: stdlib, getDebugLabel: getDebugLabel, setDebugLabel: setDebugLabel, tokenAccepted: tokenAccepted, tokensAccepted: tokensAccepted_, tokenAccept: tokenAccept, tokenMetadata: tokenMetadata, contract: contract });
         acc = accObj;
         balanceOf_ = function(token) { return balanceOf(acc, token); };
         balancesOf_ = function(tokens) { return balancesOf(acc, tokens); };
-        return [2 /*return*/ , stdAccount(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_ }))];
+        appOptedIn = function(ctc) {
+          return __awaiter(void 0, void 0, void 0, function() {
+            return __generator(this, function(_a) {
+              switch (_a.label) {
+                case 0:
+                  return [4 /*yield*/ , accountAppOptedIn(acc, ctc)];
+                case 1:
+                  return [2 /*return*/ , _a.sent()];
+              }
+            });
+          });
+        };
+        return [2 /*return*/ , stdAccount(__assign(__assign({}, accObj), { balanceOf: balanceOf_, balancesOf: balancesOf_, appOptedIn: appOptedIn }))];
       });
     });
   };
@@ -3247,6 +3271,66 @@ export var load = function() {
             return [4 /*yield*/ , balanceOfM(acc, token || null)];
           case 1:
             return [2 /*return*/ , (_a.sent()) || bigNumberify(0)];
+        }
+      });
+    });
+  };
+  var doAccountAppOptedIn = function(nacc, ctcId) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var ls;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            return [4 /*yield*/ , getLocalState_(nacc, ctcId)];
+          case 1:
+            ls = _a.sent();
+            return [2 /*return*/ , ls !== undefined];
+        }
+      });
+    });
+  };
+  var accountAppOptedIn = function(acc, ctc) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var addr;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            addr = extractAddrConvert(acc);
+            return [4 /*yield*/ , doAccountAppOptedIn(addr, ctc)];
+          case 1:
+            return [2 /*return*/ , _a.sent()];
+        }
+      });
+    });
+  };
+  var doAccountAppOptIn = function(nacc, ctcId) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var dhead, _a, _b, _c, _d, _e, _f;
+      return __generator(this, function(_g) {
+        switch (_g.label) {
+          case 0:
+            return [4 /*yield*/ , doAccountAppOptedIn(nacc.addr, ctcId)];
+          case 1:
+            if (!!(_g.sent())) return [3 /*break*/ , 4];
+            dhead = "accountAppOptIn";
+            _a = sign_and_send_sync;
+            _b = [dhead,
+              nacc
+            ];
+            _c = toWTxn;
+            _e = (_d = algosdk).makeApplicationOptInTxn;
+            _f = [nacc.addr];
+            return [4 /*yield*/ , getTxnParams(dhead)];
+          case 2:
+            return [4 /*yield*/ , _a.apply(void 0, _b.concat([_c.apply(void 0, [_e.apply(_d, _f.concat([_g.sent(), bigNumberToNumber(ctcId),
+              undefined, undefined, undefined, undefined,
+              NOTE_Reach
+            ]))])]))];
+          case 3:
+            _g.sent();
+            _g.label = 4;
+          case 4:
+            return [2 /*return*/ ];
         }
       });
     });
@@ -3711,6 +3795,6 @@ export var load = function() {
       });
     });
   };
-  return stdlibShared(__assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit, tokensAccepted: tokensAccepted }));
+  return stdlibShared(__assign(__assign(__assign(__assign(__assign({}, stdlib), typeDefs), shared_user), ({ setQueryLowerBound: setQueryLowerBound, getQueryLowerBound: getQueryLowerBound, addressFromHex: addressFromHex, formatWithDecimals: formatWithDecimals, setSigningMonitor: setSigningMonitor })), { setCustomHttpEventHandler: setCustomHttpEventHandler, setMinMillisBetweenRequests: setMinMillisBetweenRequests, signSendAndConfirm: signSendAndConfirm, toWTxn: toWTxn, getTxnParams: getTxnParams, MinTxnFee: MinTxnFee, makeTransferTxn: makeTransferTxn, getValidQueryWindow: getValidQueryWindow, setValidQueryWindow: setValidQueryWindow, randomUInt: randomUInt, hasRandom: hasRandom, setWalletFallback: setWalletFallback, walletFallback: walletFallback, getProvider: getProvider, setProvider: setProvider, setProviderByEnv: setProviderByEnv, setProviderByName: setProviderByName, getFaucet: getFaucet, setFaucet: setFaucet, canFundFromFaucet: canFundFromFaucet, fundFromFaucet: fundFromFaucet, providerEnvByName: providerEnvByName, transfer: transfer, connectAccount: connectAccount, minimumBalanceOf: minimumBalanceOf, balancesOf: balancesOf, balanceOf: balanceOf, appOptedIn: accountAppOptedIn, createAccount: createAccount, newTestAccount: newTestAccount, newTestAccounts: newTestAccounts, getDefaultAccount: getDefaultAccount, newAccountFromMnemonic: newAccountFromMnemonic, newAccountFromSecret: newAccountFromSecret, getNetworkTime: getNetworkTime, getTimeSecs: getTimeSecs, getNetworkSecs: getNetworkSecs, waitUntilTime: waitUntilTime, waitUntilSecs: waitUntilSecs, wait: wait, verifyContract: verifyContract, formatAddress: formatAddress, unsafeGetMnemonic: unsafeGetMnemonic, launchToken: launchToken, parseCurrency: parseCurrency, minimumBalance: minimumBalance, formatCurrency: formatCurrency, reachStdlib: reachStdlib, algosdk: algosdk, connector: connector, standardUnit: standardUnit, atomicUnit: atomicUnit, tokensAccepted: tokensAccepted }));
 };
 //# sourceMappingURL=ALGO.js.map

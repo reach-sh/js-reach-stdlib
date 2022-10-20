@@ -171,7 +171,7 @@ export var stdGetABI = function (ABI) { return function (isFull) {
     return isFull ? ABI : ABI.filter(stdABIFilter);
 }; };
 export var stdContract = function (stdContractArgs) {
-    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, getEventTys = stdContractArgs.getEventTys, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP;
+    var bin = stdContractArgs.bin, getABI = stdContractArgs.getABI, getEventTys = stdContractArgs.getEventTys, waitUntilTime = stdContractArgs.waitUntilTime, waitUntilSecs = stdContractArgs.waitUntilSecs, selfAddress = stdContractArgs.selfAddress, iam = stdContractArgs.iam, stdlib = stdContractArgs.stdlib, setupView = stdContractArgs.setupView, setupEvents = stdContractArgs.setupEvents, _setup = stdContractArgs._setup, givenInfoP = stdContractArgs.givenInfoP, doAppOptIn = stdContractArgs.doAppOptIn;
     var _a = (function () {
         var _setInfo = function (info) {
             throw Error("Cannot set info(".concat(j2s(info), ") (i.e. deploy) when acc.contract called with contract info: You are trying to attach to a contract as the deployer, which is not possible."));
@@ -325,7 +325,19 @@ export var stdContract = function (stdContractArgs) {
                 return createEventStream(k + "_" + kp, vp);
             }));
     }));
-    return __assign(__assign({}, ctcC), { getABI: getABI, getEventTys: getEventTys, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
+    var appOptIn = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _a = doAppOptIn;
+                    return [4 /*yield*/, getInfo()];
+                case 1: return [4 /*yield*/, _a.apply(void 0, [_b.sent()])];
+                case 2: return [2 /*return*/, _b.sent()];
+            }
+        });
+    }); };
+    return __assign(__assign({}, ctcC), { appOptIn: appOptIn, getABI: getABI, getEventTys: getEventTys, getInfo: getInfo, getContractAddress: (function () { return _initialize().getContractAddress(); }), participants: participants, p: participants, getInternalState: getInternalState, views: views, v: views, getViews: function () {
             console.log("WARNING: ctc.getViews() is deprecated; use ctc.views or ctc.v instead.");
             return views;
         }, unsafeViews: unsafeViews, apis: apis, a: apis, safeApis: safeApis, events: events, e: events });

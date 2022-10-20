@@ -66,6 +66,8 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     balanceOf: (acc: Account | Address, token?: Token | false) => Promise<BigNumber>;
     balancesOf: (acc: Account | Address, tokens: Array<Token | null>) => Promise<Array<BigNumber>>;
     minimumBalanceOf: (acc: Account | Address) => Promise<BigNumber>;
+    appOptedIn: (_acc: Account | Address, _ctc: ContractInfo) => Promise<boolean>;
+    doAppOptIn: (_ctc: ContractInfo) => Promise<void>;
     transfer: (from: AccountTransferable, to: AccountTransferable | Address, value: any, token?: Token) => Promise<TransactionReceipt>;
     connectAccount: (networkAccount: NetworkAccount) => Promise<Account>;
     newAccountFromSecret: (secret: SecretKeyInput) => Promise<Account>;
