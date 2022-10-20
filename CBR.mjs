@@ -16,6 +16,8 @@ var __read = (this && this.__read) || function(o, n) {
 import ethers from 'ethers';
 import { checkedBigNumberify } from './shared_backend.mjs';
 import { j2s, labelMaps, hasProp, isUint8Array } from './shared_impl.mjs';
+import buffer from 'buffer';
+var Buffer = buffer.Buffer;
 var BigNumber = ethers.BigNumber;
 export var bigNumberify = function(x) {
   var xp = typeof x === 'number' ? x.toString() : x;
@@ -77,29 +79,50 @@ export var BT_UInt = function(max) {
 export var BV_UInt = function(val, max) {
   return BT_UInt(max).canonicalize(val);
 };
+var zpad = function(len, b) {
+  var res = Buffer.alloc(len, 0);
+  b.copy(res);
+  return res;
+};
+var arr_to_buf = function(s) { return Buffer.from(s); };
+var str_to_buf = function(s) { return Buffer.from(s); };
+var hex_to_buf = function(s) { return Buffer.from(s.slice(2), 'hex'); };
+var buf_to_arr = function(b) { return new Uint8Array(b); };
+var buf_to_str = function(b) { return b.toString(); };
+var buf_to_hex = function(b) { return '0x' + b.toString('hex'); };
+var to_buf = function(val) {
+  if (typeof val === 'string') {
+    return val.slice(0, 2) === '0x' ?
+      ['hex string', hex_to_buf(val)] :
+      ['string', str_to_buf(val)];
+  } else if (isUint8Array(val)) {
+    return ['Uint8Array', arr_to_buf(val)];
+  } else {
+    return ['unknown', str_to_buf('')];
+  }
+};
 export var BT_Bytes = function(len) {
   return ({
     name: "Bytes(".concat(len, ")"),
-    defaultValue: ''.padEnd(len, '\0'),
+    defaultValue: buf_to_str(zpad(bigNumberToNumber(len), str_to_buf(''))),
     canonicalize: function(val) {
-      if (typeof(val) == 'string') {
-        var lenn = bigNumberToNumber(len);
-        var checkLen = function(label, alen, fill) {
-          var v = val;
-          if (v.length > alen) {
-            throw Error("Bytes(".concat(len, ") must be a ").concat(label, "string less than or equal to ").concat(alen, ", but given ").concat(label, "string of length ").concat(v.length));
-          }
-          return v.padEnd(alen, fill);
-        };
-        if (val.slice(0, 2) === '0x') {
-          return checkLen('hex ', lenn * 2 + 2, '0');
-        } else {
-          return checkLen('', lenn, '\0');
-        }
-      } else if (isUint8Array(val)) {
-        return val;
+      var _a = __read(to_buf(val), 2),
+        label = _a[0],
+        b = _a[1];
+      var alen = b.length;
+      var lenn = bigNumberToNumber(len);
+      if (alen > lenn) {
+        throw Error("Bytes(".concat(lenn, ") must be less than or equal to ").concat(lenn, " bytes, but given ").concat(label, " of ").concat(alen, " bytes"));
+      }
+      var zb = zpad(lenn, b);
+      if (label === 'hex string') {
+        return buf_to_hex(zb);
+      } else if (label === 'string') {
+        return buf_to_str(zb);
+      } else if (label === 'Uint8Array') {
+        return buf_to_arr(zb);
       } else {
-        throw Error("Bytes expected string or Uint8Array, but got ".concat(j2s(val)));
+        throw Error("Bytes expected string or Uint8Array, but got ".concat(j2s(val), ": ").concat(typeof val));
       }
     }
   });

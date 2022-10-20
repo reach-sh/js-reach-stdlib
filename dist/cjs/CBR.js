@@ -15,11 +15,16 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 exports.__esModule = true;
 exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_StringDyn = exports.BT_BytesDyn = exports.BT_Bytes = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
 var shared_impl_1 = require("./shared_impl");
+var buffer_1 = __importDefault(require("buffer"));
+var Buffer = buffer_1["default"].Buffer;
 var BigNumber = ethers_1.ethers.BigNumber;
 var bigNumberify = function (x) {
     var xp = typeof x === 'number' ? x.toString() : x;
@@ -85,31 +90,52 @@ var BV_UInt = function (val, max) {
     return (0, exports.BT_UInt)(max).canonicalize(val);
 };
 exports.BV_UInt = BV_UInt;
+var zpad = function (len, b) {
+    var res = Buffer.alloc(len, 0);
+    b.copy(res);
+    return res;
+};
+var arr_to_buf = function (s) { return Buffer.from(s); };
+var str_to_buf = function (s) { return Buffer.from(s); };
+var hex_to_buf = function (s) { return Buffer.from(s.slice(2), 'hex'); };
+var buf_to_arr = function (b) { return new Uint8Array(b); };
+var buf_to_str = function (b) { return b.toString(); };
+var buf_to_hex = function (b) { return '0x' + b.toString('hex'); };
+var to_buf = function (val) {
+    if (typeof val === 'string') {
+        return val.slice(0, 2) === '0x'
+            ? ['hex string', hex_to_buf(val)]
+            : ['string', str_to_buf(val)];
+    }
+    else if ((0, shared_impl_1.isUint8Array)(val)) {
+        return ['Uint8Array', arr_to_buf(val)];
+    }
+    else {
+        return ['unknown', str_to_buf('')];
+    }
+};
 var BT_Bytes = function (len) { return ({
     name: "Bytes(".concat(len, ")"),
-    defaultValue: ''.padEnd(len, '\0'),
+    defaultValue: buf_to_str(zpad((0, exports.bigNumberToNumber)(len), str_to_buf(''))),
     canonicalize: function (val) {
-        if (typeof (val) == 'string') {
-            var lenn = (0, exports.bigNumberToNumber)(len);
-            var checkLen = function (label, alen, fill) {
-                var v = val;
-                if (v.length > alen) {
-                    throw Error("Bytes(".concat(len, ") must be a ").concat(label, "string less than or equal to ").concat(alen, ", but given ").concat(label, "string of length ").concat(v.length));
-                }
-                return v.padEnd(alen, fill);
-            };
-            if (val.slice(0, 2) === '0x') {
-                return checkLen('hex ', lenn * 2 + 2, '0');
-            }
-            else {
-                return checkLen('', lenn, '\0');
-            }
+        var _a = __read(to_buf(val), 2), label = _a[0], b = _a[1];
+        var alen = b.length;
+        var lenn = (0, exports.bigNumberToNumber)(len);
+        if (alen > lenn) {
+            throw Error("Bytes(".concat(lenn, ") must be less than or equal to ").concat(lenn, " bytes, but given ").concat(label, " of ").concat(alen, " bytes"));
         }
-        else if ((0, shared_impl_1.isUint8Array)(val)) {
-            return val;
+        var zb = zpad(lenn, b);
+        if (label === 'hex string') {
+            return buf_to_hex(zb);
+        }
+        else if (label === 'string') {
+            return buf_to_str(zb);
+        }
+        else if (label === 'Uint8Array') {
+            return buf_to_arr(zb);
         }
         else {
-            throw Error("Bytes expected string or Uint8Array, but got ".concat((0, shared_impl_1.j2s)(val)));
+            throw Error("Bytes expected string or Uint8Array, but got ".concat((0, shared_impl_1.j2s)(val), ": ").concat(typeof val));
         }
     }
 }); };

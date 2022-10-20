@@ -31,7 +31,7 @@ export declare const BT_Bool: BackendTy<CBR_Bool>;
 export declare const BV_Bool: (val: boolean) => CBR_Bool;
 export declare const BT_UInt: (max: BigNumber) => BackendTy<CBR_UInt>;
 export declare const BV_UInt: (val: BigNumber, max: BigNumber) => CBR_UInt;
-export declare const BT_Bytes: (len: number) => BackendTy<CBR_Bytes>;
+export declare const BT_Bytes: (len: number | BigNumber) => BackendTy<CBR_Bytes>;
 export declare const BT_BytesDyn: BackendTy<CBR_Bytes>;
 export declare const BT_StringDyn: BackendTy<CBR_Bytes>;
 export declare const BT_Digest: BackendTy<CBR_Digest>;
