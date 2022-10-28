@@ -1586,13 +1586,34 @@ export var load = function() {
   };
   var getAssetInfo = function(a) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var dhead, indexer, q, failOk, res;
+      var dhead, client, req, res_2, e_9, indexer, q, failOk, res;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
             dhead = 'getAssetInfo';
-            return [4 /*yield*/ , getIndexer()];
+            _a.label = 1;
           case 1:
+            _a.trys.push([1, 5, , 6]);
+            return [4 /*yield*/ , ensureNodeCanRead()];
+          case 2:
+            _a.sent();
+            return [4 /*yield*/ , getAlgodClient()];
+          case 3:
+            client = _a.sent();
+            req = client.getAssetByID(a);
+            debug(dhead, req);
+            return [4 /*yield*/ , req["do"]()];
+          case 4:
+            res_2 = (_a.sent());
+            debug(dhead, 'node', res_2);
+            return [2 /*return*/ , res_2];
+          case 5:
+            e_9 = _a.sent();
+            debug(dhead, 'node err', e_9);
+            return [3 /*break*/ , 6];
+          case 6:
+            return [4 /*yield*/ , getIndexer()];
+          case 7:
             indexer = _a.sent();
             q = indexer.lookupAssetByID(a);
             failOk = function(x) {
@@ -1603,7 +1624,7 @@ export var load = function() {
               }
             };
             return [4 /*yield*/ , doQuery_(dhead, q, 0, failOk)];
-          case 2:
+          case 8:
             res = _a.sent();
             debug(dhead, res);
             return [2 /*return*/ , res.asset];
@@ -1613,7 +1634,7 @@ export var load = function() {
   };
   var getApplicationInfoM = function(idn) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var id, dhead, client, res, e_9, indexer, query, queryRes;
+      var id, dhead, client, res, e_10, indexer, query, queryRes;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -1634,8 +1655,8 @@ export var load = function() {
             debug(dhead, 'node', res);
             return [2 /*return*/ , { val: res }];
           case 5:
-            e_9 = _a.sent();
-            debug(dhead, 'node err', e_9);
+            e_10 = _a.sent();
+            debug(dhead, 'node err', e_10);
             return [3 /*break*/ , 6];
           case 6:
             return [4 /*yield*/ , getIndexer()];
@@ -2347,7 +2368,7 @@ export var load = function() {
                     case 11:
                       mapRefs = sim_r.mapRefs;
                       _loop_1 = function() {
-                        var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, whichApi, processRemote, processSimTxn, addCompanion, readCI, companionCalls, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_10, jes, _r, _s;
+                        var params, _o, _p, _q, mapAccts, recordAccount_, recordAccount, foreignArr, recordApp, assetsArr, recordAsset, extraFees, howManyMoreFees, txnExtraTxns, sim_i, whichApi, processRemote, processSimTxn, addCompanion, readCI, companionCalls, mapAcctsVal, assetsVal, foreignVal, actual_args, actual_tys, safe_args, whichAppl, txnAppl, rtxns, wtxns, res, e_11, jes, _r, _s;
                         return __generator(this, function(_t) {
                           switch (_t.label) {
                             case 0:
@@ -2585,9 +2606,9 @@ export var load = function() {
                               res = _t.sent();
                               return [3 /*break*/ , 14];
                             case 11:
-                              e_10 = _t.sent();
-                              jes = j2s(e_10);
-                              debug(dhead, 'FAIL', e_10, jes);
+                              e_11 = _t.sent();
+                              jes = j2s(e_11);
+                              debug(dhead, 'FAIL', e_11, jes);
                               if (!!soloSend) return [3 /*break*/ , 13];
                               // If there is no soloSend, then someone else "won", so let's
                               // listen for their message
@@ -2664,7 +2685,7 @@ export var load = function() {
                       getOutput = function(o_mode, o_lab, o_ctc, o_val) {
                         return __awaiter(void 0, void 0, void 0, function() {
                           var f_ctc, _a, _b, l, lb, ln, ls, ld, o;
-                          var e_11, _c;
+                          var e_12, _c;
                           return __generator(this, function(_d) {
                             debug("getOutput", { o_mode: o_mode, o_lab: o_lab, o_ctc: o_ctc, o_val: o_val });
                             f_ctc = T_Tuple([T_UInt, o_ctc]);
@@ -2682,10 +2703,10 @@ export var load = function() {
                                   return [2 /*return*/ , o];
                                 }
                               }
-                            } catch (e_11_1) { e_11 = { error: e_11_1 }; } finally {
+                            } catch (e_12_1) { e_12 = { error: e_12_1 }; } finally {
                               try {
                                 if (_b && !_b.done && (_c = _a["return"])) _c.call(_a);
-                              } finally { if (e_11) throw e_11.error; }
+                              } finally { if (e_12) throw e_12.error; }
                             }
                             throw Error("no log for ".concat(o_lab));
                           });
@@ -2854,7 +2875,7 @@ export var load = function() {
                   args[_i] = arguments[_i];
                 }
                 return __awaiter(void 0, void 0, void 0, function() {
-                  var decode, ch, step, vi, vtys_1, vvs, vres, e_12;
+                  var decode, ch, step, vi, vtys_1, vvs, vres, e_13;
                   return __generator(this, function(_a) {
                     switch (_a.label) {
                       case 0:
@@ -2883,8 +2904,8 @@ export var load = function() {
                         debug({ vres: vres });
                         return [2 /*return*/ , isSafe ? ['Some', vres] : vres];
                       case 6:
-                        e_12 = _a.sent();
-                        debug("getView1", v, k, 'error', e_12);
+                        e_13 = _a.sent();
+                        debug("getView1", v, k, 'error', e_13);
                         if (!isSafe) {
                           throw Error("View ".concat(v, ".").concat(k, " is not set."));
                         }
@@ -3508,7 +3529,7 @@ export var load = function() {
   };
   var getTimeSecs = function(now_bn) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var now, client, binfo, e_13, indexer, info;
+      var now, client, binfo, e_14, indexer, info;
       return __generator(this, function(_a) {
         switch (_a.label) {
           case 0:
@@ -3528,8 +3549,8 @@ export var load = function() {
             //debug(`getTimeSecs`, `node`, binfo);
             return [2 /*return*/ , bigNumberify(binfo.block.ts)];
           case 5:
-            e_13 = _a.sent();
-            debug("getTimeSecs", "node failed", e_13);
+            e_14 = _a.sent();
+            debug("getTimeSecs", "node failed", e_14);
             return [4 /*yield*/ , getIndexer()];
           case 6:
             indexer = _a.sent();
@@ -3729,7 +3750,7 @@ export var load = function() {
   var launchToken = function(accCreator, name, sym, opts) {
     if (opts === void 0) { opts = {}; }
     return __awaiter(void 0, void 0, void 0, function() {
-      var addrCreator, supply, decimals, url, assetMetadataHash, f_addr, clawback, freeze, reserve, defaultFrozen, suggestedParams, txnResult, assetIndex, id, mint, optOut;
+      var addrCreator, supply, decimals, url, assetMetadataHash, f_addr, clawback, freeze, reserve, manager, defaultFrozen, suggestedParams, txnResult, assetIndex, id, mint, optOut;
       var _a, _b, _c, _d;
       return __generator(this, function(_e) {
         switch (_e.label) {
@@ -3743,6 +3764,7 @@ export var load = function() {
             clawback = f_addr(opts.clawback);
             freeze = f_addr(opts.freeze);
             reserve = f_addr(opts.reserve);
+            manager = f_addr(opts.manager);
             defaultFrozen = (_d = opts.defaultFrozen) !== null && _d !== void 0 ? _d : false;
             return [4 /*yield*/ , getTxnParams('launchToken')];
           case 1:
@@ -3760,7 +3782,8 @@ export var load = function() {
               suggestedParams: suggestedParams,
               total: bigNumberToBigInt(supply),
               unitName: sym,
-              from: addrCreator
+              from: addrCreator,
+              manager: manager
             })))];
           case 2:
             txnResult = _e.sent();
