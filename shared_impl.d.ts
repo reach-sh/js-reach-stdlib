@@ -12,6 +12,7 @@ export declare const j2sf: (x: any) => string;
 export declare const j2s: (x: any) => string;
 export declare const setDEBUG: (b: boolean) => void;
 export declare const hideWarnings: () => boolean;
+export declare const mShowFundFromFaucetWarning: () => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
 export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {

@@ -77,7 +77,7 @@ import { debug, envDefault, memoizeThunk, replaceableThunk, truthyEnv, } from '.
 import { bigNumberify, } from './shared_user.mjs';
 import { process, window } from './shim.mjs';
 import waitPort from './waitPort.mjs';
-import cfxsdk from 'js-conflux-sdk';
+import cfxsdk from '@reach-sh/js-conflux-sdk';
 import Timeout from 'await-timeout';
 import { canonicalizeConnectorMode } from './ConnectorMode.mjs';
 import buffer from 'buffer';

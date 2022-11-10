@@ -1,4 +1,6 @@
+/// <reference types="node" />
 import { ethers } from 'ethers';
+declare const Buffer: typeof globalThis.Buffer;
 declare type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.BigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
@@ -31,6 +33,9 @@ export declare const BT_Bool: BackendTy<CBR_Bool>;
 export declare const BV_Bool: (val: boolean) => CBR_Bool;
 export declare const BT_UInt: (max: BigNumber) => BackendTy<CBR_UInt>;
 export declare const BV_UInt: (val: BigNumber, max: BigNumber) => CBR_UInt;
+declare type BLabel = 'string' | 'hex string' | 'Uint8Array' | 'unknown';
+export declare const buf_to_arr: (b: Buffer) => Uint8Array;
+export declare const unk_to_buf: (val: unknown) => [BLabel, Buffer];
 export declare const BT_Bytes: (len: number | BigNumber) => BackendTy<CBR_Bytes>;
 export declare const BT_BytesDyn: BackendTy<CBR_Bytes>;
 export declare const BT_StringDyn: BackendTy<CBR_Bytes>;

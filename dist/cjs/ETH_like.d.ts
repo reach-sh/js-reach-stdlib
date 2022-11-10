@@ -22,11 +22,6 @@ export declare type Backend = IBackend<AnyETH_Ty> & {
             version: number;
             ABI: string;
             Bytecode: string;
-            views: {
-                [viewn: string]: string | {
-                    [keyn: string]: string;
-                };
-            };
         };
     };
 };
@@ -111,6 +106,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     setProviderByName: (providerName: ProviderName) => void;
     providerEnvByName: (providerName: ProviderName) => ProviderEnv;
     setWalletFallback: (wallet: any) => void;
+    /** @description convenience function for drilling down to the actual address */
     walletFallback: (opts: any) => any;
     stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
     typeDefs: import("./interfaces").TypeDefs<AnyETH_Ty>;

@@ -1,4 +1,4 @@
-import cfxsdk from 'js-conflux-sdk';
+import cfxsdk from '@reach-sh/js-conflux-sdk';
 import { ethers } from 'ethers';
 declare const BigNumber: typeof ethers.BigNumber, utils: typeof ethers.utils;
 export { BigNumber, utils };

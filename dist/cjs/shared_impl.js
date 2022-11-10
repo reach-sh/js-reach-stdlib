@@ -86,8 +86,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.makeSigningMonitor = exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.stdlibShared = exports.debug = exports.getDEBUG = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
-exports.mkGetEventTys = exports.protectMnemonic = exports.protectSecretKey = exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = void 0;
+exports.retryLoop = exports.None = exports.Some = exports.isSome = exports.isNone = exports.Lock = exports.Signal = exports.setQueryLowerBound = exports.getQueryLowerBound = exports.makeEventStream = exports.makeEventQueue = exports.checkTimeout = exports.make_waitUntilX = exports.make_newTestAccounts = exports.argMin = exports.argMax = exports.checkVersion = exports.ensureConnectorAvailable = exports.mkAddressEq = exports.objectMap = exports.argsSplit = exports.argsSlice = exports.makeArith = exports.UInt256_max = exports.makeRandom = exports.hexToBigNumber = exports.hexToString = exports.makeDigest = exports.envDefaultNoEmpty = exports.envDefault = exports.truthyEnv = exports.labelMaps = exports.memoizeThunk = exports.replaceableThunk = exports.stdAccount = exports.stdAccount_unsupported = exports.stdContract = exports.stdGetABI = exports.stdABIFilter = exports.stdVerifyContract = exports.stdlibShared = exports.debug = exports.getDEBUG = exports.mShowFundFromFaucetWarning = exports.hideWarnings = exports.setDEBUG = exports.j2s = exports.j2sf = exports.hasProp = exports.hexlify = void 0;
+exports.mkGetEventTys = exports.protectMnemonic = exports.protectSecretKey = exports.isUint8Array = exports.canonicalToBytes = exports.makeParseCurrency = exports.apiStateMismatchError = exports.formatWithDecimals = exports.handleFormat = exports.makeSigningMonitor = void 0;
 // This can depend on the shared backend
 var crypto_1 = __importDefault(require("crypto"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
@@ -140,6 +140,14 @@ var setDEBUG = function (b) {
 exports.setDEBUG = setDEBUG;
 var hideWarnings = function () { return truthyEnv(shim_1.process.env.REACH_NO_WARN); };
 exports.hideWarnings = hideWarnings;
+var faucetWarningShown = false;
+var mShowFundFromFaucetWarning = function () {
+    if (!((0, exports.hideWarnings)() || faucetWarningShown)) {
+        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+        faucetWarningShown = true;
+    }
+};
+exports.mShowFundFromFaucetWarning = mShowFundFromFaucetWarning;
 var getDEBUG = function () { return DEBUG; };
 exports.getDEBUG = getDEBUG;
 var debug = function () {
@@ -1219,9 +1227,8 @@ var makeParseCurrency = function (defaultDecs) { return function (amt, decimals)
 }; };
 exports.makeParseCurrency = makeParseCurrency;
 var canonicalToBytes = function (bv) {
-    return (typeof bv == 'string')
-        ? ethers_1.ethers.utils.toUtf8Bytes(bv)
-        : bv;
+    var _a = __read((0, CBR_1.unk_to_buf)(bv), 2), _ = _a[0], b = _a[1];
+    return (0, CBR_1.buf_to_arr)(b);
 };
 exports.canonicalToBytes = canonicalToBytes;
 var isUint8Array = function (val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };

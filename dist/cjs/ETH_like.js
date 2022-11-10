@@ -62,6 +62,15 @@ var __read = (this && this.__read) || function (o, n) {
     }
     return ar;
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -72,15 +81,6 @@ var __values = (this && this.__values) || function(o) {
         }
     };
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -99,9 +99,9 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 25;
-var reachEthBackendVersion = 8;
-var reachPublish = function (m) { return "_reach_m".concat(m); };
+var reachBackendVersion = 26;
+var reachEthBackendVersion = 9;
+var reachPublish = function (m) { return "_reachp_".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
 var reachOutputEvent = function (e) { return "_reach_oe_".concat(e); };
 // TODO: add return type once types are in place
@@ -186,8 +186,8 @@ function makeEthLike(ethLikeArgs) {
         void (_args_svs);
         void (_tys_svs);
         // @ts-ignore
-        var arg_ty = T_Tuple([T_UInt, T_Tuple(tys_msg)]);
-        return arg_ty.munge([lct, args_msg]);
+        var arg_ty = T_Tuple(__spreadArray([T_UInt], __read(tys_msg), false));
+        return arg_ty.munge(__spreadArray([lct], __read(args_msg), false));
     };
     var bnMax = function (x, y) {
         return x.lt(y) ? y : x;
@@ -318,7 +318,7 @@ function makeEthLike(ethLikeArgs) {
         (0, shared_impl_1.debug)("hasLogFor", i, tys);
         return makeLogRep(getCtcAddress, iface, reachEvent(i), [
             T_Address,
-            T_Tuple([T_UInt, T_Tuple(tys)])
+            T_Tuple(__spreadArray([T_UInt], __read(tys), false))
         ]);
     };
     var makeHasLogFor = function (getCtcAddress, iface, i, tys) {
@@ -690,7 +690,7 @@ function makeEthLike(ethLikeArgs) {
                                             return [4 /*yield*/, getC()];
                                         case 1:
                                             ethersC = _a.sent();
-                                            mf = "_reachMap".concat(i, "Ref");
+                                            mf = "_reachm_".concat(i, "Ref");
                                             (0, shared_impl_1.debug)(dhead, mf);
                                             return [4 /*yield*/, ethersC[mf](f)];
                                         case 2:
@@ -921,7 +921,7 @@ function makeEthLike(ethLikeArgs) {
                                             }
                                             (0, shared_impl_1.debug)(dhead, 'Event', ep);
                                             from = ep[0];
-                                            data = ep[1][1];
+                                            data = ep[1].slice(1);
                                             (0, shared_impl_1.debug)(dhead, "OKAY", data);
                                             theBlockBN = (0, shared_user_1.bigNumberify)(theBlock);
                                             (0, shared_impl_1.debug)(dhead, 'from', { from: from });
@@ -1070,16 +1070,15 @@ function makeEthLike(ethLikeArgs) {
                                     });
                                 }
                             };
-                            var views_namesm = bin._Connectors.ETH.views;
                             var getView1 = function (vs, v, k, vim, isSafe) {
                                 if (isSafe === void 0) { isSafe = true; }
                                 return function () {
-                                    var args = [];
+                                    var gargs = [];
                                     for (var _i = 0; _i < arguments.length; _i++) {
-                                        args[_i] = arguments[_i];
+                                        gargs[_i] = arguments[_i];
                                     }
                                     return __awaiter(_this, void 0, void 0, function () {
-                                        var dom, rng, ethersC, vnv, vkn, mungedArgs, val, e_7, uv;
+                                        var dom, rng, ethersC, vkn, cArgs, mungedArgs, val, e_7, uv;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -1088,10 +1087,11 @@ function makeEthLike(ethLikeArgs) {
                                                     return [4 /*yield*/, getC()];
                                                 case 1:
                                                     ethersC = _a.sent();
-                                                    vnv = views_namesm[v];
-                                                    vkn = (typeof vnv === 'string') ? vnv : vnv[k];
-                                                    mungedArgs = args.map(function (arg, i) { return dom[i].munge(arg); });
-                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'args', args, vkn, dom, rng);
+                                                    vkn = "".concat(v).concat((typeof k === 'string') ? "_".concat(k) : '');
+                                                    (0, shared_impl_1.debug)(label, 'getView1', v, k, 'gargs', gargs, vkn, dom, rng);
+                                                    cArgs = gargs.map(function (arg, i) { return dom[i].canonicalize(arg); });
+                                                    (0, shared_impl_1.debug)(label, 'getView1', 'cArgs', cArgs);
+                                                    mungedArgs = cArgs.map(function (arg, i) { return dom[i].munge(arg); });
                                                     (0, shared_impl_1.debug)(label, "getView1 mungedArgs = ".concat(mungedArgs));
                                                     _a.label = 2;
                                                 case 2:
@@ -1344,9 +1344,7 @@ function makeEthLike(ethLikeArgs) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!(0, shared_impl_1.hideWarnings)()) {
-                        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
-                    }
+                    (0, shared_impl_1.mShowFundFromFaucetWarning)();
                     return [4 /*yield*/, _specialFundFromFaucet()];
                 case 1:
                     f = _a.sent();

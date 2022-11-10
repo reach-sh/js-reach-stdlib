@@ -8,6 +8,8 @@ import ALGO_WalletConnect from './ALGO_WalletConnect';
 export { ALGO_WalletConnect };
 import ALGO_MakePeraConnect from './ALGO_MakePeraConnect';
 export { ALGO_MakePeraConnect };
+import ALGO_MakeAlgoSignerConnect from './ALGO_MakeAlgoSignerConnect';
+export { ALGO_MakeAlgoSignerConnect };
 export * as test from './test';
 export * as util from './util';
 //# sourceMappingURL=index.js.map

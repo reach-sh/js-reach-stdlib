@@ -15,7 +15,7 @@ var __read = (this && this.__read) || function(o, n) {
 };
 import ethers from 'ethers';
 import { checkedBigNumberify } from './shared_backend.mjs';
-import { j2s, labelMaps, hasProp, isUint8Array } from './shared_impl.mjs';
+import { debug, j2s, labelMaps, hasProp, isUint8Array } from './shared_impl.mjs';
 import buffer from 'buffer';
 var Buffer = buffer.Buffer;
 var BigNumber = ethers.BigNumber;
@@ -87,10 +87,10 @@ var zpad = function(len, b) {
 var arr_to_buf = function(s) { return Buffer.from(s); };
 var str_to_buf = function(s) { return Buffer.from(s); };
 var hex_to_buf = function(s) { return Buffer.from(s.slice(2), 'hex'); };
-var buf_to_arr = function(b) { return new Uint8Array(b); };
+export var buf_to_arr = function(b) { return new Uint8Array(b); };
 var buf_to_str = function(b) { return b.toString(); };
 var buf_to_hex = function(b) { return '0x' + b.toString('hex'); };
-var to_buf = function(val) {
+export var unk_to_buf = function(val) {
   if (typeof val === 'string') {
     return val.slice(0, 2) === '0x' ?
       ['hex string', hex_to_buf(val)] :
@@ -106,9 +106,10 @@ export var BT_Bytes = function(len) {
     name: "Bytes(".concat(len, ")"),
     defaultValue: buf_to_str(zpad(bigNumberToNumber(len), str_to_buf(''))),
     canonicalize: function(val) {
-      var _a = __read(to_buf(val), 2),
+      var _a = __read(unk_to_buf(val), 2),
         label = _a[0],
         b = _a[1];
+      debug("Canonicalize bytes:", val, "=>", label, b);
       var alen = b.length;
       var lenn = bigNumberToNumber(len);
       if (alen > lenn) {

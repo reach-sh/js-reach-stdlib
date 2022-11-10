@@ -88,7 +88,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 exports.__esModule = true;
 exports.Wallet = exports.BrowserWallet = exports.ContractFactory = exports.Contract = exports.Signer = exports.providers = exports.utils = exports.BigNumber = void 0;
 // This file immitates the ethers.js API
-var js_conflux_sdk_1 = __importDefault(require("js-conflux-sdk"));
+var js_conflux_sdk_1 = __importDefault(require("@reach-sh/js-conflux-sdk"));
 var await_timeout_1 = __importDefault(require("await-timeout"));
 var format = js_conflux_sdk_1["default"].format;
 var ethers_1 = require("ethers");

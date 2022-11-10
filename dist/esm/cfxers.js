@@ -82,7 +82,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 // This file immitates the ethers.js API
-import cfxsdk from 'js-conflux-sdk';
+import cfxsdk from '@reach-sh/js-conflux-sdk';
 import Timeout from 'await-timeout';
 var format = cfxsdk.format;
 import { ethers } from 'ethers';

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { EpochNumber } from 'js-conflux-sdk';
+import type { EpochNumber } from '@reach-sh/js-conflux-sdk';
 export declare function encodeCfxAddress(ha_in: Buffer | Uint8Array, netId: number): string;
 export declare function decodeCfxAddress(address: string): {
     hexAddress: Buffer;

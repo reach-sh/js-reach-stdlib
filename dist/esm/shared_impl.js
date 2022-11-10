@@ -74,7 +74,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import crypto from 'crypto';
 import Timeout from 'await-timeout';
 import { ethers } from 'ethers';
-import { bigNumberify, } from './CBR';
+import { bigNumberify, unk_to_buf, buf_to_arr, } from './CBR';
 import util from 'util';
 import { hexlify, checkedBigNumberify, bytesEq, assert, formatAssertInfo, } from './shared_backend';
 import { process } from './shim';
@@ -116,6 +116,13 @@ export var setDEBUG = function (b) {
     }
 };
 export var hideWarnings = function () { return truthyEnv(process.env.REACH_NO_WARN); };
+var faucetWarningShown = false;
+export var mShowFundFromFaucetWarning = function () {
+    if (!(hideWarnings() || faucetWarningShown)) {
+        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
+        faucetWarningShown = true;
+    }
+};
 export var getDEBUG = function () { return DEBUG; };
 export var debug = function () {
     var msgs = [];
@@ -1151,9 +1158,8 @@ export var makeParseCurrency = function (defaultDecs) { return function (amt, de
     return bigNumberify(ethers.utils.parseUnits(amtStr, decimals));
 }; };
 export var canonicalToBytes = function (bv) {
-    return (typeof bv == 'string')
-        ? ethers.utils.toUtf8Bytes(bv)
-        : bv;
+    var _a = __read(unk_to_buf(bv), 2), _ = _a[0], b = _a[1];
+    return buf_to_arr(b);
 };
 export var isUint8Array = function (val) { var _a; return ((_a = val === null || val === void 0 ? void 0 : val.constructor) === null || _a === void 0 ? void 0 : _a.name) === 'Uint8Array'; };
 export var protectSecretKey = function (secret, numBytes) {

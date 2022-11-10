@@ -132,7 +132,7 @@ var shared_impl = __importStar(require("./shared_impl"));
 ;
 var defaultALGO_TOKEN_HEADER = 'X-Algo-API-Token';
 var defaultALGO_INDEXER_TOKEN_HEADER = 'X-Indexer-API-Token';
-var reachBackendVersion = 25;
+var reachBackendVersion = 26;
 var reachAlgoBackendVersion = 11;
 ;
 ;
@@ -2096,9 +2096,8 @@ var load = function () {
                                             return __generator(this, function (_a) {
                                                 void (o_mode);
                                                 void (o_lab);
-                                                // When user doesn't provide remote().ALGO({ simReturnVal: ... }), it gets turned
-                                                // into undefined. Turn it back into a sensible default value.
-                                                return [2 /*return*/, o_val !== undefined ? o_val : o_ctc.defaultValue];
+                                                void (o_ctc);
+                                                return [2 /*return*/, o_val];
                                             });
                                         }); })
                                     };
@@ -2623,17 +2622,19 @@ var load = function () {
                     var getView1 = function (vs, v, k, vim, isSafe) {
                         if (isSafe === void 0) { isSafe = true; }
                         return function () {
-                            var args = [];
+                            var gargs = [];
                             for (var _i = 0; _i < arguments.length; _i++) {
-                                args[_i] = arguments[_i];
+                                gargs[_i] = arguments[_i];
                             }
                             return __awaiter(void 0, void 0, void 0, function () {
-                                var decode, ch, step, vi, vtys_1, vvs, vres, e_13;
+                                var dom, decode, cArgs, ch, step, vi, vtys_1, vvs, vres, e_13;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
-                                            (0, shared_impl_1.debug)('getView1', v, k, args);
-                                            decode = vim.decode;
+                                            (0, shared_impl_1.debug)('getView1', v, k, gargs);
+                                            dom = vim.dom, decode = vim.decode;
+                                            cArgs = gargs.map(function (arg, i) { return dom[i].canonicalize(arg); });
+                                            (0, shared_impl_1.debug)('getView1', 'cArgs', cArgs);
                                             return [4 /*yield*/, getC()];
                                         case 1:
                                             ch = _a.sent();
@@ -2651,7 +2652,7 @@ var load = function () {
                                             return [4 /*yield*/, getState_(getC, function (_) { return vtys_1; })];
                                         case 4:
                                             vvs = (_a.sent())[1];
-                                            return [4 /*yield*/, decode(vi, vvs, args)];
+                                            return [4 /*yield*/, decode(vi, vvs, cArgs)];
                                         case 5:
                                             vres = _a.sent();
                                             (0, shared_impl_1.debug)({ vres: vres });
@@ -3089,9 +3090,7 @@ var load = function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!(0, shared_impl_1.hideWarnings)()) {
-                        console.error("Warning: your program uses stdlib.fundFromFaucet. That means it only works on Reach devnets!");
-                    }
+                    (0, shared_impl_1.mShowFundFromFaucetWarning)();
                     return [4 /*yield*/, getFaucet()];
                 case 1:
                     faucet = _a.sent();
