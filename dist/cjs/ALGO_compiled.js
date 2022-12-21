@@ -66,6 +66,7 @@ exports.stdlib = exports.emptyContractInfo = exports.typeDefs = exports.tokenEq 
 var shared_backend = __importStar(require("./shared_backend"));
 var shared_impl_1 = require("./shared_impl");
 var shared_user_1 = require("./shared_user");
+var shared_sim_1 = require("./shared_sim");
 var algosdk_1 = __importDefault(require("algosdk"));
 var buffer_1 = __importDefault(require("buffer"));
 var ethers_1 = require("ethers");
@@ -314,5 +315,5 @@ exports.typeDefs = {
 };
 exports.emptyContractInfo = 0;
 var arith = (0, shared_impl_1.makeArith)(exports.UInt_max);
-exports.stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), exports.typeDefs), { addressEq: exports.addressEq, ctcAddrEq: exports.ctcAddrEq, digestEq: exports.digestEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
+exports.stdlib = __assign(__assign(__assign(__assign(__assign({}, shared_backend), (0, shared_sim_1.defineSimStuff)()), arith), exports.typeDefs), { addressEq: exports.addressEq, ctcAddrEq: exports.ctcAddrEq, digestEq: exports.digestEq, tokenEq: exports.tokenEq, digest: exports.digest, UInt_max: exports.UInt_max, emptyContractInfo: exports.emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

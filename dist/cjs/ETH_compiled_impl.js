@@ -37,6 +37,7 @@ exports.__esModule = true;
 exports.T_Address = void 0;
 var CBR = __importStar(require("./CBR"));
 function addressUnwrapper(x) {
+    var _a;
     if (typeof x === 'string') {
         // XXX is this actually needed?
         if (x.slice(0, 2) !== '0x') {
@@ -46,10 +47,10 @@ function addressUnwrapper(x) {
             return x;
         }
     }
-    else if (x.networkAccount && x.networkAccount.address) {
+    else if ((x === null || x === void 0 ? void 0 : x.networkAccount) && ((_a = x === null || x === void 0 ? void 0 : x.networkAccount) === null || _a === void 0 ? void 0 : _a.address)) {
         return (x.networkAccount.address);
     }
-    else if (x.address) {
+    else if (x === null || x === void 0 ? void 0 : x.address) {
         return x.address;
     }
     else {
@@ -59,5 +60,5 @@ function addressUnwrapper(x) {
 exports.T_Address = __assign(__assign({}, CBR.BT_Address), { canonicalize: function (uv) {
         var val = addressUnwrapper(uv);
         return CBR.BT_Address.canonicalize(val || uv);
-    }, defaultValue: '0x' + Array(40).fill('0').join(''), munge: function (bv) { return bv; }, unmunge: function (nv) { return exports.T_Address.canonicalize(nv); }, paramType: 'address', toString: function () { return 'address'; } });
+    }, defaultValue: '0x' + Array(40).fill('0').join(''), munge: function (bv) { return bv; }, unmunge: function (nv) { return exports.T_Address.canonicalize(nv); }, paramType: 'address', toString: function () { return 'address'; }, isBaseType: true });
 //# sourceMappingURL=ETH_compiled_impl.js.map

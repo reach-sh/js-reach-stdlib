@@ -1,21 +1,21 @@
 import { ethers } from 'ethers';
 import * as ethLikeCompiled from './ETH_compiled';
-export declare type Provider = ethers.providers.Provider;
-declare type NetworkAccount = any;
+export type Provider = ethers.providers.Provider;
+type NetworkAccount = any;
 export interface ProviderByName {
     ETH_NET: string;
     REACH_CONNECTOR_MODE: string;
     REACH_ISOLATED_NETWORK: string;
 }
-export declare type WhichNetExternal = 'homestead' | 'ropsten';
-export declare type ProviderName = WhichNetExternal | 'MainNet' | 'TestNet' | 'LocalHost' | 'window';
+export type WhichNetExternal = 'homestead' | 'ropsten';
+export type ProviderName = WhichNetExternal | 'MainNet' | 'TestNet' | 'LocalHost' | 'window';
 export interface ProviderByURI {
     ETH_NODE_URI: string;
     REACH_CONNECTOR_MODE: string;
     REACH_DO_WAIT_PORT: string;
     REACH_ISOLATED_NETWORK: string;
 }
-export declare type ProviderEnv = ProviderByURI | ProviderByName;
+export type ProviderEnv = ProviderByURI | ProviderByName;
 export { ethLikeCompiled };
 export declare function _getDefaultNetworkAccount(): Promise<NetworkAccount>;
 export declare function _getDefaultFaucetNetworkAccount(): Promise<NetworkAccount>;

@@ -1,0 +1,1 @@
+{"version":3,"file":"ALGO_MakeWalletConnect.d.ts","sourceRoot":"","sources":["../../ts/ALGO_MakeWalletConnect.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,MAAM,EAAE,MAAM,eAAe,CAAC;AAEvC,MAAM,CAAC,OAAO,UAAU,sBAAsB,CAAE,aAAa,EAAC,GAAG,EAAE,WAAW,EAAE,GAAG;cAKlE,GAAG;YAHd,GAAG;mBACI,MAAM;;;;mBA0CA,QAAQ,MAAM,CAAC;uBAQZ,MAAM,EAAE,GAAG,QAAQ,MAAM,EAAE,CAAC;;EAiBjD"}

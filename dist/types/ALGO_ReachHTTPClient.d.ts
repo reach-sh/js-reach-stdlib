@@ -1,7 +1,7 @@
 import type { BaseHTTPClient, BaseHTTPClientError, BaseHTTPClientResponse } from "algosdk";
 import type { Query } from "algosdk/dist/types/src/client/baseHTTPClient";
-export declare type Method = 'get' | 'post' | 'delete';
-export declare type EventDetails = {
+export type Method = 'get' | 'post' | 'delete';
+export type EventDetails = {
     label: string;
     reqNum: number;
     method: Method;
@@ -10,7 +10,7 @@ export declare type EventDetails = {
     query?: Query<string>;
     requestHeaders?: Record<string, string>;
 };
-export declare type Event = ({
+export type Event = ({
     eventName: 'before';
 } | {
     eventName: 'success';
@@ -19,7 +19,7 @@ export declare type Event = ({
     eventName: 'error';
     err: BaseHTTPClientError | any;
 }) & EventDetails;
-export declare type EventHandler = (event: Event) => Promise<unknown>;
+export type EventHandler = (event: Event) => Promise<unknown>;
 export declare class ReachHTTPClient implements BaseHTTPClient {
     bc: BaseHTTPClient;
     eh: EventHandler;

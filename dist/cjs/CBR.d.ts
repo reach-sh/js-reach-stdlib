@@ -1,26 +1,26 @@
 /// <reference types="node" />
 import { ethers } from 'ethers';
 declare const Buffer: typeof globalThis.Buffer;
-declare type BigNumber = ethers.BigNumber;
+type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.BigNumber;
 export declare const bigNumberify: (x: any) => BigNumber;
 export declare const bigNumberToNumber: (x: any) => number;
-export declare type CBR_Null = null;
-export declare type CBR_Bool = boolean;
-export declare type CBR_UInt = BigNumber;
-export declare type CBR_Bytes = Uint8Array | string;
-export declare type CBR_Address = string;
-export declare type CBR_Digest = string;
-export declare type CBR_Object = {
+export type CBR_Null = null;
+export type CBR_Bool = boolean;
+export type CBR_UInt = BigNumber;
+export type CBR_Bytes = Uint8Array | string;
+export type CBR_Address = string;
+export type CBR_Digest = string;
+export type CBR_Object = {
     [key: string]: CBR_Val;
 };
-export declare type CBR_Data = [string, CBR_Val];
-export declare type CBR_Array = Array<CBR_Val>;
-export declare type CBR_Tuple = Array<CBR_Val>;
-export declare type CBR_Struct = {
+export type CBR_Data = [string, CBR_Val];
+export type CBR_Array = Array<CBR_Val>;
+export type CBR_Tuple = Array<CBR_Val>;
+export type CBR_Struct = {
     [key: string]: CBR_Val;
 };
-export declare type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple | CBR_Struct;
+export type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple | CBR_Struct;
 export interface BackendTy<T extends CBR_Val> {
     name: string;
     canonicalize: (uv: unknown) => T;
@@ -33,8 +33,13 @@ export declare const BT_Bool: BackendTy<CBR_Bool>;
 export declare const BV_Bool: (val: boolean) => CBR_Bool;
 export declare const BT_UInt: (max: BigNumber) => BackendTy<CBR_UInt>;
 export declare const BV_UInt: (val: BigNumber, max: BigNumber) => CBR_UInt;
-declare type BLabel = 'string' | 'hex string' | 'Uint8Array' | 'unknown';
+type BLabel = 'string' | 'hex string' | 'Uint8Array' | 'unknown';
+export declare const arr_to_buf: (s: Uint8Array) => Buffer;
+export declare const str_to_buf: (s: string) => Buffer;
+export declare const hex_to_buf: (s: string) => Buffer;
 export declare const buf_to_arr: (b: Buffer) => Uint8Array;
+export declare const buf_to_str: (b: Buffer) => string;
+export declare const buf_to_hex: (b: Buffer) => string;
 export declare const unk_to_buf: (val: unknown) => [BLabel, Buffer];
 export declare const BT_Bytes: (len: number | BigNumber) => BackendTy<CBR_Bytes>;
 export declare const BT_BytesDyn: BackendTy<CBR_Bytes>;

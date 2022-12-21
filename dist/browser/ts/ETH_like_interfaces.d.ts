@@ -1,23 +1,27 @@
 import type { // =>
 TypeDefs, Stdlib_Backend_Base, ProviderLib, Stdlib_Impl_Shared } from './interfaces';
 import type { // =>
+Token, ContractInfo } from './ETH_like_compiled';
+import type { // =>
 ethers, BigNumber } from 'ethers';
 import type { // =>
 CBR_Val, BackendTy } from './CBR';
-export declare type Address = string;
-export declare type TransactionReceipt = ethers.providers.TransactionReceipt;
-export declare type Block = ethers.providers.Block;
-export declare type Log = ethers.providers.Log;
-export declare type TransactionResponse = ethers.providers.TransactionResponse;
+export type Address = string;
+export type TransactionReceipt = ethers.providers.TransactionReceipt;
+export type Block = ethers.providers.Block;
+export type Log = ethers.providers.Log;
+export type TransactionResponse = ethers.providers.TransactionResponse;
 export interface ETH_Ty<BV extends CBR_Val, NV> extends BackendTy<BV> {
     munge: (bv: BV) => NV;
     unmunge: (nv: NV) => BV;
     /** @description describes the shape of the munged value */
     paramType: string;
+    isBaseType: boolean;
 }
-export declare type AnyETH_Ty = ETH_Ty<any, any>;
+export type AnyETH_Ty = ETH_Ty<any, any>;
+type ConnectorTy = AnyETH_Ty;
 export interface EthLikeCompiled extends Stdlib_Impl_Shared {
-    stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
+    stdlib: Stdlib_Backend_Base<Token, ContractInfo, ConnectorTy>;
     typeDefs: TypeDefs<AnyETH_Ty>;
 }
 interface EthersLikeNetworkAccountIsh {

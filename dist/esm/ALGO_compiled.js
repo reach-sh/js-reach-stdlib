@@ -37,6 +37,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import * as shared_backend from './shared_backend';
 import { debug, labelMaps, makeDigest, mkAddressEq, makeArith, UInt256_max, canonicalToBytes, } from './shared_impl';
 import { bigNumberToNumber, bigNumberify, bigNumberToBigInt, } from './shared_user';
+import { defineSimStuff, } from './shared_sim';
 import algosdk from 'algosdk';
 import buffer from 'buffer';
 import { ethers } from 'ethers';
@@ -273,5 +274,5 @@ export var typeDefs = {
 };
 export var emptyContractInfo = 0;
 var arith = makeArith(UInt_max);
-export var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
+export var stdlib = __assign(__assign(__assign(__assign(__assign({}, shared_backend), defineSimStuff()), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, digestEq: digestEq, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
 //# sourceMappingURL=ALGO_compiled.js.map

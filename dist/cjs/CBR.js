@@ -19,7 +19,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 exports.__esModule = true;
-exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_StringDyn = exports.BT_BytesDyn = exports.BT_Bytes = exports.unk_to_buf = exports.buf_to_arr = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
+exports.BV_Data = exports.BT_Data = exports.BV_Object = exports.BT_Object = exports.BV_Struct = exports.BT_Struct = exports.BV_Tuple = exports.BT_Tuple = exports.BV_Array = exports.BT_Array = exports.BV_Address = exports.BT_Address = exports.BV_Digest = exports.BT_Digest = exports.BT_StringDyn = exports.BT_BytesDyn = exports.BT_Bytes = exports.unk_to_buf = exports.buf_to_hex = exports.buf_to_str = exports.buf_to_arr = exports.hex_to_buf = exports.str_to_buf = exports.arr_to_buf = exports.BV_UInt = exports.BT_UInt = exports.BV_Bool = exports.BT_Bool = exports.BT_Null = exports.BV_Null = exports.bigNumberToNumber = exports.bigNumberify = void 0;
 var ethers_1 = require("ethers");
 var shared_backend_1 = require("./shared_backend");
 var shared_impl_1 = require("./shared_impl");
@@ -96,29 +96,34 @@ var zpad = function (len, b) {
     return res;
 };
 var arr_to_buf = function (s) { return Buffer.from(s); };
+exports.arr_to_buf = arr_to_buf;
 var str_to_buf = function (s) { return Buffer.from(s); };
+exports.str_to_buf = str_to_buf;
 var hex_to_buf = function (s) { return Buffer.from(s.slice(2), 'hex'); };
+exports.hex_to_buf = hex_to_buf;
 var buf_to_arr = function (b) { return new Uint8Array(b); };
 exports.buf_to_arr = buf_to_arr;
 var buf_to_str = function (b) { return b.toString(); };
+exports.buf_to_str = buf_to_str;
 var buf_to_hex = function (b) { return '0x' + b.toString('hex'); };
+exports.buf_to_hex = buf_to_hex;
 var unk_to_buf = function (val) {
     if (typeof val === 'string') {
         return val.slice(0, 2) === '0x'
-            ? ['hex string', hex_to_buf(val)]
-            : ['string', str_to_buf(val)];
+            ? ['hex string', (0, exports.hex_to_buf)(val)]
+            : ['string', (0, exports.str_to_buf)(val)];
     }
     else if ((0, shared_impl_1.isUint8Array)(val)) {
-        return ['Uint8Array', arr_to_buf(val)];
+        return ['Uint8Array', (0, exports.arr_to_buf)(val)];
     }
     else {
-        return ['unknown', str_to_buf('')];
+        return ['unknown', (0, exports.str_to_buf)('')];
     }
 };
 exports.unk_to_buf = unk_to_buf;
 var BT_Bytes = function (len) { return ({
     name: "Bytes(".concat(len, ")"),
-    defaultValue: buf_to_str(zpad((0, exports.bigNumberToNumber)(len), str_to_buf(''))),
+    defaultValue: (0, exports.buf_to_str)(zpad((0, exports.bigNumberToNumber)(len), (0, exports.str_to_buf)(''))),
     canonicalize: function (val) {
         var _a = __read((0, exports.unk_to_buf)(val), 2), label = _a[0], b = _a[1];
         (0, shared_impl_1.debug)("Canonicalize bytes:", val, "=>", label, b);
@@ -129,10 +134,10 @@ var BT_Bytes = function (len) { return ({
         }
         var zb = zpad(lenn, b);
         if (label === 'hex string') {
-            return buf_to_hex(zb);
+            return (0, exports.buf_to_hex)(zb);
         }
         else if (label === 'string') {
-            return buf_to_str(zb);
+            return (0, exports.buf_to_str)(zb);
         }
         else if (label === 'Uint8Array') {
             return (0, exports.buf_to_arr)(zb);

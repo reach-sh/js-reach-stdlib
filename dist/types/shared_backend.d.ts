@@ -1,17 +1,17 @@
 import { ethers } from 'ethers';
 import { bigNumberToNumber } from './CBR';
-import { apiStateMismatchError } from './shared_impl';
+import { apiStateMismatchError, MapRefT, GetKeyT, IContractCompiledMaps } from './shared_impl';
 export { bigNumberToNumber, apiStateMismatchError, };
-declare type BigNumber = ethers.BigNumber;
-export declare type num = BigNumber | number;
-export declare type MaybeRep<A> = ['Some', A] | ['None', null];
+type BigNumber = ethers.BigNumber;
+export type num = BigNumber | number;
+export type MaybeRep<A> = ['Some', A] | ['None', null];
 export declare const asMaybe: <A>(v: A | undefined) => MaybeRep<A>;
 export declare const fromSome: <A>(mo: MaybeRep<A>, da: A) => A;
 export interface AnyBackendTy {
     name: string;
     canonicalize: (x: any) => any;
 }
-declare type AssertInfo = unknown | undefined | string | {
+type AssertInfo = unknown | undefined | string | {
     who?: string;
     msg?: string | null;
     at?: string;
@@ -44,30 +44,20 @@ export declare const digest_xor: (xd: string, yd: string) => string;
 export declare const bytes_xor: (x: string, y: string) => string;
 export declare const btoiLast8: (b: string) => BigNumber;
 export declare function Array_set<T>(arr: Array<T>, idx: number, elem: T): Array<T>;
-export declare type MapRefT<A> = (f: string) => Promise<MaybeRep<A>>;
-export interface MapOpts<A> {
-    ctc: {
-        apiMapRef: (i: number, ty: unknown) => MapRefT<A>;
-    };
-    ty: unknown;
+export interface MapOpts<ConnectorTy extends AnyBackendTy> {
+    ctc: IContractCompiledMaps<ConnectorTy>;
     isAPI: boolean;
     idx: number;
 }
-export interface LinearMap<A> {
-    ref: MapRefT<A>;
-    set: (f: string, v: A | undefined) => Promise<void>;
+export interface LinearMap<K, A, ConnectorTy extends AnyBackendTy> {
+    getKey: GetKeyT<K, ConnectorTy>;
+    ref: MapRefT<K, A, ConnectorTy>;
+    set: (kt: ConnectorTy, k: K, vt: ConnectorTy, v: A | undefined) => Promise<void>;
 }
-export declare const newMap: <A>(opts: MapOpts<A>) => LinearMap<A>;
-export declare const mapSet: <A>(m: LinearMap<A>, f: string, v: A | undefined) => Promise<void>;
-export declare const mapRef: <A>(m: LinearMap<A>, f: string) => Promise<MaybeRep<A>>;
+export declare const copyMap: <K, A, ConnectorTy extends AnyBackendTy>(orig: LinearMap<K, A, ConnectorTy>) => LinearMap<K, A, ConnectorTy>;
+export declare const newMap: <K, A, ConnectorTy extends AnyBackendTy>(opts: MapOpts<ConnectorTy>) => LinearMap<K, A, ConnectorTy>;
+export declare const mapSet: <K, A, Ty extends AnyBackendTy>(m: LinearMap<K, A, Ty>, kt: Ty, k: K, vt: Ty, v: A | undefined) => Promise<void>;
+export declare const mapRef: <K, A, Ty extends AnyBackendTy>(m: LinearMap<K, A, Ty>, kt: Ty, k: K, vt: Ty) => Promise<MaybeRep<A>>;
 export declare const Array_asyncMap: <B>(as: any[][], f: (x: any[], i: number) => Promise<B>) => Promise<B[]>;
 export declare const Array_asyncReduce: <B>(as: any[][], b: B, f: (xs: any[], y: B, i: number) => Promise<B>) => Promise<B>;
-export declare const simMapDupe: <A>(sim_r: any, mapi: number, mapo: LinearMap<A>) => void;
-export declare const simMapRef: <A>(sim_r: any, mapi: number, f: string) => Promise<MaybeRep<A>>;
-export declare const simMapSet: <A>(sim_r: any, mapi: number, f: string, nv: A) => Promise<void>;
-export declare const simTokenNew: (sim_r: any, n: any, s: any, u: any, m: any, p: any, d: any, ctr: any) => any;
-export declare const simContractNew: (sim_r: any, cns: any, remote: any, ctr: any) => any;
-export declare const simTokenBurn: (sim_r: any, tok: any, amt: any) => void;
-export declare const simTokenDestroy: (sim_r: any, tok: any) => void;
-export declare const simTokenAccepted_: (sim_r: any, addr: any, tok: any) => void;
 //# sourceMappingURL=shared_backend.d.ts.map

@@ -1,7 +1,6 @@
 import { makeEthLikeCompiled } from './ETH_like_compiled.mjs';
 import * as ethCompiledImpl from './ETH_compiled_impl.mjs';
 var ethCompiled = makeEthLikeCompiled(ethCompiledImpl);
-// The following should be identical to CFX_compiled.ts
 export var stdlib = ethCompiled.stdlib,
   typeDefs = ethCompiled.typeDefs;
 export var

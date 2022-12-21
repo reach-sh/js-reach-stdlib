@@ -1,11 +1,10 @@
 import { ethers } from 'ethers';
 import { CBR_Address, CBR_Bytes } from './CBR';
-import { AnyBackendTy, MaybeRep } from './shared_backend';
-import type { MapRefT } from './shared_backend';
+import { AnyBackendTy, MaybeRep, LinearMap } from './shared_backend';
 export { hexlify } from './shared_backend';
 import type { Arith, Stdlib_User } from './interfaces';
-declare type BigNumber = ethers.BigNumber;
-export declare type CurrencyAmount = string | number | BigNumber | bigint;
+type BigNumber = ethers.BigNumber;
+export type CurrencyAmount = string | number | BigNumber | bigint;
 export type { Connector } from './ConnectorMode';
 export declare const hasProp: (o: unknown, p: string) => unknown;
 export declare const j2sf: (x: any) => string;
@@ -15,32 +14,32 @@ export declare const hideWarnings: () => boolean;
 export declare const mShowFundFromFaucetWarning: () => void;
 export declare const getDEBUG: () => boolean;
 export declare const debug: (...msgs: any) => void;
-export declare type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
+export type IBackendViewInfo<ConnectorTy extends AnyBackendTy> = {
     dom: [ConnectorTy];
     rng: ConnectorTy;
     decode: (i: number, svs: Array<any>, args: Array<any>) => Promise<any>;
 };
-export declare type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
+export type IBackendViewsInfo<ConnectorTy extends AnyBackendTy> = {
     [viewi: number]: Array<ConnectorTy>;
 };
-export declare type TaggedBackendView<ConnectorTy extends AnyBackendTy> = {
+export type TaggedBackendView<ConnectorTy extends AnyBackendTy> = {
     [keyn: string]: IBackendViewInfo<ConnectorTy>;
 };
-export declare type IBackendViews<ConnectorTy extends AnyBackendTy> = {
+export type IBackendViews<ConnectorTy extends AnyBackendTy> = {
     views: IBackendViewsInfo<ConnectorTy>;
     infos: {
         [viewn: string]: TaggedBackendView<ConnectorTy> | IBackendViewInfo<ConnectorTy>;
     };
 };
-export declare type IBackendMaps<ConnectorTy extends AnyBackendTy> = {
+export type IBackendMaps<ConnectorTy extends AnyBackendTy> = {
     mapDataTy: ConnectorTy;
 };
-export declare type IViewLib = {
-    viewMapRef: any;
+export type IViewLib<ConnectorTy extends AnyBackendTy> = {
+    viewMapRef: <K, A>(mapi: number, kt: ConnectorTy, k: K, vt: ConnectorTy) => Promise<MaybeRep<A>>;
 };
-export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
+export type IBackend<ConnectorTy extends AnyBackendTy> = {
     _backendVersion: number;
-    _getViews: (stdlib: Object, viewlib: IViewLib) => IBackendViews<ConnectorTy>;
+    _getViews: (stdlib: Object, viewlib: IViewLib<ConnectorTy>) => IBackendViews<ConnectorTy>;
     _getMaps: (stdlib: Object) => IBackendMaps<ConnectorTy>;
     _Participants: {
         [n: string]: any;
@@ -57,21 +56,21 @@ export declare type IBackend<ConnectorTy extends AnyBackendTy> = {
         [n: string]: ConnectorTy[];
     });
 };
-export declare type OnProgress = (obj: {
+export type OnProgress = (obj: {
     current: BigNumber;
     target: BigNumber;
 }) => any;
-export declare type WPArgs = {
+export type WPArgs = {
     host: string | undefined;
     port: number;
     output: 'silent';
     timeout: number;
 };
-export declare type MkPayAmt<Token> = [
+export type MkPayAmt<Token> = [
     BigNumber,
     Array<[BigNumber, Token]>
 ];
-export declare type IRecvNoTimeout<RawAddress> = {
+export type IRecvNoTimeout<RawAddress> = {
     didTimeout: false;
     didSend: boolean;
     data: Array<unknown>;
@@ -80,11 +79,11 @@ export declare type IRecvNoTimeout<RawAddress> = {
     secs: BigNumber;
     getOutput: (o_mode: string, o_lab: string, o_ctc: any, o_val: any) => Promise<any>;
 };
-export declare type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
+export type IRecv<RawAddress> = IRecvNoTimeout<RawAddress> | {
     didTimeout: true;
 };
-export declare type TimeArg = [('time' | 'secs'), BigNumber];
-export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBackendTy, ContractInfo> = {
+export type TimeArg = [('time' | 'secs'), BigNumber];
+export type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBackendTy, ContractInfo> = {
     funcNum: number;
     evt_cnt: number;
     tys: Array<ConnectorTy>;
@@ -95,9 +94,9 @@ export declare type ISendRecvArgs<RawAddress, Token, ConnectorTy extends AnyBack
     soloSend: boolean;
     timeoutAt: TimeArg | undefined;
     lct: BigNumber;
-    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token, ContractInfo>>;
+    sim_p: (fake: IRecv<RawAddress>) => Promise<ISimRes<Token, ContractInfo, ConnectorTy>>;
 };
-export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
+export type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     funcNum: number;
     evt_cnt: number;
     out_tys: Array<ConnectorTy>;
@@ -105,22 +104,28 @@ export declare type IRecvArgs<ConnectorTy extends AnyBackendTy> = {
     waitIfNotPresent: boolean;
     timeoutAt: TimeArg | undefined;
 };
-export declare type ParticipantVal = (io: any) => Promise<any>;
-export declare type ParticipantMap = {
+export type ParticipantVal = (io: any) => Promise<any>;
+export type ParticipantMap = {
     [key: string]: ParticipantVal;
 };
-export declare type ViewVal = (...args: any) => Promise<any>;
-export declare type ViewFunMap = {
+export type ViewVal = (...args: any) => Promise<any>;
+export type ViewFunMap = {
     [key: string]: ViewVal;
 };
-export declare type ViewMap = {
+export type ViewMap = {
     [key: string]: ViewVal | ViewFunMap;
 };
-export declare type APIMap = ViewMap;
-export declare type EventMap = {
+export type APIMap = ViewMap;
+export type EventMap = {
     [key: string]: any;
 };
-export declare type IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export type MapRefT<K, A, ConnectorTy extends AnyBackendTy> = (kt: ConnectorTy, k: K, vt: ConnectorTy) => Promise<MaybeRep<A>>;
+export type GetKeyT<K, ConnectorTy extends AnyBackendTy> = (kt: ConnectorTy, k: K, vt: ConnectorTy) => Promise<[string, number]>;
+export interface IContractCompiledMaps<ConnectorTy extends AnyBackendTy> {
+    makeGetKey: <K>(mapi: number) => GetKeyT<K, ConnectorTy>;
+    apiMapRef: <K, A>(i: number) => MapRefT<K, A, ConnectorTy>;
+}
+export interface IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> extends IContractCompiledMaps<ConnectorTy> {
     getContractCompanion: () => Promise<MaybeRep<ContractInfo>>;
     getContractInfo: () => Promise<ContractInfo>;
     getContractAddress: () => Promise<CBR_Address>;
@@ -134,20 +139,19 @@ export declare type IContractCompiled<ContractInfo, RawAddress, Token, Connector
     recv: (args: IRecvArgs<ConnectorTy>) => Promise<IRecv<RawAddress>>;
     getState: (v: BigNumber, ctcs: Array<ConnectorTy>) => Promise<Array<any>>;
     getCurrentStep: () => Promise<BigNumber>;
-    apiMapRef: (i: number, ty: ConnectorTy) => MapRefT<any>;
-    simTokenAccepted: (sim_r: any, addr: any, tok: any) => Promise<boolean>;
-};
-export declare type ISetupArgs<ContractInfo, VerifyResult> = {
+    simTokenAccepted: (sim_r: ISimRes<Token, ContractInfo, ConnectorTy>, addr: string, tok: Token) => Promise<boolean>;
+}
+export type ISetupArgs<ContractInfo, VerifyResult> = {
     setInfo: (info: ContractInfo) => void;
     getInfo: () => Promise<ContractInfo>;
     setTrustedVerifyResult: (vr: VerifyResult) => void;
     getTrustedVerifyResult: () => (VerifyResult | undefined);
 };
-export declare type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-export declare type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
-declare type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getContractCompanion" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef" | "simTokenAccepted");
-export declare type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
-export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export type ISetupViewArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
+export type ISetupEventArgs<ContractInfo, VerifyResult> = Omit<ISetupArgs<ContractInfo, VerifyResult>, ("setInfo")>;
+type SpecificKeys = ("getContractInfo" | "getContractAddress" | "getContractCompanion" | "getBalance" | "sendrecv" | "recv" | "getState" | "getCurrentStep" | "apiMapRef" | "makeGetKey" | "simTokenAccepted");
+export type ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = Pick<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
+export type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     bin: IBackend<ConnectorTy>;
     getABI: (x?: boolean) => unknown;
     getEventTys: () => Record<string, ConnectorTy[]>;
@@ -157,7 +161,7 @@ export declare type IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Tok
     _setup: (args: ISetupArgs<ContractInfo, VerifyResult>) => ISetupRes<ContractInfo, RawAddress, Token, ConnectorTy>;
     doAppOptIn: (ctc: ContractInfo) => Promise<void>;
 } & Omit<IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>, (SpecificKeys)>;
-export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
+export type IContract<ContractInfo, RawAddress, Token, ConnectorTy extends AnyBackendTy> = {
     getInfo: () => Promise<ContractInfo>;
     getViews: () => ViewMap;
     getContractAddress: () => Promise<CBR_Address>;
@@ -179,11 +183,11 @@ export declare type IContract<ContractInfo, RawAddress, Token, ConnectorTy exten
     events: EventMap;
     _initialize: () => IContractCompiled<ContractInfo, RawAddress, Token, ConnectorTy>;
 };
-export declare type ISetupView<ContractInfo, VerifyResult, ConnectorTy extends AnyBackendTy> = (args: ISetupViewArgs<ContractInfo, VerifyResult>) => {
-    viewLib: IViewLib;
+export type ISetupView<ContractInfo, VerifyResult, ConnectorTy extends AnyBackendTy> = (args: ISetupViewArgs<ContractInfo, VerifyResult>) => {
+    viewLib: IViewLib<ConnectorTy>;
     getView1: ((views: IBackendViewsInfo<ConnectorTy>, v: string, k: string | undefined, vi: IBackendViewInfo<ConnectorTy>, isSafe: boolean) => ViewVal);
 };
-export declare type ISetupEvent<ContractInfo, VerifyResult> = (args: ISetupEventArgs<ContractInfo, VerifyResult>) => {
+export type ISetupEvent<ContractInfo, VerifyResult> = (args: ISetupEventArgs<ContractInfo, VerifyResult>) => {
     createEventStream: (event: string, tys: any[]) => {
         lastTime: () => Promise<Time>;
         next: () => Promise<any>;
@@ -192,12 +196,12 @@ export declare type ISetupEvent<ContractInfo, VerifyResult> = (args: ISetupEvent
         monitor: (onEvent: (x: any) => void) => Promise<void>;
     };
 };
-export declare type Time = BigNumber;
-export declare type Event<T> = {
+export type Time = BigNumber;
+export type Event<T> = {
     when: Time;
     what: T;
 };
-export declare type EventStream<T> = {
+export type EventStream<T> = {
     seek: (t: Time) => void;
     next: () => Promise<Event<T>>;
     seekNow: () => void;
@@ -211,7 +215,7 @@ export declare const stdVerifyContract: <ContractInfo, VerifyResult>(stdArgs: Pi
 export declare const stdABIFilter: (x: any) => boolean;
 export declare const stdGetABI: (ABI: any) => (isFull?: boolean) => any;
 export declare const stdContract: <ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy extends AnyBackendTy>(stdContractArgs: IStdContractArgs<ContractInfo, VerifyResult, RawAddress, Token, ConnectorTy>) => IContract<ContractInfo, RawAddress, Token, ConnectorTy>;
-export declare type TokenMetadata = {
+export type TokenMetadata = {
     name?: string;
     symbol?: string;
     url?: string;
@@ -225,7 +229,7 @@ export declare type TokenMetadata = {
     manager?: string;
     reserve?: string;
 };
-export declare type LaunchTokenOpts = {
+export type LaunchTokenOpts = {
     decimals?: number;
     supply?: unknown;
     url?: string;
@@ -237,12 +241,12 @@ export declare type LaunchTokenOpts = {
     manager?: string;
     note?: Uint8Array;
 };
-export declare type TransferOpts = {
+export type TransferOpts = {
     closeTo?: any;
     note?: Uint8Array;
     tag?: number;
 };
-export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
+export type IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token> = {
     networkAccount: NetworkAccount;
     /**
      * @deprecated Use
@@ -275,23 +279,33 @@ export declare type IAccount<NetworkAccount, Backend, Contract, ContractInfo, To
 };
 export declare const stdAccount_unsupported: <NetworkAccount, Backend, Contract, ContractInfo, Token>(conn: string) => Pick<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "setGasLimit" | "getGasLimit" | "setStorageLimit" | "getStorageLimit">;
 export declare const stdAccount: <NetworkAccount, Backend, Contract, ContractInfo, Token>(orig: Omit<IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>, "deploy" | "attach">) => IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
-export declare type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
+export type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any, any, any, any> | {
     networkAccount: NetworkAccount;
 };
-export declare type ISimRes<Token, ContractInfo> = {
+export interface ISimRes<Token, ContractInfo, ConnectorTy extends AnyBackendTy> {
     txns: Array<ISimTxn<Token, ContractInfo>>;
-    mapRefs: Array<string>;
     isHalt: boolean;
-};
-export declare type ISimRemote<Token, ContractInfo> = {
+    maps: Record<number, LinearMap<any, any, ConnectorTy>>;
+}
+export interface SimMapRef {
+    kind: 'ref' | 'setOld' | 'setNew' | 'del';
+    key: string;
+    mbr: number;
+}
+export type SimBoxRef = [BigNumber, string];
+export interface ISimRemote<Token, ContractInfo> {
     pays: BigNumber;
     bills: BigNumber;
     toks: Array<Token>;
     accs: Array<string>;
+    boxes: Array<SimBoxRef>;
     apps: Array<ContractInfo>;
     fees: BigNumber;
-};
-export declare type ISimTxn<Token, ContractInfo> = {
+}
+export type ISimTxn<Token, ContractInfo> = {
+    kind: 'mapOp';
+    smr: SimMapRef;
+} | {
     kind: 'to' | 'init';
     amt: BigNumber;
     tok: Token | undefined;
@@ -359,7 +373,7 @@ export declare const labelMaps: (co: {
 export declare function truthyEnv(v: string | undefined | null): v is string;
 export declare const envDefault: <T>(v: string | undefined | null, d: T) => string | T;
 export declare const envDefaultNoEmpty: <T>(v: string | undefined | null, d: T) => string | T;
-declare type DigestMode = 'keccak256' | 'sha256';
+type DigestMode = 'keccak256' | 'sha256';
 export declare const makeDigest: (mode: DigestMode, prep: any) => (ts_: any, vs_: any) => string;
 export declare const hexToString: (x: any) => string | Uint8Array;
 export declare const hexToBigNumber: (h: string) => BigNumber;
@@ -369,7 +383,7 @@ export declare const makeRandom: (width: number) => {
         random: () => BigNumber;
     };
 };
-export declare type UIntTy = 'UInt' | 'UInt256';
+export type UIntTy = 'UInt' | 'UInt256';
 export declare const UInt256_max: ethers.BigNumber;
 export declare const makeArith: (m: BigNumber) => Arith;
 export declare const argsSlice: <T>(args: T[], cnt: number) => T[];
@@ -386,16 +400,16 @@ export declare const ensureConnectorAvailable: (bin: any, conn: string, jsVer: n
 export declare const checkVersion: (actual: number, expected: number, label: string) => void;
 export declare const argMax: (xs: any[], f: (_: any) => any) => any;
 export declare const argMin: (xs: any[], f: (_: any) => any) => any;
-declare type NewTestAccounts<X> = (k: number, bal: any) => Promise<Array<X>>;
+type NewTestAccounts<X> = (k: number, bal: any) => Promise<Array<X>>;
 export declare const make_newTestAccounts: <X>(newTestAccount: (bal: any) => Promise<X>) => {
     parallel: NewTestAccounts<X>;
     serial: NewTestAccounts<X>;
 };
 export declare const make_waitUntilX: (label: string, getCurrent: () => Promise<BigNumber>, step: (target: BigNumber) => Promise<BigNumber>) => (target: BigNumber, onProgress?: OnProgress) => Promise<BigNumber>;
 export declare const checkTimeout: (runningIsolated: (() => boolean), getTimeSecs: (now: BigNumber) => Promise<BigNumber>, timeoutAt: TimeArg | undefined, nowTime: BigNumber) => Promise<boolean>;
-declare type Pred<X> = (x: X) => boolean;
-declare type AsyncPred<X> = (x: X) => Promise<boolean>;
-declare type EQPeqResult<ProcTxn> = {
+type Pred<X> = (x: X) => boolean;
+type AsyncPred<X> = (x: X) => Promise<boolean>;
+type EQPeqResult<ProcTxn> = {
     timeout: true;
     time: Time;
 } | {
@@ -454,18 +468,18 @@ export declare class Lock {
     release(): void;
     runWith<X>(f: (() => Promise<X>)): Promise<X>;
 }
-export declare type Some<T> = [T];
-export declare type None = [];
-export declare type Maybe<T> = None | Some<T>;
+export type Some<T> = [T];
+export type None = [];
+export type Maybe<T> = None | Some<T>;
 export declare function isNone<T>(m: Maybe<T>): m is None;
 export declare function isSome<T>(m: Maybe<T>): m is Some<T>;
 export declare const Some: <T>(m: T) => Some<T>;
 export declare const None: None;
 export declare const retryLoop: <T>(lab: any, f: () => Promise<T>) => Promise<T>;
-declare type SigningMonitor = (e: any, pre: Promise<any>, post: Promise<any>) => void;
-export declare type SetSigningMonitor = (h: SigningMonitor) => void;
-export declare type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
-export declare type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, NotifyComplete<B>]>;
+type SigningMonitor = (e: any, pre: Promise<any>, post: Promise<any>) => void;
+export type SetSigningMonitor = (h: SigningMonitor) => void;
+export type NotifyComplete<A> = (post: Promise<A>) => Promise<A>;
+export type NotifySend<A, B> = (e: any, pre: Promise<A>) => Promise<[A, NotifyComplete<B>]>;
 export declare const makeSigningMonitor: <A, B>() => [SetSigningMonitor, NotifySend<A, B>];
 export declare const handleFormat: (amt: unknown, decimals: number, splitValue?: number) => string;
 export declare const formatWithDecimals: (amt: unknown, decimals: number) => string;
@@ -473,9 +487,9 @@ export declare const apiStateMismatchError: (bin: IBackend<any>, es: BigNumber |
 export declare const makeParseCurrency: (defaultDecs: number) => (amt: CurrencyAmount, decimals?: number) => BigNumber;
 export declare const canonicalToBytes: (bv: CBR_Bytes) => Uint8Array;
 export declare const isUint8Array: (val: any) => boolean;
-export declare type SecretKeyInput = Uint8Array | string;
-export declare type SecretKey = Uint8Array;
-export declare type Mnemonic = string;
+export type SecretKeyInput = Uint8Array | string;
+export type SecretKey = Uint8Array;
+export type Mnemonic = string;
 export declare const protectSecretKey: (secret: SecretKeyInput, numBytes: number) => SecretKey;
 export declare const protectMnemonic: (phrase: Mnemonic, numWords?: number) => Mnemonic;
 export declare const mkGetEventTys: <BackendTy extends AnyBackendTy>(bin: IBackend<BackendTy>, stdlib: any) => () => {

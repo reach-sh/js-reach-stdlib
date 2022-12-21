@@ -8,11 +8,12 @@ import { TypeDefs, Stdlib_Backend_Base } from './interfaces';
 import { MkPayAmt } from './shared_impl';
 export type { // =>
 ETH_Ty, AnyETH_Ty, };
-export declare type Token = CBR_Address;
-export declare type PayAmt = MkPayAmt<Token>;
+export type Token = CBR_Address;
+export type PayAmt = MkPayAmt<Token>;
+export type ContractInfo = string;
 export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiledArgs): {
     typeDefs: TypeDefs<AnyETH_Ty>;
-    stdlib: Stdlib_Backend_Base<AnyETH_Ty>;
+    stdlib: Stdlib_Backend_Base<string, string, AnyETH_Ty>;
     UInt_max: ethers.BigNumber;
     ctcAddrEq: (ctc_x: unknown, addr_y: unknown) => boolean;
     addressEq: (addr1: unknown, addr2: unknown) => boolean;
@@ -25,20 +26,13 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     protect: (t: any, v: unknown, ai?: string | undefined) => unknown;
     Array_asyncMap: <B>(as: any[][], f: (x: any[], i: number) => Promise<B>) => Promise<B[]>;
     Array_asyncReduce: <B_1>(as: any[][], b: B_1, f: (xs: any[], y: B_1, i: number) => Promise<B_1>) => Promise<B_1>;
-    newMap: <A>(opts: shared_backend.MapOpts<A>) => shared_backend.LinearMap<A>;
-    mapRef: <A_1>(m: shared_backend.LinearMap<A_1>, f: string) => Promise<shared_backend.MaybeRep<A_1>>;
-    mapSet: <A_2>(m: shared_backend.LinearMap<A_2>, f: string, v: A_2) => Promise<void>;
-    simMapRef: <A_3>(sim_r: unknown, mapi: number, f: string) => Promise<shared_backend.MaybeRep<A_3>>;
-    simMapSet: <A_4>(sim_r: unknown, mapi: number, f: string, v: A_4) => Promise<void>;
-    simMapDupe: <A_5>(sim_r: unknown, mapi: number, mapo: shared_backend.LinearMap<A_5>) => void;
-    simTokenNew: any;
-    simTokenBurn: any;
-    simTokenDestroy: any;
+    newMap: <K, A>(opts: shared_backend.MapOpts<AnyETH_Ty>) => shared_backend.LinearMap<K, A, AnyETH_Ty>;
+    mapRef: <K_1, A_1>(m: shared_backend.LinearMap<K_1, A_1, AnyETH_Ty>, kt: AnyETH_Ty, k: K_1, vt: AnyETH_Ty) => Promise<shared_backend.MaybeRep<A_1>>;
+    mapSet: <K_2, A_2>(m: shared_backend.LinearMap<K_2, A_2, AnyETH_Ty>, kt: AnyETH_Ty, k: K_2, vt: AnyETH_Ty, v: A_2 | undefined) => Promise<void>;
     bytesConcat: (b1: string, b2: string) => string;
-    fromSome: <A_6>(mo: shared_backend.MaybeRep<A_6>, da: A_6) => A_6;
-    simContractNew: any;
+    fromSome: <A_3>(mo: shared_backend.MaybeRep<A_3>, da: A_3) => A_3;
     assert: (b: boolean, message: string) => void;
-    Array_set: <A_7>(arr: A_7[], idx: number, val: A_7) => A_7[];
+    Array_set: <A_4>(arr: A_4[], idx: number, val: A_4) => A_4[];
     eq: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     ge: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
     gt: (n1: shared_backend.num, n2: shared_backend.num) => boolean;
@@ -106,5 +100,13 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     T_Array: (ty: AnyETH_Ty, size: number) => AnyETH_Ty;
     T_Tuple: (tys: AnyETH_Ty[]) => AnyETH_Ty;
     T_Struct: (nameTyPairs: [string, AnyETH_Ty][]) => AnyETH_Ty;
+    simMapDupe: <K_3, A_5>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, mapi: number, mapo: shared_backend.LinearMap<K_3, A_5, AnyETH_Ty>) => void;
+    simMapRef: <K_4, A_6>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, mapi: number, kt: AnyETH_Ty, k: K_4, vt: AnyETH_Ty) => Promise<shared_backend.MaybeRep<A_6>>;
+    simMapSet: <K_5, A_7>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, mapi: number, kt: AnyETH_Ty, k: K_5, vt: AnyETH_Ty, v: A_7 | undefined) => Promise<void>;
+    simTokenNew: <A_8>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, n: any, s: any, u: any, m: any, p: ethers.BigNumber, d: ethers.BigNumber | undefined, ctr: A_8) => A_8;
+    simContractNew: <A_9>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, cns: any, remote: import("./shared_impl").ISimRemote<string, string>, ctr: A_9) => A_9;
+    simTokenBurn: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, tok: string, amt: ethers.BigNumber) => void;
+    simTokenDestroy: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, tok: string) => void;
+    simTokenAccepted_: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, addr: string, tok: string) => void;
 };
 //# sourceMappingURL=ETH_like_compiled.d.ts.map

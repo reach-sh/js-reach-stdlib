@@ -30,7 +30,7 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
 
   function step(op) {
     if (f) throw new TypeError("Generator is already executing.");
-    while (_) try {
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
       if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
       if (y = 0, t) op = [op[0] & 2, t.value];
       switch (op[0]) {
@@ -108,7 +108,7 @@ var __values = (this && this.__values) || function(o) {
 };
 import Timeout from 'await-timeout';
 import real_ethers from 'ethers';
-import { assert, protect, simTokenAccepted_, } from './shared_backend.mjs';
+import { assert, protect, } from './shared_backend.mjs';
 import { apiStateMismatchError, replaceableThunk, debug, stdContract, stdVerifyContract, stdGetABI, stdAccount, makeRandom, argsSplit, ensureConnectorAvailable, make_newTestAccounts, make_waitUntilX, checkTimeout, makeEventQueue, makeEventStream, makeSigningMonitor, j2s, j2sf, handleFormat, makeParseCurrency, protectMnemonic, protectSecretKey, mkGetEventTys, mShowFundFromFaucetWarning, } from './shared_impl.mjs';
 import { bigNumberify, bigNumberToNumber, } from './shared_user.mjs';
 import ETHstdlib from './stdlib_sol.mjs';
@@ -117,7 +117,7 @@ export { setQueryLowerBound, getQueryLowerBound };
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 26;
+var reachBackendVersion = 27;
 var reachEthBackendVersion = 9;
 var reachPublish = function(m) { return "_reachp_".concat(m); };
 var reachEvent = function(e) { return "_reach_e".concat(e); };
@@ -155,9 +155,13 @@ export function makeEthLike(ethLikeArgs) {
   var stdlib = ethLikeCompiled.stdlib;
   var T_Address = stdlib.T_Address,
     T_Tuple = stdlib.T_Tuple,
+    T_Null = stdlib.T_Null,
     T_UInt = stdlib.T_UInt,
     T_Contract = stdlib.T_Contract,
-    addressEq = stdlib.addressEq;
+    T_Data = stdlib.T_Data,
+    addressEq = stdlib.addressEq,
+    simTokenAccepted_ = stdlib.simTokenAccepted_,
+    digest = stdlib.digest;
   var reachStdlib = stdlib;
   /** @description convenience function for drilling down to the actual address */
   var getAddr = function(acc) {
@@ -796,25 +800,30 @@ export function makeEthLike(ethLikeArgs) {
                     });
                   });
                 };
-                var apiMapRef = function(i, ty) {
-                  return function(f) {
+                var apiMapRef = function(i) {
+                  return function(kt, k, vt) {
                     return __awaiter(_this, void 0, void 0, function() {
-                      var dhead, ethersC, mf, mfv, res;
+                      var dhead, ethersC, mf, kp, mfv, mvt, res;
                       return __generator(this, function(_a) {
                         switch (_a.label) {
                           case 0:
                             dhead = [label, 'apiMapRef'];
-                            debug(dhead, { i: i, ty: ty, f: f });
+                            debug(dhead, { i: i, kt: kt, k: k, vt: vt });
                             return [4 /*yield*/ , getC()];
                           case 1:
                             ethersC = _a.sent();
                             mf = "_reachm_".concat(i, "Ref");
                             debug(dhead, mf);
-                            return [4 /*yield*/ , ethersC[mf](f)];
+                            kp = kt.isBaseType ? k : digest([kt], [k]);
+                            return [4 /*yield*/ , ethersC[mf](kp)];
                           case 2:
                             mfv = _a.sent();
                             debug(dhead, { mfv: mfv });
-                            res = ty.unmunge(mfv);
+                            mvt = T_Data({
+                              'None': T_Null,
+                              'Some': vt
+                            });
+                            res = mvt.unmunge(mfv);
                             debug(dhead, res);
                             // @ts-ignore
                             return [2 /*return*/ , res];
@@ -1208,20 +1217,30 @@ export function makeEthLike(ethLikeArgs) {
                     });
                   });
                 };
-                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef, simTokenAccepted: simTokenAccepted };
+                var makeGetKey = function(mapi) {
+                  return function(kt, k, vt) {
+                    return __awaiter(_this, void 0, void 0, function() {
+                      return __generator(this, function(_a) {
+                        void vt;
+                        void mapi;
+                        return [2 /*return*/ , [digest([kt], [k]), 0]];
+                      });
+                    });
+                  };
+                };
+                return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef, simTokenAccepted: simTokenAccepted, makeGetKey: makeGetKey };
               };
               var setupView = function(setupViewArgs) {
                 var eq = newEventQueue();
                 var getC = makeGetC(setupViewArgs, eq);
                 var viewLib = {
-                  viewMapRef: function() {
-                    var args = [];
-                    for (var _i = 0; _i < arguments.length; _i++) {
-                      args[_i] = arguments[_i];
-                    }
+                  viewMapRef: function(mapi, kt, k, vt) {
                     return __awaiter(_this, void 0, void 0, function() {
                       return __generator(this, function(_a) {
-                        void(args);
+                        void mapi;
+                        void kt;
+                        void k;
+                        void vt;
                         throw Error('viewMapRef not used by ETH backend');
                       });
                     });

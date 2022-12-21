@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -171,6 +171,8 @@ exports.debug = debug;
 var isUntaggedView = function (x) {
     return 'dom' in x && 'rng' in x && 'decode' in x;
 };
+;
+;
 var stdlibShared = function (connectorStdlib) {
     var contract = function (bin, ctcInfo) {
         return connectorStdlib.createAccount().then(function (acc) { return acc.contract(bin, ctcInfo); });
@@ -244,13 +246,8 @@ var stdContract = function (stdContractArgs) {
     var viewArgs = { getInfo: getInfo, setTrustedVerifyResult: setTrustedVerifyResult, getTrustedVerifyResult: getTrustedVerifyResult };
     var setupArgs = __assign(__assign({}, viewArgs), { setInfo: setInfo });
     var _initialize = function () {
-        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getContractCompanion = _a.getContractCompanion, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef, simTokenAccepted = _a.simTokenAccepted;
+        var _a = _setup(setupArgs), getContractInfo = _a.getContractInfo, getContractAddress = _a.getContractAddress, getContractCompanion = _a.getContractCompanion, getBalance = _a.getBalance, sendrecv = _a.sendrecv, recv = _a.recv, getCurrentStep = _a.getCurrentStep, getState = _a.getState, apiMapRef = _a.apiMapRef, simTokenAccepted = _a.simTokenAccepted, makeGetKey = _a.makeGetKey;
         return {
-            selfAddress: selfAddress,
-            iam: iam,
-            stdlib: stdlib,
-            waitUntilTime: waitUntilTime,
-            waitUntilSecs: waitUntilSecs,
             getContractInfo: getContractInfo,
             getContractAddress: getContractAddress,
             getContractCompanion: getContractCompanion,
@@ -260,7 +257,13 @@ var stdContract = function (stdContractArgs) {
             getCurrentStep: getCurrentStep,
             getState: getState,
             apiMapRef: apiMapRef,
-            simTokenAccepted: simTokenAccepted
+            simTokenAccepted: simTokenAccepted,
+            makeGetKey: makeGetKey,
+            selfAddress: selfAddress,
+            iam: iam,
+            stdlib: stdlib,
+            waitUntilTime: waitUntilTime,
+            waitUntilSecs: waitUntilSecs
         };
     };
     var ctcC = { _initialize: _initialize };
@@ -411,6 +414,8 @@ var stdAccount = function (orig) {
         } });
 };
 exports.stdAccount = stdAccount;
+;
+;
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk
  */
@@ -661,7 +666,10 @@ var objectMap = function (object, mapFn) {
 };
 exports.objectMap = objectMap;
 var mkAddressEq = function (T_Address) { return function (x, y) {
-    return (0, shared_backend_1.bytesEq)(T_Address.canonicalize(x), T_Address.canonicalize(y));
+    var cx = T_Address.canonicalize(x);
+    var cy = T_Address.canonicalize(y);
+    (0, exports.debug)('mkAddressEq', { x: x, y: y, cx: cx, cy: cy });
+    return (0, shared_backend_1.bytesEq)(cx, cy);
 }; };
 exports.mkAddressEq = mkAddressEq;
 var ensureConnectorAvailable = function (bin, conn, jsVer, connVer) {

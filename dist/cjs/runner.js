@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -96,12 +96,13 @@ function run(file) {
     return __awaiter(this, void 0, void 0, function () {
         var m, stdlib;
         return __generator(this, function (_a) {
+            var _b;
             switch (_a.label) {
                 case 0:
                     if (!file) {
                         throw Error('Run requires an argument.');
                     }
-                    return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require("".concat(mountDir, "/").concat(file))); })];
+                    return [4 /*yield*/, (_b = "".concat(mountDir, "/").concat(file), Promise.resolve().then(function () { return __importStar(require(_b)); }))];
                 case 1:
                     m = _a.sent();
                     stdlib = (0, loader_1.loadStdlib)();

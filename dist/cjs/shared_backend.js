@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -72,7 +72,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 exports.__esModule = true;
-exports.simTokenAccepted_ = exports.simTokenDestroy = exports.simTokenBurn = exports.simContractNew = exports.simTokenNew = exports.simMapSet = exports.simMapRef = exports.simMapDupe = exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.uintToStringDyn256 = exports.uintToStringDyn = exports.stringDynConcat = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.bytesFromHex = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
+exports.Array_asyncReduce = exports.Array_asyncMap = exports.mapRef = exports.mapSet = exports.newMap = exports.copyMap = exports.Array_set = exports.btoiLast8 = exports.bytes_xor = exports.digest_xor = exports.uintToStringDyn256 = exports.uintToStringDyn = exports.stringDynConcat = exports.lt256 = exports.le256 = exports.gt256 = exports.ge256 = exports.eq256 = exports.lt = exports.le = exports.gt = exports.ge = exports.eq = exports.bytesConcat = exports.bytesEq = exports.stringToHex = exports.isHex = exports.hexlify = exports.bytesFromHex = exports.protect = exports.checkedBigNumberify = exports.assert = exports.formatAssertInfo = exports.fromSome = exports.asMaybe = exports.apiStateMismatchError = exports.bigNumberToNumber = void 0;
 // This has no dependencies on other shared things
 var ethers_1 = require("ethers");
 var CBR_1 = require("./CBR");
@@ -269,70 +269,106 @@ function Array_set(arr, idx, elem) {
 exports.Array_set = Array_set;
 ;
 ;
-var basicMap = function () {
+var basicMap = function (getKey) {
     var m = {};
-    var basicSet = function (f, v) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_b) {
-            m[f] = v;
-            return [2 /*return*/];
-        });
-    }); };
-    var basicRef = function (f) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_b) {
-            return [2 /*return*/, (0, exports.asMaybe)(m[f])];
-        });
-    }); };
-    return { ref: basicRef, set: basicSet };
-};
-var copyMap = function (or) {
-    var m = basicMap();
-    var seen = {};
-    var copySet = function (f, v) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    seen[f] = true;
-                    return [4 /*yield*/, (0, exports.mapSet)(m, f, v)];
+    var basicSet = function (kt, k, vt, v) { return __awaiter(void 0, void 0, void 0, function () {
+        var _b, f, mbr;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, getKey(kt, k, vt)];
                 case 1:
-                    _b.sent();
+                    _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+                    void mbr;
+                    m[f] = v;
                     return [2 /*return*/];
             }
         });
     }); };
-    var copyRef = function (f) { return __awaiter(void 0, void 0, void 0, function () {
-        var mv;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    if (!!seen[f]) return [3 /*break*/, 3];
-                    return [4 /*yield*/, or(f)];
+    var basicRef = function (kt, k, vt) { return __awaiter(void 0, void 0, void 0, function () {
+        var _b, f, mbr;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, getKey(kt, k, vt)];
                 case 1:
-                    mv = _b.sent();
-                    return [4 /*yield*/, copySet(f, mv[0] === 'Some' ? mv[1] : undefined)];
-                case 2:
-                    _b.sent();
-                    _b.label = 3;
-                case 3: return [4 /*yield*/, (0, exports.mapRef)(m, f)];
-                case 4: return [2 /*return*/, _b.sent()];
+                    _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+                    void mbr;
+                    return [2 /*return*/, (0, exports.asMaybe)(m[f])];
             }
         });
     }); };
-    return { ref: copyRef, set: copySet };
+    return { getKey: getKey, ref: basicRef, set: basicSet };
 };
+var copyMap = function (orig) {
+    var getKey = orig.getKey, origRef = orig.ref;
+    var m = basicMap(getKey);
+    var seen = {};
+    var copySet = function (kt, k, vt, v) { return __awaiter(void 0, void 0, void 0, function () {
+        var _b, f, mbr;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, getKey(kt, k, vt)];
+                case 1:
+                    _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+                    void mbr;
+                    seen[f] = true;
+                    return [4 /*yield*/, (0, exports.mapSet)(m, kt, k, vt, v)];
+                case 2:
+                    _c.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); };
+    var copyRef = function (kt, k, vt) { return __awaiter(void 0, void 0, void 0, function () {
+        var _b, f, mbr, mv;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, getKey(kt, k, vt)];
+                case 1:
+                    _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+                    void mbr;
+                    if (!!seen[f]) return [3 /*break*/, 4];
+                    return [4 /*yield*/, origRef(kt, k, vt)];
+                case 2:
+                    mv = _c.sent();
+                    return [4 /*yield*/, copySet(kt, k, vt, mv[0] === 'Some' ? mv[1] : undefined)];
+                case 3:
+                    _c.sent();
+                    _c.label = 4;
+                case 4: return [4 /*yield*/, (0, exports.mapRef)(m, kt, k, vt)];
+                case 5: return [2 /*return*/, _c.sent()];
+            }
+        });
+    }); };
+    return { getKey: getKey, ref: copyRef, set: copySet };
+};
+exports.copyMap = copyMap;
 // dupe: () => {[key: string]: A},
 var newMap = function (opts) {
+    var _b = opts.ctc, makeGetKey = _b.makeGetKey, apiMapRef = _b.apiMapRef;
+    var getKey = makeGetKey(opts.idx);
     if (opts.isAPI) {
-        return copyMap(opts.ctc.apiMapRef(opts.idx, opts.ty));
+        var fake = {
+            getKey: getKey,
+            ref: apiMapRef(opts.idx),
+            set: function (kt, k, vt, v) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_b) {
+                void kt;
+                void k;
+                void vt;
+                void v;
+                return [2 /*return*/];
+            }); }); }
+        };
+        return (0, exports.copyMap)(fake);
     }
     else {
-        return basicMap();
+        return basicMap(getKey);
     }
 };
 exports.newMap = newMap;
-var mapSet = function (m, f, v) { return __awaiter(void 0, void 0, void 0, function () {
+var mapSet = function (m, kt, k, vt, v) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, m.set(f, v)];
+            case 0: return [4 /*yield*/, m.set(kt, k, vt, v)];
             case 1:
                 _b.sent();
                 return [2 /*return*/];
@@ -340,10 +376,10 @@ var mapSet = function (m, f, v) { return __awaiter(void 0, void 0, void 0, funct
     });
 }); };
 exports.mapSet = mapSet;
-var mapRef = function (m, f) { return __awaiter(void 0, void 0, void 0, function () {
+var mapRef = function (m, kt, k, vt) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_b) {
         switch (_b.label) {
-            case 0: return [4 /*yield*/, m.ref(f)];
+            case 0: return [4 /*yield*/, m.ref(kt, k, vt)];
             case 1: return [2 /*return*/, _b.sent()];
         }
     });
@@ -381,57 +417,4 @@ var Array_asyncReduce = function (as, b, f) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.Array_asyncReduce = Array_asyncReduce;
-var simMapDupe = function (sim_r, mapi, mapo) {
-    sim_r.maps[mapi] = copyMap(mapo.ref);
-};
-exports.simMapDupe = simMapDupe;
-var simMapLog = function (sim_r, f) {
-    sim_r.mapRefs.push(f);
-};
-var simMapRef = function (sim_r, mapi, f) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                simMapLog(sim_r, f);
-                return [4 /*yield*/, (0, exports.mapRef)(sim_r.maps[mapi], f)];
-            case 1: return [2 /*return*/, _b.sent()];
-        }
-    });
-}); };
-exports.simMapRef = simMapRef;
-var simMapSet = function (sim_r, mapi, f, nv) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                simMapLog(sim_r, f);
-                return [4 /*yield*/, (0, exports.mapSet)(sim_r.maps[mapi], f, nv)];
-            case 1: return [2 /*return*/, _b.sent()];
-        }
-    });
-}); };
-exports.simMapSet = simMapSet;
-var simTokenNew = function (sim_r, n, s, u, m, p, d, ctr) {
-    sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p, d: d });
-    // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
-    return ctr;
-};
-exports.simTokenNew = simTokenNew;
-var simContractNew = function (sim_r, cns, remote, ctr) {
-    sim_r.txns.push({ kind: 'contractNew', cns: cns, remote: remote });
-    // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
-    return ctr;
-};
-exports.simContractNew = simContractNew;
-var simTokenBurn = function (sim_r, tok, amt) {
-    sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });
-};
-exports.simTokenBurn = simTokenBurn;
-var simTokenDestroy = function (sim_r, tok) {
-    sim_r.txns.push({ kind: 'tokenDestroy', tok: tok });
-};
-exports.simTokenDestroy = simTokenDestroy;
-var simTokenAccepted_ = function (sim_r, addr, tok) {
-    sim_r.txns.push({ kind: 'tokenAccepted', addr: addr, tok: tok });
-};
-exports.simTokenAccepted_ = simTokenAccepted_;
 //# sourceMappingURL=shared_backend.js.map

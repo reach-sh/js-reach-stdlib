@@ -25,7 +25,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -99,7 +99,7 @@ exports.getQueryLowerBound = shared_impl_2.getQueryLowerBound;
 // Note: if you want your programs to exit fail
 // on unhandled promise rejection, use:
 // node --unhandled-rejections=strict
-var reachBackendVersion = 26;
+var reachBackendVersion = 27;
 var reachEthBackendVersion = 9;
 var reachPublish = function (m) { return "_reachp_".concat(m); };
 var reachEvent = function (e) { return "_reach_e".concat(e); };
@@ -116,7 +116,7 @@ function makeEthLike(ethLikeArgs) {
     var _c = __read((0, shared_impl_1.replaceableThunk)(function () { return validQueryWindowDefault; }), 2), getValidQueryWindow = _c[0], setValidQueryWindow = _c[1];
     var getProvider = providerLib.getProvider;
     var stdlib = ethLikeCompiled.stdlib;
-    var T_Address = stdlib.T_Address, T_Tuple = stdlib.T_Tuple, T_UInt = stdlib.T_UInt, T_Contract = stdlib.T_Contract, addressEq = stdlib.addressEq;
+    var T_Address = stdlib.T_Address, T_Tuple = stdlib.T_Tuple, T_Null = stdlib.T_Null, T_UInt = stdlib.T_UInt, T_Contract = stdlib.T_Contract, T_Data = stdlib.T_Data, addressEq = stdlib.addressEq, simTokenAccepted_ = stdlib.simTokenAccepted_, digest = stdlib.digest;
     var reachStdlib = stdlib;
     /** @description convenience function for drilling down to the actual address */
     var getAddr = function (acc) { return __awaiter(_this, void 0, void 0, function () {
@@ -680,23 +680,28 @@ function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); };
-                            var apiMapRef = function (i, ty) { return function (f) { return __awaiter(_this, void 0, void 0, function () {
-                                var dhead, ethersC, mf, mfv, res;
+                            var apiMapRef = function (i) { return function (kt, k, vt) { return __awaiter(_this, void 0, void 0, function () {
+                                var dhead, ethersC, mf, kp, mfv, mvt, res;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             dhead = [label, 'apiMapRef'];
-                                            (0, shared_impl_1.debug)(dhead, { i: i, ty: ty, f: f });
+                                            (0, shared_impl_1.debug)(dhead, { i: i, kt: kt, k: k, vt: vt });
                                             return [4 /*yield*/, getC()];
                                         case 1:
                                             ethersC = _a.sent();
                                             mf = "_reachm_".concat(i, "Ref");
                                             (0, shared_impl_1.debug)(dhead, mf);
-                                            return [4 /*yield*/, ethersC[mf](f)];
+                                            kp = kt.isBaseType ? k : digest([kt], [k]);
+                                            return [4 /*yield*/, ethersC[mf](kp)];
                                         case 2:
                                             mfv = _a.sent();
                                             (0, shared_impl_1.debug)(dhead, { mfv: mfv });
-                                            res = ty.unmunge(mfv);
+                                            mvt = T_Data({
+                                                'None': T_Null,
+                                                'Some': vt
+                                            });
+                                            res = mvt.unmunge(mfv);
                                             (0, shared_impl_1.debug)(dhead, res);
                                             // @ts-ignore
                                             return [2 /*return*/, res];
@@ -705,7 +710,7 @@ function makeEthLike(ethLikeArgs) {
                             }); }; };
                             var simTokenAccepted = function (sim_r, addr, tok) { return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
-                                    (0, shared_backend_1.simTokenAccepted_)(sim_r, addr, tok);
+                                    simTokenAccepted_(sim_r, addr, tok);
                                     return [2 /*return*/, true];
                                 });
                             }); };
@@ -1051,24 +1056,28 @@ function makeEthLike(ethLikeArgs) {
                                     }
                                 });
                             }); };
-                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef, simTokenAccepted: simTokenAccepted };
+                            var makeGetKey = function (mapi) { return function (kt, k, vt) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    void vt;
+                                    void mapi;
+                                    return [2 /*return*/, [digest([kt], [k]), 0]];
+                                });
+                            }); }; };
+                            return { getContractInfo: getContractInfo, getContractAddress: getContractAddress, getContractCompanion: getContractCompanion, getBalance: getBalance, getCurrentStep: getCurrentStep, sendrecv: sendrecv, recv: recv, getState: getState, apiMapRef: apiMapRef, simTokenAccepted: simTokenAccepted, makeGetKey: makeGetKey };
                         };
                         var setupView = function (setupViewArgs) {
                             var eq = newEventQueue();
                             var getC = makeGetC(setupViewArgs, eq);
                             var viewLib = {
-                                viewMapRef: function () {
-                                    var args = [];
-                                    for (var _i = 0; _i < arguments.length; _i++) {
-                                        args[_i] = arguments[_i];
-                                    }
-                                    return __awaiter(_this, void 0, void 0, function () {
-                                        return __generator(this, function (_a) {
-                                            void (args);
-                                            throw Error('viewMapRef not used by ETH backend');
-                                        });
+                                viewMapRef: function (mapi, kt, k, vt) { return __awaiter(_this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        void mapi;
+                                        void kt;
+                                        void k;
+                                        void vt;
+                                        throw Error('viewMapRef not used by ETH backend');
                                     });
-                                }
+                                }); }
                             };
                             var getView1 = function (vs, v, k, vim, isSafe) {
                                 if (isSafe === void 0) { isSafe = true; }

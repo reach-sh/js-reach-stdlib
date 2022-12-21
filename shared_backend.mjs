@@ -18,7 +18,7 @@ var __generator = (this && this.__generator) || function(thisArg, body) {
 
   function step(op) {
     if (f) throw new TypeError("Generator is already executing.");
-    while (_) try {
+    while (g && (g = 0, op[0] && (_ = 0)), _) try {
       if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
       if (y = 0, t) op = [op[0] & 2, t.value];
       switch (op[0]) {
@@ -258,80 +258,126 @@ export function Array_set(arr, idx, elem) {
   arrp[idx] = elem;
   return arrp;
 };;
-var basicMap = function() {
+var basicMap = function(getKey) {
   var m = {};
-  var basicSet = function(f, v) {
+  var basicSet = function(kt, k, vt, v) {
     return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_b) {
-        m[f] = v;
-        return [2 /*return*/ ];
-      });
-    });
-  };
-  var basicRef = function(f) {
-    return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_b) {
-        return [2 /*return*/ , asMaybe(m[f])];
-      });
-    });
-  };
-  return { ref: basicRef, set: basicSet };
-};
-var copyMap = function(or) {
-  var m = basicMap();
-  var seen = {};
-  var copySet = function(f, v) {
-    return __awaiter(void 0, void 0, void 0, function() {
-      return __generator(this, function(_b) {
-        switch (_b.label) {
+      var _b, f, mbr;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
           case 0:
-            seen[f] = true;
-            return [4 /*yield*/ , mapSet(m, f, v)];
+            return [4 /*yield*/ , getKey(kt, k, vt)];
           case 1:
-            _b.sent();
+            _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+            void mbr;
+            m[f] = v;
             return [2 /*return*/ ];
         }
       });
     });
   };
-  var copyRef = function(f) {
+  var basicRef = function(kt, k, vt) {
     return __awaiter(void 0, void 0, void 0, function() {
-      var mv;
-      return __generator(this, function(_b) {
-        switch (_b.label) {
+      var _b, f, mbr;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
           case 0:
-            if (!!seen[f]) return [3 /*break*/ , 3];
-            return [4 /*yield*/ , or(f)];
+            return [4 /*yield*/ , getKey(kt, k, vt)];
           case 1:
-            mv = _b.sent();
-            return [4 /*yield*/ , copySet(f, mv[0] === 'Some' ? mv[1] : undefined)];
-          case 2:
-            _b.sent();
-            _b.label = 3;
-          case 3:
-            return [4 /*yield*/ , mapRef(m, f)];
-          case 4:
-            return [2 /*return*/ , _b.sent()];
+            _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+            void mbr;
+            return [2 /*return*/ , asMaybe(m[f])];
         }
       });
     });
   };
-  return { ref: copyRef, set: copySet };
+  return { getKey: getKey, ref: basicRef, set: basicSet };
+};
+export var copyMap = function(orig) {
+  var getKey = orig.getKey,
+    origRef = orig.ref;
+  var m = basicMap(getKey);
+  var seen = {};
+  var copySet = function(kt, k, vt, v) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var _b, f, mbr;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
+          case 0:
+            return [4 /*yield*/ , getKey(kt, k, vt)];
+          case 1:
+            _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+            void mbr;
+            seen[f] = true;
+            return [4 /*yield*/ , mapSet(m, kt, k, vt, v)];
+          case 2:
+            _c.sent();
+            return [2 /*return*/ ];
+        }
+      });
+    });
+  };
+  var copyRef = function(kt, k, vt) {
+    return __awaiter(void 0, void 0, void 0, function() {
+      var _b, f, mbr, mv;
+      return __generator(this, function(_c) {
+        switch (_c.label) {
+          case 0:
+            return [4 /*yield*/ , getKey(kt, k, vt)];
+          case 1:
+            _b = __read.apply(void 0, [_c.sent(), 2]), f = _b[0], mbr = _b[1];
+            void mbr;
+            if (!!seen[f]) return [3 /*break*/ , 4];
+            return [4 /*yield*/ , origRef(kt, k, vt)];
+          case 2:
+            mv = _c.sent();
+            return [4 /*yield*/ , copySet(kt, k, vt, mv[0] === 'Some' ? mv[1] : undefined)];
+          case 3:
+            _c.sent();
+            _c.label = 4;
+          case 4:
+            return [4 /*yield*/ , mapRef(m, kt, k, vt)];
+          case 5:
+            return [2 /*return*/ , _c.sent()];
+        }
+      });
+    });
+  };
+  return { getKey: getKey, ref: copyRef, set: copySet };
 };
 // dupe: () => {[key: string]: A},
 export var newMap = function(opts) {
+  var _b = opts.ctc,
+    makeGetKey = _b.makeGetKey,
+    apiMapRef = _b.apiMapRef;
+  var getKey = makeGetKey(opts.idx);
   if (opts.isAPI) {
-    return copyMap(opts.ctc.apiMapRef(opts.idx, opts.ty));
+    var fake = {
+      getKey: getKey,
+      ref: apiMapRef(opts.idx),
+      set: function(kt, k, vt, v) {
+        return __awaiter(void 0, void 0, void 0, function() {
+          return __generator(this, function(_b) {
+            void kt;
+            void k;
+            void vt;
+            void v;
+            return [2 /*return*/ ];
+          });
+        });
+      }
+    };
+    return copyMap(fake);
   } else {
-    return basicMap();
+    return basicMap(getKey);
   }
 };
-export var mapSet = function(m, f, v) {
+export var mapSet = function(m, kt, k, vt, v) {
   return __awaiter(void 0, void 0, void 0, function() {
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
-          return [4 /*yield*/ , m.set(f, v)];
+          return [4 /*yield*/ , m.set(kt, k, vt, v)];
         case 1:
           _b.sent();
           return [2 /*return*/ ];
@@ -339,12 +385,12 @@ export var mapSet = function(m, f, v) {
     });
   });
 };
-export var mapRef = function(m, f) {
+export var mapRef = function(m, kt, k, vt) {
   return __awaiter(void 0, void 0, void 0, function() {
     return __generator(this, function(_b) {
       switch (_b.label) {
         case 0:
-          return [4 /*yield*/ , m.ref(f)];
+          return [4 /*yield*/ , m.ref(kt, k, vt)];
         case 1:
           return [2 /*return*/ , _b.sent()];
       }
@@ -385,56 +431,5 @@ export var Array_asyncReduce = function(as, b, f) {
       }
     });
   });
-};
-export var simMapDupe = function(sim_r, mapi, mapo) {
-  sim_r.maps[mapi] = copyMap(mapo.ref);
-};
-var simMapLog = function(sim_r, f) {
-  sim_r.mapRefs.push(f);
-};
-export var simMapRef = function(sim_r, mapi, f) {
-  return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_b) {
-      switch (_b.label) {
-        case 0:
-          simMapLog(sim_r, f);
-          return [4 /*yield*/ , mapRef(sim_r.maps[mapi], f)];
-        case 1:
-          return [2 /*return*/ , _b.sent()];
-      }
-    });
-  });
-};
-export var simMapSet = function(sim_r, mapi, f, nv) {
-  return __awaiter(void 0, void 0, void 0, function() {
-    return __generator(this, function(_b) {
-      switch (_b.label) {
-        case 0:
-          simMapLog(sim_r, f);
-          return [4 /*yield*/ , mapSet(sim_r.maps[mapi], f, nv)];
-        case 1:
-          return [2 /*return*/ , _b.sent()];
-      }
-    });
-  });
-};
-export var simTokenNew = function(sim_r, n, s, u, m, p, d, ctr) {
-  sim_r.txns.push({ kind: 'tokenNew', n: n, s: s, u: u, m: m, p: p, d: d });
-  // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
-  return ctr;
-};
-export var simContractNew = function(sim_r, cns, remote, ctr) {
-  sim_r.txns.push({ kind: 'contractNew', cns: cns, remote: remote });
-  // XXX This is a hack... it is assumed that `ctr` is unique across tokens in a simulation block
-  return ctr;
-};
-export var simTokenBurn = function(sim_r, tok, amt) {
-  sim_r.txns.push({ kind: 'tokenBurn', tok: tok, amt: amt });
-};
-export var simTokenDestroy = function(sim_r, tok) {
-  sim_r.txns.push({ kind: 'tokenDestroy', tok: tok });
-};
-export var simTokenAccepted_ = function(sim_r, addr, tok) {
-  sim_r.txns.push({ kind: 'tokenAccepted', addr: addr, tok: tok });
 };
 //# sourceMappingURL=shared_backend.js.map

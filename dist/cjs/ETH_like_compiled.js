@@ -55,6 +55,7 @@ var ethers_1 = require("ethers");
 var shared_backend = __importStar(require("./shared_backend"));
 var CBR = __importStar(require("./CBR"));
 var bigNumberify = CBR.bigNumberify, bigNumberToNumber = CBR.bigNumberToNumber;
+var shared_sim_1 = require("./shared_sim");
 var shared_impl_1 = require("./shared_impl");
 // TODO: restore return type annotation once types are in place
 function makeEthLikeCompiled(ethLikeCompiledArgs) {
@@ -81,12 +82,12 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return (__assign(__assign({}, ty), { toString: function () { return ty.paramType; } }));
     };
     // null is represented in solidity as false
-    var T_Null = instEthTy(__assign(__assign({}, CBR.BT_Null), { munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool' }));
-    var T_Bool = instEthTy(__assign(__assign({}, CBR.BT_Bool), { munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool' }));
+    var T_Null = instEthTy(__assign(__assign({}, CBR.BT_Null), { munge: function (bv) { return (void (bv), false); }, unmunge: function (nv) { return (void (nv), V_Null); }, paramType: 'bool', isBaseType: true }));
+    var T_Bool = instEthTy(__assign(__assign({}, CBR.BT_Bool), { munge: function (bv) { return bv; }, unmunge: function (nv) { return V_Bool(nv); }, paramType: 'bool', isBaseType: true }));
     var V_Bool = function (b) {
         return T_Bool.canonicalize(b);
     };
-    var T_UInt = instEthTy(__assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256' }));
+    var T_UInt = instEthTy(__assign(__assign({}, CBR.BT_UInt(UInt_max)), { munge: function (bv) { return bigNumberify(bv); }, unmunge: function (nv) { return V_UInt(nv); }, paramType: 'uint256', isBaseType: true }));
     var T_UInt256 = T_UInt;
     var V_UInt = function (n) {
         return T_UInt.canonicalize(n);
@@ -119,7 +120,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     ;
     var byteChunkSize = 32;
     var T_Bytes = function (len) {
-        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { munge: (function (bv) {
+        var me = __assign(__assign({}, CBR.BT_Bytes(len)), { isBaseType: len <= byteChunkSize, munge: (function (bv) {
                 var bs = Array.from((0, shared_impl_1.canonicalToBytes)(bv));
                 return (len <= byteChunkSize) ? bs : splitToChunks(bs, byteChunkSize);
             }), unmunge: (function (nvs) {
@@ -145,7 +146,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return instEthTy(me);
     };
     var T_BytesDyn = (function () {
-        var me = __assign(__assign({}, CBR.BT_BytesDyn), { munge: (function (bv) {
+        var me = __assign(__assign({}, CBR.BT_BytesDyn), { isBaseType: true, munge: (function (bv) {
                 return Array.from((0, shared_impl_1.canonicalToBytes)(bv));
             }), unmunge: (function (nv) {
                 var nv_s = (0, shared_impl_1.hexToString)(ethers_1.ethers.utils.hexlify(unBigInt(nv)));
@@ -154,14 +155,14 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return instEthTy(me);
     })();
     var T_StringDyn = (function () {
-        var me = __assign(__assign({}, CBR.BT_StringDyn), { munge: (function (bv) {
+        var me = __assign(__assign({}, CBR.BT_StringDyn), { isBaseType: true, munge: (function (bv) {
                 return typeof bv == 'string' ? bv : ethers_1.ethers.utils.toUtf8String(bv);
             }), unmunge: (function (nv) {
                 return nv;
             }), paramType: 'string' });
         return instEthTy(me);
     })();
-    var T_Digest = instEthTy(__assign(__assign({}, CBR.BT_Digest), { defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
+    var T_Digest = instEthTy(__assign(__assign({}, CBR.BT_Digest), { isBaseType: true, defaultValue: ethers_1.ethers.utils.keccak256([]), munge: function (bv) { return ethers_1.ethers.BigNumber.from(bv); }, 
         // XXX likely not the correct unmunge type?
         unmunge: function (nv) { return V_Digest(nv.toHexString()); }, paramType: 'uint256' }));
     var V_Digest = function (s) {
@@ -169,7 +170,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var T_Array = function (ctc, size_i) {
         var size = bigNumberToNumber(bigNumberify(size_i));
-        return instEthTy(__assign(__assign({}, CBR.BT_Array(ctc, size)), { munge: function (bv) {
+        return instEthTy(__assign(__assign({}, CBR.BT_Array(ctc, size)), { isBaseType: false, munge: function (bv) {
                 if (size == 0) {
                     return false;
                 }
@@ -189,7 +190,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
         return T_Array(ctc, size).canonicalize(val);
     }; };
     // XXX fix me Dan, I'm type checking wrong!
-    var T_Tuple = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Tuple(ctcs)), { munge: function (bv) {
+    var T_Tuple = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Tuple(ctcs)), { isBaseType: false, munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -202,7 +203,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Tuple = function (ctcs) { return function (val) {
         return T_Tuple(ctcs).canonicalize(val);
     }; };
-    var T_Struct = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Struct(ctcs)), { munge: function (bv) {
+    var T_Struct = function (ctcs) { return instEthTy(__assign(__assign({}, CBR.BT_Struct(ctcs)), { isBaseType: false, munge: function (bv) {
             if (ctcs.length == 0) {
                 return false;
             }
@@ -226,7 +227,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     var V_Struct = function (ctcs) { return function (val) {
         return T_Struct(ctcs).canonicalize(val);
     }; };
-    var T_Object = function (co) { return instEthTy(__assign(__assign({}, CBR.BT_Object(co)), { 
+    var T_Object = function (co) { return instEthTy(__assign(__assign({}, CBR.BT_Object(co)), { isBaseType: false, 
         // CBR -> Net . ETH object fields are prefaced with "_"
         munge: function (bv) {
             var obj = {};
@@ -269,7 +270,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
             // where labelInt : number, 0 <= labelInt < N
             // vN : co[ascLabels[i]]
             //
-            munge: function (_a) {
+            isBaseType: false, munge: function (_a) {
                 var _b = __read(_a, 2), label = _b[0], v = _b[1];
                 var i = labelMap[label];
                 var vals = ascLabels.map(function (label) {
@@ -336,7 +337,7 @@ function makeEthLikeCompiled(ethLikeCompiledArgs) {
     };
     var arith = (0, shared_impl_1.makeArith)(UInt_max);
     var emptyContractInfo = "0x00000000000000000000000000000000";
-    var stdlib = __assign(__assign(__assign(__assign({}, shared_backend), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, 
+    var stdlib = __assign(__assign(__assign(__assign(__assign({}, shared_backend), (0, shared_sim_1.defineSimStuff)()), arith), typeDefs), { addressEq: addressEq, ctcAddrEq: ctcAddrEq, 
         // @ts-ignore
         digestEq: digestEq, digest_xor: digest_xor, bytes_xor: bytes_xor, btoiLast8: btoiLast8, tokenEq: tokenEq, digest: digest, UInt_max: UInt_max, emptyContractInfo: emptyContractInfo });
     // ...............................................

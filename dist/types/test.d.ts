@@ -1,7 +1,7 @@
 export declare const shouldRun: (x: string) => boolean;
 export declare const shouldRunExac: (x: string) => boolean;
-export declare type Job<T> = () => Promise<T>;
-export declare type Xtra = {
+export type Job<T> = () => Promise<T>;
+export type Xtra = {
     [key: string]: any;
 };
 export declare const chk: (id: string, actual: any, expected: any, xtra?: Xtra) => void;

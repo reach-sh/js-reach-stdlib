@@ -27,7 +27,6 @@ exports.tokenEq = exports.addressEq = exports.digest = exports.UInt_max = export
 var ETH_like_compiled_1 = require("./ETH_like_compiled");
 var ethCompiledImpl = __importStar(require("./ETH_compiled_impl"));
 var ethCompiled = (0, ETH_like_compiled_1.makeEthLikeCompiled)(ethCompiledImpl);
-// The following should be identical to CFX_compiled.ts
 exports.stdlib = ethCompiled.stdlib, exports.typeDefs = ethCompiled.typeDefs;
 // start ...arith,
 exports.add = exports.stdlib.add, exports.sub = exports.stdlib.sub, exports.mul = exports.stdlib.mul, exports.div = exports.stdlib.div, exports.mod = exports.stdlib.mod, exports.band = exports.stdlib.band, exports.bior = exports.stdlib.bior, exports.bxor = exports.stdlib.bxor, exports.add256 = exports.stdlib.add256, exports.sub256 = exports.stdlib.sub256, exports.mul256 = exports.stdlib.mul256, exports.div256 = exports.stdlib.div256, exports.mod256 = exports.stdlib.mod256, exports.band256 = exports.stdlib.band256, exports.bior256 = exports.stdlib.bior256, exports.bxor256 = exports.stdlib.bxor256, 

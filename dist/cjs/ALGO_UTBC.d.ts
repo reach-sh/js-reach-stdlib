@@ -12,7 +12,7 @@ export interface KMDTokenHeader {
 export interface CustomTokenHeader {
     [headerName: string]: string;
 }
-export declare type TokenHeader = AlgodTokenHeader | IndexerTokenHeader | KMDTokenHeader | CustomTokenHeader;
+export type TokenHeader = AlgodTokenHeader | IndexerTokenHeader | KMDTokenHeader | CustomTokenHeader;
 /**
  * Implementation of BaseHTTPClient that uses a URL and a token
  * and make the REST queries using superagent.

@@ -3,7 +3,7 @@ import { bigNumberify, bigNumberToNumber } from './CBR';
 import { hexToBigNumber } from './shared_impl';
 import { num, isHex, stringToHex } from './shared_backend';
 export { isHex, stringToHex, bigNumberify, bigNumberToNumber, hexToBigNumber };
-declare type BigNumber = ethers.BigNumber;
+type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.BigNumber;
 export declare const isBigNumber: typeof ethers.BigNumber.isBigNumber;
 export declare const bigNumberToBigInt: (x: BigNumber) => bigint;

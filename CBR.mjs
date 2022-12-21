@@ -84,12 +84,12 @@ var zpad = function(len, b) {
   b.copy(res);
   return res;
 };
-var arr_to_buf = function(s) { return Buffer.from(s); };
-var str_to_buf = function(s) { return Buffer.from(s); };
-var hex_to_buf = function(s) { return Buffer.from(s.slice(2), 'hex'); };
+export var arr_to_buf = function(s) { return Buffer.from(s); };
+export var str_to_buf = function(s) { return Buffer.from(s); };
+export var hex_to_buf = function(s) { return Buffer.from(s.slice(2), 'hex'); };
 export var buf_to_arr = function(b) { return new Uint8Array(b); };
-var buf_to_str = function(b) { return b.toString(); };
-var buf_to_hex = function(b) { return '0x' + b.toString('hex'); };
+export var buf_to_str = function(b) { return b.toString(); };
+export var buf_to_hex = function(b) { return '0x' + b.toString('hex'); };
 export var unk_to_buf = function(val) {
   if (typeof val === 'string') {
     return val.slice(0, 2) === '0x' ?

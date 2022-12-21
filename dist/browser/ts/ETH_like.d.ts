@@ -7,7 +7,7 @@ IAccount, IBackend, IContract, OnProgress, LaunchTokenOpts } from './shared_impl
 import type { // =>
 AnyETH_Ty, Token } from './ETH_like_compiled';
 export type { Token } from './ETH_like_compiled';
-export declare type Ty = AnyETH_Ty;
+export type Ty = AnyETH_Ty;
 import type { // =>
 EthersLikeContract, EthersLikeSigner, EthersLikeWallet, EthersLikeProvider, EthLikeArgs, TransactionReceipt, Address } from './ETH_like_interfaces';
 export type { Address, } from './ETH_like_interfaces';
@@ -15,8 +15,8 @@ import type { // =>
 Stdlib_Backend } from './interfaces';
 import { setQueryLowerBound, getQueryLowerBound } from './shared_impl';
 export { setQueryLowerBound, getQueryLowerBound };
-declare type TransactionResponse = real_ethers.providers.TransactionResponse;
-export declare type Backend = IBackend<AnyETH_Ty> & {
+type TransactionResponse = real_ethers.providers.TransactionResponse;
+export type Backend = IBackend<AnyETH_Ty> & {
     _Connectors: {
         ETH: {
             version: number;
@@ -25,7 +25,7 @@ export declare type Backend = IBackend<AnyETH_Ty> & {
         };
     };
 };
-export declare type NetworkAccount = {
+export type NetworkAccount = {
     address?: Address;
     getAddress?: () => Promise<Address>;
     sendTransaction?: (...xs: any) => Promise<TransactionResponse>;
@@ -34,13 +34,13 @@ export declare type NetworkAccount = {
         phrase: string;
     };
 } | EthersLikeWallet | EthersLikeSigner;
-export declare type ContractInfo = Address;
-export declare type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
-export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
-declare type VerifyResult = {
+export type ContractInfo = Address;
+export type Contract = IContract<ContractInfo, Address, Token, AnyETH_Ty>;
+export type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+type VerifyResult = {
     creationBlock: BigNumber;
 };
-declare type AccountTransferable = Account | {
+type AccountTransferable = Account | {
     networkAccount: NetworkAccount;
     getGasLimit?: () => BigNumber;
     getStorageLimit?: () => BigNumber;
@@ -94,7 +94,7 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
         mint: (to: Account | Address, amt: any) => Promise<void>;
         optOut: (accFrom: Account, accTo?: Account) => Promise<void>;
     }>;
-    reachStdlib: Stdlib_Backend<AnyETH_Ty>;
+    reachStdlib: Stdlib_Backend<string, string, AnyETH_Ty>;
     setMinMillisBetweenRequests: () => void;
     setCustomHttpEventHandler: () => void;
     setSigningMonitor: import("./shared_impl").SetSigningMonitor;
@@ -106,9 +106,8 @@ export declare function makeEthLike<Provider extends EthersLikeProvider, Provide
     setProviderByName: (providerName: ProviderName) => void;
     providerEnvByName: (providerName: ProviderName) => ProviderEnv;
     setWalletFallback: (wallet: any) => void;
-    /** @description convenience function for drilling down to the actual address */
     walletFallback: (opts: any) => any;
-    stdlib: import("./interfaces").Stdlib_Backend_Base<AnyETH_Ty>;
+    stdlib: import("./interfaces").Stdlib_Backend_Base<string, string, AnyETH_Ty>;
     typeDefs: import("./interfaces").TypeDefs<AnyETH_Ty>;
 };
 //# sourceMappingURL=ETH_like.d.ts.map

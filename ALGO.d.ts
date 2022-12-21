@@ -1,21 +1,23 @@
 import { Stdlib_User } from './interfaces';
 import algosdk from 'algosdk';
 import { ethers } from 'ethers';
+import type { SuggestedParams } from 'algosdk';
 import type { WalletTransaction } from './ALGO_ARC11';
 import type { BaseHTTPClient } from 'algosdk';
-import { IBackend, IAccount, IContract, SecretKey } from './shared_impl';
-import { CBR_Val } from './CBR';
+import { IBackend, ISendRecvArgs, IAccount, IContract, SecretKey } from './shared_impl';
+import { CBR_Address, CBR_Val } from './CBR';
 import { Token, ALGO_Ty } from './ALGO_compiled';
 export type { Token } from './ALGO_compiled';
-declare type BigNumber = ethers.BigNumber;
-declare type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
-export declare type Ty = AnyALGO_Ty;
-export declare type Address = string;
-export declare type NetworkAccount = {
+type BigNumber = ethers.BigNumber;
+type AnyALGO_Ty = ALGO_Ty<CBR_Val>;
+export type Ty = AnyALGO_Ty;
+export type Address = string;
+type TxnParams = SuggestedParams;
+export type NetworkAccount = {
     addr: Address;
     sk?: SecretKey;
 };
-export declare type ProviderName = string;
+export type ProviderName = string;
 export interface BasicProvider {
     algod_bc: BaseHTTPClient;
     indexer_bc: BaseHTTPClient;
@@ -40,7 +42,7 @@ export interface ProviderEnv {
     REACH_ISOLATED_NETWORK: string;
     ALGO_NODE_WRITE_ONLY: string;
 }
-export declare type Backend = IBackend<AnyALGO_Ty> & {
+export type Backend = IBackend<AnyALGO_Ty> & {
     _Connectors: {
         ALGO: {
             version: number;
@@ -53,16 +55,16 @@ export declare type Backend = IBackend<AnyALGO_Ty> & {
             extraPages: number;
             stateSize: number;
             stateKeys: number;
-            mapDataSize: number;
-            mapDataKeys: number;
             unsupported: Array<string>;
             warnings: Array<string>;
         };
     };
 };
-export declare type ContractInfo = BigNumber;
-export declare type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
-export declare type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+export type ContractInfo = BigNumber;
+type SendRecvArgs = ISendRecvArgs<Address, Token, AnyALGO_Ty, ContractInfo>;
+export type Contract = IContract<ContractInfo, Address, Token, AnyALGO_Ty>;
+export type Account = IAccount<NetworkAccount, Backend, Contract, ContractInfo, Token>;
+type AdjustTxnParams = (who: CBR_Address, sr: SendRecvArgs, ps: TxnParams) => Promise<TxnParams>;
 interface ALGOHacks {
     signSendAndConfirm: any;
     toWTxn: any;
@@ -71,6 +73,7 @@ interface ALGOHacks {
     MinTxnFee: any;
     makeTransferTxn: any;
     setFaucet: any;
+    setAdjustTxnParams: (atp: AdjustTxnParams) => void;
 }
 interface ALGOStdlib extends Stdlib_User<Provider, ProviderEnv, ProviderName, Token, ContractInfo, Address, NetworkAccount, Ty, Backend, Contract, Account>, ALGOHacks {
 }

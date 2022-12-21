@@ -23,13 +23,10 @@ var knownConnectorModes = [
   'ALGO-devnet',
   'ALGO-live',
   'ALGO-browser',
-  'CFX-devnet',
-  'CFX-live',
-  'CFX-browser',
 ];
 
 function isKnownConnector(s) {
-  return (s === 'ETH' || s === 'ALGO' || s === 'CFX');
+  return (s === 'ETH' || s === 'ALGO');
 }
 var connectorModeDefaults = {};
 try {

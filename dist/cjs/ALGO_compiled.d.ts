@@ -2,10 +2,10 @@ import { Stdlib_Backend_Base } from './interfaces';
 import { MkPayAmt } from './shared_impl';
 import { ethers } from 'ethers';
 import { CBR_Null, CBR_Bool, CBR_UInt, CBR_Bytes, CBR_Address, CBR_Digest, CBR_Object, CBR_Data, CBR_Array, CBR_Tuple, CBR_Struct, CBR_Val, BackendTy } from './CBR';
-declare type BigNumber = ethers.BigNumber;
+type BigNumber = ethers.BigNumber;
 declare const BigNumber: typeof ethers.BigNumber;
 export declare const UInt_max: BigNumber;
-export declare type NV = Uint8Array;
+export type NV = Uint8Array;
 export interface ALGO_Ty<BV extends CBR_Val> extends BackendTy<BV> {
     netSize: number;
     toNet(bv: BV): NV;
@@ -47,11 +47,11 @@ export declare const digestEq: (x: any, y: any) => boolean;
 export declare const digest_xor: (xd: string, yd: string) => string;
 export declare const bytes_xor: (x: string, y: string) => string;
 export declare const btoiLast8: (b: string) => ethers.BigNumber;
-export declare type Token = CBR_UInt;
-export declare type Contract = CBR_UInt;
+export type Token = CBR_UInt;
+export type Contract = CBR_UInt;
 export declare const ctcAddrEq: (x: unknown, y: unknown) => boolean;
 export declare const tokenEq: (x: unknown, y: unknown) => boolean;
-export declare type PayAmt = MkPayAmt<Token>;
+export type PayAmt = MkPayAmt<Token>;
 export declare const typeDefs: {
     T_Null: ALGO_Ty<null>;
     T_Bool: ALGO_Ty<boolean>;
@@ -75,6 +75,8 @@ export declare const typeDefs: {
     T_Struct: (cos: Array<[string, ALGO_Ty<CBR_Val>]>) => ALGO_Ty<CBR_Struct>;
 };
 export declare const emptyContractInfo = 0;
-export declare const stdlib: Stdlib_Backend_Base<ALGO_Ty<any>>;
+type ConnectorTy = ALGO_Ty<any>;
+type ContractInfo = Contract;
+export declare const stdlib: Stdlib_Backend_Base<Token, ContractInfo, ConnectorTy>;
 export {};
 //# sourceMappingURL=ALGO_compiled.d.ts.map

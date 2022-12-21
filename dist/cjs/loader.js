@@ -26,7 +26,6 @@ exports.__esModule = true;
 exports.Reach = exports.loadStdlib = exports.getConnector = exports.getConnectorMode = exports.unsafeAllowMultipleStdlibs = void 0;
 var stdlib_ETH = __importStar(require("./ETH"));
 var stdlib_ALGO = __importStar(require("./ALGO"));
-var stdlib_CFX = __importStar(require("./CFX"));
 var ConnectorMode_1 = require("./ConnectorMode");
 exports.getConnectorMode = ConnectorMode_1.getConnectorMode;
 exports.getConnector = ConnectorMode_1.getConnector;
@@ -68,9 +67,6 @@ function loadStdlib(connectorModeOrEnv) {
             break;
         case 'ALGO':
             stdlib_x = stdlib_ALGO;
-            break;
-        case 'CFX':
-            stdlib_x = stdlib_CFX;
             break;
         default: throw Error("impossible: unknown connector ".concat(connector));
     }
