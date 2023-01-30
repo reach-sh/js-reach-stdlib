@@ -104,7 +104,7 @@ export declare function makeEthLikeCompiled(ethLikeCompiledArgs: EthLikeCompiled
     simMapRef: <K_4, A_6>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, mapi: number, kt: AnyETH_Ty, k: K_4, vt: AnyETH_Ty) => Promise<shared_backend.MaybeRep<A_6>>;
     simMapSet: <K_5, A_7>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, mapi: number, kt: AnyETH_Ty, k: K_5, vt: AnyETH_Ty, v: A_7 | undefined) => Promise<void>;
     simTokenNew: <A_8>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, n: any, s: any, u: any, m: any, p: ethers.BigNumber, d: ethers.BigNumber | undefined, ctr: A_8) => A_8;
-    simContractNew: <A_9>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, cns: any, remote: import("./shared_impl").ISimRemote<string, string>, ctr: A_9) => A_9;
+    simContractNew: <A_9>(sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, cns: any, remote: import("./shared_impl").ISimRemote<string, string, AnyETH_Ty>, ctr: A_9) => A_9;
     simTokenBurn: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, tok: string, amt: ethers.BigNumber) => void;
     simTokenDestroy: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, tok: string) => void;
     simTokenAccepted_: (sim_r: import("./shared_impl").ISimRes<string, string, AnyETH_Ty>, addr: string, tok: string) => void;

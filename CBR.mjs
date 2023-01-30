@@ -28,6 +28,7 @@ export var bigNumberToNumber = function(x) {
 };;
 export var BV_Null = null;
 export var BT_Null = {
+  repr: { kind: 'Null' },
   name: 'Null',
   defaultValue: BV_Null,
   canonicalize: function(val) {
@@ -39,6 +40,7 @@ export var BT_Null = {
   }
 };
 export var BT_Bool = {
+  repr: { kind: 'Bool' },
   name: 'Bool',
   defaultValue: false,
   canonicalize: function(val) {
@@ -53,6 +55,7 @@ export var BV_Bool = function(val) {
 };
 export var BT_UInt = function(max) {
   return ({
+    repr: { kind: 'UInt', max: max },
     name: 'UInt',
     defaultValue: ethers.BigNumber.from(0),
     canonicalize: function(uv) {
@@ -103,6 +106,7 @@ export var unk_to_buf = function(val) {
 };
 export var BT_Bytes = function(len) {
   return ({
+    repr: { kind: 'Bytes', len: len },
     name: "Bytes(".concat(len, ")"),
     defaultValue: buf_to_str(zpad(bigNumberToNumber(len), str_to_buf(''))),
     canonicalize: function(val) {
@@ -129,6 +133,7 @@ export var BT_Bytes = function(len) {
   });
 };
 export var BT_BytesDyn = ({
+  repr: { kind: 'BytesDyn' },
   name: "BytesDyn",
   defaultValue: '',
   canonicalize: function(val) {
@@ -142,6 +147,7 @@ export var BT_BytesDyn = ({
   }
 });
 export var BT_StringDyn = ({
+  repr: { kind: 'StringDyn' },
   name: "StringDyn",
   defaultValue: '',
   canonicalize: function(val) {
@@ -154,6 +160,7 @@ export var BT_StringDyn = ({
 // TODO: check digest length, or something similar?
 // That's probably best left to connector-specific code.
 export var BT_Digest = {
+  repr: { kind: 'Digest' },
   name: 'Digest',
   defaultValue: ''.padEnd(32, '\0'),
   canonicalize: function(val) {
@@ -168,6 +175,7 @@ export var BV_Digest = function(val) {
   return BT_Digest.canonicalize(val);
 };
 export var BT_Address = ({
+  repr: { kind: 'Address' },
   name: 'Address',
   defaultValue: ''.padEnd(32, '\0'),
   canonicalize: function(val) {
@@ -188,6 +196,7 @@ export var BV_Address = function(val) {
 export var BT_Array = function(ctc, size) {
   // TODO: check ctc, sz for sanity
   return {
+    repr: { kind: 'Array', ctc: ctc, size: size },
     name: "Array(".concat(ctc.name, ", ").concat(size, ")"),
     defaultValue: Array(size).fill(ctc.defaultValue),
     canonicalize: function(args) {
@@ -215,6 +224,7 @@ export var BV_Array = function(ctc, size) {
 export var BT_Tuple = function(ctcs) {
   // TODO: check ctcs for sanity
   return {
+    repr: { kind: 'Tuple', ctcs: ctcs },
     name: "Tuple(".concat(ctcs.map(function(ctc) { return " ".concat(ctc.name, " "); }), ")"),
     defaultValue: ctcs.map(function(ctc) { return ctc.defaultValue; }),
     canonicalize: function(args) {
@@ -238,6 +248,7 @@ export var BV_Tuple = function(ctcs) {
 };
 export var BT_Struct = function(ctcs) {
   return {
+    repr: { kind: 'Struct', ctcs: ctcs },
     name: "Struct([".concat(ctcs.map(function(_a) {
       var _b = __read(_a, 2),
         k = _b[0],
@@ -274,6 +285,7 @@ export var BV_Struct = function(ctcs) {
 export var BT_Object = function(co) {
   // TODO: check co for sanity
   return {
+    repr: { kind: 'Object', co: co },
     name: "Object(".concat(Object.keys(co).map(function(k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
     defaultValue: (function() {
       var obj = {};
@@ -308,6 +320,7 @@ export var BT_Data = function(co) {
   // TODO: check co for sanity
   var ascLabels = labelMaps(co).ascLabels;
   return {
+    repr: { kind: 'Data', co: co },
     name: "Data(".concat(Object.keys(co).map(function(k) { return " ".concat(k, ": ").concat(co[k].name, " "); }), ")"),
     defaultValue: (function() {
       var label = ascLabels[0];

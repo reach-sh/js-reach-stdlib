@@ -2192,11 +2192,41 @@ export var load = function () {
                                                             boxesArr.push(brx);
                                                         }
                                                     };
-                                                    recordBoxRemote = function (smr) {
-                                                        var _a = __read(smr, 2), app = _a[0], names = _a[1];
-                                                        var name = T_Bytes(64).toNet(names);
-                                                        recordBox_({ appIndex: bigNumberToNumber(app), name: name });
-                                                    };
+                                                    recordBoxRemote = function (smr) { return __awaiter(void 0, void 0, void 0, function () {
+                                                        var _a, reft, refv, refr, ctcs, _b, app, names, name, _c, appt, mapit, mapt, kt, _d, app, mapi, k, vt, _e, names, _mbr, name;
+                                                        return __generator(this, function (_f) {
+                                                            switch (_f.label) {
+                                                                case 0:
+                                                                    _a = __read(smr, 2), reft = _a[0], refv = _a[1];
+                                                                    refr = reft.repr;
+                                                                    if (refr.kind !== 'Tuple') {
+                                                                        throw "bad box remote: not tuple";
+                                                                    }
+                                                                    ctcs = refr.ctcs;
+                                                                    if (!(ctcs.length === 2)) return [3 /*break*/, 1];
+                                                                    _b = __read(refv, 2), app = _b[0], names = _b[1];
+                                                                    name = T_Bytes(64).toNet(names);
+                                                                    recordBox_({ appIndex: bigNumberToNumber(app), name: name });
+                                                                    return [3 /*break*/, 4];
+                                                                case 1:
+                                                                    if (!(ctcs.length === 3)) return [3 /*break*/, 3];
+                                                                    _c = __read(ctcs, 3), appt = _c[0], mapit = _c[1], mapt = _c[2];
+                                                                    void appt;
+                                                                    void mapit;
+                                                                    kt = mapt;
+                                                                    _d = __read(refv, 3), app = _d[0], mapi = _d[1], k = _d[2];
+                                                                    vt = kt;
+                                                                    return [4 /*yield*/, (makeGetKey(mapi)(kt, k, vt))];
+                                                                case 2:
+                                                                    _e = __read.apply(void 0, [_f.sent(), 2]), names = _e[0], _mbr = _e[1];
+                                                                    name = buf_to_arr(hex_to_buf(names));
+                                                                    recordBox_({ appIndex: bigNumberToNumber(app), name: name });
+                                                                    return [3 /*break*/, 4];
+                                                                case 3: throw "bad box remote: not tuple of 2 or 3";
+                                                                case 4: return [2 /*return*/];
+                                                            }
+                                                        });
+                                                    }); };
                                                     foreignArr = [];
                                                     recordApp = function (app) {
                                                         var appn = bigNumberToNumber(app);
@@ -2218,119 +2248,140 @@ export var load = function () {
                                                     mbrDelta = bigNumberify(0);
                                                     txnExtraTxns = [];
                                                     sim_i = 0;
-                                                    processRemote = function (dr) {
-                                                        dr.toks.map(recordAsset);
-                                                        dr.accs.map(recordAccount);
-                                                        dr.apps.map(recordApp);
-                                                        dr.boxes.map(recordBoxRemote);
-                                                        howManyMoreFees +=
-                                                            1
-                                                                + bigNumberToNumber(dr.pays)
-                                                                + bigNumberToNumber(dr.bills)
-                                                                + bigNumberToNumber(dr.fees);
-                                                        return;
-                                                    };
-                                                    processSimTxn = function (t) {
-                                                        debug('processSimTxn', t);
-                                                        var txn;
-                                                        if (t.kind === 'mapOp') {
-                                                            var smr = t.smr;
-                                                            var key = smr.key, kind = smr.kind, mbr = smr.mbr;
-                                                            if (kind === 'del') {
-                                                                mbrDelta = mbrDelta.sub(mbr);
+                                                    processRemote = function (dr) { return __awaiter(void 0, void 0, void 0, function () {
+                                                        return __generator(this, function (_a) {
+                                                            switch (_a.label) {
+                                                                case 0:
+                                                                    dr.toks.map(recordAsset);
+                                                                    dr.accs.map(recordAccount);
+                                                                    dr.apps.map(recordApp);
+                                                                    return [4 /*yield*/, Promise.all(dr.boxes.map(recordBoxRemote))];
+                                                                case 1:
+                                                                    _a.sent();
+                                                                    howManyMoreFees +=
+                                                                        1
+                                                                            + bigNumberToNumber(dr.pays)
+                                                                            + bigNumberToNumber(dr.bills)
+                                                                            + bigNumberToNumber(dr.fees);
+                                                                    return [2 /*return*/];
                                                             }
-                                                            else if (kind === 'setNew') {
-                                                                mbrDelta = mbrDelta.add(mbr);
+                                                        });
+                                                    }); };
+                                                    processSimTxn = function (t) { return __awaiter(void 0, void 0, void 0, function () {
+                                                        var txn, smr, key, kind, mbr, name, tok, amt, from, to, closeTo;
+                                                        return __generator(this, function (_a) {
+                                                            switch (_a.label) {
+                                                                case 0:
+                                                                    debug('processSimTxn', t);
+                                                                    if (!(t.kind === 'mapOp')) return [3 /*break*/, 1];
+                                                                    smr = t.smr;
+                                                                    key = smr.key, kind = smr.kind, mbr = smr.mbr;
+                                                                    if (kind === 'del') {
+                                                                        mbrDelta = mbrDelta.sub(mbr);
+                                                                    }
+                                                                    else if (kind === 'setNew') {
+                                                                        mbrDelta = mbrDelta.add(mbr);
+                                                                    }
+                                                                    name = buf_to_arr(hex_to_buf(key));
+                                                                    recordBox_({ appIndex: appIndex, name: name });
+                                                                    return [2 /*return*/];
+                                                                case 1:
+                                                                    if (!(t.kind === 'contractNew')) return [3 /*break*/, 3];
+                                                                    mbrDelta = mbrDelta.add(minimumBalance_app_create(t.cns[connector]));
+                                                                    return [4 /*yield*/, processRemote(t.remote)];
+                                                                case 2:
+                                                                    _a.sent();
+                                                                    return [2 /*return*/];
+                                                                case 3:
+                                                                    if (!(t.kind === 'tokenNew')) return [3 /*break*/, 4];
+                                                                    mbrDelta = mbrDelta.add(minimumBalance);
+                                                                    howManyMoreFees++;
+                                                                    return [2 /*return*/];
+                                                                case 4:
+                                                                    if (!(t.kind === 'tokenBurn')) return [3 /*break*/, 5];
+                                                                    // There's no burning on Algorand
+                                                                    return [2 /*return*/];
+                                                                case 5:
+                                                                    if (!(t.kind === 'tokenDestroy')) return [3 /*break*/, 6];
+                                                                    mbrDelta = mbrDelta.sub(minimumBalance);
+                                                                    recordAsset(t.tok);
+                                                                    howManyMoreFees++;
+                                                                    return [2 /*return*/];
+                                                                case 6:
+                                                                    if (!(t.kind === 'tokenAccepted')) return [3 /*break*/, 7];
+                                                                    recordAsset(t.tok);
+                                                                    recordAccount(t.addr);
+                                                                    return [2 /*return*/];
+                                                                case 7:
+                                                                    if (!(t.kind === 'remote')) return [3 /*break*/, 9];
+                                                                    recordApp(t.obj);
+                                                                    return [4 /*yield*/, processRemote(t.remote)];
+                                                                case 8:
+                                                                    _a.sent();
+                                                                    return [2 /*return*/];
+                                                                case 9:
+                                                                    if (t.kind === 'api') {
+                                                                        whichApi = t.who;
+                                                                        return [2 /*return*/];
+                                                                    }
+                                                                    else {
+                                                                        tok = t.tok;
+                                                                        amt = bigNumberify(0);
+                                                                        from = ctcAddr;
+                                                                        to = ctcAddr;
+                                                                        closeTo = undefined;
+                                                                        if (t.kind === 'from') {
+                                                                            recordAsset(tok);
+                                                                            recordAccount(t.to);
+                                                                            howManyMoreFees++;
+                                                                            return [2 /*return*/];
+                                                                        }
+                                                                        else if (t.kind === 'init') {
+                                                                            mbrDelta = mbrDelta.add(minimumBalance);
+                                                                            recordAsset(tok);
+                                                                            // This fee is to send the opt-in
+                                                                            howManyMoreFees++;
+                                                                            return [2 /*return*/];
+                                                                        }
+                                                                        else if (t.kind === 'halt') {
+                                                                            if (tok) {
+                                                                                recordAsset(tok);
+                                                                            }
+                                                                            recordAccount_(Deployer);
+                                                                            // This fee is for the closeOut
+                                                                            howManyMoreFees++;
+                                                                            return [2 /*return*/];
+                                                                        }
+                                                                        else if (t.kind === 'to') {
+                                                                            from = thisAcc.addr;
+                                                                            to = ctcAddr;
+                                                                            amt = t.amt;
+                                                                        }
+                                                                        else if (t.kind === 'info') {
+                                                                            recordAsset(tok);
+                                                                            return [2 /*return*/];
+                                                                        }
+                                                                        else {
+                                                                            assert(false, 'sim txn kind');
+                                                                        }
+                                                                        txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
+                                                                    }
+                                                                    _a.label = 10;
+                                                                case 10:
+                                                                    extraFees += txn.fee;
+                                                                    txn.fee = 0;
+                                                                    txnExtraTxns.unshift(txn);
+                                                                    return [2 /*return*/];
                                                             }
-                                                            var name = buf_to_arr(hex_to_buf(key));
-                                                            recordBox_({ appIndex: appIndex, name: name });
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'contractNew') {
-                                                            mbrDelta = mbrDelta.add(minimumBalance_app_create(t.cns[connector]));
-                                                            processRemote(t.remote);
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'tokenNew') {
-                                                            mbrDelta = mbrDelta.add(minimumBalance);
-                                                            howManyMoreFees++;
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'tokenBurn') {
-                                                            // There's no burning on Algorand
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'tokenDestroy') {
-                                                            mbrDelta = mbrDelta.sub(minimumBalance);
-                                                            recordAsset(t.tok);
-                                                            howManyMoreFees++;
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'tokenAccepted') {
-                                                            recordAsset(t.tok);
-                                                            recordAccount(t.addr);
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'remote') {
-                                                            recordApp(t.obj);
-                                                            processRemote(t.remote);
-                                                            return;
-                                                        }
-                                                        else if (t.kind === 'api') {
-                                                            whichApi = t.who;
-                                                            return;
-                                                        }
-                                                        else {
-                                                            var tok = t.tok;
-                                                            var amt = bigNumberify(0);
-                                                            var from = ctcAddr;
-                                                            var to = ctcAddr;
-                                                            var closeTo = undefined;
-                                                            if (t.kind === 'from') {
-                                                                recordAsset(tok);
-                                                                recordAccount(t.to);
-                                                                howManyMoreFees++;
-                                                                return;
-                                                            }
-                                                            else if (t.kind === 'init') {
-                                                                mbrDelta = mbrDelta.add(minimumBalance);
-                                                                recordAsset(tok);
-                                                                // This fee is to send the opt-in
-                                                                howManyMoreFees++;
-                                                                return;
-                                                            }
-                                                            else if (t.kind === 'halt') {
-                                                                if (tok) {
-                                                                    recordAsset(tok);
-                                                                }
-                                                                recordAccount_(Deployer);
-                                                                // This fee is for the closeOut
-                                                                howManyMoreFees++;
-                                                                return;
-                                                            }
-                                                            else if (t.kind === 'to') {
-                                                                from = thisAcc.addr;
-                                                                to = ctcAddr;
-                                                                amt = t.amt;
-                                                            }
-                                                            else if (t.kind === 'info') {
-                                                                recordAsset(tok);
-                                                                return;
-                                                            }
-                                                            else {
-                                                                assert(false, 'sim txn kind');
-                                                            }
-                                                            txn = makeTransferTxn(from, to, amt, tok, params, closeTo, sim_i++);
-                                                        }
-                                                        extraFees += txn.fee;
-                                                        txn.fee = 0;
-                                                        txnExtraTxns.unshift(txn);
-                                                    };
+                                                        });
+                                                    }); };
                                                     if (isCtor) {
                                                         pc = hasCompanion ? 2 : 1;
                                                         mbrDelta = mbrDelta.add(minimumBalance.mul(pc));
                                                     }
-                                                    sim_r.txns.forEach(processSimTxn);
+                                                    return [4 /*yield*/, Promise.all(sim_r.txns.map(processSimTxn))];
+                                                case 10:
+                                                    _v.sent();
                                                     if (hasCompanion) {
                                                         if (isCtor) {
                                                             howManyMoreFees++;
@@ -2361,22 +2412,24 @@ export var load = function () {
                                                         }
                                                     }
                                                     debug(dhead, { mbrDelta: mbrDelta });
-                                                    // If the delta is 0, there's no reason to update the MBR
-                                                    if (!mbrDelta.eq(0)) {
-                                                        if (mbrDelta.lt(0)) {
-                                                            // The delta is negative, so we let the contract pay the deployer
-                                                            recordAccount_(Deployer);
-                                                            howManyMoreFees++;
-                                                        }
-                                                        else {
-                                                            // The delta is positive, so we need to pay the contract
-                                                            processSimTxn({
-                                                                kind: 'to',
-                                                                amt: mbrDelta,
-                                                                tok: undefined
-                                                            });
-                                                        }
-                                                    }
+                                                    if (!!mbrDelta.eq(0)) return [3 /*break*/, 13];
+                                                    if (!mbrDelta.lt(0)) return [3 /*break*/, 11];
+                                                    // The delta is negative, so we let the contract pay the deployer
+                                                    recordAccount_(Deployer);
+                                                    howManyMoreFees++;
+                                                    return [3 /*break*/, 13];
+                                                case 11: 
+                                                // The delta is positive, so we need to pay the contract
+                                                return [4 /*yield*/, processSimTxn({
+                                                        kind: 'to',
+                                                        amt: mbrDelta,
+                                                        tok: undefined
+                                                    })];
+                                                case 12:
+                                                    // The delta is positive, so we need to pay the contract
+                                                    _v.sent();
+                                                    _v.label = 13;
+                                                case 13:
                                                     debug(dhead, 'txnExtraTxns', txnExtraTxns);
                                                     debug(dhead, { howManyMoreFees: howManyMoreFees, extraFees: extraFees });
                                                     extraFees += MinTxnFee * howManyMoreFees;
@@ -2435,25 +2488,25 @@ export var load = function () {
                                                     wtxns = rtxns.map(toWTxn);
                                                     debug(dhead, 'signing', { wtxns: wtxns });
                                                     res = void 0;
-                                                    _v.label = 10;
-                                                case 10:
-                                                    _v.trys.push([10, 12, , 15]);
+                                                    _v.label = 14;
+                                                case 14:
+                                                    _v.trys.push([14, 16, , 19]);
                                                     return [4 /*yield*/, signSendAndConfirm(thisAcc, wtxns)];
-                                                case 11:
+                                                case 15:
                                                     res = _v.sent();
-                                                    return [3 /*break*/, 15];
-                                                case 12:
+                                                    return [3 /*break*/, 19];
+                                                case 16:
                                                     e_12 = _v.sent();
                                                     jes = j2s(e_12);
                                                     debug(dhead, 'FAIL', e_12, jes);
-                                                    if (!!soloSend) return [3 /*break*/, 14];
+                                                    if (!!soloSend) return [3 /*break*/, 18];
                                                     // If there is no soloSend, then someone else "won", so let's
                                                     // listen for their message
                                                     debug(dhead, 'LOST');
                                                     _t = {};
                                                     return [4 /*yield*/, doRecv(false, false, jes)];
-                                                case 13: return [2 /*return*/, (_t.value = _v.sent(), _t)];
-                                                case 14:
+                                                case 17: return [2 /*return*/, (_t.value = _v.sent(), _t)];
+                                                case 18:
                                                     if (timeoutAt) {
                                                         // If there can be a timeout, then keep waiting for it
                                                         debug(dhead, "CONTINUE");
@@ -2463,12 +2516,12 @@ export var load = function () {
                                                         // Otherwise, something bad is happening
                                                         throw Error("".concat(label, " failed to call ").concat(funcName, ": ").concat(jes));
                                                     }
-                                                    return [3 /*break*/, 15];
-                                                case 15:
+                                                    return [3 /*break*/, 19];
+                                                case 19:
                                                     debug(dhead, 'SUCCESS', res);
                                                     _u = {};
                                                     return [4 /*yield*/, trustedRecv(res)];
-                                                case 16: return [2 /*return*/, (_u.value = _v.sent(), _u)];
+                                                case 20: return [2 /*return*/, (_u.value = _v.sent(), _u)];
                                             }
                                         });
                                     };

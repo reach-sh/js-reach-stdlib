@@ -283,7 +283,7 @@ export type IAccountTransferable<NetworkAccount> = IAccount<NetworkAccount, any,
     networkAccount: NetworkAccount;
 };
 export interface ISimRes<Token, ContractInfo, ConnectorTy extends AnyBackendTy> {
-    txns: Array<ISimTxn<Token, ContractInfo>>;
+    txns: Array<ISimTxn<Token, ContractInfo, ConnectorTy>>;
     isHalt: boolean;
     maps: Record<number, LinearMap<any, any, ConnectorTy>>;
 }
@@ -292,17 +292,21 @@ export interface SimMapRef {
     key: string;
     mbr: number;
 }
-export type SimBoxRef = [BigNumber, string];
-export interface ISimRemote<Token, ContractInfo> {
+export type SimBoxRef<ConnectorTy extends AnyBackendTy> = [
+    ConnectorTy,
+    SimBoxRaw
+];
+export type SimBoxRaw = [BigNumber, any] | [BigNumber, BigNumber, any];
+export interface ISimRemote<Token, ContractInfo, ConnectorTy extends AnyBackendTy> {
     pays: BigNumber;
     bills: BigNumber;
     toks: Array<Token>;
     accs: Array<string>;
-    boxes: Array<SimBoxRef>;
+    boxes: Array<SimBoxRef<ConnectorTy>>;
     apps: Array<ContractInfo>;
     fees: BigNumber;
 }
-export type ISimTxn<Token, ContractInfo> = {
+export type ISimTxn<Token, ContractInfo, ConnectorTy extends AnyBackendTy> = {
     kind: 'mapOp';
     smr: SimMapRef;
 } | {
@@ -338,7 +342,7 @@ export type ISimTxn<Token, ContractInfo> = {
 } | {
     kind: 'remote';
     obj: ContractInfo;
-    remote: ISimRemote<Token, ContractInfo>;
+    remote: ISimRemote<Token, ContractInfo, ConnectorTy>;
 } | {
     kind: 'info';
     tok: Token;
@@ -348,7 +352,7 @@ export type ISimTxn<Token, ContractInfo> = {
 } | {
     kind: 'contractNew';
     cns: any;
-    remote: ISimRemote<Token, ContractInfo>;
+    remote: ISimRemote<Token, ContractInfo, ConnectorTy>;
 };
 /**
  * @description Create a getter/setter, where the getter defaults to memoizing a thunk

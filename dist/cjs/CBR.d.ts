@@ -22,11 +22,51 @@ export type CBR_Struct = {
 };
 export type CBR_Val = CBR_Null | CBR_Bool | CBR_UInt | CBR_Bytes | CBR_Address | CBR_Digest | CBR_Object | CBR_Data | CBR_Array | CBR_Tuple | CBR_Struct;
 export interface BackendTy<T extends CBR_Val> {
+    repr: BackendTyRep;
     name: string;
     canonicalize: (uv: unknown) => T;
     defaultValue: T;
     toString: () => string;
 }
+export type BackendTyRep = {
+    kind: 'Null';
+} | {
+    kind: 'Bool';
+} | {
+    kind: 'UInt';
+    max: BigNumber;
+} | {
+    kind: 'Bytes';
+    len: number | BigNumber;
+} | {
+    kind: 'BytesDyn';
+} | {
+    kind: 'StringDyn';
+} | {
+    kind: 'Digest';
+} | {
+    kind: 'Address';
+} | {
+    kind: 'Array';
+    ctc: BackendTy<CBR_Val>;
+    size: number;
+} | {
+    kind: 'Tuple';
+    ctcs: Array<BackendTy<CBR_Val>>;
+} | {
+    kind: 'Struct';
+    ctcs: Array<[string, BackendTy<CBR_Val>]>;
+} | {
+    kind: 'Object';
+    co: {
+        [key: string]: BackendTy<CBR_Val>;
+    };
+} | {
+    kind: 'Data';
+    co: {
+        [key: string]: BackendTy<CBR_Val>;
+    };
+};
 export declare const BV_Null: CBR_Null;
 export declare const BT_Null: BackendTy<CBR_Null>;
 export declare const BT_Bool: BackendTy<CBR_Bool>;
