@@ -191,6 +191,7 @@ export type ISetupEvent<ContractInfo, VerifyResult> = (args: ISetupEventArgs<Con
     createEventStream: (event: string, tys: any[]) => {
         lastTime: () => Promise<Time>;
         next: () => Promise<any>;
+        nextUpToTime: () => Promise<any>;
         seek: (t: Time) => void;
         seekNow: () => Promise<void>;
         monitor: (onEvent: (x: any) => void) => Promise<void>;
@@ -454,7 +455,11 @@ export declare const makeEventStream: <EQInitArgs, RawTxn, ProcTxn, Log>(args: I
     next: () => Promise<{
         when: ethers.BigNumber;
         what: any[];
-    }>;
+    } | undefined>;
+    nextUpToTime: (maxTime?: Time) => Promise<{
+        when: ethers.BigNumber;
+        what: any[];
+    } | undefined>;
 };
 export declare function getQueryLowerBound(): BigNumber;
 export declare function setQueryLowerBound(x: BigNumber | number): void;

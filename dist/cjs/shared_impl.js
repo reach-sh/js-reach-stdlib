@@ -933,24 +933,41 @@ var makeEventStream = function (args) {
         time = t;
         logs = [];
     };
-    var next = function () { return __awaiter(void 0, void 0, void 0, function () {
-        var dhead, parsedLog, txn, cr, l;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+    var nextUpToTime = function (maxTime) { return __awaiter(void 0, void 0, void 0, function () {
+        var dhead, parsedLog, timeout, r, _a, txn, cr, l;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, sync()];
                 case 1:
-                    _a.sent();
-                    dhead = "EventStream::next";
+                    _b.sent();
+                    dhead = "EventStream::nextUpToTime";
                     parsedLog = undefined;
-                    _a.label = 2;
+                    _b.label = 2;
                 case 2:
-                    if (!(parsedLog === undefined)) return [3 /*break*/, 6];
-                    _a.label = 3;
+                    if (!(parsedLog === undefined)) return [3 /*break*/, 9];
+                    _b.label = 3;
                 case 3:
-                    if (!(logs.length === 0)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, eq.deq(dhead)];
+                    if (!(logs.length === 0)) return [3 /*break*/, 8];
+                    timeout = maxTime ? (function (t) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, t.gt(maxTime)];
+                    }); }); }) : neverTrue;
+                    return [4 /*yield*/, eq.peq(dhead, timeout)];
                 case 4:
-                    txn = _a.sent();
+                    r = _b.sent();
+                    _a = r.timeout;
+                    if (_a) return [3 /*break*/, 6];
+                    return [4 /*yield*/, timeout(getTxnTime(r.txn))];
+                case 5:
+                    _a = (_b.sent());
+                    _b.label = 6;
+                case 6:
+                    if (_a) {
+                        (0, exports.debug)(dhead, "timeout", { maxTime: maxTime, r: r });
+                        return [2 /*return*/, undefined];
+                    }
+                    return [4 /*yield*/, eq.deq(dhead)];
+                case 7:
+                    txn = _b.sent();
                     (0, exports.debug)(dhead, { txn: txn });
                     cr = getTxnTime(txn);
                     if (cr.gte(time)) {
@@ -959,15 +976,23 @@ var makeEventStream = function (args) {
                         (0, exports.debug)(dhead, { time: time, logs: logs });
                     }
                     return [3 /*break*/, 3];
-                case 5:
+                case 8:
                     l = logs[0];
                     logs.shift();
                     parsedLog = parseLog(l);
                     (0, exports.debug)(dhead, { parsedLog: parsedLog, l: l });
                     return [3 /*break*/, 2];
-                case 6:
+                case 9:
                     (0, exports.debug)(dhead, 'ret');
                     return [2 /*return*/, { when: time, what: parsedLog }];
+            }
+        });
+    }); };
+    var next = function () { return __awaiter(void 0, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, nextUpToTime(undefined)];
+                case 1: return [2 /*return*/, _a.sent()];
             }
         });
     }); };
@@ -997,7 +1022,7 @@ var makeEventStream = function (args) {
             }
         });
     }); };
-    return { lastTime: lastTime, seek: seek, seekNow: seekNow, monitor: monitor, next: next };
+    return { lastTime: lastTime, seek: seek, seekNow: seekNow, monitor: monitor, next: next, nextUpToTime: nextUpToTime };
 };
 exports.makeEventStream = makeEventStream;
 function getQueryLowerBound() {
