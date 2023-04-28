@@ -4,7 +4,7 @@ var processShim = (function() {
   try {
     // XXX make better use of process-browserify
     if (Object.keys(process.env).length === 0) {
-      throw Error("nothing in process.env");
+      throw Error("nothing in process env");
     }
     return process;
   } catch (e) {
